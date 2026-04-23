@@ -196,6 +196,14 @@ class CustomerIndex extends Component
         $this->customerId = null;
     }
 
+    public function toggleStatus($id)
+    {
+        $customer = Customer::findOrFail($id);
+        $newStatus = $customer->status === 'Active' ? 'Inactive' : 'Active';
+        $customer->update(['status' => $newStatus]);
+        $this->dispatch('notify', message: 'Cập nhật trạng thái thành công!', type: 'success');
+    }
+
     public function getCustomers()
     {
         return Customer::query()

@@ -212,6 +212,13 @@ class ProductIndex extends Component
         $this->productId = null;
     }
 
+    public function toggleStatus($id)
+    {
+        $product = Product::findOrFail($id);
+        $product->update(['is_active' => !$product->is_active]);
+        $this->dispatch('notify', message: 'Cập nhật trạng thái thành công!', type: 'success');
+    }
+
     public function getProducts()
     {
         return Product::query()

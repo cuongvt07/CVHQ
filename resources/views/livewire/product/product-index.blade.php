@@ -118,10 +118,11 @@
                                 <span class="text-xs text-slate-900">{{ number_format($product->sale_price, 0, ',', '.') }} VNĐ</span>
                             </td>
                             <td class="px-6 py-4">
-                                <div class="flex items-center gap-2">
-                                    <span class="w-1.5 h-1.5 rounded-full {{ $product->is_active ? 'bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.4)]' : 'bg-rose-500 shadow-[0_0_8px_rgba(244,63,94,0.4)]' }}"></span>
-                                    <span class="text-[10px] font-bold uppercase tracking-widest {{ $product->is_active ? 'text-emerald-600' : 'text-rose-600' }}">{{ $product->is_active ? 'Đang bán' : 'Ngừng bán' }}</span>
-                                </div>
+                                <button type="button" 
+                                        wire:click="toggleStatus({{ $product->id }})"
+                                        class="relative inline-flex h-5 w-10 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none {{ $product->is_active ? 'bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.4)]' : 'bg-slate-200' }}">
+                                    <span class="pointer-events-none inline-block h-4 w-4 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out {{ $product->is_active ? 'translate-x-5' : 'translate-x-0' }}"></span>
+                                </button>
                             </td>
                             <td class="px-6 py-4">
                                 <div class="flex items-center gap-2">
