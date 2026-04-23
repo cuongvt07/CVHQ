@@ -91,14 +91,28 @@ class ProductsImport implements OnEachRow, WithHeadingRow, WithChunkReading, Sho
             $data['images'] = $imagePaths;
         }
 
-        $product = Product::withTrashed()->firstOrNew(['sku' => $sku]);
-        
-        if ($product->exists && $product->trashed()) {
-            $product->restore();
-        }
+        try {
+            $product = Product::withTrashed()->firstOrNew(['sku' => $sku]);
+            
+            if ($product->exists && $product->trashed()) {
+                $product->restore();
+            }
 
-        $product->fill($data);
-        $product->save();
+            $product->fill($data);
+            $product->save();
+        } catch (\Exception $e) {
+            $this->recordError("Dòng {$row->getIndex()}: " . $e->getMessage());
+        }
+    }
+
+    public function tries(): int
+    {
+        return 3;
+    }
+
+    public function backoff(): int
+    {
+        return 5;
     }
 
     public function chunkSize(): int

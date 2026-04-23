@@ -19,6 +19,15 @@ trait TracksImportProgress
         return $this;
     }
 
+    public function recordError($message)
+    {
+        $progress = Cache::get("import_progress_{$this->importKey}");
+        if ($progress) {
+            $progress['errors'][] = $message;
+            Cache::put("import_progress_{$this->importKey}", $progress, 3600);
+        }
+    }
+
     public function registerEvents(): array
     {
         return [
