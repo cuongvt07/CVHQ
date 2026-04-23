@@ -1,0 +1,95 @@
+@import 'tailwindcss';
+
+@source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
+@source '../../storage/framework/views/*.php';
+@source '../**/*.blade.php';
+@source '../**/*.js';
+
+@theme {
+    /* Colors */
+    --color-space-black: #FFFFFF;
+    --color-electric-blue: #0088CC; /* Slightly darker blue for contrast on white */
+    
+    /* Antigravity Tokens (Light Mode optimized) */
+    --color-antigravity-surface: rgba(0, 0, 0, 0.02);
+    --color-antigravity-border: rgba(0, 0, 0, 0.08);
+    --color-antigravity-glow: rgba(0, 136, 204, 0.1);
+
+    /* Fonts */
+    --font-sans: 'Geist', 'Inter', ui-sans-serif, system-ui, sans-serif;
+
+    /* Radius */
+    --radius-antigravity-pill: 100px;
+    --radius-antigravity-card: 24px;
+
+    /* Animations */
+    @keyframes float {
+        0%, 100% { transform: translateY(0); }
+        50% { transform: translateY(-10px); }
+    }
+    @keyframes pulse-glow {
+        0%, 100% { opacity: 1; box-shadow: 0 0 15px rgba(0, 136, 204, 0.2); }
+        50% { opacity: 0.7; box-shadow: 0 0 5px rgba(0, 136, 204, 0.05); }
+    }
+
+    --animate-float: float 6s ease-in-out infinite;
+    --animate-pulse-glow: pulse-glow 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+@layer components {
+    /* Glassmorphism Core (Light Mode) */
+    .glass-card {
+        @apply bg-white/60 backdrop-blur-[12px] border border-antigravity-border rounded-antigravity-card shadow-sm;
+        box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.8), 0 4px 6px -1px rgb(0 0 0 / 0.05);
+    }
+
+    .glass-nav {
+        @apply sticky top-0 z-50 bg-white/40 backdrop-blur-md border-b border-black/5;
+    }
+
+    /* Anti-gravity Interactive Elements */
+    .btn-electric {
+        @apply bg-electric-blue text-white font-semibold rounded-antigravity-pill px-6 py-2 transition-all duration-300;
+        @apply hover:shadow-[0_4px_20px_rgba(0,136,204,0.3)] hover:-translate-y-0.5 active:scale-95;
+    }
+
+    .btn-ghost {
+        @apply border border-slate-200 text-slate-600 rounded-antigravity-pill px-6 py-2 transition-all duration-300;
+        @apply hover:bg-slate-50 hover:border-slate-300 hover:-translate-y-0.5;
+    }
+
+    /* Typography */
+    .text-glow {
+        text-shadow: 0 0 10px rgba(0, 136, 204, 0.1);
+    }
+
+    .heading-gradient {
+        background: linear-gradient(to bottom, #0F172A 0%, #334155 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+    }
+}
+
+/* Custom Scrollbar (Light Mode) */
+::-webkit-scrollbar {
+    width: 6px;
+}
+
+::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+    @apply bg-slate-200 rounded-full hover:bg-slate-300 transition-colors;
+}
+
+body {
+    background-color: #FFFFFF;
+    color: #0F172A; /* Slate 900 */
+    font-family: 'Geist', 'Inter', sans-serif;
+    overflow-x: hidden;
+}
+
+[x-cloak] {
+    display: none !important;
+}

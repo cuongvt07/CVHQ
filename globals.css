@@ -1,0 +1,70 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --background: 5 5% 2%;
+  --foreground: 0 0% 100%;
+}
+
+body {
+  background-color: #050505;
+  color: white;
+  font-family: 'Geist', 'Inter', sans-serif;
+  overflow-x: hidden;
+}
+
+@layer components {
+  /* Glassmorphism Core */
+  .glass-card {
+    @apply bg-white/3 backdrop-blur-antigravity border border-white/10 rounded-antigravity-card;
+    box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.05);
+  }
+
+  .glass-nav {
+    @apply sticky top-0 z-50 bg-black/20 backdrop-blur-md border-b border-white/5;
+  }
+
+  /* Anti-gravity Interactive Elements */
+  .btn-electric {
+    @apply bg-electric-blue text-space-black font-semibold rounded-antigravity-pill px-6 py-2 transition-all duration-300;
+    @apply hover:shadow-[0_0_20px_rgba(0,209,255,0.5)] hover:-translate-y-1 active:scale-95;
+  }
+
+  .btn-ghost {
+    @apply border border-white/20 text-white rounded-antigravity-pill px-6 py-2 transition-all duration-300;
+    @apply hover:bg-white/5 hover:border-white/40 hover:-translate-y-1;
+  }
+
+  /* Typography */
+  .text-glow {
+    text-shadow: 0 0 10px rgba(0, 209, 255, 0.3);
+  }
+
+  .heading-gradient {
+    @apply bg-text-aurora bg-clip-text text-transparent;
+  }
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  @apply bg-white/10 rounded-full hover:bg-white/20 transition-colors;
+}
+
+/* Base Animations */
+.animate-float {
+  animation: float 6s ease-in-out infinite;
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-10px); }
+}
