@@ -11,6 +11,8 @@ use Maatwebsite\Excel\Concerns\WithEvents;
 use App\Traits\TracksImportProgress;
 use Illuminate\Support\Facades\Log;
 use Maatwebsite\Excel\Events\BeforeImport;
+use Maatwebsite\Excel\Events\AfterChunk;
+use Illuminate\Support\Facades\Cache;
 
 class CommissionImport implements OnEachRow, WithChunkReading, ShouldQueue, WithEvents
 {
@@ -21,16 +23,12 @@ class CommissionImport implements OnEachRow, WithChunkReading, ShouldQueue, With
         $rowData = $row->toArray();
         $index = $row->getIndex();
         
-        // Log MỌI DÒNG để debug
         Log::info("DEBUG Row #{$index}: ", $rowData);
 
-        // Chỉ xử lý từ dòng 3 trở đi như user yêu cầu
         if ($index < 3) {
             return;
         }
 
-        // Column A (Index 0): SKU
-        // Column G (Index 6): Commission
         $sku = $rowData[0] ?? null;
         $commission = $rowData[6] ?? 0;
 
@@ -54,43 +52,48 @@ class CommissionImport implements OnEachRow, WithChunkReading, ShouldQueue, With
             Log::error("ERROR at Row #{$index}: " . $e->getMessage());
             $this->recordError("Dòng {$index}: " . $e->getMessage());
         }
+
+        // Update progress in cache for each row
+        $progress = Cache::get("import_progress_{$this->importKey}");
+        if ($progress) {
+            $progress['current']++;
+            Cache::put("import_progress_{$this->importKey}", $progress, 3600);
+        }
     }
 
     public function registerEvents(): array
     {
-        $parentEvents = $this->traitRegisterEvents(); // Gọi events từ trait
-
-        return array_merge($parentEvents, [
+        return [
             BeforeImport::class => function (BeforeImport $event) {
                 $reader = $event->getReader();
-                $sheetNames = array_keys($reader->getTotalRows());
+                $totalRows = $reader->getTotalRows();
+                $sheetNames = array_keys($totalRows);
+                
                 Log::info("Excel Sheets found: " . implode(", ", $sheetNames));
                 
-                // Gọi logic của trait
-                $totalRows = $reader->getTotalRows();
                 $total = 0;
                 foreach ($totalRows as $sheetName => $rowCount) {
-                    $total += $rowCount; // Đếm tất cả các dòng
+                    $total += $rowCount;
                 }
                 
                 Log::info("Total Raw Rows: {$total}");
 
-                \Illuminate\Support\Facades\Cache::put("import_progress_{$this->importKey}", [
-                    'total' => max(0, $total - 2), // Trừ đi 2 dòng đầu
+                Cache::put("import_progress_{$this->importKey}", [
+                    'total' => max(0, $total - 2), 
                     'current' => 0,
                     'status' => 'processing',
                     'errors' => [],
                 ], 3600);
             },
-        ]);
+            AfterChunk::class => function (AfterChunk $event) {
+                // Logic progress đã được xử lý trong onRow hoặc AfterChunk tùy setup
+                // Ở đây onRow đã tự update current++
+            }
+        ];
     }
 
-    // Rewrite lại traitRegisterEvents vì trong trait nó đã có registerEvents rồi
-    // Tuy nhiên PHP không cho gọi parent trait method dễ dàng nếu trùng tên
-    // Nên tôi sẽ copy logic vào đây luôn cho chắc chắn.
-    
     public function chunkSize(): int
     {
-        return 100;
+        return 50;
     }
 }
