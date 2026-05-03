@@ -21,13 +21,11 @@ class CommissionImport implements OnEachRow, WithHeadingRow, WithChunkReading, S
         $rowData = $row->toArray();
         Log::info("Processing Row #{$row->getIndex()}: ", $rowData);
         
-        $sku = $rowData['ma_sp'] ?? $rowData['ma_hang'] ?? $rowData['sku'] ?? $rowData['ma_hang_hoa'] ?? null;
+        $sku = $rowData['ma_hang'] ?? $rowData['ma_sp'] ?? $rowData['sku'] ?? $rowData['ma_hang_hoa'] ?? null;
         $commission = $rowData['bang_hoa_hong_chung'] ?? $rowData['hoa_hong'] ?? $rowData['commission'] ?? 0;
 
-        Log::info("Checking SKU: {$sku}, Commission: {$commission}");
-
         if (!$sku) {
-            return; // Skip if no SKU
+            return; 
         }
 
         try {
@@ -45,6 +43,11 @@ class CommissionImport implements OnEachRow, WithHeadingRow, WithChunkReading, S
             Log::error("Import Error at Row #{$row->getIndex()}: " . $e->getMessage());
             $this->recordError("Dòng {$row->getIndex()}: " . $e->getMessage());
         }
+    }
+
+    public function headingRow(): int
+    {
+        return 2; // Tiêu đề ở dòng 2, dữ liệu bắt đầu từ dòng 3
     }
 
     public function chunkSize(): int

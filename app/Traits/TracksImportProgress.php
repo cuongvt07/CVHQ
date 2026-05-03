@@ -35,9 +35,9 @@ trait TracksImportProgress
                 $totalRows = $event->getReader()->getTotalRows();
                 
                 $total = 0;
+                $headingRow = method_exists($this, 'headingRow') ? $this->headingRow() : 1;
                 foreach ($totalRows as $sheetName => $rowCount) {
-                    // Subtract 1 for heading row, but ensure it's not negative
-                    $total += max(0, $rowCount - 1);
+                    $total += max(0, $rowCount - $headingRow);
                 }
 
                 Log::info("Import starting for key {$this->importKey}. Total rows: {$total}. Dispatching jobs...");
