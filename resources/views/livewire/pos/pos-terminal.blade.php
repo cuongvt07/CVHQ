@@ -220,14 +220,7 @@
                     <span class="text-sm font-bold uppercase tracking-[0.2em] text-slate-900">Khách cần trả</span>
                     <span class="text-2xl font-bold text-electric-blue tracking-tighter">{{ number_format($finalAmount, 0, ',', '.') }}</span>
                 </div>
-                <div class="flex justify-between items-center mt-4">
-                    <span class="text-xs font-bold uppercase tracking-wider text-slate-500">Khách thanh toán</span>
-                    <div class="relative w-40"><input type="number" wire:model.live="paid_amount" class="w-full bg-white border border-slate-300 rounded-xl text-right px-4 py-2.5 text-lg font-bold text-slate-900 focus:outline-none focus:border-electric-blue shadow-sm transition-all"></div>
-                </div>
-                <div class="flex justify-between items-center text-xs mt-3 bg-slate-50 p-2 rounded-lg border border-slate-100">
-                    <span class="text-slate-400 font-bold uppercase tracking-wider">Tiền thừa trả khách</span>
-                    <span class="text-green-600 font-bold text-base">{{ number_format($changeAmount, 0, ',', '.') }}</span>
-                </div>
+
             </div>
             <button wire:click="checkout" wire:loading.attr="disabled" class="btn-electric w-full py-4 text-xs font-bold uppercase tracking-[0.2em] mt-2 flex items-center justify-center gap-2">
                 <span wire:loading.remove>Hoàn tất & In hóa đơn</span>
@@ -248,7 +241,7 @@
                     @error('new_customer.full_name') <span class="text-[10px] text-red-500 mt-1 ml-1">{{ $message }}</span> @enderror
                 </div>
                 <div>
-                    <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1.5 ml-1">Số điện thoại</label>
+                    <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1.5 ml-1">Số điện thoại (Tùy chọn)</label>
                     <input type="text" wire:model="new_customer.phone" class="w-full bg-white border border-slate-200 rounded-xl px-4 py-3 text-sm text-slate-900 focus:outline-none focus:border-electric-blue transition-all">
                     @error('new_customer.phone') <span class="text-[10px] text-red-500 mt-1 ml-1">{{ $message }}</span> @enderror
                 </div>

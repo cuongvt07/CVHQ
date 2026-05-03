@@ -139,7 +139,7 @@ class PosTerminal extends Component
     {
         $this->validate([
             'new_customer.full_name' => 'required|min:2',
-            'new_customer.phone' => 'required|digits_between:10,11',
+            'new_customer.phone' => 'nullable|digits_between:10,11',
         ]);
 
         $customer = \App\Models\Customer::create([
@@ -184,10 +184,7 @@ class PosTerminal extends Component
             return;
         }
 
-        if ($this->paid_amount < $this->finalAmount) {
-            $this->dispatch('notify', message: 'Số tiền khách trả chưa đủ!', type: 'error');
-            return;
-        }
+
 
         \DB::beginTransaction();
         try {
@@ -203,7 +200,7 @@ class PosTerminal extends Component
                 'extra_fee' => $this->extra_fee,
                 'final_amount' => $this->finalAmount,
                 'total_commission' => collect($this->cart)->sum(fn($item) => $item['commission_amount'] * $item['quantity']),
-                'paid_amount' => $this->paid_amount,
+                'paid_amount' => $this->finalAmount,
                 'status' => 'Completed',
                 'delivery_status' => 'Delivered'
             ]);
@@ -232,7 +229,7 @@ class PosTerminal extends Component
 
             $this->dispatch('notify', message: 'Thanh toán thành công!', type: 'success');
             
-            return redirect()->route('invoices.detail', $invoice->id);
+            // Removed redirect to stay on POS page
         } catch (\Exception $e) {
             \DB::rollBack();
             $this->dispatch('notify', message: 'Lỗi: ' . $e->getMessage(), type: 'error');
