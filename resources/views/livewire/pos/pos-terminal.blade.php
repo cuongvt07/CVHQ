@@ -34,39 +34,44 @@
         <!-- Product Gallery -->
         <div class="flex-1 overflow-hidden relative">
             <!-- Desktop Layout -->
-            <div class="hidden md:grid md:grid-cols-4 gap-6 p-8 h-full overflow-y-auto custom-scrollbar bg-white">
-                @foreach($products as $product)
-                    <div wire:click="addToCart({{ $product['id'] }})"
-                         class="group relative bg-white border border-slate-100 rounded-2xl overflow-hidden hover:shadow-xl hover:shadow-slate-200/50 hover:-translate-y-1 transition-all cursor-pointer h-fit flex flex-col">
-                        <div class="aspect-square overflow-hidden bg-slate-50 shrink-0">
-                            @if($product['image'])
-                                <img src="{{ $product['image'] }}" alt="{{ $product['name'] }}" class="w-full h-full object-cover">
-                            @else
-                                <div class="w-full h-full flex items-center justify-center text-slate-200">
-                                    <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="3" rx="2" ry="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/></svg>
-                                </div>
-                            @endif
-                        </div>
-                        <div class="p-4 flex flex-col gap-2">
-                            <h3 class="text-sm font-semibold text-slate-700 group-hover:text-electric-blue transition-colors line-clamp-2 min-h-[2.5rem]">{{ $product['name'] }}</h3>
-                            <div class="flex items-center justify-between mt-auto pt-2 border-t border-slate-50">
-                                <span class="text-base font-bold text-electric-blue">{{ number_format($product['sale_price'], 0, ',', '.') }}</span>
-                                <div class="text-right">
-                                    <div class="text-[9px] text-slate-300 font-bold uppercase tracking-widest">{{ $product['sku'] }}</div>
-                                    <div class="text-[10px] text-emerald-500 font-bold uppercase">{{ $product['location'] }}</div>
+            <div class="hidden md:flex md:flex-col h-full overflow-y-auto custom-scrollbar p-8 bg-white">
+                <div class="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                    @foreach($products as $product)
+                        <div wire:click="addToCart({{ $product['id'] }})"
+                             class="group relative bg-white border border-slate-100 rounded-2xl overflow-hidden hover:shadow-xl hover:shadow-slate-200/50 hover:-translate-y-1 transition-all cursor-pointer flex flex-col h-full">
+                            <div class="aspect-square overflow-hidden bg-slate-50 shrink-0">
+                                @if($product['image'])
+                                    <img src="{{ $product['image'] }}" alt="{{ $product['name'] }}" class="w-full h-full object-cover">
+                                @else
+                                    <div class="w-full h-full flex items-center justify-center text-slate-200">
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="3" rx="2" ry="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/></svg>
+                                    </div>
+                                @endif
+                            </div>
+                            <div class="p-4 flex flex-col flex-1 gap-2">
+                                <h3 class="text-sm font-semibold text-slate-700 group-hover:text-electric-blue transition-colors line-clamp-2 min-h-[2.5rem]">{{ $product['name'] }}</h3>
+                                <div class="flex items-center justify-between mt-auto pt-2 border-t border-slate-50">
+                                    <span class="text-base font-bold text-electric-blue">{{ number_format($product['sale_price'], 0, ',', '.') }}</span>
+                                    <div class="text-right">
+                                        <div class="text-[9px] text-slate-300 font-bold uppercase tracking-widest">{{ $product['sku'] }}</div>
+                                        <div class="text-[10px] text-emerald-500 font-bold uppercase">{{ $product['location'] }}</div>
+                                    </div>
                                 </div>
                             </div>
                         </div>
-                    </div>
-                @endforeach
+                    @endforeach
+                </div>
+                <div class="mt-8 pt-4 border-t border-slate-50">
+                    {{ $products->links() }}
+                </div>
             </div>
 
             <!-- Mobile Layout -->
             <div class="md:hidden h-full overflow-y-auto bg-white p-3 pb-32">
-                <div class="grid grid-cols-3 gap-2">
+                <div class="grid grid-cols-2 gap-2 mb-6">
                     @forelse($products as $product)
-                        <div wire:click="addToCart({{ $product['id'] }})" class="bg-white border border-slate-100 rounded-xl overflow-hidden flex flex-col shadow-sm active:scale-95 transition-transform">
-                            <div class="h-14 bg-slate-50 relative shrink-0">
+                        <div wire:click="addToCart({{ $product['id'] }})" class="bg-white border border-slate-100 rounded-xl overflow-hidden flex flex-col shadow-sm active:scale-95 transition-transform h-full">
+                            <div class="h-20 bg-slate-50 relative shrink-0">
                                 @if($product['image'])
                                     <img src="{{ $product['image'] }}" class="w-full h-full object-cover">
                                 @else
@@ -75,13 +80,13 @@
                                     </div>
                                 @endif
                             </div>
-                            <div class="p-1 flex-1 flex flex-col justify-between bg-white border-t border-slate-50 min-h-[50px]">
+                            <div class="p-2 flex-1 flex flex-col justify-between bg-white border-t border-slate-50">
                                 <div>
                                     <div class="text-[7px] font-black text-slate-400 uppercase tracking-tighter leading-none mb-0.5 truncate">{{ $product['sku'] }}</div>
-                                    <h3 class="text-[9px] font-bold text-slate-900 line-clamp-2 leading-tight">{{ $product['name'] }}</h3>
+                                    <h3 class="text-[10px] font-bold text-slate-900 line-clamp-2 leading-tight min-h-[1.5rem]">{{ $product['name'] }}</h3>
                                 </div>
-                                <div class="flex items-end justify-between mt-1">
-                                    <p class="text-[10px] font-bold text-electric-blue leading-none">{{ number_format($product['sale_price'] / 1000, 0) }}k</p>
+                                <div class="flex items-end justify-between mt-2">
+                                    <p class="text-[11px] font-bold text-electric-blue leading-none">{{ number_format($product['sale_price'] / 1000, 0) }}k</p>
                                     <div class="text-right">
                                         <div class="text-[7px] font-bold text-slate-400 leading-none">Tồn: {{ $product['stock_quantity'] }}</div>
                                         <div class="text-[7px] font-bold text-emerald-500 uppercase leading-none mt-0.5">{{ $product['location'] }}</div>
@@ -90,8 +95,11 @@
                             </div>
                         </div>
                     @empty
-                        <div class="col-span-3 py-10 flex items-center justify-center text-slate-300 text-xs font-bold uppercase tracking-widest">Không có sản phẩm</div>
+                        <div class="col-span-2 py-10 flex items-center justify-center text-slate-300 text-xs font-bold uppercase tracking-widest">Không có sản phẩm</div>
                     @endforelse
+                </div>
+                <div class="mt-4 pb-12">
+                    {{ $products->links() }}
                 </div>
             </div>
         </div>

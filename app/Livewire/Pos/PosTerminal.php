@@ -4,11 +4,12 @@ namespace App\Livewire\Pos;
 
 use App\Models\Product;
 use Livewire\Component;
+use Livewire\WithPagination;
 use App\Traits\HasPermissions;
 
 class PosTerminal extends Component
 {
-    use HasPermissions;
+    use HasPermissions, WithPagination;
 
     protected function getModuleKey(): string
     {
@@ -17,6 +18,16 @@ class PosTerminal extends Component
     public $cart = [];
     public $search = '';
     public $category = 'All';
+
+    public function updatingSearch()
+    {
+        $this->resetPage();
+    }
+
+    public function updatingCategory()
+    {
+        $this->resetPage();
+    }
 
     // Financials
     public $discount = 0;
@@ -100,8 +111,8 @@ class PosTerminal extends Component
             })
             ->when($this->category !== 'All', fn($q) => $q->where('category_path', $this->category))
             ->where('is_active', true)
-            ->get()
-            ->map(function($product) {
+            ->paginate(24)
+            ->through(function($product) {
                 return [
                     'id' => $product->id,
                     'sku' => $product->sku,
