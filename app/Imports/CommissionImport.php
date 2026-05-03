@@ -5,26 +5,32 @@ namespace App\Imports;
 use App\Models\Product;
 use Maatwebsite\Excel\Concerns\OnEachRow;
 use Maatwebsite\Excel\Row;
-use Maatwebsite\Excel\Concerns\WithHeadingRow;
+use Maatwebsite\Excel\Concerns\WithStartRow;
 use Maatwebsite\Excel\Concerns\WithChunkReading;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Maatwebsite\Excel\Concerns\WithEvents;
 use App\Traits\TracksImportProgress;
 use Illuminate\Support\Facades\Log;
 
-class CommissionImport implements OnEachRow, WithHeadingRow, WithChunkReading, ShouldQueue, WithEvents
+class CommissionImport implements OnEachRow, WithStartRow, WithChunkReading, ShouldQueue, WithEvents
 {
     use TracksImportProgress;
 
     public function onRow(Row $row)
     {
         $rowData = $row->toArray();
+        // Row index starts from 1. 
+        // WithStartRow(3) means the first row processed will have getIndex() = 3.
+        
         Log::info("Processing Row #{$row->getIndex()}: ", $rowData);
         
-        $sku = $rowData['ma_hang'] ?? $rowData['ma_sp'] ?? $rowData['sku'] ?? $rowData['ma_hang_hoa'] ?? null;
-        $commission = $rowData['bang_hoa_hong_chung'] ?? $rowData['hoa_hong'] ?? $rowData['commission'] ?? 0;
+        // Column A (Index 0): SKU
+        // Column G (Index 6): Commission
+        $sku = $rowData[0] ?? null;
+        $commission = $rowData[6] ?? 0;
 
-        if (!$sku) {
+        if (!$sku || trim($sku) === '') {
+            Log::info("Skipping Row #{$row->getIndex()}: SKU is empty.");
             return; 
         }
 
@@ -32,10 +38,13 @@ class CommissionImport implements OnEachRow, WithHeadingRow, WithChunkReading, S
             $product = Product::where('sku', trim($sku))->first();
             
             if ($product) {
+                // Xử lý giá tiền (loại bỏ dấu phẩy/chấm nếu có)
+                $cleanCommission = str_replace([',', '.'], '', (string)$commission);
+                
                 $product->update([
-                    'commission_amount' => (float) $commission
+                    'commission_amount' => (float) $cleanCommission
                 ]);
-                Log::info("Updated SKU: {$sku} with Commission: {$commission}");
+                Log::info("Updated SKU: {$sku} with Commission: {$cleanCommission}");
             } else {
                 Log::warning("SKU not found in database: " . trim($sku));
             }
@@ -45,9 +54,9 @@ class CommissionImport implements OnEachRow, WithHeadingRow, WithChunkReading, S
         }
     }
 
-    public function headingRow(): int
+    public function startRow(): int
     {
-        return 2; // Tiêu đề ở dòng 2, dữ liệu bắt đầu từ dòng 3
+        return 3; // Bắt đầu đọc dữ liệu thực tế từ dòng 3
     }
 
     public function chunkSize(): int
