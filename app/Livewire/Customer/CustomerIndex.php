@@ -77,7 +77,11 @@ class CustomerIndex extends Component
         try {
             $import = new CustomersImport();
             $import->setImportKey($this->importBatchId);
-            Excel::import($import, $this->importFile->getRealPath());
+            
+            // Store the file to ensure it's available for the queue worker
+            $filePath = $this->importFile->store('imports');
+            
+            Excel::queueImport($import, $filePath);
             
             $this->importFile = null;
         } catch (\Maatwebsite\Excel\Validators\ValidationException $e) {

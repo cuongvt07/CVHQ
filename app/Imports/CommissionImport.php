@@ -10,8 +10,10 @@ use App\Traits\TracksImportProgress;
 use Maatwebsite\Excel\Concerns\WithEvents;
 use Maatwebsite\Excel\Events\BeforeImport;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Contracts\Queue\ShouldQueue;
+use Maatwebsite\Excel\Concerns\WithChunkReading;
 
-class CommissionImport implements ToCollection, WithEvents
+class CommissionImport implements ToCollection, WithEvents, ShouldQueue, WithChunkReading
 {
     use TracksImportProgress;
 
@@ -86,5 +88,9 @@ class CommissionImport implements ToCollection, WithEvents
                 ], 3600);
             },
         ];
+    }
+    public function chunkSize(): int
+    {
+        return 100;
     }
 }
