@@ -55,6 +55,22 @@ class ProductCommission extends Component
         }
     }
 
+    protected function getRecordsForBulk()
+    {
+        return Product::query()
+            ->when($this->search, function($query) {
+                $query->where('name', 'like', "%{$this->search}%")
+                      ->orWhere('sku', 'like', "%{$this->search}%");
+            })
+            ->orderBy('sku', 'asc')
+            ->get();
+    }
+
+    protected function getModelForBulk()
+    {
+        return Product::class;
+    }
+
     public function render()
     {
         $products = Product::query()
