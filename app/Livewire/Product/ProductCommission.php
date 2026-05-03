@@ -11,6 +11,8 @@ use App\Imports\CommissionImport;
 use App\Exports\CommissionExport;
 use Maatwebsite\Excel\Facades\Excel;
 use App\Traits\HasPermissions;
+use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Str;
 
 class ProductCommission extends Component
 {
@@ -31,6 +33,7 @@ class ProductCommission extends Component
     public $importTotal = 0;
     public $importCurrent = 0;
     public $importErrors = [];
+    public $importBatchId;
 
     protected $queryString = [
         'search' => ['except' => ''],
@@ -54,14 +57,47 @@ class ProductCommission extends Component
             'importFile' => 'required|mimes:xlsx,xls,csv|max:5120',
         ]);
 
+        $this->importBatchId = Str::random(10);
+        $this->importing = true;
+        $this->importProgress = 0;
+        $this->importErrors = [];
+
         try {
-            Excel::import(new CommissionImport, $this->importFile->getRealPath());
+            $import = new CommissionImport();
+            $import->setImportKey($this->importBatchId);
+            Excel::import($import, $this->importFile->getRealPath());
             
-            $this->dispatch('notify', message: 'Import hoa hồng hoàn tất!', type: 'success');
             $this->importFile = null;
-            $this->dispatch('close-import-modal');
         } catch (\Exception $e) {
+            $this->importing = false;
             $this->dispatch('notify', message: 'Lỗi import: ' . $e->getMessage(), type: 'error');
+        }
+    }
+
+    public function pollImportProgress()
+    {
+        if (!$this->importing) return;
+
+        $progress = Cache::get("import_progress_{$this->importBatchId}");
+
+        if ($progress) {
+            $this->importTotal = $progress['total'];
+            $this->importCurrent = $progress['current'];
+            
+            if ($this->importTotal > 0) {
+                $this->importProgress = min(100, round(($this->importCurrent / $this->importTotal) * 100));
+            }
+
+            if ($this->importCurrent >= $this->importTotal || $progress['status'] === 'failed' || $progress['status'] === 'finished') {
+                $this->importing = false;
+                $this->importErrors = array_merge($this->importErrors, $progress['errors']);
+                
+                if (empty($this->importErrors)) {
+                    $this->dispatch('notify', message: 'Import hoa hồng hoàn tất!', type: 'success');
+                }
+                
+                $this->dispatch('import-finished', id: 'commissions');
+            }
         }
     }
 
