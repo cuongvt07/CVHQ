@@ -7,6 +7,7 @@ use Livewire\Component;
 use Livewire\WithPagination;
 use App\Traits\WithBulkActions;
 use Illuminate\Support\Str;
+use App\Traits\HasPermissions;
 
 class CategoryIndex extends Component
 {
