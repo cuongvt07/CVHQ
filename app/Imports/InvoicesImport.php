@@ -23,6 +23,8 @@ class InvoicesImport implements ToCollection, WithHeadingRow, WithBatchInserts, 
     {
         // Group by Invoice Code
         $groupedInvoices = $rows->groupBy('ma_hoa_don');
+        
+        Log::info("Import key {$this->importKey} processing batch of " . $rows->count() . " rows (" . $groupedInvoices->count() . " invoices)");
 
         foreach ($groupedInvoices as $invoiceCode => $items) {
             if (empty($invoiceCode)) continue;

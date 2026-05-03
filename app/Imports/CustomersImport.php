@@ -22,6 +22,10 @@ class CustomersImport implements OnEachRow, WithHeadingRow, WithChunkReading, Sh
         $name = $rowData['ten_khach_hang'] ?? $rowData['ten_khach'] ?? null;
         $code = $rowData['ma_khach_hang'] ?? $rowData['ma_khach'] ?? null;
 
+        if ($row->getIndex() % 10 === 0) {
+            Log::info("Import key {$this->importKey} processing row: " . $row->getIndex());
+        }
+
         if (empty($name)) {
             return;
         }

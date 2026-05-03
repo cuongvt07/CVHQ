@@ -40,7 +40,7 @@ trait TracksImportProgress
                     $total += max(0, $rowCount - 1);
                 }
 
-                Log::info("Import starting for key {$this->importKey}. Total rows: {$total}");
+                Log::info("Import starting for key {$this->importKey}. Total rows: {$total}. Dispatching jobs...");
                 
                 Cache::put("import_progress_{$this->importKey}", [
                     'total' => $total,
@@ -52,12 +52,17 @@ trait TracksImportProgress
             AfterChunk::class => function (AfterChunk $event) {
                 $progress = Cache::get("import_progress_{$this->importKey}");
                 if ($progress) {
-                    // We increment by the actual row count processed in this chunk if possible, 
-                    // but chunkSize() is a good enough estimate for the UI.
                     $progress['current'] += $this->chunkSize(); 
                     if ($progress['current'] > $progress['total']) {
                         $progress['current'] = $progress['total'];
                     }
+                    
+                    Log::info("Import progress for key {$this->importKey}: {$progress['current']}/{$progress['total']}");
+                    
+                    if ($progress['current'] >= $progress['total']) {
+                        $progress['status'] = 'finished';
+                    }
+                    
                     Cache::put("import_progress_{$this->importKey}", $progress, 3600);
                 }
             },

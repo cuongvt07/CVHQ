@@ -195,7 +195,7 @@ class PosTerminal extends Component
                 'branch' => 'Antigravity HQ',
                 'customer_id' => $this->customer_id,
                 'user_id' => auth()->id(),
-                'seller_name' => auth()->user()->name ?? 'Admin POS',
+                'seller_name' => auth()->user()?->name ?? 'Admin POS',
                 'sales_channel' => 'POS',
                 'total_amount' => $this->total,
                 'discount_amount' => $this->discount,
