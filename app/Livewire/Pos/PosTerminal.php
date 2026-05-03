@@ -109,6 +109,7 @@ class PosTerminal extends Component
                     'category_path' => $product->category_path,
                     'sale_price' => (int) $product->sale_price,
                     'location' => $product->location,
+                    'stock_quantity' => $product->stock_quantity,
                     'image' => !empty($product->images) ? $product->images[0] : null,
                 ];
             });

@@ -66,21 +66,27 @@
                 @forelse($products->chunk(12) as $page)
                     <div class="snap-start w-full shrink-0 grid grid-cols-3 grid-rows-4 gap-2 p-3 pb-24 h-full overflow-hidden">
                         @foreach($page as $product)
-                            <div wire:click="addToCart({{ $product['id'] }})" class="bg-white border border-slate-100 rounded-xl overflow-hidden flex flex-col h-full shadow-sm">
-                                <div class="flex-1 min-h-0 bg-slate-50 relative">
+                            <div wire:click="addToCart({{ $product['id'] }})" class="bg-white border border-slate-100 rounded-xl overflow-hidden flex flex-col h-full shadow-sm active:scale-95 transition-transform">
+                                <div class="h-16 bg-slate-50 relative shrink-0">
                                     @if($product['image'])
                                         <img src="{{ $product['image'] }}" class="w-full h-full object-cover">
                                     @else
                                         <div class="w-full h-full flex items-center justify-center text-slate-200">
-                                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="3" rx="2" ry="2"/></svg>
+                                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="3" rx="2" ry="2"/></svg>
                                         </div>
                                     @endif
                                 </div>
-                                <div class="p-1 shrink-0 bg-white border-t border-slate-50">
-                                    <h3 class="text-[10px] font-bold text-slate-900 truncate leading-tight">{{ $product['name'] }}</h3>
-                                    <div class="flex items-center justify-between mt-0.5">
-                                        <p class="text-[11px] font-bold text-electric-blue leading-none">{{ number_format($product['sale_price'] / 1000, 0) }}k</p>
-                                        <p class="text-[8px] font-bold text-emerald-500 uppercase">{{ $product['location'] }}</p>
+                                <div class="p-1 flex-1 flex flex-col justify-between bg-white border-t border-slate-50">
+                                    <div>
+                                        <div class="text-[7px] font-black text-slate-400 uppercase tracking-tighter leading-none mb-0.5 truncate">{{ $product['sku'] }}</div>
+                                        <h3 class="text-[9px] font-bold text-slate-900 line-clamp-2 leading-tight">{{ $product['name'] }}</h3>
+                                    </div>
+                                    <div class="flex items-end justify-between mt-1">
+                                        <p class="text-[10px] font-bold text-electric-blue leading-none">{{ number_format($product['sale_price'] / 1000, 0) }}k</p>
+                                        <div class="text-right">
+                                            <div class="text-[7px] font-bold text-slate-400 leading-none">Tồn: {{ $product['stock_quantity'] }}</div>
+                                            <div class="text-[7px] font-bold text-emerald-500 uppercase leading-none mt-0.5">{{ $product['location'] }}</div>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
