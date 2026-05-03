@@ -19,8 +19,8 @@ class CommissionImport implements OnEachRow, WithHeadingRow, WithChunkReading, S
     public function onRow(Row $row)
     {
         $rowData = $row->toArray();
-        $sku = $rowData['ma_hang'] ?? $rowData['sku'] ?? null;
-        $commission = $rowData['hoa_hong'] ?? $rowData['commission'] ?? 0;
+        $sku = $rowData['ma_sp'] ?? $rowData['ma_hang'] ?? $rowData['sku'] ?? $rowData['ma_hang_hoa'] ?? null;
+        $commission = $rowData['bang_hoa_hong_chung'] ?? $rowData['hoa_hong'] ?? $rowData['commission'] ?? 0;
 
         if (!$sku) {
             return; // Skip if no SKU
