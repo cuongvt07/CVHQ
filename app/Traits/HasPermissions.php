@@ -12,7 +12,7 @@ trait HasPermissions
     public function mountHasPermissions()
     {
         if (!auth()->check()) {
-            return redirect('/');
+            return redirect()->route('login');
         }
 
         $user = auth()->user();

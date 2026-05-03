@@ -27,14 +27,35 @@
 
         <div class="h-6 w-px bg-slate-200"></div>
 
-        <!-- User Profile -->
-        <div class="flex items-center gap-3 pl-2 cursor-pointer group">
-            <div class="flex flex-col items-end">
-                <span class="text-xs font-bold text-slate-900 group-hover:text-electric-blue transition-colors">Admin Lead</span>
-                <span class="text-[10px] text-slate-400 uppercase tracking-widest font-mono">Senior Dev</span>
+        <!-- User Profile & Logout -->
+        <div class="flex items-center gap-3 pl-2 group relative" x-data="{ open: false }" @click.away="open = false">
+            <div class="flex flex-col items-end cursor-pointer" @click="open = !open">
+                <span class="text-xs font-bold text-slate-900 group-hover:text-electric-blue transition-colors">{{ auth()->user()->name ?? 'Guest' }}</span>
+                <span class="text-[10px] text-slate-400 uppercase tracking-widest font-mono">{{ auth()->user()->role ?? 'User' }}</span>
             </div>
-            <div class="w-10 h-10 rounded-full border-2 border-slate-100 overflow-hidden group-hover:border-electric-blue/30 transition-all">
-                <img src="https://ui-avatars.com/api/?name=Admin&background=E0F2FE&color=0088CC" class="w-full h-full object-cover">
+            <div class="w-10 h-10 rounded-full border-2 border-slate-100 overflow-hidden group-hover:border-electric-blue/30 transition-all cursor-pointer" @click="open = !open">
+                <img src="https://ui-avatars.com/api/?name={{ urlencode(auth()->user()->name ?? 'U') }}&background=E0F2FE&color=0088CC" class="w-full h-full object-cover">
+            </div>
+
+            <!-- Dropdown Menu -->
+            <div x-show="open" 
+                 x-transition:enter="transition ease-out duration-200"
+                 x-transition:enter-start="opacity-0 scale-95"
+                 x-transition:enter-end="opacity-100 scale-100"
+                 class="absolute right-0 top-full mt-2 w-48 bg-white rounded-2xl shadow-2xl border border-slate-100 overflow-hidden z-50">
+                <div class="p-2">
+                    <a href="#" class="flex items-center gap-3 px-4 py-2 text-xs font-bold text-slate-600 hover:bg-slate-50 hover:text-slate-900 rounded-xl transition-all">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                        Tài khoản
+                    </a>
+                    <form action="{{ route('logout') }}" method="POST">
+                        @csrf
+                        <button type="submit" class="w-full flex items-center gap-3 px-4 py-2 text-xs font-bold text-rose-600 hover:bg-rose-50 rounded-xl transition-all">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+                            Đăng xuất
+                        </button>
+                    </form>
+                </div>
             </div>
         </div>
     </div>
