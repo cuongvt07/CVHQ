@@ -51,7 +51,10 @@
                             <div class="p-4 flex flex-col flex-1 gap-2">
                                 <h3 class="text-sm font-semibold text-slate-700 group-hover:text-electric-blue transition-colors line-clamp-2 min-h-[2.5rem]">{{ $product['name'] }}</h3>
                                 <div class="flex items-center justify-between mt-auto pt-2 border-t border-slate-50">
-                                    <span class="text-base font-bold text-electric-blue">{{ number_format($product['sale_price'], 0, ',', '.') }}</span>
+                                    <div>
+                                        <span class="text-base font-bold text-electric-blue block">{{ number_format($product['sale_price'], 0, ',', '.') }}</span>
+                                        <span class="text-[10px] font-semibold text-slate-400 bg-slate-50 px-1.5 py-0.5 rounded-md border border-slate-100 mt-1 inline-block">Tồn: {{ $product['stock_quantity'] }}</span>
+                                    </div>
                                     <div class="text-right">
                                         <div class="text-[9px] text-slate-300 font-bold uppercase tracking-widest">{{ $product['sku'] }}</div>
                                         <div class="text-[10px] text-emerald-500 font-bold uppercase">{{ $product['location'] }}</div>

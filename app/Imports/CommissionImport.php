@@ -1,96 +1,58 @@
 <?php
-
-namespace App\Imports;
-
-use App\Models\Product;
-use Maatwebsite\Excel\Concerns\ToCollection;
-use Illuminate\Support\Collection;
-use Illuminate\Support\Facades\Log;
-use App\Traits\TracksImportProgress;
-use Maatwebsite\Excel\Concerns\WithEvents;
-use Maatwebsite\Excel\Events\BeforeImport;
-use Illuminate\Support\Facades\Cache;
-use Illuminate\Contracts\Queue\ShouldQueue;
-use Maatwebsite\Excel\Concerns\WithChunkReading;
-
-class CommissionImport implements ToCollection, WithEvents, ShouldQueue, WithChunkReading
-{
-    use TracksImportProgress;
-
-    public function collection(Collection $rows)
-    {
-        $total = $rows->count();
-        Log::info("Collection Read Success. Total rows found: {$total}");
-
-        $processed = 0;
-        foreach ($rows as $index => $rowData) {
-            $rowNumber = $index + 1;
-            
-            // Log 5 dòng đầu để debug cấu trúc
-            if ($rowNumber <= 5) {
-                Log::info("DEBUG Row #{$rowNumber}: ", $rowData->toArray());
-            }
-
-            // Bỏ qua 2 dòng đầu (Dòng 1: Tiêu đề lớn, Dòng 2: Header)
-            if ($rowNumber < 3) {
-                continue;
-            }
-
-            $sku = $rowData[0] ?? null;
-            $commission = $rowData[6] ?? 0;
-
-            if (!$sku || trim((string)$sku) === '') {
-                continue; 
-            }
-
-            try {
-                $product = Product::where('sku', trim((string)$sku))->first();
-                
-                if ($product) {
-                    $cleanCommission = str_replace([',', '.'], '', (string)$commission);
-                    $product->update([
-                        'commission_amount' => (float) $cleanCommission
-                    ]);
-                    Log::info("SUCCESS: Updated SKU: {$sku} at Row #{$rowNumber}");
-                } else {
-                    Log::warning("NOT FOUND: SKU {$sku} at Row #{$rowNumber}");
-                }
-            } catch (\Exception $e) {
-                Log::error("ERROR at Row #{$rowNumber}: " . $e->getMessage());
-                $this->recordError("Dòng {$rowNumber}: " . $e->getMessage());
-            }
-
-            $processed++;
-            // Cập nhật progress
-            $this->updateProgress($processed, $total - 2);
-        }
-    }
-
-    private function updateProgress($current, $total)
-    {
-        $progress = Cache::get("import_progress_{$this->importKey}");
-        if ($progress) {
-            $progress['current'] = $current;
-            $progress['total'] = max($current, $total);
-            Cache::put("import_progress_{$this->importKey}", $progress, 3600);
-        }
-    }
-
-    public function registerEvents(): array
-    {
-        return [
-            BeforeImport::class => function (BeforeImport $event) {
-                Cache::put("import_progress_{$this->importKey}", [
-                    'total' => 0, 
-                    'current' => 0,
-                    'status' => 'processing',
-                    'errors' => [],
-                ], 3600);
-            },
-        ];
-    }
-    public function chunkSize(): int
-    {
-        return 100;
-    }
-}
+3: 
+4: namespace App\Imports;
+5: 
+6: use App\Models\Product;
+7: use Maatwebsite\Excel\Concerns\OnEachRow;
+8: use Maatwebsite\Excel\Row;
+9: use Illuminate\Support\Facades\Log;
+10: use App\Traits\TracksImportProgress;
+11: use Maatwebsite\Excel\Concerns\WithEvents;
+12: use Maatwebsite\Excel\Concerns\WithStartRow;
+13: use Maatwebsite\Excel\Concerns\WithChunkReading;
+14: use Illuminate\Contracts\Queue\ShouldQueue;
+15: 
+16: class CommissionImport implements OnEachRow, WithEvents, ShouldQueue, WithChunkReading, WithStartRow
+17: {
+18:     use TracksImportProgress;
+19: 
+20:     public function onRow(Row $row)
+21:     {
+22:         $rowData = $row->toArray();
+23:         $rowNumber = $row->getIndex();
+24: 
+25:         $sku = $rowData[0] ?? null;
+26:         $commission = $rowData[6] ?? 0;
+27: 
+28:         if (!$sku || trim((string)$sku) === '') {
+29:             return; 
+30:         }
+31: 
+32:         try {
+33:             $product = Product::where('sku', trim((string)$sku))->first();
+34:             
+35:             if ($product) {
+36:                 $cleanCommission = str_replace([',', '.'], '', (string)$commission);
+37:                 $product->update([
+38:                     'commission_amount' => (float) $cleanCommission
+39:                 ]);
+40:                 // Log::info("SUCCESS: Updated SKU: {$sku} at Row #{$rowNumber}");
+41:             } else {
+42:                 // Log::warning("NOT FOUND: SKU {$sku} at Row #{$rowNumber}");
+43:             }
+44:         } catch (\Exception $e) {
+45:             Log::error("ERROR at Row #{$rowNumber}: " . $e->getMessage());
+46:             $this->recordError("Dòng {$rowNumber}: " . $e->getMessage());
+47:         }
+48:     }
+49: 
+50:     public function startRow(): int
+51:     {
+52:         return 3;
+53:     }
+54: 
+55:     public function chunkSize(): int
+56:     {
+57:         return 100;
+58:     }
+59: }
