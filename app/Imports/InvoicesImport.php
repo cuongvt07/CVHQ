@@ -13,6 +13,7 @@ use Maatwebsite\Excel\Concerns\WithBatchInserts;
 use Maatwebsite\Excel\Concerns\WithChunkReading;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Maatwebsite\Excel\Concerns\WithEvents;
+use Illuminate\Support\Facades\Log;
 use App\Traits\TracksImportProgress;
 use PhpOffice\PhpSpreadsheet\Shared\Date;
 

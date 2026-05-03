@@ -13,6 +13,7 @@ use Illuminate\Support\Str;
 use Maatwebsite\Excel\Concerns\WithChunkReading;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Maatwebsite\Excel\Concerns\WithEvents;
+use Illuminate\Support\Facades\Log;
 use App\Traits\TracksImportProgress;
 
 class ProductsImport implements OnEachRow, WithHeadingRow, WithChunkReading, ShouldQueue, WithEvents
