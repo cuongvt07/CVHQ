@@ -62,39 +62,37 @@
             </div>
 
             <!-- Mobile Layout -->
-            <div class="md:hidden flex h-full snap-x snap-mandatory overflow-x-auto no-scrollbar bg-white">
-                @forelse($products->chunk(12) as $page)
-                    <div class="snap-start w-full shrink-0 grid grid-cols-3 grid-rows-4 gap-2 p-3 pb-24 h-full overflow-hidden">
-                        @foreach($page as $product)
-                            <div wire:click="addToCart({{ $product['id'] }})" class="bg-white border border-slate-100 rounded-xl overflow-hidden flex flex-col h-full shadow-sm active:scale-95 transition-transform">
-                                <div class="h-16 bg-slate-50 relative shrink-0">
-                                    @if($product['image'])
-                                        <img src="{{ $product['image'] }}" class="w-full h-full object-cover">
-                                    @else
-                                        <div class="w-full h-full flex items-center justify-center text-slate-200">
-                                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="3" rx="2" ry="2"/></svg>
-                                        </div>
-                                    @endif
-                                </div>
-                                <div class="p-1 flex-1 flex flex-col justify-between bg-white border-t border-slate-50">
-                                    <div>
-                                        <div class="text-[7px] font-black text-slate-400 uppercase tracking-tighter leading-none mb-0.5 truncate">{{ $product['sku'] }}</div>
-                                        <h3 class="text-[9px] font-bold text-slate-900 line-clamp-2 leading-tight">{{ $product['name'] }}</h3>
+            <div class="md:hidden h-full overflow-y-auto bg-white p-3 pb-32">
+                <div class="grid grid-cols-3 gap-2">
+                    @forelse($products as $product)
+                        <div wire:click="addToCart({{ $product['id'] }})" class="bg-white border border-slate-100 rounded-xl overflow-hidden flex flex-col shadow-sm active:scale-95 transition-transform">
+                            <div class="h-14 bg-slate-50 relative shrink-0">
+                                @if($product['image'])
+                                    <img src="{{ $product['image'] }}" class="w-full h-full object-cover">
+                                @else
+                                    <div class="w-full h-full flex items-center justify-center text-slate-200">
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="3" rx="2" ry="2"/></svg>
                                     </div>
-                                    <div class="flex items-end justify-between mt-1">
-                                        <p class="text-[10px] font-bold text-electric-blue leading-none">{{ number_format($product['sale_price'] / 1000, 0) }}k</p>
-                                        <div class="text-right">
-                                            <div class="text-[7px] font-bold text-slate-400 leading-none">Tồn: {{ $product['stock_quantity'] }}</div>
-                                            <div class="text-[7px] font-bold text-emerald-500 uppercase leading-none mt-0.5">{{ $product['location'] }}</div>
-                                        </div>
+                                @endif
+                            </div>
+                            <div class="p-1 flex-1 flex flex-col justify-between bg-white border-t border-slate-50 min-h-[50px]">
+                                <div>
+                                    <div class="text-[7px] font-black text-slate-400 uppercase tracking-tighter leading-none mb-0.5 truncate">{{ $product['sku'] }}</div>
+                                    <h3 class="text-[9px] font-bold text-slate-900 line-clamp-2 leading-tight">{{ $product['name'] }}</h3>
+                                </div>
+                                <div class="flex items-end justify-between mt-1">
+                                    <p class="text-[10px] font-bold text-electric-blue leading-none">{{ number_format($product['sale_price'] / 1000, 0) }}k</p>
+                                    <div class="text-right">
+                                        <div class="text-[7px] font-bold text-slate-400 leading-none">Tồn: {{ $product['stock_quantity'] }}</div>
+                                        <div class="text-[7px] font-bold text-emerald-500 uppercase leading-none mt-0.5">{{ $product['location'] }}</div>
                                     </div>
                                 </div>
                             </div>
-                        @endforeach
-                    </div>
-                @empty
-                    <div class="w-full flex items-center justify-center text-slate-300 text-xs font-bold uppercase tracking-widest">Không có sản phẩm</div>
-                @endforelse
+                        </div>
+                    @empty
+                        <div class="col-span-3 py-10 flex items-center justify-center text-slate-300 text-xs font-bold uppercase tracking-widest">Không có sản phẩm</div>
+                    @endforelse
+                </div>
             </div>
         </div>
 
