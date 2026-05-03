@@ -3,60 +3,73 @@
 namespace App\Imports;
 
 use App\Models\Product;
-use Maatwebsite\Excel\Concerns\OnEachRow;
-use Maatwebsite\Excel\Row;
-use Maatwebsite\Excel\Concerns\WithChunkReading;
-use Illuminate\Contracts\Queue\ShouldQueue;
-use Maatwebsite\Excel\Concerns\WithEvents;
+use Maatwebsite\Excel\Concerns\ToCollection;
+use Illuminate\Support\Collection;
 use App\Traits\TracksImportProgress;
 use Illuminate\Support\Facades\Log;
+use Maatwebsite\Excel\Concerns\WithEvents;
 use Maatwebsite\Excel\Events\BeforeImport;
-use Maatwebsite\Excel\Events\AfterChunk;
 use Illuminate\Support\Facades\Cache;
 
-class CommissionImport implements OnEachRow, WithChunkReading, ShouldQueue, WithEvents
+class CommissionImport implements ToCollection, WithEvents
 {
     use TracksImportProgress;
 
-    public function onRow(Row $row)
+    public function collection(Collection $rows)
     {
-        $rowData = $row->toArray();
-        $index = $row->getIndex();
-        
-        Log::info("DEBUG Row #{$index}: ", $rowData);
+        $total = $rows->count();
+        Log::info("Collection Read Success. Total rows found: {$total}");
 
-        if ($index < 3) {
-            return;
-        }
-
-        $sku = $rowData[0] ?? null;
-        $commission = $rowData[6] ?? 0;
-
-        if (!$sku || trim((string)$sku) === '') {
-            return; 
-        }
-
-        try {
-            $product = Product::where('sku', trim((string)$sku))->first();
+        $processed = 0;
+        foreach ($rows as $index => $rowData) {
+            $rowNumber = $index + 1;
             
-            if ($product) {
-                $cleanCommission = str_replace([',', '.'], '', (string)$commission);
-                $product->update([
-                    'commission_amount' => (float) $cleanCommission
-                ]);
-                Log::info("SUCCESS: Updated SKU: {$sku} with Commission: {$cleanCommission}");
-            } else {
-                Log::warning("NOT FOUND: SKU {$sku} at Row #{$index}");
+            // Log 5 dòng đầu để debug cấu trúc
+            if ($rowNumber <= 5) {
+                Log::info("DEBUG Row #{$rowNumber}: ", $rowData->toArray());
             }
-        } catch (\Exception $e) {
-            Log::error("ERROR at Row #{$index}: " . $e->getMessage());
-            $this->recordError("Dòng {$index}: " . $e->getMessage());
-        }
 
-        // Update progress in cache for each row
+            // Bỏ qua 2 dòng đầu (Dòng 1: Tiêu đề lớn, Dòng 2: Header)
+            if ($rowNumber < 3) {
+                continue;
+            }
+
+            $sku = $rowData[0] ?? null;
+            $commission = $rowData[6] ?? 0;
+
+            if (!$sku || trim((string)$sku) === '') {
+                continue; 
+            }
+
+            try {
+                $product = Product::where('sku', trim((string)$sku))->first();
+                
+                if ($product) {
+                    $cleanCommission = str_replace([',', '.'], '', (string)$commission);
+                    $product->update([
+                        'commission_amount' => (float) $cleanCommission
+                    ]);
+                    Log::info("SUCCESS: Updated SKU: {$sku} at Row #{$rowNumber}");
+                } else {
+                    Log::warning("NOT FOUND: SKU {$sku} at Row #{$rowNumber}");
+                }
+            } catch (\Exception $e) {
+                Log::error("ERROR at Row #{$rowNumber}: " . $e->getMessage());
+                $this->recordError("Dòng {$rowNumber}: " . $e->getMessage());
+            }
+
+            $processed++;
+            // Cập nhật progress
+            $this->updateProgress($processed, $total - 2);
+        }
+    }
+
+    private function updateProgress($current, $total)
+    {
         $progress = Cache::get("import_progress_{$this->importKey}");
         if ($progress) {
-            $progress['current']++;
+            $progress['current'] = $current;
+            $progress['total'] = max($current, $total);
             Cache::put("import_progress_{$this->importKey}", $progress, 3600);
         }
     }
@@ -65,35 +78,13 @@ class CommissionImport implements OnEachRow, WithChunkReading, ShouldQueue, With
     {
         return [
             BeforeImport::class => function (BeforeImport $event) {
-                $reader = $event->getReader();
-                $totalRows = $reader->getTotalRows();
-                $sheetNames = array_keys($totalRows);
-                
-                Log::info("Excel Sheets found: " . implode(", ", $sheetNames));
-                
-                $total = 0;
-                foreach ($totalRows as $sheetName => $rowCount) {
-                    $total += $rowCount;
-                }
-                
-                Log::info("Total Raw Rows: {$total}");
-
                 Cache::put("import_progress_{$this->importKey}", [
-                    'total' => max(0, $total - 2), 
+                    'total' => 0, 
                     'current' => 0,
                     'status' => 'processing',
                     'errors' => [],
                 ], 3600);
             },
-            AfterChunk::class => function (AfterChunk $event) {
-                // Logic progress đã được xử lý trong onRow hoặc AfterChunk tùy setup
-                // Ở đây onRow đã tự update current++
-            }
         ];
-    }
-
-    public function chunkSize(): int
-    {
-        return 50;
     }
 }
