@@ -76,6 +76,7 @@
                         <th class="px-6 py-4 text-[10px] font-bold text-slate-500 uppercase tracking-[0.2em]">Thông tin sản phẩm</th>
                         <th class="px-6 py-4 text-[10px] font-bold text-slate-400 uppercase tracking-[0.2em]">Danh mục</th>
                         <th class="px-6 py-4 text-[10px] font-bold text-slate-400 uppercase tracking-[0.2em]">Thương hiệu</th>
+                        <th class="px-6 py-4 text-[10px] font-bold text-slate-400 uppercase tracking-[0.2em]">Vị trí</th>
                         <th class="px-6 py-4 text-[10px] font-bold text-slate-400 uppercase tracking-[0.2em]">Tồn kho</th>
                         <th class="px-6 py-4 text-[10px] font-bold text-slate-400 uppercase tracking-[0.2em]">Giá bán</th>
                         <th class="px-6 py-4 text-[10px] font-bold text-slate-400 uppercase tracking-[0.2em]">Trạng thái</th>
@@ -110,6 +111,9 @@
                             </td>
                             <td class="px-6 py-4">
                                 <span class="text-xs text-slate-500">{{ $product->brand }}</span>
+                            </td>
+                            <td class="px-6 py-4">
+                                <span class="text-xs font-bold text-electric-blue">{{ $product->location }}</span>
                             </td>
                             <td class="px-6 py-4">
                                 <span class="text-xs font-bold {{ $product->stock_quantity < 10 ? 'text-orange-600 font-glow' : 'text-slate-900' }}">{{ $product->stock_quantity }}</span>

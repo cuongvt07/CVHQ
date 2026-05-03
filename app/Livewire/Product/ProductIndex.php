@@ -52,7 +52,7 @@ class ProductIndex extends Component
 
     // Form properties
     public $productId;
-    public $sku, $name, $category_path, $brand, $sale_price, $stock_quantity;
+    public $sku, $name, $category_path, $brand, $sale_price, $stock_quantity, $location;
     public $is_active = true;
     public $newImage;
     public $existingImage;
@@ -64,6 +64,7 @@ class ProductIndex extends Component
         'brand' => 'nullable',
         'sale_price' => 'required|numeric|min:0',
         'stock_quantity' => 'nullable|numeric|min:0',
+        'location' => 'nullable|string|max:255',
         'is_active' => 'boolean',
         'newImage' => 'nullable|image|max:2048',
     ];
@@ -133,6 +134,7 @@ class ProductIndex extends Component
         $this->brand = '';
         $this->sale_price = 0;
         $this->stock_quantity = 999;
+        $this->location = '';
         $this->is_active = true;
         $this->newImage = null;
         $this->existingImage = null;
@@ -156,6 +158,7 @@ class ProductIndex extends Component
         $this->brand = $product->brand;
         $this->sale_price = $product->sale_price;
         $this->stock_quantity = $product->stock_quantity;
+        $this->location = $product->location;
         $this->is_active = $product->is_active;
         $this->existingImage = !empty($product->images) ? $product->images[0] : null;
         
@@ -178,6 +181,7 @@ class ProductIndex extends Component
             'brand' => $this->brand,
             'sale_price' => $this->sale_price,
             'stock_quantity' => $this->stock_quantity === '' || $this->stock_quantity === null ? 999 : $this->stock_quantity,
+            'location' => $this->location,
             'is_active' => $this->is_active,
         ];
 
@@ -222,9 +226,17 @@ class ProductIndex extends Component
     public function getProducts()
     {
         return Product::query()
-            ->when($this->search, fn($q) => $q->where('name', 'like', "%{$this->search}%")
-                                              ->orWhere('sku', 'like', "%{$this->search}%")
-                                              ->orWhere('brand', 'like', "%{$this->search}%"))
+            ->when($this->search, function($query) {
+                $keywords = array_filter(explode(' ', $this->search));
+                foreach ($keywords as $keyword) {
+                    $query->where(function($q) use ($keyword) {
+                        $q->where('name', 'like', "%{$keyword}%")
+                          ->orWhere('sku', 'like', "%{$keyword}%")
+                          ->orWhere('brand', 'like', "%{$keyword}%")
+                          ->orWhere('location', 'like', "%{$keyword}%");
+                    });
+                }
+            })
             ->when($this->category !== 'All', fn($q) => $q->where('category_path', $this->category))
             ->orderBy('created_at', 'desc')
             ->paginate($this->perPage);

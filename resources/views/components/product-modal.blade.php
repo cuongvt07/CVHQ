@@ -56,7 +56,7 @@
                             </div>
                         </div>
 
-                        <div class="grid grid-cols-2 gap-6">
+                        <div class="grid grid-cols-3 gap-6">
                             <!-- Category -->
                             <div class="space-y-2">
                                 <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Danh mục</label>
@@ -69,6 +69,13 @@
                                 <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Thương hiệu</label>
                                 <input type="text" wire:model="brand" class="w-full bg-slate-50 border border-slate-200 rounded-2xl py-3 px-5 text-sm focus:outline-none focus:border-electric-blue/40 focus:ring-4 focus:ring-electric-blue/5 transition-all" placeholder="Ví dụ: Apple">
                                 @error('brand') <span class="text-[10px] text-rose-500 font-bold ml-1">{{ $message }}</span> @enderror
+                            </div>
+
+                            <!-- Location -->
+                            <div class="space-y-2">
+                                <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Vị trí hàng hóa</label>
+                                <input type="text" wire:model="location" class="w-full bg-slate-50 border border-slate-200 rounded-2xl py-3 px-5 text-sm focus:outline-none focus:border-electric-blue/40 focus:ring-4 focus:ring-electric-blue/5 transition-all" placeholder="Ví dụ: Kệ A1">
+                                @error('location') <span class="text-[10px] text-rose-500 font-bold ml-1">{{ $message }}</span> @enderror
                             </div>
                         </div>
 

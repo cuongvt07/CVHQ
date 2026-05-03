@@ -11,12 +11,13 @@ class InvoiceItem extends Model
     use SoftDeletes;
     protected $fillable = [
         'invoice_id', 'product_id', 'sku', 'product_name', 'quantity',
-        'unit_price', 'discount_percent', 'discount_amount', 'final_price'
+        'unit_price', 'commission_amount', 'discount_percent', 'discount_amount', 'final_price'
     ];
 
     protected $casts = [
         'quantity' => 'integer',
         'unit_price' => 'integer',
+        'commission_amount' => 'integer',
         'discount_percent' => 'integer',
         'discount_amount' => 'integer',
         'final_price' => 'integer',

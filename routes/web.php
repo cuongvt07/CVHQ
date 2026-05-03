@@ -16,6 +16,9 @@ Route::get('/pos', PosTerminal::class)->name('pos');
 Route::get('/products', ProductIndex::class)->name('products');
 Route::get('/categories', \App\Livewire\Category\CategoryIndex::class)->name('categories');
 Route::get('/customers', CustomerIndex::class)->name('customers');
+Route::get('/users', \App\Livewire\User\UserIndex::class)->name('users');
+Route::get('/commissions', \App\Livewire\Product\ProductCommission::class)->name('commissions');
+Route::get('/reports/commissions', \App\Livewire\Report\CommissionReport::class)->name('reports.commissions');
 Route::get('/invoices', InvoiceIndex::class)->name('invoices');
 Route::get('/invoices/{invoice}', \App\Livewire\Invoice\InvoiceDetail::class)->name('invoices.detail');
 

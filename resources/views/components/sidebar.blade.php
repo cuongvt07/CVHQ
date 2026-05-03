@@ -52,6 +52,20 @@
                     </a>
                     <div x-show="sidebarCollapsed && !sidebarOpen" class="fixed left-20 px-3 py-1.5 bg-slate-900 text-white text-[10px] rounded-lg opacity-0 group-hover/nav:opacity-100 translate-x-2 group-hover/nav:translate-x-4 transition-all pointer-events-none z-[100] whitespace-nowrap shadow-xl">Danh mục</div>
                 </div>
+                <div class="relative group/nav">
+                    <a href="{{ route('commissions') }}" class="flex items-center gap-3 px-4 py-2.5 rounded-xl transition-all {{ request()->routeIs('commissions') ? 'bg-electric-blue/10 text-electric-blue border border-electric-blue/20' : 'text-slate-500 hover:text-slate-900 hover:bg-slate-200/50 border border-transparent' }}">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="shrink-0"><rect width="20" height="14" x="2" y="5" rx="2"/><line x1="2" x2="22" y1="10" y2="10"/><line x1="12" x2="12" y1="5" y2="19"/></svg>
+                        <span x-show="!sidebarCollapsed || sidebarOpen" class="text-sm font-medium whitespace-nowrap">Bảng hoa hồng</span>
+                    </a>
+                    <div x-show="sidebarCollapsed && !sidebarOpen" class="fixed left-20 px-3 py-1.5 bg-slate-900 text-white text-[10px] rounded-lg opacity-0 group-hover/nav:opacity-100 translate-x-2 group-hover/nav:translate-x-4 transition-all pointer-events-none z-[100] whitespace-nowrap shadow-xl">Bảng hoa hồng</div>
+                </div>
+                <div class="relative group/nav">
+                    <a href="{{ route('reports.commissions') }}" class="flex items-center gap-3 px-4 py-2.5 rounded-xl transition-all {{ request()->routeIs('reports.commissions') ? 'bg-electric-blue/10 text-electric-blue border border-electric-blue/20' : 'text-slate-500 hover:text-slate-900 hover:bg-slate-200/50 border border-transparent' }}">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="shrink-0"><path d="M12 20V10"/><path d="M18 20V4"/><path d="M6 20v-4"/></svg>
+                        <span x-show="!sidebarCollapsed || sidebarOpen" class="text-sm font-medium whitespace-nowrap">Báo cáo hoa hồng</span>
+                    </a>
+                    <div x-show="sidebarCollapsed && !sidebarOpen" class="fixed left-20 px-3 py-1.5 bg-slate-900 text-white text-[10px] rounded-lg opacity-0 group-hover/nav:opacity-100 translate-x-2 group-hover/nav:translate-x-4 transition-all pointer-events-none z-[100] whitespace-nowrap shadow-xl">Báo cáo hoa hồng</div>
+                </div>
             </div>
         </div>
 
@@ -86,6 +100,20 @@
                         <span x-show="!sidebarCollapsed || sidebarOpen" class="text-sm font-medium whitespace-nowrap">Khách hàng</span>
                     </a>
                     <div x-show="sidebarCollapsed && !sidebarOpen" class="fixed left-20 px-3 py-1.5 bg-slate-900 text-white text-[10px] rounded-lg opacity-0 group-hover/nav:opacity-100 translate-x-2 group-hover/nav:translate-x-4 transition-all pointer-events-none z-[100] whitespace-nowrap shadow-xl">Khách hàng</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Hệ thống -->
+        <div>
+            <h3 x-show="!sidebarCollapsed || sidebarOpen" class="px-4 text-[10px] font-bold uppercase tracking-[0.3em] text-slate-500 mb-3 whitespace-nowrap">Hệ thống</h3>
+            <div class="flex flex-col gap-1">
+                <div class="relative group/nav">
+                    <a href="{{ route('users') }}" class="flex items-center gap-3 px-4 py-2.5 rounded-xl transition-all {{ request()->routeIs('users') ? 'bg-electric-blue/10 text-electric-blue border border-electric-blue/20' : 'text-slate-500 hover:text-slate-900 hover:bg-slate-200/50 border border-transparent' }}">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="shrink-0"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 10V6a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2v4"/><path d="m22 10-10 7L2 10"/></svg>
+                        <span x-show="!sidebarCollapsed || sidebarOpen" class="text-sm font-medium whitespace-nowrap">Nhân viên</span>
+                    </a>
+                    <div x-show="sidebarCollapsed && !sidebarOpen" class="fixed left-20 px-3 py-1.5 bg-slate-900 text-white text-[10px] rounded-lg opacity-0 group-hover/nav:opacity-100 translate-x-2 group-hover/nav:translate-x-4 transition-all pointer-events-none z-[100] whitespace-nowrap shadow-xl">Nhân viên</div>
                 </div>
             </div>
         </div>

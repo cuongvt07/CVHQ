@@ -1,0 +1,146 @@
+<?php
+
+namespace App\Livewire\User;
+
+use App\Models\User;
+use Livewire\Component;
+use Livewire\WithPagination;
+use Illuminate\Support\Facades\Hash;
+use App\Traits\WithBulkActions;
+
+class UserIndex extends Component
+{
+    use WithPagination, WithBulkActions;
+
+    public $search = '';
+    public $roleFilter = 'All';
+    public $perPage = 10;
+
+    protected $queryString = [
+        'search' => ['except' => ''],
+        'roleFilter' => ['except' => 'All'],
+        'perPage' => ['except' => 10],
+    ];
+
+    public function updatingSearch()
+    {
+        $this->resetPage();
+    }
+
+    // Form properties
+    public $userId;
+    public $name, $email, $password, $role = 'staff';
+
+    protected function rules()
+    {
+        return [
+            'name' => 'required|min:3',
+            'email' => 'required|email|unique:users,email,' . $this->userId,
+            'password' => $this->userId ? 'nullable|min:6' : 'required|min:6',
+            'role' => 'required|in:admin,staff',
+        ];
+    }
+
+    public function resetForm()
+    {
+        $this->userId = null;
+        $this->name = '';
+        $this->email = '';
+        $this->password = '';
+        $this->role = 'staff';
+        $this->resetErrorBag();
+    }
+
+    public function create()
+    {
+        $this->resetForm();
+        $this->dispatch('open-user-modal');
+    }
+
+    public function edit($id)
+    {
+        $this->resetForm();
+        $user = User::findOrFail($id);
+        $this->userId = $user->id;
+        $this->name = $user->name;
+        $this->email = $user->email;
+        $this->role = $user->role;
+        
+        $this->dispatch('open-user-modal');
+    }
+
+    public function save()
+    {
+        $this->validate();
+
+        $data = [
+            'name' => $this->name,
+            'email' => $this->email,
+            'role' => $this->role,
+        ];
+
+        if ($this->password) {
+            $data['password'] = Hash::make($this->password);
+        }
+
+        if ($this->userId) {
+            User::find($this->userId)->update($data);
+            $this->dispatch('notify', message: 'Cập nhật nhân viên thành công!', type: 'success');
+        } else {
+            User::create($data);
+            $this->dispatch('notify', message: 'Thêm nhân viên thành công!', type: 'success');
+        }
+
+        $this->dispatch('close-user-modal');
+        $this->resetForm();
+    }
+
+    public function confirmDelete($id)
+    {
+        $this->userId = $id;
+        $this->dispatch('open-delete-modal');
+    }
+
+    public function delete()
+    {
+        if ($this->userId === auth()->id()) {
+            $this->dispatch('notify', message: 'Bạn không thể tự xóa chính mình!', type: 'error');
+            $this->dispatch('close-delete-modal');
+            return;
+        }
+
+        User::find($this->userId)->delete();
+        $this->dispatch('notify', message: 'Đã xóa tài khoản nhân viên!', type: 'success');
+        $this->dispatch('close-delete-modal');
+        $this->userId = null;
+    }
+
+    public function getUsers()
+    {
+        return User::query()
+            ->when($this->search, function($query) {
+                $query->where('name', 'like', "%{$this->search}%")
+                      ->orWhere('email', 'like', "%{$this->search}%");
+            })
+            ->when($this->roleFilter !== 'All', fn($q) => $q->where('role', $this->roleFilter))
+            ->orderBy('created_at', 'desc')
+            ->paginate($this->perPage);
+    }
+
+    protected function getRecordsForBulk()
+    {
+        return $this->getUsers();
+    }
+
+    protected function getModelForBulk()
+    {
+        return User::class;
+    }
+
+    public function render()
+    {
+        return view('livewire.user.user-index', [
+            'users' => $this->getUsers()
+        ])->layout('layouts.app');
+    }
+}

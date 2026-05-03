@@ -41,6 +41,7 @@ class PosTerminal extends Component
                     'sku' => $product->sku,
                     'name' => $product->name,
                     'sale_price' => (int) $product->sale_price,
+                    'commission_amount' => (int) $product->commission_amount,
                     'image' => !empty($product->images) ? $product->images[0] : null,
                     'quantity' => 1
                 ];
@@ -79,7 +80,17 @@ class PosTerminal extends Component
     public function getProducts()
     {
         return Product::query()
-            ->when($this->search, fn($q) => $q->where('name', 'like', "%{$this->search}%")->orWhere('sku', 'like', "%{$this->search}%"))
+            ->when($this->search, function($query) {
+                $keywords = array_filter(explode(' ', $this->search));
+                foreach ($keywords as $keyword) {
+                    $query->where(function($q) use ($keyword) {
+                        $q->where('name', 'like', "%{$keyword}%")
+                          ->orWhere('sku', 'like', "%{$keyword}%")
+                          ->orWhere('brand', 'like', "%{$keyword}%")
+                          ->orWhere('location', 'like', "%{$keyword}%");
+                    });
+                }
+            })
             ->when($this->category !== 'All', fn($q) => $q->where('category_path', $this->category))
             ->where('is_active', true)
             ->get()
@@ -90,6 +101,7 @@ class PosTerminal extends Component
                     'name' => $product->name,
                     'category_path' => $product->category_path,
                     'sale_price' => (int) $product->sale_price,
+                    'location' => $product->location,
                     'image' => !empty($product->images) ? $product->images[0] : null,
                 ];
             });
@@ -175,12 +187,14 @@ class PosTerminal extends Component
                 'invoice_code' => 'HD' . time(),
                 'branch' => 'Antigravity HQ',
                 'customer_id' => $this->customer_id,
-                'seller_name' => 'Admin POS',
+                'user_id' => auth()->id(),
+                'seller_name' => auth()->user()->name ?? 'Admin POS',
                 'sales_channel' => 'POS',
                 'total_amount' => $this->total,
                 'discount_amount' => $this->discount,
                 'extra_fee' => $this->extra_fee,
                 'final_amount' => $this->finalAmount,
+                'total_commission' => collect($this->cart)->sum(fn($item) => $item['commission_amount'] * $item['quantity']),
                 'paid_amount' => $this->paid_amount,
                 'status' => 'Completed',
                 'delivery_status' => 'Delivered'
@@ -194,6 +208,7 @@ class PosTerminal extends Component
                     'product_name' => $item['name'],
                     'quantity' => $item['quantity'],
                     'unit_price' => $item['sale_price'],
+                    'commission_amount' => $item['commission_amount'],
                     'final_price' => $item['sale_price'] * $item['quantity']
                 ]);
             }

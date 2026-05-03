@@ -49,9 +49,12 @@
                         </div>
                         <div class="p-4 flex flex-col gap-2">
                             <h3 class="text-sm font-semibold text-slate-700 group-hover:text-electric-blue transition-colors line-clamp-2 min-h-[2.5rem]">{{ $product['name'] }}</h3>
-                            <div class="flex items-center justify-between mt-auto">
+                            <div class="flex items-center justify-between mt-auto pt-2 border-t border-slate-50">
                                 <span class="text-base font-bold text-electric-blue">{{ number_format($product['sale_price'], 0, ',', '.') }}</span>
-                                <span class="text-[10px] text-slate-300 font-bold uppercase tracking-widest">{{ $product['sku'] }}</span>
+                                <div class="text-right">
+                                    <div class="text-[9px] text-slate-300 font-bold uppercase tracking-widest">{{ $product['sku'] }}</div>
+                                    <div class="text-[10px] text-emerald-500 font-bold uppercase">{{ $product['location'] }}</div>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -75,7 +78,10 @@
                                 </div>
                                 <div class="p-1 shrink-0 bg-white border-t border-slate-50">
                                     <h3 class="text-[10px] font-bold text-slate-900 truncate leading-tight">{{ $product['name'] }}</h3>
-                                    <p class="text-[11px] font-bold text-electric-blue leading-none mt-0.5">{{ number_format($product['sale_price'] / 1000, 0) }}k</p>
+                                    <div class="flex items-center justify-between mt-0.5">
+                                        <p class="text-[11px] font-bold text-electric-blue leading-none">{{ number_format($product['sale_price'] / 1000, 0) }}k</p>
+                                        <p class="text-[8px] font-bold text-emerald-500 uppercase">{{ $product['location'] }}</p>
+                                    </div>
                                 </div>
                             </div>
                         @endforeach
