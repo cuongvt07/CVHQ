@@ -35,11 +35,11 @@
         </div>
 
         <!-- Hàng hóa -->
-        @if(auth()->user()->hasPermission('products') || auth()->user()->hasPermission('categories') || auth()->user()->hasPermission('commissions') || auth()->user()->hasPermission('reports'))
+        @if(auth()->user()?->hasPermission('products') || auth()->user()?->hasPermission('categories') || auth()->user()?->hasPermission('commissions') || auth()->user()?->hasPermission('reports'))
         <div>
             <h3 x-show="!sidebarCollapsed || sidebarOpen" class="px-4 text-[10px] font-bold uppercase tracking-[0.3em] text-slate-500 mb-3 whitespace-nowrap">Hàng hóa</h3>
             <div class="flex flex-col gap-1">
-                @if(auth()->user()->hasPermission('products'))
+                @if(auth()->user()?->hasPermission('products'))
                 <div class="relative group/nav">
                     <a href="{{ route('products') }}" class="flex items-center gap-3 px-4 py-2.5 rounded-xl transition-all {{ request()->routeIs('products') ? 'bg-electric-blue/10 text-electric-blue border border-electric-blue/20' : 'text-slate-500 hover:text-slate-900 hover:bg-slate-200/50 border border-transparent' }}">
                         <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="shrink-0"><path d="m7.5 4.27 9 5.15"/><path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"/><path d="m3.3 7 8.7 5 8.7-5"/><path d="M12 22V12"/></svg>
@@ -49,7 +49,7 @@
                 </div>
                 @endif
 
-                @if(auth()->user()->hasPermission('categories'))
+                @if(auth()->user()?->hasPermission('categories'))
                 <div class="relative group/nav">
                     <a href="{{ route('categories') }}" class="flex items-center gap-3 px-4 py-2.5 rounded-xl transition-all {{ request()->routeIs('categories') ? 'bg-electric-blue/10 text-electric-blue border border-electric-blue/20' : 'text-slate-500 hover:text-slate-900 hover:bg-slate-200/50 border border-transparent' }}">
                         <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="shrink-0"><path d="M3 6h18"/><path d="M7 10h10"/><path d="M7 14h10"/><path d="M7 18h10"/></svg>
@@ -59,7 +59,7 @@
                 </div>
                 @endif
 
-                @if(auth()->user()->hasPermission('commissions'))
+                @if(auth()->user()?->hasPermission('commissions'))
                 <div class="relative group/nav">
                     <a href="{{ route('commissions') }}" class="flex items-center gap-3 px-4 py-2.5 rounded-xl transition-all {{ request()->routeIs('commissions') ? 'bg-electric-blue/10 text-electric-blue border border-electric-blue/20' : 'text-slate-500 hover:text-slate-900 hover:bg-slate-200/50 border border-transparent' }}">
                         <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="shrink-0"><rect width="20" height="14" x="2" y="5" rx="2"/><line x1="2" x2="22" y1="10" y2="10"/><line x1="12" x2="12" y1="5" y2="19"/></svg>
@@ -69,7 +69,7 @@
                 </div>
                 @endif
 
-                @if(auth()->user()->hasPermission('reports'))
+                @if(auth()->user()?->hasPermission('reports'))
                 <div class="relative group/nav">
                     <a href="{{ route('reports.commissions') }}" class="flex items-center gap-3 px-4 py-2.5 rounded-xl transition-all {{ request()->routeIs('reports.commissions') ? 'bg-electric-blue/10 text-electric-blue border border-electric-blue/20' : 'text-slate-500 hover:text-slate-900 hover:bg-slate-200/50 border border-transparent' }}">
                         <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="shrink-0"><path d="M12 20V10"/><path d="M18 20V4"/><path d="M6 20v-4"/></svg>
@@ -83,11 +83,11 @@
         @endif
 
         <!-- Giao dịch -->
-        @if(auth()->user()->hasPermission('pos') || auth()->user()->hasPermission('invoices'))
+        @if(auth()->user()?->hasPermission('pos') || auth()->user()?->hasPermission('invoices'))
         <div>
             <h3 x-show="!sidebarCollapsed || sidebarOpen" class="px-4 text-[10px] font-bold uppercase tracking-[0.3em] text-slate-500 mb-3 whitespace-nowrap">Giao dịch</h3>
             <div class="flex flex-col gap-1">
-                @if(auth()->user()->hasPermission('pos'))
+                @if(auth()->user()?->hasPermission('pos'))
                 <div class="relative group/nav">
                     <a href="{{ route('pos') }}" class="flex items-center gap-3 px-4 py-2.5 rounded-xl transition-all {{ request()->routeIs('pos') ? 'bg-electric-blue/10 text-electric-blue border border-electric-blue/20' : 'text-slate-500 hover:text-slate-900 hover:bg-slate-200/50 border border-transparent' }}">
                         <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="shrink-0"><circle cx="8" cy="21" r="1"/><circle cx="19" cy="21" r="1"/><path d="M2.05 2.05h2l2.66 12.42a2 2 0 0 0 2 1.58h9.78a2 2 0 0 0 1.95-1.57l1.65-7.43H5.12"/></svg>
@@ -97,7 +97,7 @@
                 </div>
                 @endif
 
-                @if(auth()->user()->hasPermission('invoices'))
+                @if(auth()->user()?->hasPermission('invoices'))
                 <div class="relative group/nav">
                     <a href="{{ route('invoices') }}" class="flex items-center gap-3 px-4 py-2.5 rounded-xl transition-all {{ request()->routeIs('invoices') ? 'bg-electric-blue/10 text-electric-blue border border-electric-blue/20' : 'text-slate-500 hover:text-slate-900 hover:bg-slate-200/50 border border-transparent' }}">
                         <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="shrink-0"><rect width="8" height="4" x="8" y="2" rx="1" ry="1"/><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><path d="M12 11h4"/><path d="M12 16h4"/><path d="M8 11h.01"/><path d="M8 16h.01"/></svg>
@@ -111,7 +111,7 @@
         @endif
 
         <!-- Đối tác -->
-        @if(auth()->user()->hasPermission('customers'))
+        @if(auth()->user()?->hasPermission('customers'))
         <div>
             <h3 x-show="!sidebarCollapsed || sidebarOpen" class="px-4 text-[10px] font-bold uppercase tracking-[0.3em] text-slate-500 mb-3 whitespace-nowrap">Đối tác</h3>
             <div class="flex flex-col gap-1">
@@ -127,7 +127,7 @@
         @endif
 
         <!-- Hệ thống -->
-        @if(auth()->user()->hasPermission('users'))
+        @if(auth()->user()?->hasPermission('users'))
         <div>
             <h3 x-show="!sidebarCollapsed || sidebarOpen" class="px-4 text-[10px] font-bold uppercase tracking-[0.3em] text-slate-500 mb-3 whitespace-nowrap">Hệ thống</h3>
             <div class="flex flex-col gap-1">
