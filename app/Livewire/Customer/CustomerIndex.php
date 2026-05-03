@@ -11,10 +11,16 @@ use Maatwebsite\Excel\Facades\Excel;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Str;
 use App\Traits\WithBulkActions;
+use App\Traits\HasPermissions;
 
 class CustomerIndex extends Component
 {
-    use WithPagination, WithFileUploads, WithBulkActions;
+    use WithPagination, WithFileUploads, WithBulkActions, HasPermissions;
+
+    protected function getModuleKey(): string
+    {
+        return 'customers';
+    }
 
     public $search = '';
     public $importFile;

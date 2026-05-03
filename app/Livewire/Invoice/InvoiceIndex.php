@@ -11,10 +11,16 @@ use Maatwebsite\Excel\Facades\Excel;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Str;
 use App\Traits\WithBulkActions;
+use App\Traits\HasPermissions;
 
 class InvoiceIndex extends Component
 {
-    use WithPagination, WithFileUploads, WithBulkActions;
+    use WithPagination, WithFileUploads, WithBulkActions, HasPermissions;
+
+    protected function getModuleKey(): string
+    {
+        return 'invoices';
+    }
  
     public $search = '';
     public $importFile;

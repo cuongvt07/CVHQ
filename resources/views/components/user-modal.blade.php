@@ -72,6 +72,28 @@
                                 @error('role') <span class="text-[10px] text-rose-500 font-bold ml-1">{{ $message }}</span> @enderror
                             </div>
                         </div>
+
+                        <!-- Permissions Grid -->
+                        <div class="space-y-4 pt-4 border-t border-slate-100" x-show="$wire.role === 'staff'">
+                            <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Phân quyền module</label>
+                            <div class="grid grid-cols-2 md:grid-cols-3 gap-3">
+                                @foreach([
+                                    'pos' => 'Bán hàng (POS)',
+                                    'products' => 'Sản phẩm',
+                                    'categories' => 'Danh mục',
+                                    'customers' => 'Khách hàng',
+                                    'users' => 'Nhân viên',
+                                    'invoices' => 'Hóa đơn',
+                                    'commissions' => 'Bảng hoa hồng',
+                                    'reports' => 'Báo cáo hoa hồng'
+                                ] as $key => $label)
+                                    <label class="flex items-center gap-3 p-3 rounded-xl bg-slate-50 border border-slate-100 cursor-pointer hover:bg-white hover:border-electric-blue/30 transition-all group">
+                                        <input type="checkbox" wire:model="permissions" value="{{ $key }}" class="w-4 h-4 rounded border-slate-300 text-electric-blue focus:ring-electric-blue">
+                                        <span class="text-xs font-bold text-slate-600 group-hover:text-slate-900 transition-colors">{{ $label }}</span>
+                                    </label>
+                                @endforeach
+                            </div>
+                        </div>
                     </form>
                 </div>
 

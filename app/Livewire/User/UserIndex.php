@@ -7,10 +7,16 @@ use Livewire\Component;
 use Livewire\WithPagination;
 use Illuminate\Support\Facades\Hash;
 use App\Traits\WithBulkActions;
+use App\Traits\HasPermissions;
 
 class UserIndex extends Component
 {
-    use WithPagination, WithBulkActions;
+    use WithPagination, WithBulkActions, HasPermissions;
+
+    protected function getModuleKey(): string
+    {
+        return 'users';
+    }
 
     public $search = '';
     public $roleFilter = 'All';
@@ -29,7 +35,7 @@ class UserIndex extends Component
 
     // Form properties
     public $userId;
-    public $name, $email, $password, $role = 'staff';
+    public $name, $email, $password, $role = 'staff', $permissions = [];
 
     protected function rules()
     {
@@ -38,6 +44,7 @@ class UserIndex extends Component
             'email' => 'required|email|unique:users,email,' . $this->userId,
             'password' => $this->userId ? 'nullable|min:6' : 'required|min:6',
             'role' => 'required|in:admin,staff',
+            'permissions' => 'nullable|array',
         ];
     }
 
@@ -48,6 +55,7 @@ class UserIndex extends Component
         $this->email = '';
         $this->password = '';
         $this->role = 'staff';
+        $this->permissions = [];
         $this->resetErrorBag();
     }
 
@@ -65,6 +73,7 @@ class UserIndex extends Component
         $this->name = $user->name;
         $this->email = $user->email;
         $this->role = $user->role;
+        $this->permissions = $user->permissions ?? [];
         
         $this->dispatch('open-user-modal');
     }
@@ -77,6 +86,7 @@ class UserIndex extends Component
             'name' => $this->name,
             'email' => $this->email,
             'role' => $this->role,
+            'permissions' => $this->role === 'admin' ? null : $this->permissions,
         ];
 
         if ($this->password) {

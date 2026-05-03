@@ -6,10 +6,16 @@ use App\Models\User;
 use App\Models\Invoice;
 use Livewire\Component;
 use Livewire\WithPagination;
+use App\Traits\HasPermissions;
 
 class CommissionReport extends Component
 {
-    use WithPagination;
+    use WithPagination, HasPermissions;
+
+    protected function getModuleKey(): string
+    {
+        return 'reports';
+    }
 
     public $view = 'summary'; // summary, employee_detail, invoice_detail
     public $selectedUserId = null;

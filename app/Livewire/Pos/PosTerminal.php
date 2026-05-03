@@ -4,9 +4,16 @@ namespace App\Livewire\Pos;
 
 use App\Models\Product;
 use Livewire\Component;
+use App\Traits\HasPermissions;
 
 class PosTerminal extends Component
 {
+    use HasPermissions;
+
+    protected function getModuleKey(): string
+    {
+        return 'pos';
+    }
     public $cart = [];
     public $search = '';
     public $category = 'All';

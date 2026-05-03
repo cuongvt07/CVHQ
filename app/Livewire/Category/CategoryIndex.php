@@ -10,7 +10,12 @@ use Illuminate\Support\Str;
 
 class CategoryIndex extends Component
 {
-    use WithPagination, WithBulkActions;
+    use WithPagination, WithBulkActions, HasPermissions;
+
+    protected function getModuleKey(): string
+    {
+        return 'categories';
+    }
 
     public $search = '';
     public $perPage = 10;

@@ -7,14 +7,30 @@ use Livewire\Component;
 use Livewire\WithPagination;
 use Livewire\WithFileUploads;
 use App\Traits\WithBulkActions;
+use App\Imports\CommissionImport;
+use App\Exports\CommissionExport;
+use Maatwebsite\Excel\Facades\Excel;
+use App\Traits\HasPermissions;
 
 class ProductCommission extends Component
 {
-    use WithPagination, WithFileUploads, WithBulkActions;
+    use WithPagination, WithFileUploads, WithBulkActions, HasPermissions;
+
+    protected function getModuleKey(): string
+    {
+        return 'commissions';
+    }
 
     public $search = '';
     public $perPage = 15;
     public $importFile;
+
+    // Import Properties (for modal compatibility)
+    public $importing = false;
+    public $importProgress = 0;
+    public $importTotal = 0;
+    public $importCurrent = 0;
+    public $importErrors = [];
 
     protected $queryString = [
         'search' => ['except' => ''],
@@ -39,20 +55,19 @@ class ProductCommission extends Component
         ]);
 
         try {
-            // Simple manual import for now, or use Maatwebsite/Excel if configured
-            // Since I cannot run commands to install new things, I'll assume we use existing infra or manual parsing
-            // For now, I'll mock the logic or use a simple CSV parser if possible
+            Excel::import(new CommissionImport, $this->importFile->getRealPath());
             
-            $this->dispatch('notify', message: 'Hệ thống đang xử lý file import...', type: 'info');
-            
-            // Logic for import would go here
-            // Example using Excel: Excel::import(new CommissionImport, $this->importFile);
-
+            $this->dispatch('notify', message: 'Import hoa hồng hoàn tất!', type: 'success');
             $this->importFile = null;
             $this->dispatch('close-import-modal');
         } catch (\Exception $e) {
             $this->dispatch('notify', message: 'Lỗi import: ' . $e->getMessage(), type: 'error');
         }
+    }
+
+    public function export()
+    {
+        return Excel::download(new CommissionExport, 'bang-hoa-hong-' . date('Y-m-d') . '.xlsx');
     }
 
     protected function getRecordsForBulk()

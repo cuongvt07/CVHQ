@@ -23,6 +23,7 @@ class User extends Authenticatable
         'email',
         'password',
         'role',
+        'permissions',
     ];
 
     /**
@@ -45,7 +46,17 @@ class User extends Authenticatable
         return [
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
+            'permissions' => 'array',
         ];
+    }
+
+    public function hasPermission($module): bool
+    {
+        if ($this->role === 'admin') {
+            return true;
+        }
+
+        return is_array($this->permissions) && in_array($module, $this->permissions);
     }
 
     public function invoices(): \Illuminate\Database\Eloquent\Relations\HasMany
