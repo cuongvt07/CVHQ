@@ -19,26 +19,30 @@ class CommissionImport implements OnEachRow, WithHeadingRow, WithChunkReading, S
     public function onRow(Row $row)
     {
         $rowData = $row->toArray();
+        Log::info("Processing Row #{$row->getIndex()}: ", $rowData);
+        
         $sku = $rowData['ma_sp'] ?? $rowData['ma_hang'] ?? $rowData['sku'] ?? $rowData['ma_hang_hoa'] ?? null;
         $commission = $rowData['bang_hoa_hong_chung'] ?? $rowData['hoa_hong'] ?? $rowData['commission'] ?? 0;
+
+        Log::info("Checking SKU: {$sku}, Commission: {$commission}");
 
         if (!$sku) {
             return; // Skip if no SKU
         }
 
         try {
-            $product = Product::where('sku', $sku)->first();
+            $product = Product::where('sku', trim($sku))->first();
             
             if ($product) {
                 $product->update([
                     'commission_amount' => (float) $commission
                 ]);
+                Log::info("Updated SKU: {$sku} with Commission: {$commission}");
             } else {
-                // SKU not found, continue (skip) as requested by user
-                // Optional: record a warning or just skip
-                // $this->recordError("SKU {$sku} không tồn tại trên hệ thống.");
+                Log::warning("SKU not found in database: " . trim($sku));
             }
         } catch (\Exception $e) {
+            Log::error("Import Error at Row #{$row->getIndex()}: " . $e->getMessage());
             $this->recordError("Dòng {$row->getIndex()}: " . $e->getMessage());
         }
     }
