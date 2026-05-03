@@ -25,6 +25,7 @@
     <div class="flex-1 flex flex-col gap-6 px-4">
         
         <!-- Dashboard -->
+        @if(auth()->user()?->hasPermission('dashboard'))
         <div class="relative group/nav">
             <a href="{{ route('dashboard') }}" 
                class="flex items-center gap-3 px-4 py-2.5 rounded-xl transition-all group {{ request()->routeIs('dashboard') ? 'bg-electric-blue/10 text-electric-blue border border-electric-blue/20 shadow-[0_4px_20px_rgba(0,136,204,0.1)]' : 'text-slate-500 hover:text-slate-900 hover:bg-slate-200/50 border border-transparent' }}">
@@ -33,6 +34,7 @@
             </a>
             <div x-show="sidebarCollapsed && !sidebarOpen" class="fixed left-20 px-3 py-1.5 bg-slate-900 text-white text-[10px] rounded-lg opacity-0 group-hover/nav:opacity-100 translate-x-2 group-hover/nav:translate-x-4 transition-all pointer-events-none z-[100] whitespace-nowrap shadow-xl">Tổng quan</div>
         </div>
+        @endif
 
         <!-- Hàng hóa -->
         @if(auth()->user()?->hasPermission('products') || auth()->user()?->hasPermission('categories') || auth()->user()?->hasPermission('commissions') || auth()->user()?->hasPermission('reports'))

@@ -78,6 +78,7 @@
                             <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Phân quyền module</label>
                             <div class="grid grid-cols-2 md:grid-cols-3 gap-3">
                                 @foreach([
+                                    'dashboard' => 'Tổng quan',
                                     'pos' => 'Bán hàng (POS)',
                                     'products' => 'Sản phẩm',
                                     'categories' => 'Danh mục',

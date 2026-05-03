@@ -7,9 +7,16 @@ use App\Models\Product;
 use App\Models\Customer;
 use Carbon\Carbon;
 use Livewire\Component;
+use App\Traits\HasPermissions;
 
 class DashboardIndex extends Component
 {
+    use HasPermissions;
+
+    protected function getModuleKey(): string
+    {
+        return 'dashboard';
+    }
     public function getStats()
     {
         $today = Carbon::today();
