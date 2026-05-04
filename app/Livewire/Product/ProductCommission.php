@@ -73,7 +73,7 @@ class ProductCommission extends Component
 
             // Import đồng bộ (file hoa hồng nhỏ, không cần queue)
             $import = new CommissionImport();
-            Excel::import($import, $normalizedPath);
+            Excel::import($import, $normalizedPath, null, \Maatwebsite\Excel\Excel::XLSX);
 
             $this->importing = false;
             $this->importProgress = 100;
