@@ -21,11 +21,16 @@ class CommissionImport implements OnEachRow, WithEvents, ShouldQueue, WithChunkR
         $rowData = $row->toArray();
         $rowNumber = $row->getIndex();
 
-        // Nhận diện SKU từ nhiều tên cột khả thi
-        $sku = $rowData['ma_hang'] ?? $rowData['ma_sp'] ?? $rowData['sku'] ?? $rowData['ma_hang_hoa'] ?? null;
+        // Log row data for debugging on the first few rows
+        if ($rowNumber <= 5) {
+            Log::info("Row #{$rowNumber} data: " . json_encode($rowData));
+        }
+
+        // Nhận diện SKU từ nhiều tên cột khả thi (thêm các trường phổ biến từ KiotViet)
+        $sku = $rowData['ma_hang'] ?? $rowData['ma_hang_hoa'] ?? $rowData['ma_sp'] ?? $rowData['sku'] ?? $rowData[0] ?? null;
         
         // Nhận diện Hoa hồng từ nhiều tên cột khả thi
-        $commission = $rowData['bang_hoa_hong_chung'] ?? $rowData['hoa_hong'] ?? $rowData['commission'] ?? 0;
+        $commission = $rowData['bang_hoa_hong_chung'] ?? $rowData['hoa_hong_chung'] ?? $rowData['hoa_hong'] ?? $rowData['commission'] ?? $rowData[6] ?? 0;
 
         if (!$sku || trim((string)$sku) === '') {
             return; 

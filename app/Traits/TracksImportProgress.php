@@ -35,17 +35,11 @@ trait TracksImportProgress
                 $reader = $event->getReader();
                 $totalRows = $reader->getTotalRows();
                 
-                // Fallback: If getTotalRows returns empty or zero, try to get it from sheet delegates
+                // If totalRows is empty, it's often because the reader hasn't loaded the file information yet
+                // or the file format doesn't support it in BeforeImport.
+                // We'll log it and try to handle it.
                 if (empty($totalRows) || array_sum($totalRows) === 0) {
-                    try {
-                        $spreadsheet = $reader->getDelegate();
-                        foreach ($spreadsheet->getAllSheets() as $sheet) {
-                            $totalRows[$sheet->getTitle()] = $sheet->getHighestRow();
-                        }
-                        Log::info("Fallback row count used for key {$this->importKey}: " . json_encode($totalRows));
-                    } catch (\Exception $e) {
-                        Log::warning("Failed to use fallback row count: " . $e->getMessage());
-                    }
+                    Log::warning("Warning: Could not determine total rows for key {$this->importKey} in BeforeImport.");
                 }
 
                 $total = 0;
@@ -69,6 +63,7 @@ trait TracksImportProgress
                     'errors' => [],
                 ], 3600);
             },
+
 
             AfterChunk::class => function (AfterChunk $event) {
                 $progress = Cache::get("import_progress_{$this->importKey}");
