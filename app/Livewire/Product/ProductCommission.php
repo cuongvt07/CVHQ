@@ -64,12 +64,11 @@ class ProductCommission extends Component
         $this->importErrors = [];
 
         try {
-            // Lưu file upload
-            $filePath = $this->importFile->store('imports');
-            $fullPath = storage_path('app/' . $filePath);
+            // Lấy đường dẫn file tạm từ upload
+            $tempPath = $this->importFile->getRealPath();
 
             // Chuẩn hóa file Excel (fix định dạng KiotViet không chuẩn)
-            $normalizedPath = $this->normalizeExcelFile($fullPath);
+            $normalizedPath = $this->normalizeExcelFile($tempPath);
 
             // Import đồng bộ (file hoa hồng nhỏ, không cần queue)
             $import = new CommissionImport();
@@ -86,9 +85,8 @@ class ProductCommission extends Component
             $this->dispatch('import-finished', id: 'commissions');
             $this->importFile = null;
 
-            // Dọn file tạm
-            @unlink($fullPath);
-            if ($normalizedPath !== $fullPath) {
+            // Dọn file chuẩn hóa
+            if ($normalizedPath !== $tempPath) {
                 @unlink($normalizedPath);
             }
         } catch (\Exception $e) {
