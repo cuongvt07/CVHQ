@@ -32,8 +32,22 @@ trait TracksImportProgress
     {
         return [
             BeforeImport::class => function (BeforeImport $event) {
-                $totalRows = $event->getReader()->getTotalRows();
+                $reader = $event->getReader();
+                $totalRows = $reader->getTotalRows();
                 
+                // Fallback: If getTotalRows returns empty or zero, try to get it from sheet delegates
+                if (empty($totalRows) || array_sum($totalRows) === 0) {
+                    try {
+                        $spreadsheet = $reader->getDelegate();
+                        foreach ($spreadsheet->getAllSheets() as $sheet) {
+                            $totalRows[$sheet->getTitle()] = $sheet->getHighestRow();
+                        }
+                        Log::info("Fallback row count used for key {$this->importKey}: " . json_encode($totalRows));
+                    } catch (\Exception $e) {
+                        Log::warning("Failed to use fallback row count: " . $e->getMessage());
+                    }
+                }
+
                 $total = 0;
                 $offset = 1;
                 if (method_exists($this, 'startRow')) {
@@ -46,7 +60,7 @@ trait TracksImportProgress
                     $total += max(0, $rowCount - $offset);
                 }
 
-                Log::info("Import starting for key {$this->importKey}. Total rows: {$total}. Dispatching jobs...");
+                Log::info("Import starting for key {$this->importKey}. Details: Offset={$offset}, RawRows=" . json_encode($totalRows) . ", CalculatedTotal={$total}");
                 
                 Cache::put("import_progress_{$this->importKey}", [
                     'total' => $total,
@@ -55,6 +69,7 @@ trait TracksImportProgress
                     'errors' => [],
                 ], 3600);
             },
+
             AfterChunk::class => function (AfterChunk $event) {
                 $progress = Cache::get("import_progress_{$this->importKey}");
                 if ($progress) {
