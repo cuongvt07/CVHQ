@@ -69,6 +69,9 @@ class CustomerIndex extends Component
             'importFile' => 'required|mimes:xlsx,xls,csv|max:10240',
         ]);
 
+        // Tăng thời gian thực thi để tránh lỗi timeout khi đọc file Excel lớn
+        set_time_limit(300);
+
         $this->importBatchId = Str::random(10);
         $this->importing = true;
         $this->importProgress = 0;
