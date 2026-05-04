@@ -11,8 +11,9 @@ use Maatwebsite\Excel\Concerns\WithEvents;
 use Maatwebsite\Excel\Concerns\WithStartRow;
 use Maatwebsite\Excel\Concerns\WithChunkReading;
 use Maatwebsite\Excel\Concerns\WithMultipleSheets;
+use Illuminate\Contracts\Queue\ShouldQueue;
 
-class CommissionImport implements OnEachRow, WithEvents, WithChunkReading, WithStartRow, WithMultipleSheets
+class CommissionImport implements OnEachRow, WithEvents, ShouldQueue, WithChunkReading, WithStartRow, WithMultipleSheets
 {
     use TracksImportProgress;
 
