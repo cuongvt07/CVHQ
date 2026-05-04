@@ -3,63 +3,52 @@
 namespace App\Imports;
 
 use App\Models\Product;
-use Maatwebsite\Excel\Concerns\OnEachRow;
-use Maatwebsite\Excel\Row;
-use Illuminate\Support\Facades\Log;
-use App\Traits\TracksImportProgress;
-use Maatwebsite\Excel\Concerns\WithEvents;
+use Illuminate\Support\Collection;
+use Maatwebsite\Excel\Concerns\ToCollection;
 use Maatwebsite\Excel\Concerns\WithStartRow;
 use Maatwebsite\Excel\Concerns\WithChunkReading;
-use Maatwebsite\Excel\Concerns\WithMultipleSheets;
 use Illuminate\Contracts\Queue\ShouldQueue;
+use Maatwebsite\Excel\Concerns\WithEvents;
+use Illuminate\Support\Facades\Log;
+use App\Traits\TracksImportProgress;
 
-class CommissionImport implements OnEachRow, WithEvents, ShouldQueue, WithChunkReading, WithStartRow, WithMultipleSheets
+class CommissionImport implements ToCollection, WithStartRow, WithChunkReading, ShouldQueue, WithEvents
 {
     use TracksImportProgress;
 
-    public function sheets(): array
+    public function collection(Collection $rows)
     {
-        return [
-            0 => $this, // Ép buộc đọc sheet đầu tiên (index 0)
-        ];
-    }
+        Log::info("CommissionImport processing batch of {$rows->count()} rows");
 
-    public function onRow(Row $row)
-    {
-        $rowData = $row->toArray();
-        $rowNumber = $row->getIndex();
+        foreach ($rows as $index => $row) {
+            // Cột A (0) = Mã hàng (SKU)
+            $sku = $row[0] ?? null;
+            // Cột G (6) = Bảng hoa hồng chung
+            $commission = $row[6] ?? 0;
 
-        // Log dữ liệu để debug
-        Log::info("Processing Row #{$rowNumber}: " . json_encode($rowData));
-
-        // Nhận diện SKU: Cột A (0)
-        $sku = $rowData[0] ?? null;
-        
-        // Nhận diện Hoa hồng: Cột G (6) hoặc Cột C (2)
-        $commission = $rowData[6] ?? ($rowData[2] ?? 0);
-
-        if (!$sku || trim((string)$sku) === '') {
-            return; 
-        }
-
-        try {
-            $product = Product::where('sku', trim((string)$sku))->first();
-            
-            if ($product) {
-                $cleanCommission = str_replace([',', '.'], '', (string)$commission);
-                $product->update([
-                    'commission_amount' => (float) $cleanCommission
-                ]);
+            if (!$sku || trim((string)$sku) === '') {
+                continue;
             }
-        } catch (\Exception $e) {
-            Log::error("ERROR at Row #{$rowNumber}: " . $e->getMessage());
-            $this->recordError("Dòng {$rowNumber}: " . $e->getMessage());
+
+            try {
+                $product = Product::where('sku', trim((string)$sku))->first();
+
+                if ($product) {
+                    $cleanCommission = str_replace([',', '.'], '', (string)$commission);
+                    $product->update([
+                        'commission_amount' => (float) $cleanCommission
+                    ]);
+                }
+            } catch (\Exception $e) {
+                Log::error("CommissionImport ERROR: SKU={$sku}, " . $e->getMessage());
+                $this->recordError("SKU {$sku}: " . $e->getMessage());
+            }
         }
     }
 
     public function startRow(): int
     {
-        return 3; 
+        return 3; // Dòng 1 = tiêu đề bảng, Dòng 2 = header cột, Dòng 3+ = dữ liệu
     }
 
     public function chunkSize(): int
@@ -67,7 +56,3 @@ class CommissionImport implements OnEachRow, WithEvents, ShouldQueue, WithChunkR
         return 100;
     }
 }
-
-
-
-
