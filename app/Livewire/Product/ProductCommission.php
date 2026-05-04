@@ -53,12 +53,12 @@ class ProductCommission extends Component
 
     public function import()
     {
-        $this->validate([
-            'importFile' => 'required|mimes:xlsx,xls,csv|max:5120',
-        ]);
-
-        // Tăng thời gian thực thi để tránh lỗi timeout khi đọc file Excel lớn
+        // Tăng thời gian thực thi ngay từ đầu để tránh lỗi timeout trong quá trình validate và đọc file
         set_time_limit(300);
+
+        $this->validate([
+            'importFile' => 'required',
+        ]);
 
         $this->importBatchId = Str::random(10);
         $this->importing = true;
