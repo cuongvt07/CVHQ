@@ -8,11 +8,11 @@ use Maatwebsite\Excel\Row;
 use Illuminate\Support\Facades\Log;
 use App\Traits\TracksImportProgress;
 use Maatwebsite\Excel\Concerns\WithEvents;
-use Maatwebsite\Excel\Concerns\WithStartRow;
+use Maatwebsite\Excel\Concerns\WithHeadingRow;
 use Maatwebsite\Excel\Concerns\WithChunkReading;
 use Illuminate\Contracts\Queue\ShouldQueue;
 
-class CommissionImport implements OnEachRow, WithEvents, ShouldQueue, WithChunkReading, WithStartRow
+class CommissionImport implements OnEachRow, WithEvents, ShouldQueue, WithChunkReading, WithHeadingRow
 {
     use TracksImportProgress;
 
@@ -21,8 +21,11 @@ class CommissionImport implements OnEachRow, WithEvents, ShouldQueue, WithChunkR
         $rowData = $row->toArray();
         $rowNumber = $row->getIndex();
 
-        $sku = $rowData[0] ?? null;
-        $commission = $rowData[6] ?? 0;
+        // Nhận diện SKU từ nhiều tên cột khả thi
+        $sku = $rowData['ma_hang'] ?? $rowData['ma_sp'] ?? $rowData['sku'] ?? $rowData['ma_hang_hoa'] ?? null;
+        
+        // Nhận diện Hoa hồng từ nhiều tên cột khả thi
+        $commission = $rowData['bang_hoa_hong_chung'] ?? $rowData['hoa_hong'] ?? $rowData['commission'] ?? 0;
 
         if (!$sku || trim((string)$sku) === '') {
             return; 
@@ -32,13 +35,11 @@ class CommissionImport implements OnEachRow, WithEvents, ShouldQueue, WithChunkR
             $product = Product::where('sku', trim((string)$sku))->first();
             
             if ($product) {
+                // Xử lý định dạng số (loại bỏ dấu phân cách nếu có)
                 $cleanCommission = str_replace([',', '.'], '', (string)$commission);
                 $product->update([
                     'commission_amount' => (float) $cleanCommission
                 ]);
-                // Log::info("SUCCESS: Updated SKU: {$sku} at Row #{$rowNumber}");
-            } else {
-                // Log::warning("NOT FOUND: SKU {$sku} at Row #{$rowNumber}");
             }
         } catch (\Exception $e) {
             Log::error("ERROR at Row #{$rowNumber}: " . $e->getMessage());
@@ -46,9 +47,9 @@ class CommissionImport implements OnEachRow, WithEvents, ShouldQueue, WithChunkR
         }
     }
 
-    public function startRow(): int
+    public function headingRow(): int
     {
-        return 3;
+        return 2; // Tiêu đề ở dòng 2, dữ liệu sẽ bắt đầu từ dòng 3
     }
 
     public function chunkSize(): int
@@ -56,4 +57,5 @@ class CommissionImport implements OnEachRow, WithEvents, ShouldQueue, WithChunkR
         return 100;
     }
 }
+
 
