@@ -6,21 +6,19 @@ use App\Models\Product;
 use Illuminate\Support\Collection;
 use Maatwebsite\Excel\Concerns\ToCollection;
 use Maatwebsite\Excel\Concerns\WithStartRow;
-use Maatwebsite\Excel\Concerns\WithChunkReading;
-use Illuminate\Contracts\Queue\ShouldQueue;
-use Maatwebsite\Excel\Concerns\WithEvents;
 use Illuminate\Support\Facades\Log;
-use App\Traits\TracksImportProgress;
 
-class CommissionImport implements ToCollection, WithStartRow, WithChunkReading, ShouldQueue, WithEvents
+class CommissionImport implements ToCollection, WithStartRow
 {
-    use TracksImportProgress;
+    protected $updatedCount = 0;
+    protected $skippedCount = 0;
+    protected $errors = [];
 
     public function collection(Collection $rows)
     {
-        Log::info("CommissionImport processing batch of {$rows->count()} rows");
+        Log::info("CommissionImport: Processing {$rows->count()} rows");
 
-        foreach ($rows as $index => $row) {
+        foreach ($rows as $row) {
             // Cột A (0) = Mã hàng (SKU)
             $sku = $row[0] ?? null;
             // Cột G (6) = Bảng hoa hồng chung
@@ -38,12 +36,17 @@ class CommissionImport implements ToCollection, WithStartRow, WithChunkReading, 
                     $product->update([
                         'commission_amount' => (float) $cleanCommission
                     ]);
+                    $this->updatedCount++;
+                } else {
+                    $this->skippedCount++;
                 }
             } catch (\Exception $e) {
                 Log::error("CommissionImport ERROR: SKU={$sku}, " . $e->getMessage());
-                $this->recordError("SKU {$sku}: " . $e->getMessage());
+                $this->errors[] = "SKU {$sku}: " . $e->getMessage();
             }
         }
+
+        Log::info("CommissionImport: Updated={$this->updatedCount}, Skipped={$this->skippedCount}, Errors=" . count($this->errors));
     }
 
     public function startRow(): int
@@ -51,8 +54,18 @@ class CommissionImport implements ToCollection, WithStartRow, WithChunkReading, 
         return 3; // Dòng 1 = tiêu đề bảng, Dòng 2 = header cột, Dòng 3+ = dữ liệu
     }
 
-    public function chunkSize(): int
+    public function getUpdatedCount(): int
     {
-        return 100;
+        return $this->updatedCount;
+    }
+
+    public function getSkippedCount(): int
+    {
+        return $this->skippedCount;
+    }
+
+    public function getErrors(): array
+    {
+        return $this->errors;
     }
 }
