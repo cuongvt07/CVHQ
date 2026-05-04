@@ -55,7 +55,8 @@ class ProductCommission extends Component
         ]);
 
         try {
-            Excel::import(new CommissionImport, $this->importFile->getRealPath());
+            $filePath = $this->importFile->store('imports', 'local');
+            Excel::import(new CommissionImport, $filePath, 'local');
             
             $this->dispatch('notify', message: 'Import hoa hồng hoàn tất!', type: 'success');
             $this->importFile = null;

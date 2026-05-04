@@ -87,9 +87,12 @@ class ProductIndex extends Component
         $this->importErrors = [];
 
         try {
+            // Lưu file vào disk local (thư mục imports) để đảm bảo file tồn tại khi Queue worker xử lý
+            $filePath = $this->importFile->store('imports', 'local');
+
             $import = new ProductsImport();
             $import->setImportKey($this->importBatchId);
-            Excel::import($import, $this->importFile->getRealPath());
+            Excel::import($import, $filePath, 'local');
             
             $this->importFile = null;
         } catch (\Maatwebsite\Excel\Validators\ValidationException $e) {
