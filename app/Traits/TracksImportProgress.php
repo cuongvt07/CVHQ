@@ -51,10 +51,20 @@ trait TracksImportProgress
                 }
 
                 foreach ($totalRows as $sheetName => $rowCount) {
-                    $total += max(0, $rowCount - $offset);
+                    // Handle null or invalid row counts
+                    $validRowCount = is_numeric($rowCount) ? (int)$rowCount : 0;
+                    $total += max(0, $validRowCount - $offset);
+                }
+
+                // If we found sheets but total is 0, it might be a counting error. 
+                // Set total to at least 1 to ensure jobs are dispatched and UI doesn't show 0/0.
+                if ($total === 0 && !empty($totalRows)) {
+                    $total = 1; 
+                    Log::info("Key {$this->importKey}: Total rows was 0 but sheets were found. Forcing total to 1 to proceed.");
                 }
 
                 Log::info("Import starting for key {$this->importKey}. Details: Offset={$offset}, RawRows=" . json_encode($totalRows) . ", CalculatedTotal={$total}");
+
                 
                 Cache::put("import_progress_{$this->importKey}", [
                     'total' => $total,

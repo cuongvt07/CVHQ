@@ -12,7 +12,7 @@ use Maatwebsite\Excel\Concerns\WithHeadingRow;
 use Maatwebsite\Excel\Concerns\WithChunkReading;
 use Illuminate\Contracts\Queue\ShouldQueue;
 
-class CommissionImport implements OnEachRow, WithEvents, ShouldQueue, WithChunkReading, WithHeadingRow
+class CommissionImport implements OnEachRow, WithEvents, ShouldQueue, WithChunkReading, WithStartRow
 {
     use TracksImportProgress;
 
@@ -21,16 +21,16 @@ class CommissionImport implements OnEachRow, WithEvents, ShouldQueue, WithChunkR
         $rowData = $row->toArray();
         $rowNumber = $row->getIndex();
 
-        // Log row data for debugging on the first few rows
-        if ($rowNumber <= 5) {
-            Log::info("Row #{$rowNumber} data: " . json_encode($rowData));
+        // Log row data for debugging
+        if ($rowNumber <= 10) {
+            Log::info("Processing Row #{$rowNumber}: " . json_encode($rowData));
         }
 
-        // Nhận diện SKU từ nhiều tên cột khả thi (thêm các trường phổ biến từ KiotViet)
-        $sku = $rowData['ma_hang'] ?? $rowData['ma_hang_hoa'] ?? $rowData['ma_sp'] ?? $rowData['sku'] ?? $rowData[0] ?? null;
+        // Nhận diện SKU: Ưu tiên tên cột, nếu không có thì dùng cột A (index 0)
+        $sku = $rowData['ma_hang'] ?? $rowData['ma_hang_hoa'] ?? $rowData['ma_sp'] ?? $rowData['sku'] ?? ($rowData[0] ?? null);
         
-        // Nhận diện Hoa hồng từ nhiều tên cột khả thi
-        $commission = $rowData['bang_hoa_hong_chung'] ?? $rowData['hoa_hong_chung'] ?? $rowData['hoa_hong'] ?? $rowData['commission'] ?? $rowData[6] ?? 0;
+        // Nhận diện Hoa hồng: Ưu tiên tên cột, nếu không có thì dùng cột G (index 6) hoặc C (index 2)
+        $commission = $rowData['bang_hoa_hong_chung'] ?? $rowData['hoa_hong_chung'] ?? $rowData['hoa_hong'] ?? $rowData['commission'] ?? ($rowData[6] ?? ($rowData[2] ?? 0));
 
         if (!$sku || trim((string)$sku) === '') {
             return; 
@@ -40,7 +40,6 @@ class CommissionImport implements OnEachRow, WithEvents, ShouldQueue, WithChunkR
             $product = Product::where('sku', trim((string)$sku))->first();
             
             if ($product) {
-                // Xử lý định dạng số (loại bỏ dấu phân cách nếu có)
                 $cleanCommission = str_replace([',', '.'], '', (string)$commission);
                 $product->update([
                     'commission_amount' => (float) $cleanCommission
@@ -52,9 +51,9 @@ class CommissionImport implements OnEachRow, WithEvents, ShouldQueue, WithChunkR
         }
     }
 
-    public function headingRow(): int
+    public function startRow(): int
     {
-        return 2; // Tiêu đề ở dòng 2, dữ liệu sẽ bắt đầu từ dòng 3
+        return 3; 
     }
 
     public function chunkSize(): int
@@ -62,5 +61,6 @@ class CommissionImport implements OnEachRow, WithEvents, ShouldQueue, WithChunkR
         return 100;
     }
 }
+
 
 
