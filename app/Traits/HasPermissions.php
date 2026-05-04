@@ -12,17 +12,19 @@ trait HasPermissions
     public function mountHasPermissions()
     {
         if (!auth()->check()) {
-            return redirect('/');
+            return redirect()->route('login');
         }
 
-        if (!auth()->user()->hasPermission($this->getModuleKey())) {
+        $user = auth()->user();
+
+        if (!$user || !$user->hasPermission($this->getModuleKey())) {
             session()->flash('notify', [
                 'message' => 'Bạn không có quyền truy cập module này!',
                 'type' => 'error'
             ]);
 
             // Redirect to a safe place (Dashboard or POS if they have access)
-            if (auth()->user()->hasPermission('pos')) {
+            if ($user?->hasPermission('pos')) {
                 return redirect()->route('pos');
             }
 

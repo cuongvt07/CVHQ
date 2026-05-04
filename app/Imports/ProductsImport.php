@@ -13,6 +13,7 @@ use Illuminate\Support\Str;
 use Maatwebsite\Excel\Concerns\WithChunkReading;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Maatwebsite\Excel\Concerns\WithEvents;
+use Illuminate\Support\Facades\Log;
 use App\Traits\TracksImportProgress;
 
 class ProductsImport implements OnEachRow, WithHeadingRow, WithChunkReading, ShouldQueue, WithEvents
@@ -29,7 +30,7 @@ class ProductsImport implements OnEachRow, WithHeadingRow, WithChunkReading, Sho
                 $url = trim($url);
                 if (filter_var($url, FILTER_VALIDATE_URL)) {
                     try {
-                        $response = Http::get($url);
+                        $response = Http::timeout(10)->get($url);
                         if ($response->successful()) {
                             $extension = pathinfo(parse_url($url, PHP_URL_PATH), PATHINFO_EXTENSION) ?: 'jpg';
                             $filename = 'products/' . Str::random(20) . '.' . $extension;
@@ -37,10 +38,14 @@ class ProductsImport implements OnEachRow, WithHeadingRow, WithChunkReading, Sho
                             $imagePaths[] = Storage::url($filename);
                         }
                     } catch (\Exception $e) {
-                        // Skip if failed
+                        Log::warning("Failed to fetch image for key {$this->importKey}: {$url}. Error: " . $e->getMessage());
                     }
                 }
             }
+        }
+
+        if ($row->getIndex() % 10 === 0) {
+            Log::info("Import key {$this->importKey} processing row: " . $row->getIndex());
         }
 
         $categoryName = $rowData['nhom_hang3_cap'] ?? null;

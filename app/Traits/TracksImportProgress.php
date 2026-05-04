@@ -35,12 +35,18 @@ trait TracksImportProgress
                 $totalRows = $event->getReader()->getTotalRows();
                 
                 $total = 0;
-                foreach ($totalRows as $sheetName => $rowCount) {
-                    // Subtract 1 for heading row, but ensure it's not negative
-                    $total += max(0, $rowCount - 1);
+                $offset = 1;
+                if (method_exists($this, 'startRow')) {
+                    $offset = $this->startRow() - 1;
+                } elseif (method_exists($this, 'headingRow')) {
+                    $offset = $this->headingRow();
                 }
 
-                Log::info("Import starting for key {$this->importKey}. Total rows: {$total}");
+                foreach ($totalRows as $sheetName => $rowCount) {
+                    $total += max(0, $rowCount - $offset);
+                }
+
+                Log::info("Import starting for key {$this->importKey}. Total rows: {$total}. Dispatching jobs...");
                 
                 Cache::put("import_progress_{$this->importKey}", [
                     'total' => $total,
@@ -52,12 +58,17 @@ trait TracksImportProgress
             AfterChunk::class => function (AfterChunk $event) {
                 $progress = Cache::get("import_progress_{$this->importKey}");
                 if ($progress) {
-                    // We increment by the actual row count processed in this chunk if possible, 
-                    // but chunkSize() is a good enough estimate for the UI.
                     $progress['current'] += $this->chunkSize(); 
                     if ($progress['current'] > $progress['total']) {
                         $progress['current'] = $progress['total'];
                     }
+                    
+                    Log::info("Import progress for key {$this->importKey}: {$progress['current']}/{$progress['total']}");
+                    
+                    if ($progress['current'] >= $progress['total']) {
+                        $progress['status'] = 'finished';
+                    }
+                    
                     Cache::put("import_progress_{$this->importKey}", $progress, 3600);
                 }
             },

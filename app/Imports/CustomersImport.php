@@ -9,6 +9,7 @@ use Maatwebsite\Excel\Concerns\WithHeadingRow;
 use Maatwebsite\Excel\Concerns\WithChunkReading;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Maatwebsite\Excel\Concerns\WithEvents;
+use Illuminate\Support\Facades\Log;
 use App\Traits\TracksImportProgress;
 use PhpOffice\PhpSpreadsheet\Shared\Date;
 
@@ -21,6 +22,10 @@ class CustomersImport implements OnEachRow, WithHeadingRow, WithChunkReading, Sh
         $rowData = $row->toArray();
         $name = $rowData['ten_khach_hang'] ?? $rowData['ten_khach'] ?? null;
         $code = $rowData['ma_khach_hang'] ?? $rowData['ma_khach'] ?? null;
+
+        if ($row->getIndex() % 10 === 0) {
+            Log::info("Import key {$this->importKey} processing row: " . $row->getIndex());
+        }
 
         if (empty($name)) {
             return;

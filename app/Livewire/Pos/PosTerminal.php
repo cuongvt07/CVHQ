@@ -4,11 +4,12 @@ namespace App\Livewire\Pos;
 
 use App\Models\Product;
 use Livewire\Component;
+use Livewire\WithPagination;
 use App\Traits\HasPermissions;
 
 class PosTerminal extends Component
 {
-    use HasPermissions;
+    use HasPermissions, WithPagination;
 
     protected function getModuleKey(): string
     {
@@ -17,6 +18,16 @@ class PosTerminal extends Component
     public $cart = [];
     public $search = '';
     public $category = 'All';
+
+    public function updatingSearch()
+    {
+        $this->resetPage();
+    }
+
+    public function updatingCategory()
+    {
+        $this->resetPage();
+    }
 
     // Financials
     public $discount = 0;
@@ -100,8 +111,8 @@ class PosTerminal extends Component
             })
             ->when($this->category !== 'All', fn($q) => $q->where('category_path', $this->category))
             ->where('is_active', true)
-            ->get()
-            ->map(function($product) {
+            ->paginate(24)
+            ->through(function($product) {
                 return [
                     'id' => $product->id,
                     'sku' => $product->sku,
@@ -109,6 +120,7 @@ class PosTerminal extends Component
                     'category_path' => $product->category_path,
                     'sale_price' => (int) $product->sale_price,
                     'location' => $product->location,
+                    'stock_quantity' => $product->stock_quantity,
                     'image' => !empty($product->images) ? $product->images[0] : null,
                 ];
             });
@@ -138,7 +150,7 @@ class PosTerminal extends Component
     {
         $this->validate([
             'new_customer.full_name' => 'required|min:2',
-            'new_customer.phone' => 'required|digits_between:10,11',
+            'new_customer.phone' => 'nullable|digits_between:10,11',
         ]);
 
         $customer = \App\Models\Customer::create([
@@ -183,10 +195,7 @@ class PosTerminal extends Component
             return;
         }
 
-        if ($this->paid_amount < $this->finalAmount) {
-            $this->dispatch('notify', message: 'Số tiền khách trả chưa đủ!', type: 'error');
-            return;
-        }
+
 
         \DB::beginTransaction();
         try {
@@ -195,14 +204,14 @@ class PosTerminal extends Component
                 'branch' => 'Antigravity HQ',
                 'customer_id' => $this->customer_id,
                 'user_id' => auth()->id(),
-                'seller_name' => auth()->user()->name ?? 'Admin POS',
+                'seller_name' => auth()->user()?->name ?? 'Admin POS',
                 'sales_channel' => 'POS',
                 'total_amount' => $this->total,
                 'discount_amount' => $this->discount,
                 'extra_fee' => $this->extra_fee,
                 'final_amount' => $this->finalAmount,
                 'total_commission' => collect($this->cart)->sum(fn($item) => $item['commission_amount'] * $item['quantity']),
-                'paid_amount' => $this->paid_amount,
+                'paid_amount' => $this->finalAmount,
                 'status' => 'Completed',
                 'delivery_status' => 'Delivered'
             ]);
@@ -231,7 +240,7 @@ class PosTerminal extends Component
 
             $this->dispatch('notify', message: 'Thanh toán thành công!', type: 'success');
             
-            return redirect()->route('invoices.detail', $invoice->id);
+            // Removed redirect to stay on POS page
         } catch (\Exception $e) {
             \DB::rollBack();
             $this->dispatch('notify', message: 'Lỗi: ' . $e->getMessage(), type: 'error');

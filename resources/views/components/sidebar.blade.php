@@ -23,6 +23,7 @@
     
     <!-- Navigation Groups -->
     <div class="flex-1 flex flex-col gap-6 px-4">
+        @auth
         
         <!-- Dashboard -->
         @if(auth()->user()?->hasPermission('dashboard'))
@@ -143,7 +144,7 @@
             </div>
         </div>
         @endif
-
+        @endauth
     </div>
     
     <!-- Bottom Context & Collapse Toggle -->
