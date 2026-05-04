@@ -53,31 +53,67 @@ class ProductCommission extends Component
 
     public function import()
     {
-        // Tăng thời gian thực thi ngay từ đầu để tránh lỗi timeout trong quá trình validate và đọc file
         set_time_limit(300);
 
         $this->validate([
             'importFile' => 'required',
         ]);
 
-        $this->importBatchId = Str::random(10);
         $this->importing = true;
         $this->importProgress = 0;
         $this->importErrors = [];
 
         try {
-            $import = new CommissionImport();
-            $import->setImportKey($this->importBatchId);
-            
-            // Store the file to ensure it's available for the queue worker
+            // Lưu file upload
             $filePath = $this->importFile->store('imports');
-            
-            Excel::queueImport($import, $filePath);
-            
+            $fullPath = storage_path('app/' . $filePath);
+
+            // Chuẩn hóa file Excel (fix định dạng KiotViet không chuẩn)
+            $normalizedPath = $this->normalizeExcelFile($fullPath);
+
+            // Import đồng bộ (file hoa hồng nhỏ, không cần queue)
+            $import = new CommissionImport();
+            Excel::import($import, $normalizedPath);
+
+            $this->importing = false;
+            $this->importProgress = 100;
+
+            $updated = $import->getUpdatedCount();
+            $skipped = $import->getSkippedCount();
+            $this->importErrors = $import->getErrors();
+
+            $this->dispatch('notify', message: "Import hoàn tất! Cập nhật: {$updated}, Bỏ qua: {$skipped}", type: 'success');
+            $this->dispatch('import-finished', id: 'commissions');
             $this->importFile = null;
+
+            // Dọn file tạm
+            @unlink($fullPath);
+            if ($normalizedPath !== $fullPath) {
+                @unlink($normalizedPath);
+            }
         } catch (\Exception $e) {
             $this->importing = false;
             $this->dispatch('notify', message: 'Lỗi import: ' . $e->getMessage(), type: 'error');
+        }
+    }
+
+    /**
+     * Chuẩn hóa file Excel bằng cách load rồi save lại
+     * Giải quyết vấn đề file KiotViet có cấu trúc XML không chuẩn
+     */
+    private function normalizeExcelFile(string $path): string
+    {
+        try {
+            $spreadsheet = \PhpOffice\PhpSpreadsheet\IOFactory::load($path);
+            $normalizedPath = str_replace('.xlsx', '_normalized.xlsx', $path);
+            $writer = new \PhpOffice\PhpSpreadsheet\Writer\Xlsx($spreadsheet);
+            $writer->save($normalizedPath);
+            $spreadsheet->disconnectWorksheets();
+            unset($spreadsheet);
+            return $normalizedPath;
+        } catch (\Exception $e) {
+            \Illuminate\Support\Facades\Log::warning('Could not normalize Excel file: ' . $e->getMessage());
+            return $path;
         }
     }
 
