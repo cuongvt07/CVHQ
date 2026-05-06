@@ -61,45 +61,54 @@ class ProductCommission extends Component
         }
 
         \DB::transaction(function () {
-            // Lấy tất cả sản phẩm để map SKU cho nhanh
-            $products = Product::all()->keyBy('sku');
+            // Lấy tất cả sản phẩm, chuẩn hóa SKU (viết hoa + trim) làm key để đối chiếu chính xác nhất
+            $products = Product::all()->mapWithKeys(function ($item) {
+                return [strtoupper(trim((string)$item->sku)) => $item];
+            });
             
-            // Get all non-cancelled invoices
-            $invoices = Invoice::where('status', '!=', 'Cancelled')->with(['items', 'user'])->get();
+            // Lấy tất cả hóa đơn (bao gồm cả các trạng thái khác nhau, chỉ trừ Cancelled nếu muốn)
+            // Ở đây tôi lấy hết để đảm bảo không sót đơn nào
+            $invoices = Invoice::with(['items', 'user'])->get();
             $invoiceCount = 0;
             $itemCount = 0;
 
             foreach ($invoices as $invoice) {
+                // Chỉ xử lý các đơn không bị hủy
+                if (in_array(strtolower($invoice->status), ['cancelled', 'đã hủy', 'hủy'])) {
+                    continue;
+                }
+
                 $seller = $invoice->user;
-                $canReceiveCommission = $seller ? $seller->can_receive_commission : true;
+                // Nếu không có thông tin seller, mặc định là có thể nhận hoa hồng (admin/system)
+                $canReceiveCommission = $seller ? (bool)$seller->can_receive_commission : true;
                 $invoiceTotalCommission = 0;
-                $invoiceModified = false;
 
                 foreach ($invoice->items as $item) {
-                    // Tìm sản phẩm hiện tại dựa trên SKU (đảm bảo lấy đúng giá trị mới nhất)
-                    $product = $products[$item->sku] ?? null;
+                    $itemSku = strtoupper(trim((string)$item->sku));
+                    // Tìm sản phẩm hiện tại dựa trên SKU chuẩn hóa
+                    $product = $products[$itemSku] ?? null;
                     
                     // Lấy giá trị hoa hồng chuẩn từ "Bảng hoa hồng chung"
-                    $standardRate = $product ? (int)$product->commission_amount : (int)$item->commission_amount;
+                    // Nếu không tìm thấy sản phẩm trong kho hiện tại, giữ nguyên giá trị cũ của đơn hàng
+                    $standardRate = $product ? (float)$product->commission_amount : (float)$item->commission_amount;
                     
                     // Áp dụng điều kiện nhân viên (có được hưởng hoa hồng không)
                     $targetRate = $canReceiveCommission ? $standardRate : 0;
 
-                    if ((int)$item->commission_amount !== (int)$targetRate) {
+                    // So sánh chính xác dạng số (float)
+                    if (round((float)$item->commission_amount, 2) !== round((float)$targetRate, 2)) {
                         $item->commission_amount = $targetRate;
                         $item->save();
                         $itemCount++;
-                        $invoiceModified = true;
                     }
 
                     $invoiceTotalCommission += ($targetRate * $item->quantity);
                 }
 
-                if ((int)$invoice->total_commission !== (int)$invoiceTotalCommission) {
+                if (round((float)$invoice->total_commission, 2) !== round((float)$invoiceTotalCommission, 2)) {
                     $invoice->total_commission = $invoiceTotalCommission;
                     $invoice->save();
                     $invoiceCount++;
-                    $invoiceModified = true;
                 }
             }
 
