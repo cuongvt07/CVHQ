@@ -38,16 +38,27 @@
                 <div class="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
                     @foreach($products as $product)
                         <div wire:click="addToCart({{ $product['id'] }})"
-                             class="group relative bg-white border border-slate-100 rounded-2xl overflow-hidden hover:shadow-xl hover:shadow-slate-200/50 hover:-translate-y-1 transition-all cursor-pointer flex flex-col h-full">
-                            <div class="aspect-square overflow-hidden bg-slate-50 shrink-0 product-image-container" x-data="{ hover: false }">
+                             class="group relative bg-white border border-slate-200 rounded-2xl hover:shadow-2xl hover:shadow-slate-200/50 hover:-translate-y-1 transition-all cursor-pointer flex flex-col h-full z-10 hover:z-20">
+                            <div class="aspect-square overflow-hidden bg-slate-50 shrink-0 product-image-container rounded-t-2xl relative" 
+                                 x-data="{ hover: false, mouseX: 0, mouseY: 0 }"
+                                 @mousemove="mouseX = $event.clientX; mouseY = $event.clientY">
                                 @if($product['image'])
                                     <img src="{{ $product['image'] }}" alt="{{ $product['name'] }}" 
                                          @mouseenter="hover = true" @mouseleave="hover = false"
                                          class="w-full h-full object-cover">
-                                    <div x-show="hover" class="product-zoom-preview" x-cloak>
-                                        <img src="{{ $product['image'] }}" class="w-full h-full object-cover scale-150 origin-center">
-                                        <div class="absolute inset-0 border-4 border-electric-blue/20 pointer-events-none"></div>
-                                    </div>
+                                    
+                                    <template x-teleport="body">
+                                        <div x-show="hover" 
+                                             class="product-zoom-preview" 
+                                             :style="`left: ${mouseX + 20}px; top: ${mouseY}px; transform: translateY(-50%);`"
+                                             x-cloak>
+                                            <img src="{{ $product['image'] }}" class="w-full h-full object-cover scale-[2] origin-center">
+                                            <div class="absolute inset-0 border-4 border-electric-blue/30 pointer-events-none"></div>
+                                            <div class="absolute bottom-4 left-4 right-4 bg-black/60 backdrop-blur-md px-3 py-1.5 rounded-full text-[10px] font-bold text-white uppercase tracking-widest text-center">
+                                                Chi tiết họa tiết
+                                            </div>
+                                        </div>
+                                    </template>
                                 @else
                                     <div class="w-full h-full flex items-center justify-center text-slate-200">
                                         <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="3" rx="2" ry="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/></svg>
@@ -79,13 +90,21 @@
             <div class="md:hidden h-full overflow-y-auto bg-white p-3 pb-32">
                 <div class="grid grid-cols-2 gap-3 mb-6">
                     @forelse($products as $product)
-                        <div wire:click="addToCart({{ $product['id'] }})" class="bg-white border border-slate-200 rounded-2xl overflow-hidden flex flex-col shadow-sm active:scale-95 transition-transform h-full">
-                            <div class="h-28 bg-slate-50 relative shrink-0 product-image-container" x-data="{ hover: false }">
+                        <div wire:click="addToCart({{ $product['id'] }})" class="bg-white border border-slate-200 rounded-2xl flex flex-col shadow-sm active:scale-95 transition-transform h-full z-10">
+                            <div class="h-28 bg-slate-50 relative shrink-0 product-image-container rounded-t-2xl overflow-hidden" 
+                                 x-data="{ hover: false, mouseX: 0, mouseY: 0 }"
+                                 @mousemove="mouseX = $event.clientX; mouseY = $event.clientY">
                                 @if($product['image'])
                                     <img src="{{ $product['image'] }}" @mouseenter="hover = true" @mouseleave="hover = false" class="w-full h-full object-cover">
-                                    <div x-show="hover" class="product-zoom-preview" x-cloak>
-                                        <img src="{{ $product['image'] }}" class="w-full h-full object-cover scale-150 origin-center">
-                                    </div>
+                                    <template x-teleport="body">
+                                        <div x-show="hover" 
+                                             class="product-zoom-preview" 
+                                             :style="`left: ${mouseX + 10}px; top: ${mouseY}px; transform: translateY(-50%); width: 250px; height: 250px;`"
+                                             x-cloak>
+                                            <img src="{{ $product['image'] }}" class="w-full h-full object-cover scale-[2.5] origin-center">
+                                            <div class="absolute inset-0 border-4 border-electric-blue/30 pointer-events-none"></div>
+                                        </div>
+                                    </template>
                                 @else
                                     <div class="w-full h-full flex items-center justify-center text-slate-200">
                                         <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="3" rx="2" ry="2"/></svg>

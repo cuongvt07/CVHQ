@@ -253,18 +253,25 @@
                                                                     <tr>
                                                                         <td class="py-2">
                                                                             <div class="flex items-center gap-3">
-                                                                                <div class="w-10 h-10 rounded-lg overflow-hidden bg-slate-100 border border-slate-200 product-image-container" x-data="{ hover: false }">
-                                                                                    @php
-                                                                                        $itemProduct = \App\Models\Product::where('sku', $item->sku)->first();
-                                                                                        $itemImg = (!empty($itemProduct?->images) && isset($itemProduct->images[0])) ? $itemProduct->images[0] : null;
-                                                                                    @endphp
-                                                                                    @if($itemImg)
-                                                                                        <img src="{{ $itemImg }}" @mouseenter="hover = true" @mouseleave="hover = false" class="w-full h-full object-cover">
-                                                                                        <div x-show="hover" class="product-zoom-preview" x-cloak>
-                                                                                            <img src="{{ $itemImg }}" class="w-full h-full object-cover scale-150 origin-center">
-                                                                                            <div class="absolute inset-0 border-4 border-electric-blue/20 pointer-events-none"></div>
-                                                                                        </div>
-                                                                                    @else
+                                                                                <div class="w-10 h-10 rounded-lg overflow-hidden bg-slate-100 border border-slate-200 product-image-container relative" 
+                                                                                     x-data="{ hover: false, mouseX: 0, mouseY: 0 }"
+                                                                                     @mousemove="mouseX = $event.clientX; mouseY = $event.clientY">
+                                                                                     @php
+                                                                                         $itemProduct = \App\Models\Product::where('sku', $item->sku)->first();
+                                                                                         $itemImg = (!empty($itemProduct?->images) && isset($itemProduct->images[0])) ? $itemProduct->images[0] : null;
+                                                                                     @endphp
+                                                                                     @if($itemImg)
+                                                                                         <img src="{{ $itemImg }}" @mouseenter="hover = true" @mouseleave="hover = false" class="w-full h-full object-cover">
+                                                                                         <template x-teleport="body">
+                                                                                             <div x-show="hover" 
+                                                                                                  class="product-zoom-preview" 
+                                                                                                  :style="`left: ${mouseX + 20}px; top: ${mouseY}px; transform: translateY(-50%);`"
+                                                                                                  x-cloak>
+                                                                                                 <img src="{{ $itemImg }}" class="w-full h-full object-cover scale-[2] origin-center">
+                                                                                                 <div class="absolute inset-0 border-4 border-electric-blue/30 pointer-events-none"></div>
+                                                                                             </div>
+                                                                                         </template>
+                                                                                     @else
                                                                                         <div class="w-full h-full flex items-center justify-center text-slate-300">
                                                                                             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="3" rx="2" ry="2"/></svg>
                                                                                         </div>
