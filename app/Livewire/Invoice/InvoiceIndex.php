@@ -29,6 +29,9 @@ class InvoiceIndex extends Component
     public $cancelReason = '';
     public $selectedInvoiceIdForCancel = null;
     public $showCancelModal = false;
+    public $showEditModal = false;
+    public $editingInvoice = null;
+    public $editCustomerId = null;
 
     // Import Progress
     public $importing = false;
@@ -168,8 +171,46 @@ class InvoiceIndex extends Component
 
     public function returnItems($id)
     {
-        // For now, just a placeholder as requested
-        $this->dispatch('notify', message: 'Tính năng trả hàng đang được phát triển.', type: 'info');
+        $invoice = Invoice::findOrFail($id);
+        
+        if ($invoice->status === 'Returned' || $invoice->status === 'Cancelled') {
+            $this->dispatch('notify', message: 'Hóa đơn này không thể trả hàng thêm.', type: 'error');
+            return;
+        }
+
+        \DB::transaction(function () use ($invoice) {
+            // Restore stock
+            foreach ($invoice->items as $item) {
+                if ($item->product) {
+                    $item->product->increment('stock_quantity', $item->quantity);
+                }
+            }
+
+            $invoice->update([
+                'status' => 'Returned',
+            ]);
+        });
+
+        $this->dispatch('notify', message: 'Đã hoàn tất trả hàng và nhập lại kho!', type: 'success');
+    }
+
+    public function editInvoice($id)
+    {
+        $this->editingInvoice = Invoice::findOrFail($id);
+        $this->editCustomerId = $this->editingInvoice->customer_id;
+        $this->showEditModal = true;
+    }
+
+    public function updateInvoice()
+    {
+        $this->editingInvoice->update([
+            'customer_id' => $this->editCustomerId,
+        ]);
+
+        $this->showEditModal = false;
+        $this->editingInvoice = null;
+        
+        $this->dispatch('notify', message: 'Đã cập nhật thông tin hóa đơn!', type: 'success');
     }
 
     protected function getRecordsForBulk()

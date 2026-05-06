@@ -22,8 +22,8 @@ class DashboardIndex extends Component
         $today = Carbon::today();
         
         return [
-            'revenue_today' => Invoice::whereDate('created_at', $today)->sum('final_amount'),
-            'orders_today' => Invoice::whereDate('created_at', $today)->count(),
+            'revenue_today' => Invoice::where('status', '!=', 'Cancelled')->whereDate('created_at', $today)->sum('final_amount'),
+            'orders_today' => Invoice::where('status', '!=', 'Cancelled')->whereDate('created_at', $today)->count(),
             'total_customers' => Customer::count(),
             'low_stock_count' => Product::whereRaw('stock_quantity < min_stock')->count(),
         ];
@@ -32,6 +32,7 @@ class DashboardIndex extends Component
     public function getRecentActivity()
     {
         return Invoice::with('customer')
+            ->where('status', '!=', 'Cancelled')
             ->latest()
             ->take(5)
             ->get();
