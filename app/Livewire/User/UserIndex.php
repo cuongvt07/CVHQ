@@ -35,7 +35,7 @@ class UserIndex extends Component
 
     // Form properties
     public $userId;
-    public $name, $email, $password, $role = 'staff', $permissions = [];
+    public $name, $email, $password, $role = 'staff', $can_receive_commission = true, $permissions = [];
 
     protected function rules()
     {
@@ -44,6 +44,7 @@ class UserIndex extends Component
             'email' => 'required|email|unique:users,email,' . $this->userId,
             'password' => $this->userId ? 'nullable|min:6' : 'required|min:6',
             'role' => 'required|in:admin,staff',
+            'can_receive_commission' => 'boolean',
             'permissions' => 'nullable|array',
         ];
     }
@@ -55,6 +56,7 @@ class UserIndex extends Component
         $this->email = '';
         $this->password = '';
         $this->role = 'staff';
+        $this->can_receive_commission = true;
         $this->permissions = [];
         $this->resetErrorBag();
     }
@@ -73,6 +75,7 @@ class UserIndex extends Component
         $this->name = $user->name;
         $this->email = $user->email;
         $this->role = $user->role;
+        $this->can_receive_commission = $user->can_receive_commission;
         $this->permissions = $user->permissions ?? [];
         
         $this->dispatch('open-user-modal');
@@ -86,6 +89,7 @@ class UserIndex extends Component
             'name' => $this->name,
             'email' => $this->email,
             'role' => $this->role,
+            'can_receive_commission' => $this->can_receive_commission,
             'permissions' => $this->role === 'admin' ? null : $this->permissions,
         ];
 

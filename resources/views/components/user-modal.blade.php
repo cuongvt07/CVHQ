@@ -73,6 +73,24 @@
                             </div>
                         </div>
 
+                        <!-- Commission Eligibility Toggle -->
+                        <div class="flex items-center justify-between p-4 bg-rose-50/30 rounded-2xl border border-rose-100/50" x-show="$wire.role === 'staff'">
+                            <div class="flex items-center gap-3">
+                                <div class="w-10 h-10 rounded-xl bg-rose-500/10 flex items-center justify-center text-rose-500">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v20"/><path d="m17 5-5-3-5 3"/><path d="m17 19-5 3-5-3"/><path d="M2 12h20"/><path d="m5 7-3 5 3 5"/><path d="m19 7 3 5-3 5"/></svg>
+                                </div>
+                                <div>
+                                    <span class="text-sm font-bold text-slate-900 italic">Áp dụng hoa hồng cho nhân viên này?</span>
+                                    <p class="text-[10px] text-slate-400">Nếu tắt, nhân viên sẽ chỉ nhận lương cứng/giờ.</p>
+                                </div>
+                            </div>
+                            <button type="button" 
+                                    wire:click="$set('can_receive_commission', {{ !$this->can_receive_commission ? 'true' : 'false' }})"
+                                    class="relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none {{ $this->can_receive_commission ? 'bg-rose-500' : 'bg-slate-200' }}">
+                                <span class="pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out {{ $this->can_receive_commission ? 'translate-x-5' : 'translate-x-0' }}"></span>
+                            </button>
+                        </div>
+
                         <!-- Permissions Grid -->
                         <div class="space-y-4 pt-6 border-t border-slate-100" x-show="$wire.role === 'staff'">
                             <div class="flex items-center justify-between mb-2">

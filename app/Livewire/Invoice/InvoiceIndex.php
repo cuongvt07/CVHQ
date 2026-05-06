@@ -262,6 +262,7 @@ class InvoiceIndex extends Component
             'product_name' => $product->name,
             'sku' => $product->sku,
             'unit_price' => $product->sale_price,
+            'commission_amount' => $product->commission_amount,
             'quantity' => 1,
             'original_quantity' => 0,
         ];
@@ -293,6 +294,7 @@ class InvoiceIndex extends Component
             'product_name' => $item->product_name,
             'sku' => $item->sku,
             'unit_price' => $item->unit_price,
+            'commission_amount' => $item->commission_amount,
             'quantity' => $item->quantity,
             'original_quantity' => $item->quantity,
         ])->toArray();
@@ -324,6 +326,9 @@ class InvoiceIndex extends Component
         
         \DB::transaction(function () use ($invoice) {
             $totalAmount = 0;
+            $seller = $invoice->user;
+            $canReceiveCommission = $seller ? $seller->can_receive_commission : true;
+            $totalCommission = 0;
 
             // Handle deletions
             foreach ($this->itemsToDelete as $itemId) {
@@ -353,9 +358,12 @@ class InvoiceIndex extends Component
                         'final_price' => $finalPrice,
                     ]);
                     $totalAmount += $finalPrice;
+                    $totalCommission += ($item->commission_amount * $itemData['quantity']);
                 } else {
                     // Create new item
                     $finalPrice = $itemData['unit_price'] * $itemData['quantity'];
+                    $commissionPerUnit = $canReceiveCommission ? ($itemData['commission_amount'] ?? 0) : 0;
+
                     \App\Models\InvoiceItem::create([
                         'invoice_id' => $invoice->id,
                         'product_id' => $itemData['product_id'],
@@ -363,6 +371,7 @@ class InvoiceIndex extends Component
                         'product_name' => $itemData['product_name'],
                         'quantity' => $itemData['quantity'],
                         'unit_price' => $itemData['unit_price'],
+                        'commission_amount' => $commissionPerUnit,
                         'final_price' => $finalPrice,
                     ]);
                     
@@ -372,12 +381,14 @@ class InvoiceIndex extends Component
                         $product->decrement('stock_quantity', $itemData['quantity']);
                     }
                     $totalAmount += $finalPrice;
+                    $totalCommission += ($commissionPerUnit * $itemData['quantity']);
                 }
             }
 
             $invoice->update([
                 'customer_id' => $this->editCustomerId,
                 'total_amount' => $totalAmount,
+                'total_commission' => $totalCommission,
                 'final_amount' => max(0, $totalAmount - $invoice->discount_amount + $invoice->extra_fee),
             ]);
         });

@@ -48,6 +48,45 @@ class CommissionReport extends Component
         $this->selectedInvoiceId = null;
     }
 
+    public function syncCommissions()
+    {
+        if (!auth()->user()->hasPermission('invoice.edit')) {
+            $this->dispatch('notify', message: 'Bạn không có quyền đồng bộ dữ liệu!', type: 'error');
+            return;
+        }
+
+        \DB::transaction(function () {
+            // Get all non-cancelled invoices
+            $invoices = Invoice::where('status', '!=', 'Cancelled')->with(['items.product', 'user'])->get();
+            $count = 0;
+
+            foreach ($invoices as $invoice) {
+                $seller = $invoice->user;
+                $canReceiveCommission = $seller ? $seller->can_receive_commission : true;
+                $totalCommission = 0;
+
+                foreach ($invoice->items as $item) {
+                    // Use product's current commission rate if available, else keep current
+                    $currentRate = $item->product ? $item->product->commission_amount : $item->commission_amount;
+                    $newRate = $canReceiveCommission ? $currentRate : 0;
+
+                    if ($item->commission_amount != $newRate) {
+                        $item->update(['commission_amount' => $newRate]);
+                    }
+
+                    $totalCommission += ($newRate * $item->quantity);
+                }
+
+                if ($invoice->total_commission != $totalCommission) {
+                    $invoice->update(['total_commission' => $totalCommission]);
+                    $count++;
+                }
+            }
+
+            $this->dispatch('notify', message: "Đã rà soát và cập nhật lại hoa hồng cho {$count} hóa đơn!", type: 'success');
+        });
+    }
+
     public function render()
     {
         $data = [];
