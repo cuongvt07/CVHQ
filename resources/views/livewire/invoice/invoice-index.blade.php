@@ -135,14 +135,24 @@
                                                         Hủy
                                                     </button>
                                                 @else
-                                                    <button wire:click="editInvoice({{ $invoice->id }})" class="flex items-center gap-2 px-3 py-1.5 bg-white border border-slate-200 text-slate-600 rounded-lg text-[10px] font-bold uppercase tracking-widest hover:bg-slate-50 transition-all">
-                                                        <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/><path d="m15 5 4 4"/></svg>
-                                                        Sửa
-                                                    </button>
-                                                    <button wire:click="returnItems({{ $invoice->id }})" class="flex items-center gap-2 px-3 py-1.5 bg-slate-900 text-white rounded-lg text-[10px] font-bold uppercase tracking-widest hover:bg-slate-800 transition-all {{ $invoice->status === 'Returned' ? 'opacity-50 cursor-not-allowed' : '' }}" {{ $invoice->status === 'Returned' ? 'disabled' : '' }}>
-                                                        <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7v6h6"/><path d="M21 17a9 9 0 0 0-9-9 9 9 0 0 0-6 2.3L3 13"/></svg>
-                                                        Trả hàng
-                                                    </button>
+                                                    @if(auth()->user()->hasPermission('invoice.edit'))
+                                                        <button wire:click="editInvoice({{ $invoice->id }})" class="flex items-center gap-2 px-3 py-1.5 bg-white border border-slate-200 text-slate-600 rounded-lg text-[10px] font-bold uppercase tracking-widest hover:bg-slate-50 transition-all">
+                                                            <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/><path d="m15 5 4 4"/></svg>
+                                                            Sửa
+                                                        </button>
+                                                        <button wire:click="returnItems({{ $invoice->id }})" class="flex items-center gap-2 px-3 py-1.5 bg-slate-900 text-white rounded-lg text-[10px] font-bold uppercase tracking-widest hover:bg-slate-800 transition-all {{ $invoice->status === 'Returned' ? 'opacity-50 cursor-not-allowed' : '' }}" {{ $invoice->status === 'Returned' ? 'disabled' : '' }}>
+                                                            <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7v6h6"/><path d="M21 17a9 9 0 0 0-9-9 9 9 0 0 0-6 2.3L3 13"/></svg>
+                                                            Trả hàng
+                                                        </button>
+                                                    @endif
+                                                    
+                                                    @if(auth()->user()->hasPermission('invoice.cancel'))
+                                                        <button wire:click="confirmCancel({{ $invoice->id }})" class="flex items-center gap-2 px-3 py-1.5 bg-rose-50 border border-rose-100 text-rose-500 rounded-lg text-[10px] font-bold uppercase tracking-widest hover:bg-rose-100 transition-all">
+                                                            <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+                                                            Hủy đơn
+                                                        </button>
+                                                    @endif
+
                                                     <button onclick="window.open('{{ route('pos.print', $invoice->id) }}', '_blank')" class="flex items-center gap-2 px-3 py-1.5 bg-white border border-slate-200 text-slate-600 rounded-lg text-[10px] font-bold uppercase tracking-widest hover:bg-slate-50 transition-all">
                                                         <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9V2h12v7"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect width="12" height="8" x="6" y="14"/></svg>
                                                         In lại
@@ -203,6 +213,9 @@
                                                                 <th class="py-2 text-center text-[9px] font-bold text-slate-400 uppercase tracking-widest w-24">Số lượng</th>
                                                                 <th class="py-2 text-right text-[9px] font-bold text-slate-400 uppercase tracking-widest">Đơn giá</th>
                                                                 <th class="py-2 text-right text-[9px] font-bold text-slate-400 uppercase tracking-widest">Thành tiền</th>
+                                                                @if(auth()->user()->hasPermission('invoice.view_commission'))
+                                                                    <th class="py-2 text-right text-[9px] font-bold text-rose-400 uppercase tracking-widest">Hoa hồng</th>
+                                                                @endif
                                                                 @if($editingInvoiceId === $invoice->id)
                                                                     <th class="py-2 w-10"></th>
                                                                 @endif
@@ -225,6 +238,9 @@
                                                                         </td>
                                                                         <td class="py-2.5 text-right text-[11px] text-slate-500">{{ number_format($item['unit_price'], 0, ',', '.') }}</td>
                                                                         <td class="py-2.5 text-right text-[11px] font-bold text-slate-900">{{ number_format($item['unit_price'] * $item['quantity'], 0, ',', '.') }}</td>
+                                                                        @if(auth()->user()->hasPermission('invoice.view_commission'))
+                                                                            <td class="py-2.5 text-right text-[11px] font-bold text-rose-500">Mặc định</td>
+                                                                        @endif
                                                                         <td class="py-2.5 text-center">
                                                                             <button wire:click="removeItemFromEditing({{ $index }})" class="p-1.5 text-slate-300 hover:text-rose-500 transition-colors">
                                                                                 <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/><line x1="10" x2="10" y1="11" y2="17"/><line x1="14" x2="14" y1="11" y2="17"/></svg>
@@ -242,6 +258,9 @@
                                                                         <td class="py-2 text-center text-[11px] font-bold text-slate-600">{{ number_format($item->quantity, 0) }}</td>
                                                                         <td class="py-2 text-right text-[11px] text-slate-500">{{ number_format($item->unit_price, 0, ',', '.') }}</td>
                                                                         <td class="py-2 text-right text-[11px] font-bold text-slate-900">{{ number_format($item->final_price, 0, ',', '.') }}</td>
+                                                                        @if(auth()->user()->hasPermission('invoice.view_commission'))
+                                                                            <td class="py-2 text-right text-[11px] font-bold text-rose-500">{{ number_format($item->commission_amount * $item->quantity, 0, ',', '.') }}đ</td>
+                                                                        @endif
                                                                     </tr>
                                                                 @endforeach
                                                             @endif
@@ -269,6 +288,12 @@
                                                         <span>Thu khác</span>
                                                         <span>+{{ number_format($invoice->extra_fee, 0, ',', '.') }}đ</span>
                                                     </div>
+                                                    @if(auth()->user()->hasPermission('invoice.view_commission'))
+                                                        <div class="flex justify-between text-[11px] text-rose-500 pt-1 border-t border-rose-100/50">
+                                                            <span>Tổng hoa hồng</span>
+                                                            <span>{{ number_format($invoice->total_commission, 0, ',', '.') }}đ</span>
+                                                        </div>
+                                                    @endif
                                                     <div class="pt-2 border-t border-slate-200 flex justify-between items-center">
                                                         <span class="text-xs font-bold text-slate-900 uppercase">Phải trả</span>
                                                         @if($editingInvoiceId === $invoice->id)

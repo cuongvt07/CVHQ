@@ -137,6 +137,32 @@ class UserIndex extends Component
             ->paginate($this->perPage);
     }
 
+    public function getAvailablePermissionsProperty()
+    {
+        return [
+            'dashboard' => ['label' => 'Tổng quan', 'actions' => []],
+            'pos' => ['label' => 'Bán hàng (POS)', 'actions' => []],
+            'products' => [
+                'label' => 'Sản phẩm',
+                'actions' => [
+                    'product.edit_commission' => 'Sửa hoa hồng sản phẩm'
+                ]
+            ],
+            'categories' => ['label' => 'Danh mục', 'actions' => []],
+            'customers' => ['label' => 'Khách hàng', 'actions' => []],
+            'users' => ['label' => 'Nhân viên', 'actions' => []],
+            'invoices' => [
+                'label' => 'Hóa đơn',
+                'actions' => [
+                    'invoice.edit' => 'Sửa & Trả hàng',
+                    'invoice.cancel' => 'Hủy hóa đơn',
+                    'invoice.view_commission' => 'Xem hoa hồng'
+                ]
+            ],
+            'reports' => ['label' => 'Báo cáo', 'actions' => []],
+        ];
+    }
+
     protected function getRecordsForBulk()
     {
         return $this->getUsers();

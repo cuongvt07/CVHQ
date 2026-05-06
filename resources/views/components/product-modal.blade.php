@@ -79,13 +79,22 @@
                             </div>
                         </div>
 
-                        <div class="grid grid-cols-2 gap-6">
+                        <div class="grid {{ auth()->user()->hasPermission('product.edit_commission') ? 'grid-cols-3' : 'grid-cols-2' }} gap-6">
                             <!-- Price -->
                             <div class="space-y-2">
                                 <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Giá bán (VNĐ)</label>
                                 <input type="number" wire:model="sale_price" class="w-full bg-slate-50 border border-slate-200 rounded-2xl py-3 px-5 text-sm focus:outline-none focus:border-electric-blue/40 focus:ring-4 focus:ring-electric-blue/5 transition-all">
                                 @error('sale_price') <span class="text-[10px] text-rose-500 font-bold ml-1">{{ $message }}</span> @enderror
                             </div>
+
+                            @if(auth()->user()->hasPermission('product.edit_commission'))
+                                <!-- Commission -->
+                                <div class="space-y-2">
+                                    <label class="text-[10px] font-bold text-rose-400 uppercase tracking-widest ml-1">Hoa hồng (VNĐ)</label>
+                                    <input type="number" wire:model="commission_amount" class="w-full bg-rose-50/30 border border-rose-100 rounded-2xl py-3 px-5 text-sm focus:outline-none focus:border-rose-300/40 focus:ring-4 focus:ring-rose-500/5 transition-all font-bold text-rose-600">
+                                    @error('commission_amount') <span class="text-[10px] text-rose-500 font-bold ml-1">{{ $message }}</span> @enderror
+                                </div>
+                            @endif
 
                             <!-- Stock -->
                             <div class="space-y-2">

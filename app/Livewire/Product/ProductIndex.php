@@ -58,7 +58,7 @@ class ProductIndex extends Component
 
     // Form properties
     public $productId;
-    public $sku, $name, $category_path, $brand, $sale_price, $stock_quantity, $location;
+    public $sku, $name, $category_path, $brand, $sale_price, $commission_amount, $stock_quantity, $location;
     public $is_active = true;
     public $newImage;
     public $existingImage;
@@ -146,6 +146,7 @@ class ProductIndex extends Component
         $this->category_path = '';
         $this->brand = '';
         $this->sale_price = 0;
+        $this->commission_amount = 0;
         $this->stock_quantity = 999;
         $this->location = '';
         $this->is_active = true;
@@ -170,6 +171,7 @@ class ProductIndex extends Component
         $this->category_path = $product->category_path;
         $this->brand = $product->brand;
         $this->sale_price = $product->sale_price;
+        $this->commission_amount = $product->commission_amount;
         $this->stock_quantity = $product->stock_quantity;
         $this->location = $product->location;
         $this->is_active = $product->is_active;
@@ -197,6 +199,10 @@ class ProductIndex extends Component
             'location' => $this->location,
             'is_active' => $this->is_active,
         ];
+
+        if (auth()->user()->hasPermission('product.edit_commission')) {
+            $data['commission_amount'] = $this->commission_amount;
+        }
 
         if ($this->newImage) {
             $path = $this->newImage->store('products', 'public');

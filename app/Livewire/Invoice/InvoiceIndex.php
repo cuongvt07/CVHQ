@@ -160,6 +160,11 @@ class InvoiceIndex extends Component
 
     public function cancelInvoice()
     {
+        if (!auth()->user()->hasPermission('invoice.cancel')) {
+            $this->dispatch('notify', message: 'Bạn không có quyền hủy hóa đơn!', type: 'error');
+            return;
+        }
+
         $this->validate([
             'cancelReason' => 'required|min:5',
         ], [
@@ -179,6 +184,11 @@ class InvoiceIndex extends Component
 
     public function returnItems($id)
     {
+        if (!auth()->user()->hasPermission('invoice.edit')) {
+            $this->dispatch('notify', message: 'Bạn không có quyền thực hiện trả hàng!', type: 'error');
+            return;
+        }
+
         $invoice = Invoice::findOrFail($id);
         
         if ($invoice->status === 'Returned' || $invoice->status === 'Cancelled') {
@@ -305,6 +315,11 @@ class InvoiceIndex extends Component
 
     public function updateInvoice()
     {
+        if (!auth()->user()->hasPermission('invoice.edit')) {
+            $this->dispatch('notify', message: 'Bạn không có quyền sửa hóa đơn!', type: 'error');
+            return;
+        }
+
         $invoice = Invoice::findOrFail($this->editingInvoiceId);
         
         \DB::transaction(function () use ($invoice) {
