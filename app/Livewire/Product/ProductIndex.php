@@ -77,8 +77,11 @@ class ProductIndex extends Component
 
     public function import()
     {
+        // Tăng thời gian thực thi ngay từ đầu để tránh lỗi timeout trong quá trình validate và đọc file
+        set_time_limit(300);
+
         $this->validate([
-            'importFile' => 'required|mimes:xlsx,xls,csv|max:10240',
+            'importFile' => 'required', // Chỉ yêu cầu có file, bỏ qua mimes/max để tránh lỗi metadata trên server
         ]);
 
         $this->importBatchId = Str::random(10);

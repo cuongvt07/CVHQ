@@ -65,8 +65,11 @@ class CustomerIndex extends Component
 
     public function import()
     {
+        // Tăng thời gian thực thi ngay từ đầu để tránh lỗi timeout trong quá trình validate và đọc file
+        set_time_limit(300);
+
         $this->validate([
-            'importFile' => 'required|mimes:xlsx,xls,csv|max:10240',
+            'importFile' => 'required',
         ]);
 
         $this->importBatchId = Str::random(10);

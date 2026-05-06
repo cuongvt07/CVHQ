@@ -32,8 +32,16 @@ trait TracksImportProgress
     {
         return [
             BeforeImport::class => function (BeforeImport $event) {
-                $totalRows = $event->getReader()->getTotalRows();
+                $reader = $event->getReader();
+                $totalRows = $reader->getTotalRows();
                 
+                // If totalRows is empty, it's often because the reader hasn't loaded the file information yet
+                // or the file format doesn't support it in BeforeImport.
+                // We'll log it and try to handle it.
+                if (empty($totalRows) || array_sum($totalRows) === 0) {
+                    Log::warning("Warning: Could not determine total rows for key {$this->importKey} in BeforeImport.");
+                }
+
                 $total = 0;
                 $offset = 1;
                 if (method_exists($this, 'startRow')) {
@@ -43,10 +51,20 @@ trait TracksImportProgress
                 }
 
                 foreach ($totalRows as $sheetName => $rowCount) {
-                    $total += max(0, $rowCount - $offset);
+                    // Handle null or invalid row counts
+                    $validRowCount = is_numeric($rowCount) ? (int)$rowCount : 0;
+                    $total += max(0, $validRowCount - $offset);
                 }
 
-                Log::info("Import starting for key {$this->importKey}. Total rows: {$total}. Dispatching jobs...");
+                // If we found sheets but total is 0, it might be a counting error. 
+                // Set total to at least 1 to ensure jobs are dispatched and UI doesn't show 0/0.
+                if ($total === 0 && !empty($totalRows)) {
+                    $total = 1; 
+                    Log::info("Key {$this->importKey}: Total rows was 0 but sheets were found. Forcing total to 1 to proceed.");
+                }
+
+                Log::info("Import starting for key {$this->importKey}. Details: Offset={$offset}, RawRows=" . json_encode($totalRows) . ", CalculatedTotal={$total}");
+
                 
                 Cache::put("import_progress_{$this->importKey}", [
                     'total' => $total,
@@ -55,6 +73,8 @@ trait TracksImportProgress
                     'errors' => [],
                 ], 3600);
             },
+
+
             AfterChunk::class => function (AfterChunk $event) {
                 $progress = Cache::get("import_progress_{$this->importKey}");
                 if ($progress) {
