@@ -16,10 +16,67 @@
     <div class="flex items-center gap-6">
         <!-- Global Actions -->
         <div class="flex items-center gap-2">
-            <button class="w-9 h-9 rounded-full flex items-center justify-center text-slate-400 hover:text-slate-900 hover:bg-slate-100 transition-all relative">
-                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
-                <span class="absolute top-2 right-2 w-2 h-2 bg-electric-blue rounded-full shadow-[0_0_8px_rgba(0,136,204,0.6)]"></span>
-            </button>
+            <div class="relative" x-data="{ open: false }" @click.away="open = false">
+                <button @click="open = !open" class="w-9 h-9 rounded-full flex items-center justify-center text-slate-400 hover:text-slate-900 hover:bg-slate-100 transition-all relative">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+                    <span class="absolute top-2 right-2 w-2 h-2 bg-electric-blue rounded-full shadow-[0_0_8px_rgba(0,136,204,0.6)] animate-pulse"></span>
+                </button>
+
+                <!-- Notifications Dropdown -->
+                <div x-show="open" 
+                     x-transition:enter="transition ease-out duration-200"
+                     x-transition:enter-start="opacity-0 scale-95 translate-y-2"
+                     x-transition:enter-end="opacity-100 scale-100 translate-y-0"
+                     x-cloak
+                     class="absolute right-0 mt-3 w-80 bg-white/95 backdrop-blur-xl border border-slate-200 rounded-3xl shadow-2xl z-50 overflow-hidden">
+                    <div class="px-6 py-4 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
+                        <h3 class="text-sm font-bold text-slate-900 uppercase tracking-widest">Thông báo</h3>
+                        <span class="px-2 py-0.5 rounded-full bg-electric-blue/10 text-electric-blue text-[10px] font-bold">4 mới</span>
+                    </div>
+                    
+                    <div class="max-h-[400px] overflow-y-auto custom-scrollbar divide-y divide-slate-50">
+                        <!-- Sample Notifications -->
+                        @php
+                            $samples = [
+                                ['type' => 'success', 'title' => 'Thanh toán thành công', 'desc' => 'Đơn hàng HD17150123 đã hoàn tất.', 'time' => '2 phút trước'],
+                                ['type' => 'info', 'title' => 'Đồng bộ dữ liệu', 'desc' => 'Hệ thống đã cập nhật 32 hóa đơn.', 'time' => '15 phút trước'],
+                                ['type' => 'warning', 'title' => 'Sắp hết hàng', 'desc' => 'Sản phẩm Tie Pattern Blue còn dưới 5 cái.', 'time' => '1 giờ trước'],
+                                ['type' => 'error', 'title' => 'Hủy hóa đơn', 'desc' => 'Hóa đơn HD17150111 đã bị hủy bởi Admin.', 'time' => '3 giờ trước'],
+                                ['type' => 'info', 'title' => 'Hệ thống', 'desc' => 'Phiên làm việc của bạn sắp hết hạn.', 'time' => '5 giờ trước'],
+                            ];
+                        @endphp
+
+                        @foreach($samples as $noti)
+                        <div class="px-6 py-4 hover:bg-slate-50 transition-colors cursor-pointer group">
+                            <div class="flex gap-3">
+                                <div class="shrink-0 w-8 h-8 rounded-full flex items-center justify-center 
+                                    {{ $noti['type'] === 'success' ? 'bg-emerald-50 text-emerald-500' : '' }}
+                                    {{ $noti['type'] === 'info' ? 'bg-blue-50 text-blue-500' : '' }}
+                                    {{ $noti['type'] === 'warning' ? 'bg-orange-50 text-orange-500' : '' }}
+                                    {{ $noti['type'] === 'error' ? 'bg-rose-50 text-rose-500' : '' }}">
+                                    @if($noti['type'] === 'success')
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                                    @elseif($noti['type'] === 'warning')
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" x2="12" y1="8" y2="12"/><line x1="12" x2="12.01" y1="16" y2="16"/></svg>
+                                    @else
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" x2="12" y1="12" y2="16"/><line x1="12" x2="12.01" y1="8" y2="8"/></svg>
+                                    @endif
+                                </div>
+                                <div class="flex-1 min-w-0">
+                                    <div class="text-[11px] font-bold text-slate-800 uppercase tracking-tight">{{ $noti['title'] }}</div>
+                                    <p class="text-[10px] text-slate-500 mt-0.5 line-clamp-2 leading-relaxed">{{ $noti['desc'] }}</p>
+                                    <span class="text-[9px] text-slate-400 font-mono mt-1 block">{{ $noti['time'] }}</span>
+                                </div>
+                            </div>
+                        </div>
+                        @endforeach
+                    </div>
+
+                    <a href="#" class="block px-6 py-3 text-center text-[10px] font-bold text-electric-blue uppercase tracking-widest hover:bg-slate-50 transition-all border-t border-slate-100">
+                        Xem tất cả thông báo
+                    </a>
+                </div>
+            </div>
             <button class="w-9 h-9 rounded-full flex items-center justify-center text-slate-400 hover:text-slate-900 hover:bg-slate-100 transition-all">
                 <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg>
             </button>

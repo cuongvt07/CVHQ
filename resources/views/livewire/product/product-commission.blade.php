@@ -62,7 +62,22 @@
                                 <span class="text-xs font-bold text-slate-600">{{ $product->sku }}</span>
                             </td>
                             <td class="px-6 py-4">
-                                <span class="text-xs text-slate-600 line-clamp-1">{{ $product->name }}</span>
+                                <div class="flex items-center gap-3">
+                                    <div class="w-10 h-10 rounded-lg overflow-hidden bg-slate-100 border border-slate-200 product-image-container" x-data="{ hover: false }">
+                                        @if(!empty($product->images) && isset($product->images[0]))
+                                            <img src="{{ $product->images[0] }}" @mouseenter="hover = true" @mouseleave="hover = false" class="w-full h-full object-cover">
+                                            <div x-show="hover" class="product-zoom-preview" x-cloak>
+                                                <img src="{{ $product->images[0] }}" class="w-full h-full object-cover scale-150 origin-center">
+                                                <div class="absolute inset-0 border-4 border-electric-blue/20 pointer-events-none"></div>
+                                            </div>
+                                        @else
+                                            <div class="w-full h-full flex items-center justify-center text-slate-300">
+                                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="3" rx="2" ry="2"/></svg>
+                                            </div>
+                                        @endif
+                                    </div>
+                                    <span class="text-xs text-slate-600 line-clamp-1">{{ $product->name }}</span>
+                                </div>
                             </td>
                             <td class="px-6 py-4">
                                 <span class="text-xs text-slate-400">{{ $product->unit ?? 'Cái' }}</span>
