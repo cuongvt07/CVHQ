@@ -31,6 +31,8 @@ class InvoiceIndex extends Component
     public $showCancelModal = false;
     public $editingInvoiceId = null;
     public $editCustomerId = null;
+    public $editCustomerSearch = '';
+    public $editingItems = [];
 
     // Import Progress
     public $importing = false;
@@ -138,6 +140,8 @@ class InvoiceIndex extends Component
         if ($this->expandedInvoiceId === $id) {
             $this->expandedInvoiceId = null;
             $this->editingInvoiceId = null;
+            $this->editingItems = [];
+            $this->editCustomerSearch = '';
         } else {
             $this->expandedInvoiceId = $id;
         }
@@ -194,29 +198,103 @@ class InvoiceIndex extends Component
         $this->dispatch('notify', message: 'Đã hoàn tất trả hàng và nhập lại kho!', type: 'success');
     }
 
+    public function getCustomersProperty()
+    {
+        if (strlen($this->editCustomerSearch) < 2) return [];
+
+        return \App\Models\Customer::query()
+            ->where('full_name', 'like', "%{$this->editCustomerSearch}%")
+            ->orWhere('phone', 'like', "%{$this->editCustomerSearch}%")
+            ->orWhere('customer_code', 'like', "%{$this->editCustomerSearch}%")
+            ->take(10)
+            ->get();
+    }
+
+    public function selectEditCustomer($id, $name)
+    {
+        $this->editCustomerId = $id;
+        $this->editCustomerSearch = $name;
+    }
+
     public function editInvoice($id)
     {
         $this->editingInvoiceId = $id;
-        $this->editCustomerId = Invoice::find($id)->customer_id;
+        $invoice = Invoice::with('items')->find($id);
+        $this->editCustomerId = $invoice->customer_id;
+        $this->editCustomerSearch = $invoice->customer?->full_name ?? 'Khách lẻ';
+        
+        $this->editingItems = $invoice->items->map(fn($item) => [
+            'id' => $item->id,
+            'product_id' => $item->product_id,
+            'product_name' => $item->product_name,
+            'sku' => $item->sku,
+            'unit_price' => $item->unit_price,
+            'quantity' => $item->quantity,
+            'original_quantity' => $item->quantity,
+        ])->toArray();
+    }
+
+    public function updateEditingQuantity($index, $delta)
+    {
+        $this->editingItems[$index]['quantity'] += $delta;
+        if ($this->editingItems[$index]['quantity'] < 1) {
+            $this->editingItems[$index]['quantity'] = 1;
+        }
     }
 
     public function cancelEdit()
     {
         $this->editingInvoiceId = null;
-        $this->editCustomerId = null;
+        $this->editingItems = [];
+        $this->editCustomerSearch = '';
     }
 
     public function updateInvoice()
     {
         $invoice = Invoice::findOrFail($this->editingInvoiceId);
-        $invoice->update([
-            'customer_id' => $this->editCustomerId,
-        ]);
+        
+        \DB::transaction(function () use ($invoice) {
+            $totalAmount = 0;
+            $totalCommission = 0;
+
+            foreach ($this->editingItems as $itemData) {
+                $item = \App\Models\InvoiceItem::find($itemData['id']);
+                $diff = $itemData['quantity'] - $itemData['original_quantity'];
+
+                // Update stock
+                if ($diff != 0 && $item->product) {
+                    // If diff > 0 (increased qty), subtract from stock
+                    // If diff < 0 (decreased qty), add back to stock
+                    $item->product->decrement('stock_quantity', $diff);
+                }
+
+                $finalPrice = $itemData['unit_price'] * $itemData['quantity'];
+                $item->update([
+                    'quantity' => $itemData['quantity'],
+                    'final_price' => $finalPrice,
+                ]);
+
+                $totalAmount += $finalPrice;
+                // Recalculate commission if possible, for now keep simple
+            }
+
+            $invoice->update([
+                'customer_id' => $this->editCustomerId,
+                'total_amount' => $totalAmount,
+                'final_amount' => max(0, $totalAmount - $invoice->discount_amount + $invoice->extra_fee),
+            ]);
+        });
 
         $this->editingInvoiceId = null;
-        $this->editCustomerId = null;
+        $this->editingItems = [];
+        $this->editCustomerSearch = '';
         
-        $this->dispatch('notify', message: 'Đã cập nhật thông tin hóa đơn!', type: 'success');
+        $this->dispatch('notify', message: 'Đã cập nhật hóa đơn và đồng bộ kho hàng!', type: 'success');
+    }
+
+    public function getEditingTotalProperty()
+    {
+        return collect($this->editingItems)->sum(fn($item) => $item['unit_price'] * $item['quantity']);
     }
 
     protected function getRecordsForBulk()

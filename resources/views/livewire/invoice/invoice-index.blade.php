@@ -153,16 +153,26 @@
 
                                         <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
                                             <div class="md:col-span-2">
-                                                <div class="mb-4">
+                                                <div class="mb-6">
                                                     @if($editingInvoiceId === $invoice->id)
-                                                        <div class="bg-slate-50 p-4 rounded-2xl border border-slate-100 flex flex-col gap-3">
-                                                            <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Thay đổi khách hàng</label>
-                                                            <select wire:model="editCustomerId" class="w-full bg-white border border-slate-200 rounded-xl py-2.5 px-4 text-xs focus:outline-none focus:border-electric-blue/40 transition-all">
-                                                                <option value="">Khách lẻ</option>
-                                                                @foreach(\App\Models\Customer::all() as $customer)
-                                                                    <option value="{{ $customer->id }}">{{ $customer->full_name }} ({{ $customer->phone }})</option>
-                                                                @endforeach
-                                                            </select>
+                                                        <div class="bg-slate-50 p-6 rounded-3xl border border-slate-100 flex flex-col gap-4 shadow-sm">
+                                                            <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest flex items-center gap-2">
+                                                                <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                                                                Khách hàng (Search & Select)
+                                                            </label>
+                                                            <div class="relative">
+                                                                <input type="text" wire:model.live="editCustomerSearch" placeholder="Tìm tên hoặc số điện thoại..." class="w-full bg-white border border-slate-200 rounded-2xl py-3 px-5 text-sm focus:outline-none focus:border-electric-blue/40 transition-all shadow-inner">
+                                                                @if(!empty($this->customers))
+                                                                    <div class="absolute z-10 w-full mt-2 bg-white border border-slate-100 rounded-2xl shadow-2xl overflow-hidden animate-in fade-in slide-in-from-top-2 duration-200">
+                                                                        @foreach($this->customers as $customer)
+                                                                            <button wire:click="selectEditCustomer({{ $customer->id }}, '{{ $customer->full_name }}')" class="w-full text-left px-5 py-3 text-sm hover:bg-slate-50 transition-colors flex justify-between items-center group">
+                                                                                <span class="font-bold text-slate-700">{{ $customer->full_name }}</span>
+                                                                                <span class="text-[10px] text-slate-400 group-hover:text-electric-blue">{{ $customer->phone }}</span>
+                                                                            </button>
+                                                                        @endforeach
+                                                                    </div>
+                                                                @endif
+                                                            </div>
                                                         </div>
                                                     @endif
                                                 </div>
@@ -171,23 +181,43 @@
                                                     <thead>
                                                         <tr class="border-b border-slate-100">
                                                             <th class="py-3 text-[9px] font-bold text-slate-400 uppercase tracking-widest">Sản phẩm</th>
-                                                            <th class="py-3 text-center text-[9px] font-bold text-slate-400 uppercase tracking-widest w-20">SL</th>
+                                                            <th class="py-3 text-center text-[9px] font-bold text-slate-400 uppercase tracking-widest w-24">Số lượng</th>
                                                             <th class="py-3 text-right text-[9px] font-bold text-slate-400 uppercase tracking-widest">Đơn giá</th>
                                                             <th class="py-3 text-right text-[9px] font-bold text-slate-400 uppercase tracking-widest">Thành tiền</th>
                                                         </tr>
                                                     </thead>
                                                     <tbody class="divide-y divide-slate-50">
-                                                        @foreach($invoice->items as $item)
-                                                            <tr>
-                                                                <td class="py-4">
-                                                                    <div class="text-xs font-bold text-slate-800">{{ $item->product_name }}</div>
-                                                                    <div class="text-[9px] text-slate-400 uppercase font-mono">{{ $item->sku }}</div>
-                                                                </td>
-                                                                <td class="py-4 text-center text-xs font-bold text-slate-600">{{ number_format($item->quantity, 0) }}</td>
-                                                                <td class="py-4 text-right text-xs text-slate-500">{{ number_format($item->unit_price, 0, ',', '.') }}</td>
-                                                                <td class="py-4 text-right text-xs font-bold text-slate-900">{{ number_format($item->final_price, 0, ',', '.') }}</td>
-                                                            </tr>
-                                                        @endforeach
+                                                        @if($editingInvoiceId === $invoice->id)
+                                                            @foreach($editingItems as $index => $item)
+                                                                <tr class="group/item">
+                                                                    <td class="py-4">
+                                                                        <div class="text-xs font-bold text-slate-800">{{ $item['product_name'] }}</div>
+                                                                        <div class="text-[9px] text-slate-400 uppercase font-mono">{{ $item['sku'] }}</div>
+                                                                    </td>
+                                                                    <td class="py-4">
+                                                                        <div class="flex items-center justify-center gap-1 bg-slate-50 rounded-xl p-1 border border-slate-100">
+                                                                            <button wire:click="updateEditingQuantity({{ $index }}, -1)" class="w-7 h-7 flex items-center justify-center rounded-lg bg-white border border-slate-200 text-slate-400 hover:text-rose-500 hover:border-rose-200 transition-all">-</button>
+                                                                            <input type="text" readonly value="{{ $item['quantity'] }}" class="w-8 text-center text-xs font-bold bg-transparent border-none focus:outline-none text-slate-900">
+                                                                            <button wire:click="updateEditingQuantity({{ $index }}, 1)" class="w-7 h-7 flex items-center justify-center rounded-lg bg-white border border-slate-200 text-slate-400 hover:text-emerald-500 hover:border-emerald-200 transition-all">+</button>
+                                                                        </div>
+                                                                    </td>
+                                                                    <td class="py-4 text-right text-xs text-slate-500">{{ number_format($item['unit_price'], 0, ',', '.') }}</td>
+                                                                    <td class="py-4 text-right text-xs font-bold text-slate-900">{{ number_format($item['unit_price'] * $item['quantity'], 0, ',', '.') }}</td>
+                                                                </tr>
+                                                            @endforeach
+                                                        @else
+                                                            @foreach($invoice->items as $item)
+                                                                <tr>
+                                                                    <td class="py-4">
+                                                                        <div class="text-xs font-bold text-slate-800">{{ $item->product_name }}</div>
+                                                                        <div class="text-[9px] text-slate-400 uppercase font-mono">{{ $item->sku }}</div>
+                                                                    </td>
+                                                                    <td class="py-4 text-center text-xs font-bold text-slate-600">{{ number_format($item->quantity, 0) }}</td>
+                                                                    <td class="py-4 text-right text-xs text-slate-500">{{ number_format($item->unit_price, 0, ',', '.') }}</td>
+                                                                    <td class="py-4 text-right text-xs font-bold text-slate-900">{{ number_format($item->final_price, 0, ',', '.') }}</td>
+                                                                </tr>
+                                                            @endforeach
+                                                        @endif
                                                     </tbody>
                                                 </table>
                                             </div>
@@ -196,7 +226,11 @@
                                                 <div class="space-y-3">
                                                     <div class="flex justify-between text-xs text-slate-500">
                                                         <span>Tổng tiền hàng</span>
-                                                        <span>{{ number_format($invoice->total_amount, 0, ',', '.') }}đ</span>
+                                                        @if($editingInvoiceId === $invoice->id)
+                                                            <span class="font-bold text-slate-900 animate-pulse">{{ number_format($this->editingTotal, 0, ',', '.') }}đ</span>
+                                                        @else
+                                                            <span>{{ number_format($invoice->total_amount, 0, ',', '.') }}đ</span>
+                                                        @endif
                                                     </div>
                                                     <div class="flex justify-between text-xs text-rose-500">
                                                         <span>Giảm giá</span>
@@ -208,7 +242,11 @@
                                                     </div>
                                                     <div class="pt-3 border-t border-slate-200 flex justify-between">
                                                         <span class="text-sm font-bold text-slate-900 uppercase">Khách phải trả</span>
-                                                        <span class="text-sm font-bold text-electric-blue tracking-tight">{{ number_format($invoice->final_amount, 0, ',', '.') }}đ</span>
+                                                        @if($editingInvoiceId === $invoice->id)
+                                                            <span class="text-sm font-bold text-electric-blue tracking-tight">{{ number_format($this->editingTotal - $invoice->discount_amount + $invoice->extra_fee, 0, ',', '.') }}đ</span>
+                                                        @else
+                                                            <span class="text-sm font-bold text-electric-blue tracking-tight">{{ number_format($invoice->final_amount, 0, ',', '.') }}đ</span>
+                                                        @endif
                                                     </div>
                                                     <div class="pt-3 mt-3 border-t border-slate-100">
                                                         <div class="flex justify-between items-center text-[10px]">
