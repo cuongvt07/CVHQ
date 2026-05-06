@@ -61,36 +61,49 @@ class ProductCommission extends Component
         }
 
         \DB::transaction(function () {
+            // Lấy tất cả sản phẩm để map SKU cho nhanh
+            $products = Product::all()->keyBy('sku');
+            
             // Get all non-cancelled invoices
-            $invoices = Invoice::where('status', '!=', 'Cancelled')->with(['items.product', 'user'])->get();
-            $count = 0;
+            $invoices = Invoice::where('status', '!=', 'Cancelled')->with(['items', 'user'])->get();
+            $invoiceCount = 0;
+            $itemCount = 0;
 
             foreach ($invoices as $invoice) {
                 $seller = $invoice->user;
                 $canReceiveCommission = $seller ? $seller->can_receive_commission : true;
-                $totalCommission = 0;
+                $invoiceTotalCommission = 0;
+                $invoiceModified = false;
 
                 foreach ($invoice->items as $item) {
-                    // Lấy chính xác giá trị từ cột 'commission_amount' trong bảng 'products' làm "Bảng hoa hồng chung"
-                    $currentProduct = Product::find($item->product_id);
-                    $currentRate = $currentProduct ? $currentProduct->commission_amount : $item->commission_amount;
+                    // Tìm sản phẩm hiện tại dựa trên SKU (đảm bảo lấy đúng giá trị mới nhất)
+                    $product = $products[$item->sku] ?? null;
                     
-                    $newRate = $canReceiveCommission ? $currentRate : 0;
+                    // Lấy giá trị hoa hồng chuẩn từ "Bảng hoa hồng chung"
+                    $standardRate = $product ? (int)$product->commission_amount : (int)$item->commission_amount;
+                    
+                    // Áp dụng điều kiện nhân viên (có được hưởng hoa hồng không)
+                    $targetRate = $canReceiveCommission ? $standardRate : 0;
 
-                    if ($item->commission_amount != $newRate) {
-                        $item->update(['commission_amount' => $newRate]);
+                    if ((int)$item->commission_amount !== (int)$targetRate) {
+                        $item->commission_amount = $targetRate;
+                        $item->save();
+                        $itemCount++;
+                        $invoiceModified = true;
                     }
 
-                    $totalCommission += ($newRate * $item->quantity);
+                    $invoiceTotalCommission += ($targetRate * $item->quantity);
                 }
 
-                if ($invoice->total_commission != $totalCommission) {
-                    $invoice->update(['total_commission' => $totalCommission]);
-                    $count++;
+                if ((int)$invoice->total_commission !== (int)$invoiceTotalCommission) {
+                    $invoice->total_commission = $invoiceTotalCommission;
+                    $invoice->save();
+                    $invoiceCount++;
+                    $invoiceModified = true;
                 }
             }
 
-            $this->dispatch('notify', message: "Đã rà soát và cập nhật lại hoa hồng cho {$count} hóa đơn dựa trên Bảng hoa hồng chung!", type: 'success');
+            $this->dispatch('notify', message: "Đồng bộ hoàn tất! Đã cập nhật {$invoiceCount} hóa đơn ({$itemCount} mặt hàng) dựa trên Bảng hoa hồng chung.", type: 'success');
         });
     }
 
