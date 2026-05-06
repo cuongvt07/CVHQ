@@ -126,23 +126,47 @@
                                                 <p class="text-xs text-slate-400 mt-1 uppercase tracking-widest">Giao dịch được thực hiện bởi {{ $invoice->seller_name }}</p>
                                             </div>
                                             <div class="flex items-center gap-3">
-                                                <button wire:click="editInvoice({{ $invoice->id }})" class="flex items-center gap-2 px-4 py-2 bg-white border border-slate-200 text-slate-600 rounded-xl text-[10px] font-bold uppercase tracking-widest hover:bg-slate-50 transition-all">
-                                                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/><path d="m15 5 4 4"/></svg>
-                                                    Sửa
-                                                </button>
-                                                <button wire:click="returnItems({{ $invoice->id }})" class="flex items-center gap-2 px-4 py-2 bg-slate-900 text-white rounded-xl text-[10px] font-bold uppercase tracking-widest hover:bg-slate-800 transition-all shadow-lg shadow-slate-900/10 {{ $invoice->status === 'Returned' ? 'opacity-50 cursor-not-allowed' : '' }}" {{ $invoice->status === 'Returned' ? 'disabled' : '' }}>
-                                                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7v6h6"/><path d="M21 17a9 9 0 0 0-9-9 9 9 0 0 0-6 2.3L3 13"/></svg>
-                                                    Trả hàng
-                                                </button>
-                                                <button onclick="window.open('{{ route('pos.print', $invoice->id) }}', '_blank')" class="flex items-center gap-2 px-4 py-2 bg-white border border-slate-200 text-slate-600 rounded-xl text-[10px] font-bold uppercase tracking-widest hover:bg-slate-50 transition-all">
-                                                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9V2h12v7"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect width="12" height="8" x="6" y="14"/></svg>
-                                                    In lại
-                                                </button>
+                                                @if($editingInvoiceId === $invoice->id)
+                                                    <button wire:click="updateInvoice" class="flex items-center gap-2 px-4 py-2 bg-emerald-500 text-white rounded-xl text-[10px] font-bold uppercase tracking-widest hover:bg-emerald-600 transition-all shadow-lg shadow-emerald-500/20">
+                                                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+                                                        Lưu
+                                                    </button>
+                                                    <button wire:click="cancelEdit" class="flex items-center gap-2 px-4 py-2 bg-white border border-slate-200 text-slate-400 rounded-xl text-[10px] font-bold uppercase tracking-widest hover:bg-slate-50 transition-all">
+                                                        Hủy
+                                                    </button>
+                                                @else
+                                                    <button wire:click="editInvoice({{ $invoice->id }})" class="flex items-center gap-2 px-4 py-2 bg-white border border-slate-200 text-slate-600 rounded-xl text-[10px] font-bold uppercase tracking-widest hover:bg-slate-50 transition-all">
+                                                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/><path d="m15 5 4 4"/></svg>
+                                                        Sửa
+                                                    </button>
+                                                    <button wire:click="returnItems({{ $invoice->id }})" class="flex items-center gap-2 px-4 py-2 bg-slate-900 text-white rounded-xl text-[10px] font-bold uppercase tracking-widest hover:bg-slate-800 transition-all shadow-lg shadow-slate-900/10 {{ $invoice->status === 'Returned' ? 'opacity-50 cursor-not-allowed' : '' }}" {{ $invoice->status === 'Returned' ? 'disabled' : '' }}>
+                                                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7v6h6"/><path d="M21 17a9 9 0 0 0-9-9 9 9 0 0 0-6 2.3L3 13"/></svg>
+                                                        Trả hàng
+                                                    </button>
+                                                    <button onclick="window.open('{{ route('pos.print', $invoice->id) }}', '_blank')" class="flex items-center gap-2 px-4 py-2 bg-white border border-slate-200 text-slate-600 rounded-xl text-[10px] font-bold uppercase tracking-widest hover:bg-slate-50 transition-all">
+                                                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9V2h12v7"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect width="12" height="8" x="6" y="14"/></svg>
+                                                        In lại
+                                                    </button>
+                                                @endif
                                             </div>
                                         </div>
 
                                         <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
                                             <div class="md:col-span-2">
+                                                <div class="mb-4">
+                                                    @if($editingInvoiceId === $invoice->id)
+                                                        <div class="bg-slate-50 p-4 rounded-2xl border border-slate-100 flex flex-col gap-3">
+                                                            <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Thay đổi khách hàng</label>
+                                                            <select wire:model="editCustomerId" class="w-full bg-white border border-slate-200 rounded-xl py-2.5 px-4 text-xs focus:outline-none focus:border-electric-blue/40 transition-all">
+                                                                <option value="">Khách lẻ</option>
+                                                                @foreach(\App\Models\Customer::all() as $customer)
+                                                                    <option value="{{ $customer->id }}">{{ $customer->full_name }} ({{ $customer->phone }})</option>
+                                                                @endforeach
+                                                            </select>
+                                                        </div>
+                                                    @endif
+                                                </div>
+
                                                 <table class="w-full text-left">
                                                     <thead>
                                                         <tr class="border-b border-slate-100">
@@ -235,42 +259,6 @@
                 <div class="px-8 py-6 bg-slate-50/50 flex items-center justify-end gap-4 border-t border-slate-100">
                     <button wire:click="$set('showCancelModal', false)" class="px-6 py-2.5 text-[10px] font-bold uppercase tracking-widest text-slate-400 hover:text-slate-600 transition-colors">Đóng</button>
                     <button wire:click="cancelInvoice" class="px-8 py-2.5 bg-rose-500 text-white rounded-xl text-[10px] font-bold uppercase tracking-widest hover:bg-rose-600 transition-all shadow-lg shadow-rose-500/20">Xác nhận hủy</button>
-                </div>
-            </div>
-        </div>
-    @endif
-
-    <!-- Edit Modal -->
-    @if($showEditModal)
-        <div class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-in fade-in duration-300">
-            <div class="glass-card w-full max-w-md bg-white shadow-2xl rounded-3xl overflow-hidden border border-white/20 animate-in zoom-in-95 duration-300">
-                <div class="px-8 py-6 border-b border-slate-50 bg-slate-50/30">
-                    <h3 class="text-xl font-bold text-slate-900">Sửa thông tin hóa đơn</h3>
-                    <p class="text-xs text-slate-400 mt-1 uppercase tracking-widest">Cập nhật thông tin khách hàng</p>
-                </div>
-                
-                <div class="p-8">
-                    <div class="space-y-6">
-                        <div>
-                            <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2 block">Mã hóa đơn</label>
-                            <div class="text-sm font-bold text-slate-900 bg-slate-50 px-4 py-3 rounded-xl border border-slate-100">{{ $editingInvoice->invoice_code }}</div>
-                        </div>
-
-                        <div>
-                            <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2 block">Khách hàng</label>
-                            <select wire:model="editCustomerId" class="w-full bg-slate-50 border border-slate-200 rounded-xl py-3 px-4 text-sm focus:outline-none focus:border-electric-blue/40 focus:ring-4 focus:ring-electric-blue/5 transition-all text-slate-900">
-                                <option value="">Khách lẻ</option>
-                                @foreach(\App\Models\Customer::all() as $customer)
-                                    <option value="{{ $customer->id }}">{{ $customer->full_name }} ({{ $customer->phone }})</option>
-                                @endforeach
-                            </select>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="px-8 py-6 bg-slate-50/50 flex items-center justify-end gap-4 border-t border-slate-100">
-                    <button wire:click="$set('showEditModal', false)" class="px-6 py-2.5 text-[10px] font-bold uppercase tracking-widest text-slate-400 hover:text-slate-600 transition-colors">Hủy bỏ</button>
-                    <button wire:click="updateInvoice" class="px-8 py-2.5 bg-electric-blue text-white rounded-xl text-[10px] font-bold uppercase tracking-widest hover:bg-electric-blue/90 transition-all shadow-lg shadow-electric-blue/20">Lưu thay đổi</button>
                 </div>
             </div>
         </div>

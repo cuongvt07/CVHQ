@@ -29,8 +29,7 @@ class InvoiceIndex extends Component
     public $cancelReason = '';
     public $selectedInvoiceIdForCancel = null;
     public $showCancelModal = false;
-    public $showEditModal = false;
-    public $editingInvoice = null;
+    public $editingInvoiceId = null;
     public $editCustomerId = null;
 
     // Import Progress
@@ -138,6 +137,7 @@ class InvoiceIndex extends Component
     {
         if ($this->expandedInvoiceId === $id) {
             $this->expandedInvoiceId = null;
+            $this->editingInvoiceId = null;
         } else {
             $this->expandedInvoiceId = $id;
         }
@@ -196,19 +196,25 @@ class InvoiceIndex extends Component
 
     public function editInvoice($id)
     {
-        $this->editingInvoice = Invoice::findOrFail($id);
-        $this->editCustomerId = $this->editingInvoice->customer_id;
-        $this->showEditModal = true;
+        $this->editingInvoiceId = $id;
+        $this->editCustomerId = Invoice::find($id)->customer_id;
+    }
+
+    public function cancelEdit()
+    {
+        $this->editingInvoiceId = null;
+        $this->editCustomerId = null;
     }
 
     public function updateInvoice()
     {
-        $this->editingInvoice->update([
+        $invoice = Invoice::findOrFail($this->editingInvoiceId);
+        $invoice->update([
             'customer_id' => $this->editCustomerId,
         ]);
 
-        $this->showEditModal = false;
-        $this->editingInvoice = null;
+        $this->editingInvoiceId = null;
+        $this->editCustomerId = null;
         
         $this->dispatch('notify', message: 'Đã cập nhật thông tin hóa đơn!', type: 'success');
     }
