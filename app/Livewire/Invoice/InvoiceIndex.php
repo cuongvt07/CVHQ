@@ -25,6 +25,10 @@ class InvoiceIndex extends Component
     public $search = '';
     public $importFile;
     public $perPage = 10;
+    public $expandedInvoiceId = null;
+    public $cancelReason = '';
+    public $selectedInvoiceIdForCancel = null;
+    public $showCancelModal = false;
 
     // Import Progress
     public $importing = false;
@@ -108,11 +112,58 @@ class InvoiceIndex extends Component
     public function getInvoices()
     {
         return Invoice::query()
-            ->when($this->search, fn($q) => $q->where('invoice_code', 'like', "%{$this->search}%")
-                                              ->orWhere('seller_name', 'like', "%{$this->search}%"))
+            ->where(function($q) {
+                $q->whereNull('status')
+                  ->orWhere('status', '!=', 'Cancelled');
+            })
+            ->when($this->search, fn($q) => $q->where(function($sub) {
+                $sub->where('invoice_code', 'like', "%{$this->search}%")
+                    ->orWhere('seller_name', 'like', "%{$this->search}%");
+            }))
             ->with(['customer'])
             ->latest()
             ->paginate($this->perPage);
+    }
+
+    public function toggleDetails($id)
+    {
+        if ($this->expandedInvoiceId === $id) {
+            $this->expandedInvoiceId = null;
+        } else {
+            $this->expandedInvoiceId = $id;
+        }
+    }
+
+    public function confirmCancel($id)
+    {
+        $this->selectedInvoiceIdForCancel = $id;
+        $this->cancelReason = '';
+        $this->showCancelModal = true;
+    }
+
+    public function cancelInvoice()
+    {
+        $this->validate([
+            'cancelReason' => 'required|min:5',
+        ], [
+            'cancelReason.required' => 'Vui lòng nhập lý do hủy.',
+            'cancelReason.min' => 'Lý do hủy phải có ít nhất 5 ký tự.',
+        ]);
+
+        $invoice = Invoice::findOrFail($this->selectedInvoiceIdForCancel);
+        $invoice->cancel($this->cancelReason, auth()->id());
+
+        $this->showCancelModal = false;
+        $this->selectedInvoiceIdForCancel = null;
+        $this->cancelReason = '';
+
+        $this->dispatch('notify', message: 'Hóa đơn đã được hủy và hàng đã được hoàn kho!', type: 'success');
+    }
+
+    public function returnItems($id)
+    {
+        // For now, just a placeholder as requested
+        $this->dispatch('notify', message: 'Tính năng trả hàng đang được phát triển.', type: 'info');
     }
 
     protected function getRecordsForBulk()
