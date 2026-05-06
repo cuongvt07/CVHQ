@@ -3,6 +3,8 @@
 namespace App\Livewire\Product;
 
 use App\Models\Product;
+use App\Models\Invoice;
+use App\Models\User;
 use Livewire\Component;
 use Livewire\WithPagination;
 use Livewire\WithFileUploads;
@@ -49,6 +51,47 @@ class ProductCommission extends Component
     {
         Product::where('id', $productId)->update(['commission_amount' => $amount]);
         $this->dispatch('notify', message: 'Cập nhật hoa hồng thành công!', type: 'success');
+    }
+
+    public function syncCommissions()
+    {
+        if (!auth()->user()->hasPermission('invoice.edit')) {
+            $this->dispatch('notify', message: 'Bạn không có quyền đồng bộ dữ liệu!', type: 'error');
+            return;
+        }
+
+        \DB::transaction(function () {
+            // Get all non-cancelled invoices
+            $invoices = Invoice::where('status', '!=', 'Cancelled')->with(['items.product', 'user'])->get();
+            $count = 0;
+
+            foreach ($invoices as $invoice) {
+                $seller = $invoice->user;
+                $canReceiveCommission = $seller ? $seller->can_receive_commission : true;
+                $totalCommission = 0;
+
+                foreach ($invoice->items as $item) {
+                    // Lấy chính xác giá trị từ cột 'commission_amount' trong bảng 'products' làm "Bảng hoa hồng chung"
+                    $currentProduct = Product::find($item->product_id);
+                    $currentRate = $currentProduct ? $currentProduct->commission_amount : $item->commission_amount;
+                    
+                    $newRate = $canReceiveCommission ? $currentRate : 0;
+
+                    if ($item->commission_amount != $newRate) {
+                        $item->update(['commission_amount' => $newRate]);
+                    }
+
+                    $totalCommission += ($newRate * $item->quantity);
+                }
+
+                if ($invoice->total_commission != $totalCommission) {
+                    $invoice->update(['total_commission' => $totalCommission]);
+                    $count++;
+                }
+            }
+
+            $this->dispatch('notify', message: "Đã rà soát và cập nhật lại hoa hồng cho {$count} hóa đơn dựa trên Bảng hoa hồng chung!", type: 'success');
+        });
     }
 
     public function import()
