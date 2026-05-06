@@ -32,7 +32,9 @@ class InvoiceIndex extends Component
     public $editingInvoiceId = null;
     public $editCustomerId = null;
     public $editCustomerSearch = '';
+    public $editProductSearch = '';
     public $editingItems = [];
+    public $itemsToDelete = [];
 
     // Import Progress
     public $importing = false;
@@ -141,7 +143,9 @@ class InvoiceIndex extends Component
             $this->expandedInvoiceId = null;
             $this->editingInvoiceId = null;
             $this->editingItems = [];
+            $this->itemsToDelete = [];
             $this->editCustomerSearch = '';
+            $this->editProductSearch = '';
         } else {
             $this->expandedInvoiceId = $id;
         }
@@ -216,12 +220,62 @@ class InvoiceIndex extends Component
         $this->editCustomerSearch = $name;
     }
 
+    public function getProductsProperty()
+    {
+        if (strlen($this->editProductSearch) < 2) return [];
+
+        return \App\Models\Product::query()
+            ->where('name', 'like', "%{$this->editProductSearch}%")
+            ->orWhere('sku', 'like', "%{$this->editProductSearch}%")
+            ->where('is_active', true)
+            ->take(10)
+            ->get();
+    }
+
+    public function addProductToEditing($productId)
+    {
+        $product = \App\Models\Product::find($productId);
+        if (!$product) return;
+
+        // Check if already in editing items
+        foreach ($this->editingItems as $index => $item) {
+            if ($item['product_id'] == $productId) {
+                $this->editingItems[$index]['quantity']++;
+                $this->editProductSearch = '';
+                return;
+            }
+        }
+
+        $this->editingItems[] = [
+            'id' => null, // New item
+            'product_id' => $product->id,
+            'product_name' => $product->name,
+            'sku' => $product->sku,
+            'unit_price' => $product->sale_price,
+            'quantity' => 1,
+            'original_quantity' => 0,
+        ];
+        $this->editProductSearch = '';
+    }
+
+    public function removeItemFromEditing($index)
+    {
+        $item = $this->editingItems[$index];
+        if ($item['id']) {
+            $this->itemsToDelete[] = $item['id'];
+        }
+        
+        unset($this->editingItems[$index]);
+        $this->editingItems = array_values($this->editingItems);
+    }
+
     public function editInvoice($id)
     {
         $this->editingInvoiceId = $id;
         $invoice = Invoice::with('items')->find($id);
         $this->editCustomerId = $invoice->customer_id;
         $this->editCustomerSearch = $invoice->customer?->full_name ?? 'Khách lẻ';
+        $this->itemsToDelete = [];
         
         $this->editingItems = $invoice->items->map(fn($item) => [
             'id' => $item->id,
@@ -255,27 +309,55 @@ class InvoiceIndex extends Component
         
         \DB::transaction(function () use ($invoice) {
             $totalAmount = 0;
-            $totalCommission = 0;
+
+            // Handle deletions
+            foreach ($this->itemsToDelete as $itemId) {
+                $item = \App\Models\InvoiceItem::find($itemId);
+                if ($item) {
+                    // Restore stock for deleted item
+                    if ($item->product) {
+                        $item->product->increment('stock_quantity', $item->quantity);
+                    }
+                    $item->delete();
+                }
+            }
 
             foreach ($this->editingItems as $itemData) {
-                $item = \App\Models\InvoiceItem::find($itemData['id']);
-                $diff = $itemData['quantity'] - $itemData['original_quantity'];
+                if ($itemData['id']) {
+                    // Update existing item
+                    $item = \App\Models\InvoiceItem::find($itemData['id']);
+                    $diff = $itemData['quantity'] - $itemData['original_quantity'];
 
-                // Update stock
-                if ($diff != 0 && $item->product) {
-                    // If diff > 0 (increased qty), subtract from stock
-                    // If diff < 0 (decreased qty), add back to stock
-                    $item->product->decrement('stock_quantity', $diff);
+                    if ($diff != 0 && $item->product) {
+                        $item->product->decrement('stock_quantity', $diff);
+                    }
+
+                    $finalPrice = $itemData['unit_price'] * $itemData['quantity'];
+                    $item->update([
+                        'quantity' => $itemData['quantity'],
+                        'final_price' => $finalPrice,
+                    ]);
+                    $totalAmount += $finalPrice;
+                } else {
+                    // Create new item
+                    $finalPrice = $itemData['unit_price'] * $itemData['quantity'];
+                    \App\Models\InvoiceItem::create([
+                        'invoice_id' => $invoice->id,
+                        'product_id' => $itemData['product_id'],
+                        'sku' => $itemData['sku'],
+                        'product_name' => $itemData['product_name'],
+                        'quantity' => $itemData['quantity'],
+                        'unit_price' => $itemData['unit_price'],
+                        'final_price' => $finalPrice,
+                    ]);
+                    
+                    // Subtract stock for new item
+                    $product = \App\Models\Product::find($itemData['product_id']);
+                    if ($product) {
+                        $product->decrement('stock_quantity', $itemData['quantity']);
+                    }
+                    $totalAmount += $finalPrice;
                 }
-
-                $finalPrice = $itemData['unit_price'] * $itemData['quantity'];
-                $item->update([
-                    'quantity' => $itemData['quantity'],
-                    'final_price' => $finalPrice,
-                ]);
-
-                $totalAmount += $finalPrice;
-                // Recalculate commission if possible, for now keep simple
             }
 
             $invoice->update([
@@ -287,9 +369,11 @@ class InvoiceIndex extends Component
 
         $this->editingInvoiceId = null;
         $this->editingItems = [];
+        $this->itemsToDelete = [];
         $this->editCustomerSearch = '';
+        $this->editProductSearch = '';
         
-        $this->dispatch('notify', message: 'Đã cập nhật hóa đơn và đồng bộ kho hàng!', type: 'success');
+        $this->dispatch('notify', message: 'Hóa đơn đã được cập nhật thành công!', type: 'success');
     }
 
     public function getEditingTotalProperty()
