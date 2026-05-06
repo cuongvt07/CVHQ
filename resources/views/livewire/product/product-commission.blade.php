@@ -71,10 +71,10 @@
                                             <template x-teleport="body">
                                                 <div x-show="hover" 
                                                      class="product-zoom-preview" 
-                                                     :style="`left: ${mouseX + 20}px; top: ${mouseY}px; transform: translateY(-50%);`"
+                                                     :style="`left: ${mouseX}px; top: ${mouseY}px; transform: translate(-50%, -50%);`"
                                                      x-cloak>
-                                                    <img src="{{ $product->images[0] }}" class="w-full h-full object-cover scale-[2] origin-center">
-                                                    <div class="absolute inset-0 border-4 border-electric-blue/30 pointer-events-none"></div>
+                                                    <img src="{{ $product->images[0] }}" class="w-full h-full object-cover scale-[3] origin-center">
+                                                    <div class="absolute inset-0 border-4 border-white/20 rounded-full pointer-events-none"></div>
                                                 </div>
                                             </template>
                                         @else
