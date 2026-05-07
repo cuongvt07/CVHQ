@@ -58,14 +58,16 @@ class ProductIndex extends Component
 
     // Form properties
     public $productId;
-    public $sku, $name, $category_path, $brand, $sale_price, $commission_amount, $stock_quantity, $location;
+    public $sku, $base_name, $category_path, $brand, $sale_price, $commission_amount, $stock_quantity, $location;
     public $is_active = true;
     public $newImage;
     public $existingImage;
+    public $productAttributes = []; // [['key' => '', 'value' => '']]
+    public $existingKeys = [];
 
     protected $rules = [
         'sku' => 'required|unique:products,sku',
-        'name' => 'required|min:3',
+        'base_name' => 'required|min:3',
         'category_path' => 'nullable',
         'brand' => 'nullable',
         'sale_price' => 'required|numeric|min:0',
@@ -142,7 +144,7 @@ class ProductIndex extends Component
     {
         $this->productId = null;
         $this->sku = '';
-        $this->name = '';
+        $this->base_name = '';
         $this->category_path = '';
         $this->brand = '';
         $this->sale_price = 0;
@@ -151,23 +153,43 @@ class ProductIndex extends Component
         $this->location = '';
         $this->is_active = true;
         $this->newImage = null;
+        $this->newImage = null;
         $this->existingImage = null;
+        $this->productAttributes = [];
         $this->resetErrorBag();
+    }
+
+    public function addAttribute()
+    {
+        $this->productAttributes[] = ['key' => '', 'value' => ''];
+    }
+
+    public function removeAttribute($index)
+    {
+        unset($this->productAttributes[$index]);
+        $this->productAttributes = array_values($this->productAttributes);
+    }
+
+    public function loadAttributeSuggestions()
+    {
+        $this->existingKeys = Product::getUniqueAttributeKeys();
     }
 
     public function create()
     {
         $this->resetForm();
+        $this->loadAttributeSuggestions();
         $this->dispatch('open-product-modal');
     }
 
     public function edit($id)
     {
         $this->resetForm();
+        $this->loadAttributeSuggestions();
         $product = Product::findOrFail($id);
         $this->productId = $product->id;
         $this->sku = $product->sku;
-        $this->name = $product->name;
+        $this->base_name = $product->base_name;
         $this->category_path = $product->category_path;
         $this->brand = $product->brand;
         $this->sale_price = $product->sale_price;
@@ -177,6 +199,13 @@ class ProductIndex extends Component
         $this->is_active = $product->is_active;
         $this->existingImage = !empty($product->images) ? $product->images[0] : null;
         
+        $this->productAttributes = [];
+        if (!empty($product->attributes) && is_array($product->attributes)) {
+            foreach ($product->attributes as $key => $value) {
+                $this->productAttributes[] = ['key' => $key, 'value' => $value];
+            }
+        }
+
         $this->dispatch('open-product-modal');
     }
 
@@ -191,7 +220,7 @@ class ProductIndex extends Component
 
         $data = [
             'sku' => $this->sku,
-            'name' => $this->name,
+            'base_name' => $this->base_name,
             'category_path' => $this->category_path,
             'brand' => $this->brand,
             'sale_price' => $this->sale_price,
@@ -209,12 +238,28 @@ class ProductIndex extends Component
             $data['images'] = [asset('storage/' . $path)];
         }
 
+        // Parse structured attributes
+        $parsedAttrs = [];
+        foreach ($this->productAttributes as $attr) {
+            $key = trim($attr['key'] ?? '');
+            if (!empty($key)) {
+                $parsedAttrs[$key] = trim($attr['value'] ?? '');
+            }
+        }
+        $data['attributes'] = $parsedAttrs;
+
         if ($this->productId) {
             Product::find($this->productId)->update($data);
             $this->dispatch('notify', message: 'Cập nhật sản phẩm thành công!', type: 'success');
         } else {
             Product::create($data);
             $this->dispatch('notify', message: 'Thêm sản phẩm thành công!', type: 'success');
+        }
+
+        // Clear attribute cache
+        \Illuminate\Support\Facades\Cache::forget('unique_product_attribute_keys');
+        foreach ($parsedAttrs as $key => $val) {
+            \Illuminate\Support\Facades\Cache::forget('unique_product_attribute_values_' . md5($key));
         }
 
         $this->dispatch('close-product-modal');

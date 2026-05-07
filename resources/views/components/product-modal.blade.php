@@ -50,9 +50,9 @@
 
                             <!-- Name -->
                             <div class="space-y-2">
-                                <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Tên sản phẩm</label>
-                                <input type="text" wire:model="name" class="w-full bg-slate-50 border border-slate-200 rounded-2xl py-3 px-5 text-sm focus:outline-none focus:border-electric-blue/40 focus:ring-4 focus:ring-electric-blue/5 transition-all" placeholder="Tên hiển thị">
-                                @error('name') <span class="text-[10px] text-rose-500 font-bold ml-1">{{ $message }}</span> @enderror
+                                <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Tên hàng</label>
+                                <input type="text" wire:model="base_name" class="w-full bg-slate-50 border border-slate-200 rounded-2xl py-3 px-5 text-sm focus:outline-none focus:border-electric-blue/40 focus:ring-4 focus:ring-electric-blue/5 transition-all" placeholder="Tên hàng gốc">
+                                @error('base_name') <span class="text-[10px] text-rose-500 font-bold ml-1">{{ $message }}</span> @enderror
                             </div>
                         </div>
 
@@ -127,6 +127,61 @@
                                     </label>
                                     <p class="text-[10px] text-slate-400 mt-2 italic">Dung lượng tối đa 2MB. Hỗ trợ JPG, PNG.</p>
                                 </div>
+                            </div>
+                        </div>
+
+                        <!-- Attributes Management -->
+                        <div class="space-y-4">
+                            <div class="flex items-center justify-between">
+                                <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Thuộc tính tùy chỉnh (Meta-key)</label>
+                                <button type="button" wire:click="addAttribute" class="text-[10px] font-bold text-electric-blue uppercase tracking-widest hover:underline flex items-center gap-1 transition-all">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="M12 5v14"/></svg>
+                                    Thêm thuộc tính
+                                </button>
+                            </div>
+                            
+                            <div class="space-y-3">
+                                @foreach($this->productAttributes as $index => $attr)
+                                    <div class="flex items-center gap-3 animate-in fade-in slide-in-from-top-2 duration-200" wire:key="attr-{{ $index }}">
+                                        <div class="flex-1 relative group">
+                                            <input type="text" 
+                                                   wire:model.live="productAttributes.{{ $index }}.key" 
+                                                   list="existing-keys-list"
+                                                   placeholder="Key (VD: MÀU SẮC)" 
+                                                   class="w-full bg-slate-50 border border-slate-200 rounded-xl py-2.5 px-4 text-xs focus:outline-none focus:border-electric-blue/40 focus:ring-4 focus:ring-electric-blue/5 transition-all">
+                                        </div>
+                                        <div class="flex-1 relative group">
+                                            <input type="text" 
+                                                   wire:model="productAttributes.{{ $index }}.value" 
+                                                   list="values-list-{{ $index }}"
+                                                   placeholder="Value (VD: Bạc)" 
+                                                   class="w-full bg-slate-50 border border-slate-200 rounded-xl py-2.5 px-4 text-xs focus:outline-none focus:border-electric-blue/40 focus:ring-4 focus:ring-electric-blue/5 transition-all">
+                                            
+                                            @if(!empty($attr['key']))
+                                                <datalist id="values-list-{{ $index }}">
+                                                    @foreach(\App\Models\Product::getUniqueAttributeValues($attr['key']) as $val)
+                                                        <option value="{{ $val }}">
+                                                    @endforeach
+                                                </datalist>
+                                            @endif
+                                        </div>
+                                        <button type="button" wire:click="removeAttribute({{ $index }})" class="p-2 text-slate-300 hover:text-rose-500 transition-colors">
+                                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+                                        </button>
+                                    </div>
+                                @endforeach
+
+                                <datalist id="existing-keys-list">
+                                    @foreach($this->existingKeys as $key)
+                                        <option value="{{ $key }}">
+                                    @endforeach
+                                </datalist>
+                                
+                                @if(empty($this->productAttributes))
+                                    <div class="text-center py-4 border-2 border-dashed border-slate-100 rounded-2xl">
+                                        <p class="text-[10px] text-slate-400 italic">Nhấp vào "Thêm thuộc tính" để bổ sung thông tin tùy chỉnh.</p>
+                                    </div>
+                                @endif
                             </div>
                         </div>
 

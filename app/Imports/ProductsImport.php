@@ -67,7 +67,7 @@ class ProductsImport implements OnEachRow, WithHeadingRow, WithChunkReading, Sho
 
         $data = [
             'barcode'           => $rowData['ma_vach'] ?? null,
-            'name'              => $rowData['ten_hang'] ?? null,
+            'base_name'         => $rowData['ten_hang'] ?? null,
             'product_type'      => $rowData['loai_hang'] ?? null,
             'category_path'     => $rowData['nhom_hang3_cap'] ?? null,
             'category_id'       => $categoryId,
@@ -81,7 +81,6 @@ class ProductsImport implements OnEachRow, WithHeadingRow, WithChunkReading, Sho
             'unit'              => $rowData['dvt'] ?? null,
             'base_unit_code'    => $rowData['ma_dvt_co_ban'] ?? null,
             'conversion_rate'   => $rowData['quy_doi'] ?? 1,
-            'attributes'        => $rowData['thuoc_tinh'] ?? null,
             'related_sku'       => $rowData['ma_hh_lien_quan'] ?? null,
             'weight'            => $rowData['trong_luong'] ?? 0,
             'is_active'         => ($rowData['dang_kinh_doanh'] ?? 1) == 1,
@@ -102,6 +101,37 @@ class ProductsImport implements OnEachRow, WithHeadingRow, WithChunkReading, Sho
             if ($product->exists && $product->trashed()) {
                 $product->restore();
             }
+
+            // Xử lý thuộc tính dạng Key-Value (Meta-key)
+            $existingAttributes = $product->exists ? ($product->attributes ?? []) : [];
+            if (!is_array($existingAttributes)) {
+                $existingAttributes = [];
+            }
+
+            $newAttributesStr = $rowData['thuoc_tinh'] ?? '';
+            $parsedAttributes = $existingAttributes;
+
+            if (!empty($newAttributesStr)) {
+                $attrList = explode('|', $newAttributesStr);
+                foreach ($attrList as $attr) {
+                    $parts = explode(':', $attr, 2);
+                    if (count($parts) >= 2) {
+                        $key = trim($parts[0]);
+                        $value = trim($parts[1]);
+                        if (!empty($key)) {
+                            if (isset($parsedAttributes[$key])) {
+                                $currentValues = array_map('trim', explode(',', (string)$parsedAttributes[$key]));
+                                if (!in_array($value, $currentValues)) {
+                                    $parsedAttributes[$key] = $parsedAttributes[$key] . ', ' . $value;
+                                }
+                            } else {
+                                $parsedAttributes[$key] = $value;
+                            }
+                        }
+                    }
+                }
+            }
+            $data['attributes'] = $parsedAttributes;
 
             $product->fill($data);
             $product->save();
