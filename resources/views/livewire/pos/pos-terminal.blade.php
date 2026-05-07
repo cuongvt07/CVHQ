@@ -63,7 +63,7 @@
                                 @endif
                             </div>
                             <div class="p-4 flex flex-col flex-1 gap-2">
-                                <h3 class="text-sm font-semibold text-slate-700 group-hover:text-electric-blue transition-colors line-clamp-2 min-h-[2.5rem]">{{ $product['name'] }}</h3>
+                                <h3 class="text-sm font-semibold text-slate-700 group-hover:text-electric-blue transition-colors line-clamp-2 min-h-[2.5rem]">{{ $product['name'] ?: $product['base_name'] }}</h3>
                                 <div class="flex items-center justify-between mt-auto pt-2 border-t border-slate-50">
                                     <div>
                                         <span class="text-lg font-extrabold text-electric-blue block">{{ number_format($product['sale_price'], 0, ',', '.') }}</span>
@@ -111,7 +111,7 @@
                             <div class="p-3 flex-1 flex flex-col justify-between bg-white border-t border-slate-100">
                                 <div>
                                     <div class="text-[9px] font-black text-slate-500 uppercase tracking-wider mb-1">{{ $product['sku'] }}</div>
-                                    <h3 class="text-xs font-bold text-slate-900 line-clamp-2 leading-tight min-h-[2rem]">{{ $product['name'] }}</h3>
+                                    <h3 class="text-xs font-bold text-slate-900 line-clamp-2 leading-tight min-h-[2rem]">{{ $product['name'] ?: $product['base_name'] }}</h3>
                                 </div>
                                 <div class="flex items-end justify-between mt-3">
                                     <p class="text-sm font-black text-electric-blue leading-none">{{ number_format($product['sale_price'] / 1000, 0) }}k</p>

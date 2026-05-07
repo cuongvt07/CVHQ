@@ -103,6 +103,7 @@ class PosTerminal extends Component
                 foreach ($keywords as $keyword) {
                     $query->where(function($q) use ($keyword) {
                         $q->where('name', 'like', "%{$keyword}%")
+                          ->orWhere('base_name', 'like', "%{$keyword}%")
                           ->orWhere('sku', 'like', "%{$keyword}%")
                           ->orWhere('brand', 'like', "%{$keyword}%")
                           ->orWhere('location', 'like', "%{$keyword}%");
@@ -117,6 +118,7 @@ class PosTerminal extends Component
                     'id' => $product->id,
                     'sku' => $product->sku,
                     'name' => $product->name,
+                    'base_name' => $product->base_name,
                     'category_path' => $product->category_path,
                     'sale_price' => (int) $product->sale_price,
                     'location' => $product->location,
