@@ -232,6 +232,12 @@ class PosTerminal extends Component
                     'commission_amount' => $canReceiveCommission ? $item['commission_amount'] : 0,
                     'final_price' => $item['sale_price'] * $item['quantity']
                 ]);
+
+                // Trừ tồn kho sản phẩm
+                $product = \App\Models\Product::find($item['id']);
+                if ($product) {
+                    $product->decrement('stock_quantity', $item['quantity']);
+                }
             }
 
             \DB::commit();
