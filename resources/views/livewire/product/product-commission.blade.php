@@ -80,7 +80,7 @@
                                                      :style="`left: ${mouseX}px; top: ${mouseY}px; transform: translate(-50%, -50%);`"
                                                      x-cloak>
                                                     <img src="{{ $product->images[0] }}" 
-                                                         class="w-full h-full object-cover scale-[1.8] transition-transform duration-150 ease-out"
+                                                         class="w-full h-full object-cover scale-[1.2] transition-transform duration-150 ease-out"
                                                          :style="`transform-origin: ${zoomX}% ${zoomY}%`"
                                                     >
                                                     <div class="absolute inset-0 border border-white/20 rounded-[24px] pointer-events-none"></div>
