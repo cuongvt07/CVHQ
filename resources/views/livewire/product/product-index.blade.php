@@ -92,8 +92,14 @@
                             <td class="px-6 py-4">
                                 <div class="flex items-center gap-4">
                                     <div class="w-10 h-10 rounded-lg overflow-hidden bg-slate-100 border border-slate-200 product-image-container relative" 
-                                         x-data="{ hover: false, mouseX: 0, mouseY: 0 }"
-                                         @mousemove="mouseX = $event.clientX; mouseY = $event.clientY">
+                                         x-data="{ hover: false, mouseX: 0, mouseY: 0, zoomX: 50, zoomY: 50 }"
+                                         @mousemove="
+                                            mouseX = $event.clientX; 
+                                            mouseY = $event.clientY;
+                                            let rect = $el.getBoundingClientRect();
+                                            zoomX = (($event.clientX - rect.left) / rect.width) * 100;
+                                            zoomY = (($event.clientY - rect.top) / rect.height) * 100;
+                                         ">
                                         @if(!empty($product->images) && isset($product->images[0]))
                                             <img src="{{ $product->images[0] }}" @mouseenter="hover = true" @mouseleave="hover = false" class="w-full h-full object-cover">
                                             <template x-teleport="body">
@@ -101,8 +107,11 @@
                                                      class="product-zoom-preview" 
                                                      :style="`left: ${mouseX}px; top: ${mouseY}px; transform: translate(-50%, -50%);`"
                                                      x-cloak>
-                                                    <img src="{{ $product->images[0] }}" class="w-full h-full object-cover scale-[3] origin-center">
-                                                    <div class="absolute inset-0 border-4 border-white/20 rounded-full pointer-events-none"></div>
+                                                    <img src="{{ $product->images[0] }}" 
+                                                         class="w-full h-full object-cover scale-[1.8] transition-transform duration-150 ease-out"
+                                                         :style="`transform-origin: ${zoomX}% ${zoomY}%`"
+                                                    >
+                                                    <div class="absolute inset-0 border border-white/20 rounded-[24px] pointer-events-none"></div>
                                                 </div>
                                             </template>
                                         @else

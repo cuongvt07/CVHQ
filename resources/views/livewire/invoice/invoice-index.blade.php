@@ -254,8 +254,14 @@
                                                                         <td class="py-2">
                                                                             <div class="flex items-center gap-3">
                                                                                 <div class="w-10 h-10 rounded-lg overflow-hidden bg-slate-100 border border-slate-200 product-image-container relative" 
-                                                                                     x-data="{ hover: false, mouseX: 0, mouseY: 0 }"
-                                                                                     @mousemove="mouseX = $event.clientX; mouseY = $event.clientY">
+                                                                                     x-data="{ hover: false, mouseX: 0, mouseY: 0, zoomX: 50, zoomY: 50 }"
+                                                                                      @mousemove="
+                                                                                         mouseX = $event.clientX; 
+                                                                                         mouseY = $event.clientY;
+                                                                                         let rect = $el.getBoundingClientRect();
+                                                                                         zoomX = (($event.clientX - rect.left) / rect.width) * 100;
+                                                                                         zoomY = (($event.clientY - rect.top) / rect.height) * 100;
+                                                                                      ">
                                                                                      @php
                                                                                          $itemProduct = \App\Models\Product::where('sku', $item->sku)->first();
                                                                                          $itemImg = (!empty($itemProduct?->images) && isset($itemProduct->images[0])) ? $itemProduct->images[0] : null;
@@ -267,8 +273,11 @@
                                                                                                   class="product-zoom-preview" 
                                                                                                   :style="`left: ${mouseX}px; top: ${mouseY}px; transform: translate(-50%, -50%);`"
                                                                                                   x-cloak>
-                                                                                                 <img src="{{ $itemImg }}" class="w-full h-full object-cover scale-[3] origin-center">
-                                                                                                 <div class="absolute inset-0 border-4 border-white/20 rounded-full pointer-events-none"></div>
+                                                                                                  <img src="{{ $itemImg }}" 
+                                                                                                       class="w-full h-full object-cover scale-[1.8] transition-transform duration-150 ease-out"
+                                                                                                       :style="`transform-origin: ${zoomX}% ${zoomY}%`"
+                                                                                                  >
+                                                                                                  <div class="absolute inset-0 border border-white/20 rounded-[24px] pointer-events-none"></div>
                                                                                              </div>
                                                                                          </template>
                                                                                      @else

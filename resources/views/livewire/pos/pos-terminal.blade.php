@@ -40,8 +40,14 @@
                         <div wire:click="addToCart({{ $product['id'] }})"
                              class="group relative bg-white border border-slate-200 rounded-2xl hover:shadow-2xl hover:shadow-slate-200/50 hover:-translate-y-1 transition-all cursor-pointer flex flex-col h-full z-10 hover:z-20">
                             <div class="aspect-square overflow-hidden bg-slate-50 shrink-0 product-image-container rounded-t-2xl relative" 
-                                 x-data="{ hover: false, mouseX: 0, mouseY: 0 }"
-                                 @mousemove="mouseX = $event.clientX; mouseY = $event.clientY">
+                                 x-data="{ hover: false, mouseX: 0, mouseY: 0, zoomX: 50, zoomY: 50 }"
+                                 @mousemove="
+                                    mouseX = $event.clientX; 
+                                    mouseY = $event.clientY;
+                                    let rect = $el.getBoundingClientRect();
+                                    zoomX = (($event.clientX - rect.left) / rect.width) * 100;
+                                    zoomY = (($event.clientY - rect.top) / rect.height) * 100;
+                                 ">
                                 @if($product['image'])
                                     <img src="{{ $product['image'] }}" alt="{{ $product['name'] }}" 
                                          @mouseenter="hover = true" @mouseleave="hover = false"
@@ -52,8 +58,11 @@
                                              class="product-zoom-preview" 
                                              :style="`left: ${mouseX}px; top: ${mouseY}px; transform: translate(-50%, -50%);`"
                                              x-cloak>
-                                            <img src="{{ $product['image'] }}" class="w-full h-full object-cover scale-[3] origin-center">
-                                            <div class="absolute inset-0 border-4 border-white/20 rounded-full pointer-events-none"></div>
+                                            <img src="{{ $product['image'] }}" 
+                                                 class="w-full h-full object-cover scale-[1.8] transition-transform duration-150 ease-out"
+                                                 :style="`transform-origin: ${zoomX}% ${zoomY}%`"
+                                            >
+                                            <div class="absolute inset-0 border border-white/20 rounded-[24px] pointer-events-none"></div>
                                         </div>
                                     </template>
                                 @else
@@ -89,8 +98,14 @@
                     @forelse($products as $product)
                         <div wire:click="addToCart({{ $product['id'] }})" class="bg-white border border-slate-200 rounded-2xl flex flex-col shadow-sm active:scale-95 transition-transform h-full z-10">
                             <div class="h-28 bg-slate-50 relative shrink-0 product-image-container rounded-t-2xl overflow-hidden" 
-                                 x-data="{ hover: false, mouseX: 0, mouseY: 0 }"
-                                 @mousemove="mouseX = $event.clientX; mouseY = $event.clientY">
+                                 x-data="{ hover: false, mouseX: 0, mouseY: 0, zoomX: 50, zoomY: 50 }"
+                                 @mousemove="
+                                    mouseX = $event.clientX; 
+                                    mouseY = $event.clientY;
+                                    let rect = $el.getBoundingClientRect();
+                                    zoomX = (($event.clientX - rect.left) / rect.width) * 100;
+                                    zoomY = (($event.clientY - rect.top) / rect.height) * 100;
+                                 ">
                                 @if($product['image'])
                                     <img src="{{ $product['image'] }}" @mouseenter="hover = true" @mouseleave="hover = false" class="w-full h-full object-cover">
                                     <template x-teleport="body">
@@ -98,8 +113,11 @@
                                              class="product-zoom-preview" 
                                              :style="`left: ${mouseX}px; top: ${mouseY}px; transform: translate(-50%, -50%); width: 300px; height: 300px;`"
                                              x-cloak>
-                                            <img src="{{ $product['image'] }}" class="w-full h-full object-cover scale-[3] origin-center">
-                                            <div class="absolute inset-0 border-4 border-white/20 rounded-full pointer-events-none"></div>
+                                            <img src="{{ $product['image'] }}" 
+                                                 class="w-full h-full object-cover scale-[1.8] transition-transform duration-150 ease-out"
+                                                 :style="`transform-origin: ${zoomX}% ${zoomY}%`"
+                                            >
+                                            <div class="absolute inset-0 border border-white/20 rounded-[24px] pointer-events-none"></div>
                                         </div>
                                     </template>
                                 @else
