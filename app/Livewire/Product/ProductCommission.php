@@ -222,9 +222,10 @@ class ProductCommission extends Component
         return Product::query()
             ->when($this->search, function($query) {
                 $query->where(function($q) {
-                    $q->where('sku', $this->search)
-                      ->orWhere('location', $this->search)
-                      ->orWhere('name', 'like', "%{$this->search}%");
+                    $search = $this->search;
+                    $q->where('sku', $search)
+                      ->orWhere('location', $search)
+                      ->orWhere('name', 'REGEXP', '(^|[^a-zA-Z0-9])' . $search . '([^a-zA-Z0-9]|$)');
                 });
 
                 $query->orderByRaw("CASE 
@@ -249,9 +250,10 @@ class ProductCommission extends Component
         $products = Product::query()
             ->when($this->search, function($query) {
                 $query->where(function($q) {
-                    $q->where('sku', $this->search)
-                      ->orWhere('location', $this->search)
-                      ->orWhere('name', 'like', "%{$this->search}%");
+                    $search = $this->search;
+                    $q->where('sku', $search)
+                      ->orWhere('location', $search)
+                      ->orWhere('name', 'REGEXP', '(^|[^a-zA-Z0-9])' . $search . '([^a-zA-Z0-9]|$)');
                 });
 
                 $query->orderByRaw("CASE 

@@ -339,10 +339,10 @@ class ProductIndex extends Component
                 $keywords = array_filter(explode(' ', $this->search));
                 foreach ($keywords as $keyword) {
                     $query->where(function($q) use ($keyword) {
-                        $q->where('name', 'like', "%{$keyword}%")
-                          ->orWhere('sku', $keyword)
-                          ->orWhere('brand', 'like', "%{$keyword}%")
-                          ->orWhere('location', $keyword);
+                        $q->where('sku', $keyword)
+                          ->orWhere('location', $keyword)
+                          ->orWhere('name', 'REGEXP', '(^|[^a-zA-Z0-9])' . $keyword . '([^a-zA-Z0-9]|$)')
+                          ->orWhere('brand', 'REGEXP', '(^|[^a-zA-Z0-9])' . $keyword . '([^a-zA-Z0-9]|$)');
                     });
                 }
 
