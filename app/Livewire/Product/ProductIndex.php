@@ -340,18 +340,19 @@ class ProductIndex extends Component
                 foreach ($keywords as $keyword) {
                     $query->where(function($q) use ($keyword) {
                         $q->where('name', 'like', "%{$keyword}%")
-                          ->orWhere('sku', 'like', "%{$keyword}%")
+                          ->orWhere('sku', $keyword)
                           ->orWhere('brand', 'like', "%{$keyword}%")
-                          ->orWhere('location', 'like', "%{$keyword}%");
+                          ->orWhere('location', $keyword);
                     });
                 }
 
                 $query->orderByRaw("CASE 
                     WHEN sku = ? THEN 1 
-                    WHEN sku LIKE ? THEN 2 
-                    WHEN name LIKE ? THEN 3 
-                    ELSE 4 
-                END", [$this->search, $this->search . '%', $this->search . '%']);
+                    WHEN location = ? THEN 2
+                    WHEN sku LIKE ? THEN 3 
+                    WHEN name LIKE ? THEN 4 
+                    ELSE 5 
+                END", [$this->search, $this->search, $this->search . '%', $this->search . '%']);
             })
             ->when($this->selectedCategories, function($query) {
                 $query->whereIn('category_path', $this->selectedCategories);

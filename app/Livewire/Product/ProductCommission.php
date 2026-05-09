@@ -221,14 +221,19 @@ class ProductCommission extends Component
     {
         return Product::query()
             ->when($this->search, function($query) {
-                $query->where('name', 'like', "%{$this->search}%")
-                      ->orWhere('sku', 'like', "%{$this->search}%")
-                      ->orderByRaw("CASE 
+                $query->where(function($q) {
+                    $q->where('sku', $this->search)
+                      ->orWhere('location', $this->search)
+                      ->orWhere('name', 'like', "%{$this->search}%");
+                });
+
+                $query->orderByRaw("CASE 
                         WHEN sku = ? THEN 1 
-                        WHEN sku LIKE ? THEN 2 
-                        WHEN name LIKE ? THEN 3 
-                        ELSE 4 
-                    END", [$this->search, $this->search . '%', $this->search . '%']);
+                        WHEN location = ? THEN 2
+                        WHEN sku LIKE ? THEN 3 
+                        WHEN name LIKE ? THEN 4 
+                        ELSE 5 
+                    END", [$this->search, $this->search, $this->search . '%', $this->search . '%']);
             })
             ->orderBy('sku', 'asc')
             ->get();
@@ -243,14 +248,19 @@ class ProductCommission extends Component
     {
         $products = Product::query()
             ->when($this->search, function($query) {
-                $query->where('name', 'like', "%{$this->search}%")
-                      ->orWhere('sku', 'like', "%{$this->search}%")
-                      ->orderByRaw("CASE 
+                $query->where(function($q) {
+                    $q->where('sku', $this->search)
+                      ->orWhere('location', $this->search)
+                      ->orWhere('name', 'like', "%{$this->search}%");
+                });
+
+                $query->orderByRaw("CASE 
                         WHEN sku = ? THEN 1 
-                        WHEN sku LIKE ? THEN 2 
-                        WHEN name LIKE ? THEN 3 
-                        ELSE 4 
-                    END", [$this->search, $this->search . '%', $this->search . '%']);
+                        WHEN location = ? THEN 2
+                        WHEN sku LIKE ? THEN 3 
+                        WHEN name LIKE ? THEN 4 
+                        ELSE 5 
+                    END", [$this->search, $this->search, $this->search . '%', $this->search . '%']);
             })
             ->orderBy('sku', 'asc')
             ->paginate($this->perPage);
