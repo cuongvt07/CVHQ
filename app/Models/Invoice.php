@@ -15,7 +15,8 @@ class Invoice extends Model
         'invoice_code', 'branch', 'customer_id', 'user_id', 'seller_name', 'sales_channel',
         'total_amount', 'discount_amount', 'extra_fee', 'final_amount', 'total_commission',
         'paid_amount', 'cash_amount', 'card_amount', 'wallet_amount',
-        'transfer_amount', 'status', 'delivery_status', 'created_at'
+        'transfer_amount', 'status', 'delivery_status', 'created_at',
+        'cancel_reason', 'cancelled_at', 'cancelled_by'
     ];
 
     protected $casts = [
@@ -35,6 +36,34 @@ class Invoice extends Model
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
+    }
+
+    public function cancelledBy(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'cancelled_by');
+    }
+
+    public function cancel(string $reason, int $userId): void
+    {
+        if ($this->status === 'Cancelled') {
+            return;
+        }
+
+        \DB::transaction(function () use ($reason, $userId) {
+            // Restore stock for each item
+            foreach ($this->items as $item) {
+                if ($item->product) {
+                    $item->product->increment('stock_quantity', $item->quantity);
+                }
+            }
+
+            $this->update([
+                'status' => 'Cancelled',
+                'cancel_reason' => $reason,
+                'cancelled_at' => now(),
+                'cancelled_by' => $userId,
+            ]);
+        });
     }
 
     public function items(): HasMany

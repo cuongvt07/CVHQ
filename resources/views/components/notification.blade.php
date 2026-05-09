@@ -1,22 +1,58 @@
 <div x-data="{ 
         notifications: [],
+        playSound(type) {
+            try {
+                const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                const oscillator = audioCtx.createOscillator();
+                const gainNode = audioCtx.createGain();
+
+                oscillator.connect(gainNode);
+                gainNode.connect(audioCtx.destination);
+
+                if (type === 'success') {
+                    oscillator.type = 'sine';
+                    oscillator.frequency.setValueAtTime(880, audioCtx.currentTime);
+                    oscillator.frequency.exponentialRampToValueAtTime(440, audioCtx.currentTime + 0.1);
+                    gainNode.gain.setValueAtTime(0.1, audioCtx.currentTime);
+                    gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.1);
+                } else if (type === 'error') {
+                    oscillator.type = 'sawtooth';
+                    oscillator.frequency.setValueAtTime(150, audioCtx.currentTime);
+                    oscillator.frequency.linearRampToValueAtTime(50, audioCtx.currentTime + 0.2);
+                    gainNode.gain.setValueAtTime(0.1, audioCtx.currentTime);
+                    gainNode.gain.linearRampToValueAtTime(0.01, audioCtx.currentTime + 0.2);
+                } else {
+                    oscillator.type = 'sine';
+                    oscillator.frequency.setValueAtTime(523.25, audioCtx.currentTime); // C5
+                    gainNode.gain.setValueAtTime(0.05, audioCtx.currentTime);
+                    gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.1);
+                }
+
+                oscillator.start();
+                oscillator.stop(audioCtx.currentTime + (type === 'error' ? 0.2 : 0.1));
+            } catch (e) {
+                console.warn('Audio feedback failed:', e);
+            }
+        },
         add(e) {
+            const type = e.detail.type || 'info';
             this.notifications.push({
                 id: e.timeStamp,
-                type: e.detail.type || 'info',
+                type: type,
                 message: e.detail.message,
                 show: false
             });
             
+            this.playSound(type);
+
             this.$nextTick(() => {
                 let n = this.notifications.find(n => n.id === e.timeStamp);
                 if (n) n.show = true;
             });
 
-            // Reduced timeout to 2 seconds for faster hiding
             setTimeout(() => {
                 this.remove(e.timeStamp);
-            }, 2000);
+            }, 3000);
         },
         remove(id) {
             let n = this.notifications.find(n => n.id === id);

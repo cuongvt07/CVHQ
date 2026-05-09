@@ -7,6 +7,17 @@
         </div>
         
         <div class="flex items-center gap-3">
+            <button wire:click="syncCommissions" wire:loading.attr="disabled" class="flex items-center gap-2 px-4 py-2 bg-rose-500 text-white rounded-xl text-sm font-bold hover:bg-rose-600 transition-all shadow-sm shadow-rose-500/20">
+                <span wire:loading.remove wire:target="syncCommissions">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="inline-block"><path d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/><path d="M3 12a9 9 0 0 0 9 9 9.75 9.75 0 0 0 6.74-2.74L21 16"/><path d="M16 16h5v5"/></svg>
+                    Đồng bộ hóa đơn
+                </span>
+                <span wire:loading wire:target="syncCommissions" class="flex items-center gap-2">
+                    <svg class="animate-spin" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg>
+                    Đang xử lý...
+                </span>
+            </button>
+            <div class="h-8 w-px bg-slate-200 mx-1"></div>
             <button @click="$dispatch('open-import-commissions')" class="flex items-center gap-2 px-4 py-2 bg-white border border-slate-200 text-slate-600 rounded-xl text-sm font-bold hover:bg-slate-50 transition-all shadow-sm">
                 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" x2="12" y1="3" y2="15"/></svg>
                 Import
@@ -51,7 +62,38 @@
                                 <span class="text-xs font-bold text-slate-600">{{ $product->sku }}</span>
                             </td>
                             <td class="px-6 py-4">
-                                <span class="text-xs text-slate-600 line-clamp-1">{{ $product->name }}</span>
+                                <div class="flex items-center gap-3">
+                                    <div class="w-10 h-10 rounded-lg overflow-hidden bg-slate-100 border border-slate-200 product-image-container relative" 
+                                         x-data="{ hover: false, mouseX: 0, mouseY: 0, zoomX: 50, zoomY: 50 }"
+                                         @mousemove="
+                                            mouseX = $event.clientX; 
+                                            mouseY = $event.clientY;
+                                            let rect = $el.getBoundingClientRect();
+                                            zoomX = (($event.clientX - rect.left) / rect.width) * 100;
+                                            zoomY = (($event.clientY - rect.top) / rect.height) * 100;
+                                         ">
+                                        @if(!empty($product->images) && isset($product->images[0]))
+                                            <img src="{{ $product->images[0] }}" @mouseenter="hover = true" @mouseleave="hover = false" class="w-full h-full object-cover">
+                                            <template x-teleport="body">
+                                                <div x-show="hover" 
+                                                     class="product-zoom-preview" 
+                                                     :style="`left: ${mouseX}px; top: ${mouseY}px; transform: translate(-50%, -50%);`"
+                                                     x-cloak>
+                                                    <img src="{{ $product->images[0] }}" 
+                                                         class="w-full h-full object-cover scale-[1.2] transition-transform duration-150 ease-out"
+                                                         :style="`transform-origin: ${zoomX}% ${zoomY}%`"
+                                                    >
+                                                    <div class="absolute inset-0 border border-white/20 rounded-[24px] pointer-events-none"></div>
+                                                </div>
+                                            </template>
+                                        @else
+                                            <div class="w-full h-full flex items-center justify-center text-slate-300">
+                                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="3" rx="2" ry="2"/></svg>
+                                            </div>
+                                        @endif
+                                    </div>
+                                    <span class="text-xs text-slate-600 line-clamp-1">{{ $product->name }}</span>
+                                </div>
                             </td>
                             <td class="px-6 py-4">
                                 <span class="text-xs text-slate-400">{{ $product->unit ?? 'Cái' }}</span>

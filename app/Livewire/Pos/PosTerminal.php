@@ -131,6 +131,7 @@ class PosTerminal extends Component
                 foreach ($keywords as $keyword) {
                     $query->where(function($q) use ($keyword) {
                         $q->where('name', 'like', "%{$keyword}%")
+                          ->orWhere('base_name', 'like', "%{$keyword}%")
                           ->orWhere('sku', 'like', "%{$keyword}%")
                           ->orWhere('brand', 'like', "%{$keyword}%")
                           ->orWhere('location', 'like', "%{$keyword}%");
@@ -158,6 +159,7 @@ class PosTerminal extends Component
                     'id' => $product->id,
                     'sku' => $product->sku,
                     'name' => $product->name,
+                    'base_name' => $product->base_name,
                     'category_path' => $product->category_path,
                     'sale_price' => (int) $product->sale_price,
                     'location' => $product->location,
@@ -240,6 +242,11 @@ class PosTerminal extends Component
 
         \DB::beginTransaction();
         try {
+            $canReceiveCommission = auth()->user()->can_receive_commission;
+            $totalCommission = $canReceiveCommission 
+                ? collect($this->cart)->sum(fn($item) => $item['commission_amount'] * $item['quantity'])
+                : 0;
+
             $invoice = \App\Models\Invoice::create([
                 'invoice_code' => 'HD' . time(),
                 'branch' => 'Antigravity HQ',
@@ -251,7 +258,7 @@ class PosTerminal extends Component
                 'discount_amount' => $this->discount,
                 'extra_fee' => $this->extra_fee,
                 'final_amount' => $this->finalAmount,
-                'total_commission' => collect($this->cart)->sum(fn($item) => $item['commission_amount'] * $item['quantity']),
+                'total_commission' => $totalCommission,
                 'paid_amount' => $this->finalAmount,
                 'status' => 'Completed',
                 'delivery_status' => 'Delivered'
@@ -265,9 +272,15 @@ class PosTerminal extends Component
                     'product_name' => $item['name'],
                     'quantity' => $item['quantity'],
                     'unit_price' => $item['sale_price'],
-                    'commission_amount' => $item['commission_amount'],
+                    'commission_amount' => $canReceiveCommission ? $item['commission_amount'] : 0,
                     'final_price' => $item['sale_price'] * $item['quantity']
                 ]);
+
+                // Trừ tồn kho sản phẩm
+                $product = \App\Models\Product::find($item['id']);
+                if ($product) {
+                    $product->decrement('stock_quantity', $item['quantity']);
+                }
             }
 
             \DB::commit();

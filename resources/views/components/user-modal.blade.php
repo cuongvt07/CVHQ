@@ -73,25 +73,50 @@
                             </div>
                         </div>
 
+                        <!-- Commission Eligibility Toggle -->
+                        <div class="flex items-center justify-between p-4 bg-rose-50/30 rounded-2xl border border-rose-100/50" x-show="$wire.role === 'staff'">
+                            <div class="flex items-center gap-3">
+                                <div class="w-10 h-10 rounded-xl bg-rose-500/10 flex items-center justify-center text-rose-500">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v20"/><path d="m17 5-5-3-5 3"/><path d="m17 19-5 3-5-3"/><path d="M2 12h20"/><path d="m5 7-3 5 3 5"/><path d="m19 7 3 5-3 5"/></svg>
+                                </div>
+                                <div>
+                                    <span class="text-sm font-bold text-slate-900 italic">Áp dụng hoa hồng cho nhân viên này?</span>
+                                    <p class="text-[10px] text-slate-400">Nếu tắt, nhân viên sẽ chỉ nhận lương cứng/giờ.</p>
+                                </div>
+                            </div>
+                            <button type="button" 
+                                    wire:click="$set('can_receive_commission', {{ !$this->can_receive_commission ? 'true' : 'false' }})"
+                                    class="relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none {{ $this->can_receive_commission ? 'bg-rose-500' : 'bg-slate-200' }}">
+                                <span class="pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out {{ $this->can_receive_commission ? 'translate-x-5' : 'translate-x-0' }}"></span>
+                            </button>
+                        </div>
+
                         <!-- Permissions Grid -->
-                        <div class="space-y-4 pt-4 border-t border-slate-100" x-show="$wire.role === 'staff'">
-                            <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Phân quyền module</label>
-                            <div class="grid grid-cols-2 md:grid-cols-3 gap-3">
-                                @foreach([
-                                    'dashboard' => 'Tổng quan',
-                                    'pos' => 'Bán hàng (POS)',
-                                    'products' => 'Sản phẩm',
-                                    'categories' => 'Danh mục',
-                                    'customers' => 'Khách hàng',
-                                    'users' => 'Nhân viên',
-                                    'invoices' => 'Hóa đơn',
-                                    'commissions' => 'Bảng hoa hồng',
-                                    'reports' => 'Báo cáo hoa hồng'
-                                ] as $key => $label)
-                                    <label class="flex items-center gap-3 p-3 rounded-xl bg-slate-50 border border-slate-100 cursor-pointer hover:bg-white hover:border-electric-blue/30 transition-all group">
-                                        <input type="checkbox" wire:model="permissions" value="{{ $key }}" class="w-4 h-4 rounded border-slate-300 text-electric-blue focus:ring-electric-blue">
-                                        <span class="text-xs font-bold text-slate-600 group-hover:text-slate-900 transition-colors">{{ $label }}</span>
-                                    </label>
+                        <div class="space-y-4 pt-6 border-t border-slate-100" x-show="$wire.role === 'staff'">
+                            <div class="flex items-center justify-between mb-2">
+                                <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Phân quyền chi tiết</label>
+                                <span class="text-[9px] font-bold text-electric-blue uppercase bg-electric-blue/5 px-2 py-0.5 rounded-full">Dành cho nhân viên</span>
+                            </div>
+                            
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                @foreach($this->availablePermissions as $moduleKey => $module)
+                                    <div class="bg-slate-50 border border-slate-100 rounded-[1.5rem] p-4 hover:border-electric-blue/20 transition-all group/card">
+                                        <label class="flex items-center gap-3 cursor-pointer mb-3">
+                                            <input type="checkbox" wire:model="permissions" value="{{ $moduleKey }}" class="w-4 h-4 rounded border-slate-300 text-electric-blue focus:ring-electric-blue">
+                                            <span class="text-sm font-bold text-slate-700 group-hover/card:text-electric-blue transition-colors">{{ $module['label'] }}</span>
+                                        </label>
+
+                                        @if(!empty($module['actions']))
+                                            <div class="pl-7 space-y-2 border-l-2 border-slate-200 ml-2 mt-2">
+                                                @foreach($module['actions'] as $actionKey => $actionLabel)
+                                                    <label class="flex items-center gap-3 cursor-pointer opacity-80 hover:opacity-100 transition-opacity">
+                                                        <input type="checkbox" wire:model="permissions" value="{{ $actionKey }}" class="w-3.5 h-3.5 rounded border-slate-300 text-electric-blue/70 focus:ring-electric-blue/50">
+                                                        <span class="text-[11px] font-semibold text-slate-500">{{ $actionLabel }}</span>
+                                                    </label>
+                                                @endforeach
+                                            </div>
+                                        @endif
+                                    </div>
                                 @endforeach
                             </div>
                         </div>

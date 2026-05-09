@@ -23,9 +23,9 @@
                 </div>
 
                 <div class="relative group w-full sm:w-64 md:w-80">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-300 group-focus-within:text-electric-blue transition-colors"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="absolute left-4 top-1/2 -translate-y-1/2 text-slate-300 group-focus-within:text-electric-blue transition-colors"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
                     <input type="text" wire:model.live="search" placeholder="Tìm kiếm sản phẩm..." 
-                           class="w-full bg-white border border-slate-200 rounded-full pl-10 pr-6 py-2 text-sm focus:outline-none focus:border-electric-blue/50 focus:ring-4 focus:ring-electric-blue/10 transition-all text-slate-900 placeholder:text-slate-400 shadow-sm">
+                           class="w-full bg-white border border-slate-200 rounded-full pl-12 pr-6 py-3 text-base font-medium focus:outline-none focus:border-electric-blue/50 focus:ring-4 focus:ring-electric-blue/10 transition-all text-slate-900 placeholder:text-slate-400 shadow-sm">
                 </div>
             </div>
         </header>
@@ -57,10 +57,33 @@
                 <div class="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
                     @foreach($products as $product)
                         <div wire:click="addToCart({{ $product['id'] }})"
-                             class="group relative bg-white border border-slate-100 rounded-2xl overflow-hidden hover:shadow-xl hover:shadow-slate-200/50 hover:-translate-y-1 transition-all cursor-pointer flex flex-col h-full">
-                            <div class="aspect-square overflow-hidden bg-slate-50 shrink-0">
+                             class="group relative bg-white border border-slate-200 rounded-2xl hover:shadow-2xl hover:shadow-slate-200/50 hover:-translate-y-1 transition-all cursor-pointer flex flex-col h-full z-10 hover:z-20">
+                            <div class="aspect-square overflow-hidden bg-slate-50 shrink-0 product-image-container rounded-t-2xl relative" 
+                                 x-data="{ hover: false, mouseX: 0, mouseY: 0, zoomX: 50, zoomY: 50 }"
+                                 @mousemove="
+                                    mouseX = $event.clientX; 
+                                    mouseY = $event.clientY;
+                                    let rect = $el.getBoundingClientRect();
+                                    zoomX = (($event.clientX - rect.left) / rect.width) * 100;
+                                    zoomY = (($event.clientY - rect.top) / rect.height) * 100;
+                                 ">
                                 @if($product['image'])
-                                    <img src="{{ $product['image'] }}" alt="{{ $product['name'] }}" class="w-full h-full object-cover">
+                                    <img src="{{ $product['image'] }}" alt="{{ $product['name'] }}" 
+                                         @mouseenter="hover = true" @mouseleave="hover = false"
+                                         class="w-full h-full object-cover">
+                                    
+                                    <template x-teleport="body">
+                                        <div x-show="hover" 
+                                             class="product-zoom-preview" 
+                                             :style="`left: ${mouseX}px; top: ${mouseY}px; transform: translate(-50%, -50%);`"
+                                             x-cloak>
+                                            <img src="{{ $product['image'] }}" 
+                                                 class="w-full h-full object-cover scale-[1.2] transition-transform duration-150 ease-out"
+                                                 :style="`transform-origin: ${zoomX}% ${zoomY}%`"
+                                            >
+                                            <div class="absolute inset-0 border border-white/20 rounded-[24px] pointer-events-none"></div>
+                                        </div>
+                                    </template>
                                 @else
                                     <div class="w-full h-full flex items-center justify-center text-slate-200">
                                         <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="3" rx="2" ry="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/></svg>
@@ -68,15 +91,15 @@
                                 @endif
                             </div>
                             <div class="p-4 flex flex-col flex-1 gap-2">
-                                <h3 class="text-sm font-semibold text-slate-700 group-hover:text-electric-blue transition-colors line-clamp-2 min-h-[2.5rem]">{{ $product['name'] }}</h3>
+                                <h3 class="text-sm font-semibold text-slate-700 group-hover:text-electric-blue transition-colors line-clamp-2 min-h-[2.5rem]">{{ $product['name'] ?: $product['base_name'] }}</h3>
                                 <div class="flex items-center justify-between mt-auto pt-2 border-t border-slate-50">
                                     <div>
-                                        <span class="text-base font-bold text-electric-blue block">{{ number_format($product['sale_price'], 0, ',', '.') }}</span>
-                                        <span class="text-[10px] font-semibold text-slate-400 bg-slate-50 px-1.5 py-0.5 rounded-md border border-slate-100 mt-1 inline-block">Tồn: {{ $product['stock_quantity'] }}</span>
+                                        <span class="text-lg font-extrabold text-electric-blue block">{{ number_format($product['sale_price'], 0, ',', '.') }}</span>
+                                        <span class="text-xs font-bold {{ $product['stock_quantity'] <= 5 ? 'text-rose-600 bg-rose-50' : 'text-slate-700 bg-slate-100' }} px-2 py-1 rounded-lg border border-slate-200 mt-1.5 inline-block">Tồn: {{ $product['stock_quantity'] }}</span>
                                     </div>
                                     <div class="text-right">
-                                        <div class="text-[9px] text-slate-300 font-bold uppercase tracking-widest">{{ $product['sku'] }}</div>
-                                        <div class="text-[10px] text-emerald-500 font-bold uppercase">{{ $product['location'] }}</div>
+                                        <div class="text-[11px] text-slate-500 font-black uppercase tracking-wider mb-0.5">{{ $product['sku'] }}</div>
+                                        <div class="text-xs text-emerald-600 font-extrabold uppercase bg-emerald-50 px-2 py-0.5 rounded-md inline-block">{{ $product['location'] }}</div>
                                     </div>
                                 </div>
                             </div>
@@ -90,28 +113,48 @@
 
             <!-- Mobile Layout -->
             <div class="md:hidden h-full overflow-y-auto bg-white p-3 pb-32">
-                <div class="grid grid-cols-2 gap-2 mb-6">
+                <div class="grid grid-cols-2 gap-3 mb-6">
                     @forelse($products as $product)
-                        <div wire:click="addToCart({{ $product['id'] }})" class="bg-white border border-slate-100 rounded-xl overflow-hidden flex flex-col shadow-sm active:scale-95 transition-transform h-full">
-                            <div class="h-20 bg-slate-50 relative shrink-0">
+                        <div wire:click="addToCart({{ $product['id'] }})" class="bg-white border border-slate-200 rounded-2xl flex flex-col shadow-sm active:scale-95 transition-transform h-full z-10">
+                            <div class="h-28 bg-slate-50 relative shrink-0 product-image-container rounded-t-2xl overflow-hidden" 
+                                 x-data="{ hover: false, mouseX: 0, mouseY: 0, zoomX: 50, zoomY: 50 }"
+                                 @mousemove="
+                                    mouseX = $event.clientX; 
+                                    mouseY = $event.clientY;
+                                    let rect = $el.getBoundingClientRect();
+                                    zoomX = (($event.clientX - rect.left) / rect.width) * 100;
+                                    zoomY = (($event.clientY - rect.top) / rect.height) * 100;
+                                 ">
                                 @if($product['image'])
-                                    <img src="{{ $product['image'] }}" class="w-full h-full object-cover">
+                                    <img src="{{ $product['image'] }}" @mouseenter="hover = true" @mouseleave="hover = false" class="w-full h-full object-cover">
+                                    <template x-teleport="body">
+                                        <div x-show="hover" 
+                                             class="product-zoom-preview" 
+                                             :style="`left: ${mouseX}px; top: ${mouseY}px; transform: translate(-50%, -50%); width: 300px; height: 300px;`"
+                                             x-cloak>
+                                            <img src="{{ $product['image'] }}" 
+                                                 class="w-full h-full object-cover scale-[1.2] transition-transform duration-150 ease-out"
+                                                 :style="`transform-origin: ${zoomX}% ${zoomY}%`"
+                                            >
+                                            <div class="absolute inset-0 border border-white/20 rounded-[24px] pointer-events-none"></div>
+                                        </div>
+                                    </template>
                                 @else
                                     <div class="w-full h-full flex items-center justify-center text-slate-200">
-                                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="3" rx="2" ry="2"/></svg>
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="3" rx="2" ry="2"/></svg>
                                     </div>
                                 @endif
                             </div>
-                            <div class="p-2 flex-1 flex flex-col justify-between bg-white border-t border-slate-50">
+                            <div class="p-3 flex-1 flex flex-col justify-between bg-white border-t border-slate-100">
                                 <div>
-                                    <div class="text-[7px] font-black text-slate-400 uppercase tracking-tighter leading-none mb-0.5 truncate">{{ $product['sku'] }}</div>
-                                    <h3 class="text-[10px] font-bold text-slate-900 line-clamp-2 leading-tight min-h-[1.5rem]">{{ $product['name'] }}</h3>
+                                    <div class="text-[9px] font-black text-slate-500 uppercase tracking-wider mb-1">{{ $product['sku'] }}</div>
+                                    <h3 class="text-xs font-bold text-slate-900 line-clamp-2 leading-tight min-h-[2rem]">{{ $product['name'] ?: $product['base_name'] }}</h3>
                                 </div>
-                                <div class="flex items-end justify-between mt-2">
-                                    <p class="text-[11px] font-bold text-electric-blue leading-none">{{ number_format($product['sale_price'] / 1000, 0) }}k</p>
-                                    <div class="text-right">
-                                        <div class="text-[7px] font-bold text-slate-400 leading-none">Tồn: {{ $product['stock_quantity'] }}</div>
-                                        <div class="text-[7px] font-bold text-emerald-500 uppercase leading-none mt-0.5">{{ $product['location'] }}</div>
+                                <div class="flex items-end justify-between mt-3">
+                                    <p class="text-sm font-black text-electric-blue leading-none">{{ number_format($product['sale_price'] / 1000, 0) }}k</p>
+                                    <div class="text-right flex flex-col items-end gap-1">
+                                        <div class="text-[9px] font-bold {{ $product['stock_quantity'] <= 5 ? 'text-rose-600 bg-rose-50' : 'text-slate-500 bg-slate-50' }} px-1.5 py-0.5 rounded border border-slate-100 leading-none">Tồn: {{ $product['stock_quantity'] }}</div>
+                                        <div class="text-[9px] font-black text-white bg-emerald-500 px-1.5 py-0.5 rounded uppercase leading-none">{{ $product['location'] }}</div>
                                     </div>
                                 </div>
                             </div>

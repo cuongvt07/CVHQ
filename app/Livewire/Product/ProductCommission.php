@@ -3,6 +3,8 @@
 namespace App\Livewire\Product;
 
 use App\Models\Product;
+use App\Models\Invoice;
+use App\Models\User;
 use Livewire\Component;
 use Livewire\WithPagination;
 use Livewire\WithFileUploads;
@@ -49,6 +51,74 @@ class ProductCommission extends Component
     {
         Product::where('id', $productId)->update(['commission_amount' => $amount]);
         $this->dispatch('notify', message: 'Cập nhật hoa hồng thành công!', type: 'success');
+    }
+
+    public function syncCommissions()
+    {
+        if (!auth()->user()->hasPermission('invoice.edit')) {
+            $this->dispatch('notify', message: 'Bạn không có quyền đồng bộ dữ liệu!', type: 'error');
+            return;
+        }
+
+        \DB::transaction(function () {
+            // Lấy tất cả sản phẩm (bao gồm cả hàng đã xóa nếu cần đối soát đơn cũ)
+            $products = Product::withTrashed()->get()->mapWithKeys(function ($item) {
+                return [strtoupper(trim((string)$item->sku)) => $item];
+            });
+
+            \Log::info("SyncCommissions: Loaded " . $products->count() . " products (including trashed) for mapping.");
+            
+            // Lấy tất cả hóa đơn không bị hủy
+            $invoices = Invoice::with(['items', 'user'])->get();
+            $invoiceCount = 0;
+            $itemCount = 0;
+            $matchCount = 0;
+
+            foreach ($invoices as $invoice) {
+                $status = strtolower($invoice->status);
+                if (in_array($status, ['cancelled', 'đã hủy', 'hủy'])) {
+                    continue;
+                }
+
+                $seller = $invoice->user;
+                $canReceiveCommission = $seller ? (bool)$seller->can_receive_commission : true;
+                $invoiceTotalCommission = 0;
+
+                foreach ($invoice->items as $item) {
+                    $itemSku = strtoupper(trim((string)$item->sku));
+                    $product = $products[$itemSku] ?? null;
+                    
+                    if ($product) {
+                        $matchCount++;
+                        // Lấy giá trị hoa hồng chuẩn từ "Bảng hoa hồng chung"
+                        $standardRate = (float)$product->commission_amount;
+                        $targetRate = $canReceiveCommission ? $standardRate : 0;
+
+                        if (round((float)$item->commission_amount, 2) !== round((float)$targetRate, 2)) {
+                            \Log::info("SyncCommissions: [MATCHED] SKU [{$itemSku}] in Invoice [{$invoice->invoice_code}]. Rate: Product={$standardRate}, Item Old={$item->commission_amount}, New={$targetRate}");
+                            $item->commission_amount = $targetRate;
+                            $item->save();
+                            $itemCount++;
+                        }
+                    } else {
+                        \Log::warning("SyncCommissions: [NO MATCH] SKU [{$itemSku}] in Invoice [{$invoice->invoice_code}] not found in Products table.");
+                        $targetRate = (float)$item->commission_amount;
+                    }
+
+                    $invoiceTotalCommission += ($targetRate * $item->quantity);
+                }
+
+                if (round((float)$invoice->total_commission, 2) !== round((float)$invoiceTotalCommission, 2)) {
+                    \Log::info("SyncCommissions: Updating Invoice [{$invoice->invoice_code}] total. Old: {$invoice->total_commission}, New: {$invoiceTotalCommission}");
+                    $invoice->total_commission = $invoiceTotalCommission;
+                    $invoice->save();
+                    $invoiceCount++;
+                }
+            }
+
+            \Log::info("SyncCommissions: Completed. Total Matches: {$matchCount}, Updated {$invoiceCount} invoices and {$itemCount} items.");
+            $this->dispatch('notify', message: "Đồng bộ hoàn tất! Tìm thấy {$matchCount} mặt hàng khớp mã. Đã cập nhật {$invoiceCount} hóa đơn. Vui lòng kiểm tra log nếu số lượng cập nhật là 0.", type: 'success');
+        });
     }
 
     public function import()
