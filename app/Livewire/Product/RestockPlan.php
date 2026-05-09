@@ -13,11 +13,15 @@ class RestockPlan extends Component
     public $threshold = 10;
     public $search = '';
     public $selectedCategories = [];
+    public $brandFilter = '';
+    public $boxCode = '';
     public $perPage = 25;
 
     protected $queryString = [
         'threshold' => ['except' => 10],
         'search' => ['except' => ''],
+        'brandFilter' => ['except' => ''],
+        'boxCode' => ['except' => ''],
         'perPage' => ['except' => 25],
     ];
 
@@ -44,11 +48,17 @@ class RestockPlan extends Component
             } else {
                 $this->selectedCategories = [];
             }
+        } elseif ($type === 'boxCode') {
+            $this->boxCode = '';
+        } elseif ($type === 'brandFilter') {
+            $this->brandFilter = '';
         } elseif ($type === 'search') {
             $this->search = '';
         } elseif ($type === 'all') {
             $this->search = '';
             $this->selectedCategories = [];
+            $this->brandFilter = '';
+            $this->boxCode = '';
             $this->threshold = 10;
         }
         
@@ -72,6 +82,12 @@ class RestockPlan extends Component
             ->when($this->selectedCategories, function($query) {
                 $query->whereIn('category_path', $this->selectedCategories);
             })
+            ->when($this->boxCode, function($query) {
+                $query->where('location', 'like', "%{$this->boxCode}%");
+            })
+            ->when($this->brandFilter, function($query) {
+                $query->where('brand', $this->brandFilter);
+            })
             ->orderBy('stock_quantity', 'asc')
             ->paginate($this->perPage)
             ->onEachSide(1);
@@ -82,6 +98,7 @@ class RestockPlan extends Component
         return view('livewire.product.restock-plan', [
             'products' => $this->getLowStockProducts(),
             'categories_list' => Product::whereNotNull('category_path')->distinct()->pluck('category_path'),
+            'brands_list' => Product::whereNotNull('brand')->distinct()->pluck('brand'),
         ])->layout('layouts.app');
     }
 }
