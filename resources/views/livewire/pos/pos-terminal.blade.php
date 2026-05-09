@@ -11,10 +11,10 @@
                     <p class="text-[10px] text-slate-400 uppercase tracking-widest mt-0.5">Quầy 01 • Sẵn sàng giao dịch</p>
                 </div>
                 <button @click="filtersOpen = !filtersOpen" 
-                        :class="filtersOpen ? 'bg-electric-blue text-white border-electric-blue' : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50'"
+                        :class="filtersOpen ? 'bg-electric-blue text-white border-electric-blue shadow-[0_4px_15px_rgba(0,136,204,0.3)]' : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50'"
                         class="flex items-center gap-2 px-4 py-2.5 border rounded-xl text-[10px] font-bold uppercase tracking-wider transition-all shadow-sm shrink-0">
                     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg>
-                    <span>Lọc nâng cao</span>
+                    <span>Bộ lọc nâng cao</span>
                     <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" :class="filtersOpen ? 'rotate-180' : ''" class="transition-transform duration-200"><path d="m6 9 6 6 6-6"/></svg>
                 </button>
             </div>
@@ -27,9 +27,9 @@
                 </div>
             </div>
 
-            <!-- Collapsible Filters Overlay/Grid -->
-            <div x-show="filtersOpen" x-transition x-cloak class="absolute left-0 top-full inset-x-0 bg-white border-b border-slate-200 shadow-2xl z-[60] animate-in slide-in-from-top-4 duration-300">
-                <div class="p-6 md:px-8 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 max-w-7xl mx-auto">
+            <!-- Collapsible Filters Grid (Push Down) -->
+            <div x-show="filtersOpen" x-collapse x-cloak class="w-full mt-4 order-last sm:order-none">
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 p-6 bg-slate-50/50 rounded-2xl border border-slate-100 mb-2">
                     <!-- Multi-Category (with Search) -->
                     <div class="flex flex-col gap-2" x-data="{ catSearch: '' }">
                         <label class="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1 flex items-center justify-between">
@@ -39,7 +39,7 @@
                             </span>
                         </label>
                         <div class="relative mb-1">
-                            <input type="text" x-model="catSearch" placeholder="Tìm danh mục..." class="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-1.5 text-[10px] focus:outline-none focus:border-electric-blue/40 shadow-sm">
+                            <input type="text" x-model="catSearch" placeholder="Tìm danh mục..." class="w-full bg-white border border-slate-200 rounded-lg px-3 py-1.5 text-[10px] focus:outline-none focus:border-electric-blue/40 shadow-sm">
                         </div>
                         <div class="w-full bg-white border border-slate-200 rounded-xl p-2 h-[80px] overflow-y-auto custom-scrollbar shadow-sm">
                             <div class="flex flex-col gap-1">
@@ -59,19 +59,19 @@
                             <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"/><path d="m3.3 7 8.7 5 8.7-5"/><path d="M12 22V12"/></svg>
                             Mã thùng / Vị trí
                         </label>
-                        <input type="text" wire:model.live.debounce.300ms="boxCode" placeholder="Nhập mã thùng..." class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-xs focus:outline-none focus:border-electric-blue/40 shadow-sm">
+                        <input type="text" wire:model.live.debounce.300ms="boxCode" placeholder="Nhập mã thùng..." class="w-full bg-white border border-slate-200 rounded-xl px-4 py-2.5 text-xs focus:outline-none focus:border-electric-blue/40 shadow-sm">
                     </div>
 
                     <!-- Stock Status -->
                     <div class="flex flex-col gap-2">
                         <label class="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1 flex items-center gap-2">
                             <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z"/><path d="M3 6h18"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>
-                            Tồn kho
+                            Trạng thái kho
                         </label>
-                        <select wire:model.live="stockStatus" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-xs font-bold text-slate-600 focus:outline-none focus:border-electric-blue/40 shadow-sm cursor-pointer">
+                        <select wire:model.live="stockStatus" class="w-full bg-white border border-slate-200 rounded-xl px-4 py-2.5 text-xs font-bold text-slate-600 focus:outline-none focus:border-electric-blue/40 shadow-sm cursor-pointer">
                             <option value="all">Tất cả trạng thái</option>
                             <option value="in_stock">✅ Còn hàng</option>
-                            <option value="low_stock">⚠️ Sắp hết (< 10)</option>
+                            <option value="low_stock">⚠️ Sắp hết hàng (< 10)</option>
                             <option value="out_of_stock">❌ Hết hàng</option>
                         </select>
                     </div>
@@ -82,16 +82,13 @@
                             <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2H2v10l9.29 9.29c.94.94 2.48.94 3.42 0l6.58-6.58c.94-.94.94-2.48 0-3.42L12 2Z"/><path d="M7 7h.01"/></svg>
                             Thương hiệu
                         </label>
-                        <select wire:model.live="brandFilter" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-xs text-slate-600 focus:outline-none focus:border-electric-blue/40 shadow-sm cursor-pointer">
-                            <option value="">Tất cả hiệu</option>
+                        <select wire:model.live="brandFilter" class="w-full bg-white border border-slate-200 rounded-xl px-4 py-2.5 text-xs text-slate-600 focus:outline-none focus:border-electric-blue/40 shadow-sm cursor-pointer">
+                            <option value="">Tất cả thương hiệu</option>
                             @foreach($brands_list as $brand)
                                 <option value="{{ $brand }}">{{ $brand }}</option>
                             @endforeach
                         </select>
                     </div>
-                </div>
-                <div class="px-8 pb-4 flex justify-end">
-                    <button @click="filtersOpen = false" class="text-[10px] font-black text-electric-blue uppercase tracking-widest hover:underline">Đóng bộ lọc</button>
                 </div>
             </div>
         </header>
