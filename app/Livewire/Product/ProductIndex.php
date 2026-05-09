@@ -80,6 +80,27 @@ class ProductIndex extends Component
         $this->resetPage();
     }
 
+    public function clearFilter($type, $value = null)
+    {
+        if ($type === 'selectedCategories') {
+            if ($value) {
+                $this->selectedCategories = array_diff($this->selectedCategories, [$value]);
+            } else {
+                $this->selectedCategories = [];
+            }
+        } elseif ($type === 'boxCode') {
+            $this->boxCode = '';
+        } elseif ($type === 'brandFilter') {
+            $this->brandFilter = '';
+        } elseif ($type === 'stockStatus') {
+            $this->stockStatus = 'all';
+        } elseif ($type === 'search') {
+            $this->search = '';
+        }
+        
+        $this->resetPage();
+    }
+
     // Form properties
     public $productId;
     public $sku, $base_name, $category_path, $brand, $sale_price, $commission_amount, $stock_quantity, $location;

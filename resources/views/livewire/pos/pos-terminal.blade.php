@@ -31,7 +31,7 @@
         </header>
 
         <!-- Category Pills -->
-        <div class="px-4 md:px-8 py-4 shrink-0 bg-slate-50/50 flex items-center justify-between gap-4">
+        <div class="px-4 md:px-8 py-4 shrink-0 bg-slate-50/50 flex flex-col gap-4 border-b border-slate-100">
             <div class="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-none flex-1">
                 <button wire:click="toggleCategory('All')" 
                         class="px-5 py-1.5 rounded-full text-[10px] md:text-xs font-bold uppercase tracking-wider transition-all whitespace-nowrap {{ $category === 'All' ? 'bg-electric-blue text-white shadow-[0_4px_15px_rgba(0,136,204,0.3)]' : 'bg-white text-slate-500 border border-slate-200 hover:border-slate-400 hover:text-slate-900' }}">
@@ -45,8 +45,33 @@
                 @endforeach
             </div>
             
-            @if(count($selectedCategories) > 0)
-                <button wire:click="toggleCategory('All')" class="text-[10px] font-bold text-electric-blue uppercase tracking-widest hover:underline shrink-0 px-2">Xóa lọc</button>
+            @if(!empty($selectedCategories) || $boxCode || $search)
+                <div class="flex flex-wrap items-center gap-2 animate-in fade-in slide-in-from-top-1 duration-200">
+                    <span class="text-[9px] font-black text-slate-400 uppercase tracking-tighter mr-1">Bộ lọc:</span>
+                    
+                    @if($search)
+                        <div class="flex items-center gap-1.5 px-2.5 py-1 bg-white border border-slate-200 rounded-lg text-[10px] font-bold text-slate-600 shadow-sm">
+                            <span class="text-slate-400">Tìm:</span> {{ $search }}
+                            <button wire:click="clearFilter('search')" class="text-slate-300 hover:text-rose-500 transition-colors"><svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg></button>
+                        </div>
+                    @endif
+
+                    @foreach($selectedCategories as $cat)
+                        <div class="flex items-center gap-1.5 px-2.5 py-1 bg-electric-blue/5 border border-electric-blue/10 rounded-lg text-[10px] font-bold text-electric-blue shadow-sm">
+                            <span class="opacity-60">DM:</span> {{ $cat }}
+                            <button wire:click="clearFilter('selectedCategories', '{{ $cat }}')" class="opacity-40 hover:opacity-100 hover:text-rose-500 transition-all"><svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg></button>
+                        </div>
+                    @endforeach
+
+                    @if($boxCode)
+                        <div class="flex items-center gap-1.5 px-2.5 py-1 bg-emerald-50 border border-emerald-100 rounded-lg text-[10px] font-bold text-emerald-600 shadow-sm">
+                            <span class="opacity-60">Thùng:</span> {{ $boxCode }}
+                            <button wire:click="clearFilter('boxCode')" class="opacity-40 hover:opacity-100 hover:text-rose-500 transition-all"><svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg></button>
+                        </div>
+                    @endif
+
+                    <button wire:click="clearFilter('all')" class="text-[9px] font-black text-rose-500 uppercase tracking-tighter hover:underline ml-2">Xóa tất cả</button>
+                </div>
             @endif
         </div>
 

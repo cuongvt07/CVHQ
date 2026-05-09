@@ -28,7 +28,7 @@
         <div class="flex flex-col md:flex-row items-center justify-between gap-4">
             <div class="relative w-full md:w-96 group">
                 <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="absolute left-4 top-1/2 -translate-y-1/2 text-slate-300 group-focus-within:text-electric-blue transition-colors"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
-                <input type="text" wire:model.live="search" placeholder="Tìm kiếm theo Tên, Mã (SKU), hoặc Thương hiệu..." class="w-full bg-slate-50 border border-slate-200 rounded-xl py-3 pl-12 pr-6 text-sm focus:outline-none focus:border-electric-blue/40 focus:ring-4 focus:ring-electric-blue/5 transition-all text-slate-900">
+                <input type="text" wire:model.live="search" placeholder="Tìm kiếm theo Tên, Mã (SKU), hoặc Thương hiệu..." class="w-full bg-slate-50 border border-slate-200 rounded-xl py-3 pl-12 pr-6 text-sm focus:outline-none focus:border-electric-blue/40 focus:ring-4 focus:ring-electric-blue/5 transition-all text-slate-900 shadow-sm">
             </div>
 
             <div class="flex items-center gap-4">
@@ -57,20 +57,22 @@
 
         <!-- Filters Grid -->
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 p-4 bg-slate-50/50 rounded-2xl border border-slate-100">
-            <!-- Multi-Category Select -->
+            <!-- Multi-Category (Checkboxes with Scroll) -->
             <div class="flex flex-col gap-2">
                 <label class="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1 flex items-center gap-2">
                     <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>
                     Danh mục (Chọn nhiều)
                 </label>
-                <select wire:model.live="selectedCategories" multiple class="w-full bg-white border border-slate-200 rounded-xl px-4 py-2 text-xs focus:outline-none focus:border-electric-blue/40 min-h-[100px] custom-scrollbar shadow-sm">
-                    @foreach($categories_list as $cat)
-                        <option value="{{ $cat }}" class="py-1">{{ $cat }}</option>
-                    @endforeach
-                </select>
-                @if(count($selectedCategories) > 0)
-                    <button wire:click="$set('selectedCategories', [])" class="text-[9px] text-electric-blue font-bold uppercase tracking-wider hover:underline text-left ml-1 mt-1">Xóa chọn</button>
-                @endif
+                <div class="w-full bg-white border border-slate-200 rounded-xl p-2 h-[50px] overflow-y-auto custom-scrollbar shadow-sm">
+                    <div class="flex flex-col gap-1">
+                        @foreach($categories_list as $cat)
+                            <label class="flex items-center gap-2 px-2 py-0.5 hover:bg-slate-50 rounded cursor-pointer transition-colors group">
+                                <input type="checkbox" wire:model.live="selectedCategories" value="{{ $cat }}" class="w-3.5 h-3.5 rounded border-slate-300 text-electric-blue focus:ring-electric-blue/20 transition-all">
+                                <span class="text-[10px] font-medium text-slate-600 group-hover:text-slate-900 transition-colors">{{ $cat }}</span>
+                            </label>
+                        @endforeach
+                    </div>
+                </div>
             </div>
 
             <!-- Box Code Filter -->
@@ -117,6 +119,50 @@
                 </select>
             </div>
         </div>
+
+        <!-- Active Filters Tags -->
+        @if(!empty($selectedCategories) || $boxCode || $brandFilter || $stockStatus !== 'all' || $search)
+            <div class="flex flex-wrap items-center gap-2 animate-in fade-in slide-in-from-top-1 duration-200">
+                <span class="text-[9px] font-black text-slate-400 uppercase tracking-tighter mr-1">Đang áp dụng:</span>
+                
+                @if($search)
+                    <div class="flex items-center gap-1.5 px-2.5 py-1 bg-slate-100 border border-slate-200 rounded-lg text-[10px] font-bold text-slate-600 group shadow-sm">
+                        <span class="text-slate-400 font-medium">Tìm:</span> {{ $search }}
+                        <button wire:click="clearFilter('search')" class="text-slate-300 hover:text-rose-500 transition-colors"><svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg></button>
+                    </div>
+                @endif
+
+                @foreach($selectedCategories as $cat)
+                    <div class="flex items-center gap-1.5 px-2.5 py-1 bg-electric-blue/5 border border-electric-blue/10 rounded-lg text-[10px] font-bold text-electric-blue group shadow-sm">
+                        <span class="opacity-60 font-medium">DM:</span> {{ $cat }}
+                        <button wire:click="clearFilter('selectedCategories', '{{ $cat }}')" class="opacity-40 hover:opacity-100 hover:text-rose-500 transition-all"><svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg></button>
+                    </div>
+                @endforeach
+
+                @if($boxCode)
+                    <div class="flex items-center gap-1.5 px-2.5 py-1 bg-emerald-50 border border-emerald-100 rounded-lg text-[10px] font-bold text-emerald-600 group shadow-sm">
+                        <span class="opacity-60 font-medium">Thùng:</span> {{ $boxCode }}
+                        <button wire:click="clearFilter('boxCode')" class="opacity-40 hover:opacity-100 hover:text-rose-500 transition-all"><svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg></button>
+                    </div>
+                @endif
+
+                @if($brandFilter)
+                    <div class="flex items-center gap-1.5 px-2.5 py-1 bg-amber-50 border border-amber-100 rounded-lg text-[10px] font-bold text-amber-600 group shadow-sm">
+                        <span class="opacity-60 font-medium">Hiệu:</span> {{ $brandFilter }}
+                        <button wire:click="clearFilter('brandFilter')" class="opacity-40 hover:opacity-100 hover:text-rose-500 transition-all"><svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg></button>
+                    </div>
+                @endif
+
+                @if($stockStatus !== 'all')
+                    <div class="flex items-center gap-1.5 px-2.5 py-1 bg-indigo-50 border border-indigo-100 rounded-lg text-[10px] font-bold text-indigo-600 group shadow-sm">
+                        <span class="opacity-60 font-medium">Kho:</span> {{ $stockStatus === 'in_stock' ? 'Còn hàng' : ($stockStatus === 'low_stock' ? 'Sắp hết' : 'Hết hàng') }}
+                        <button wire:click="clearFilter('stockStatus')" class="opacity-40 hover:opacity-100 hover:text-rose-500 transition-all"><svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg></button>
+                    </div>
+                @endif
+
+                <button wire:click="clearFilter('all')" class="text-[9px] font-black text-rose-500 uppercase tracking-tighter hover:underline ml-2">Xóa tất cả bộ lọc</button>
+            </div>
+        @endif
     </div>
 
     <!-- Main Content (Binary Surface) -->

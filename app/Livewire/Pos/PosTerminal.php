@@ -57,6 +57,31 @@ class PosTerminal extends Component
         $this->resetPage();
     }
 
+    public function clearFilter($type, $value = null)
+    {
+        if ($type === 'selectedCategories') {
+            if ($value) {
+                $this->selectedCategories = array_diff($this->selectedCategories, [$value]);
+            } else {
+                $this->selectedCategories = [];
+            }
+            if (empty($this->selectedCategories)) {
+                $this->category = 'All';
+            }
+        } elseif ($type === 'boxCode') {
+            $this->boxCode = '';
+        } elseif ($type === 'search') {
+            $this->search = '';
+        } elseif ($type === 'all') {
+            $this->selectedCategories = [];
+            $this->boxCode = '';
+            $this->search = '';
+            $this->category = 'All';
+        }
+        
+        $this->resetPage();
+    }
+
     // Financials
     public $discount = 0;
     public $extra_fee = 0;
