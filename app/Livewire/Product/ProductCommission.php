@@ -223,9 +223,9 @@ class ProductCommission extends Component
             ->when($this->search, function($query) {
                 $query->where(function($q) {
                     $search = $this->search;
-                    $q->where('sku', $search)
-                      ->orWhere('location', $search)
-                      ->orWhere('name', 'REGEXP', '(^|[^a-zA-Z0-9])' . $search . '([^a-zA-Z0-9]|$)');
+                    $q->whereRaw("sku REGEXP ?", ['(^|[^0-9])' . $search . '([^0-9]|$)'])
+                      ->orWhereRaw("location REGEXP ?", ['(^|[^0-9])' . $search . '([^0-9]|$)'])
+                      ->orWhereRaw("name REGEXP ?", ['(^|[^0-9])' . $search . '([^0-9]|$)']);
                 });
 
                 $query->orderByRaw("CASE 
@@ -251,9 +251,9 @@ class ProductCommission extends Component
             ->when($this->search, function($query) {
                 $query->where(function($q) {
                     $search = $this->search;
-                    $q->where('sku', $search)
-                      ->orWhere('location', $search)
-                      ->orWhere('name', 'REGEXP', '(^|[^a-zA-Z0-9])' . $search . '([^a-zA-Z0-9]|$)');
+                    $q->whereRaw("sku REGEXP ?", ['(^|[^0-9])' . $search . '([^0-9]|$)'])
+                      ->orWhereRaw("location REGEXP ?", ['(^|[^0-9])' . $search . '([^0-9]|$)'])
+                      ->orWhereRaw("name REGEXP ?", ['(^|[^0-9])' . $search . '([^0-9]|$)']);
                 });
 
                 $query->orderByRaw("CASE 

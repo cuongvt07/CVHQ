@@ -339,10 +339,10 @@ class ProductIndex extends Component
                 $keywords = array_filter(explode(' ', $this->search));
                 foreach ($keywords as $keyword) {
                     $query->where(function($q) use ($keyword) {
-                        $q->where('sku', $keyword)
-                          ->orWhere('location', $keyword)
-                          ->orWhere('name', 'REGEXP', '(^|[^a-zA-Z0-9])' . $keyword . '([^a-zA-Z0-9]|$)')
-                          ->orWhere('brand', 'REGEXP', '(^|[^a-zA-Z0-9])' . $keyword . '([^a-zA-Z0-9]|$)');
+                        $q->whereRaw("sku REGEXP ?", ['(^|[^0-9])' . $keyword . '([^0-9]|$)'])
+                          ->orWhereRaw("location REGEXP ?", ['(^|[^0-9])' . $keyword . '([^0-9]|$)'])
+                          ->orWhereRaw("name REGEXP ?", ['(^|[^0-9])' . $keyword . '([^0-9]|$)'])
+                          ->orWhereRaw("brand REGEXP ?", ['(^|[^0-9])' . $keyword . '([^0-9]|$)']);
                     });
                 }
 
@@ -358,7 +358,7 @@ class ProductIndex extends Component
                 $query->whereIn('category_path', $this->selectedCategories);
             })
             ->when($this->boxCode, function($query) {
-                $query->where('location', 'like', "%{$this->boxCode}%");
+                $query->whereRaw("location REGEXP ?", ['(^|[^0-9])' . $this->boxCode . '([^0-9]|$)']);
             })
             ->when($this->brandFilter, function($query) {
                 $query->where('brand', $this->brandFilter);
