@@ -356,6 +356,7 @@ class PosTerminal extends Component
             'customers' => $this->customers,
             'selectedCustomer' => $this->selectedCustomer,
             'categories_list' => Product::whereNotNull('category_path')->distinct()->pluck('category_path'),
+            'brands_list' => Product::whereNotNull('brand')->distinct()->pluck('brand'),
             'box_codes_list' => Product::whereNotNull('location')->distinct()->pluck('location'),
         ])->layout('layouts.app');
     }
