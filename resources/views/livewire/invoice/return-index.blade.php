@@ -1,9 +1,8 @@
 <div class="h-full flex flex-col">
     <!-- Header -->
-    <header class="px-4 md:px-6 py-6 border-b border-slate-200 bg-slate-50/50">
+    <header class="px-4 md:px-6 py-4 border-b border-slate-200 bg-slate-50/50">
         <div>
-            <h1 class="text-[20px] md:text-[24px] font-bold tracking-tight text-slate-900 mb-2">Thống kê trả hàng</h1>
-            <p class="text-[10px] md:text-[14px] text-slate-500 font-light italic">Quản lý các hóa đơn đã trả và nhập lại kho</p>
+            <h1 class="text-lg md:text-xl font-black tracking-tight text-slate-900 uppercase">Thống kê trả hàng</h1>
         </div>
     </header>
 

@@ -1,9 +1,8 @@
 <div class="h-full flex flex-col">
     <!-- Header -->
-    <header class="px-4 md:px-6 py-6 flex flex-col md:flex-row md:items-center justify-between gap-6 border-b border-slate-200 bg-slate-50/50">
+    <header class="px-4 md:px-6 py-4 flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-200 bg-slate-50/50">
         <div>
-            <h1 class="text-[20px] md:text-[24px] font-bold tracking-tight text-slate-900 mb-2">Dự toán nhập hàng</h1>
-            <p class="text-[10px] md:text-[14px] text-slate-500 font-light italic">Theo dõi sản phẩm dưới định mức tồn để lập kế hoạch nhập hàng</p>
+            <h1 class="text-lg md:text-xl font-black tracking-tight text-slate-900 uppercase">Dự toán nhập hàng</h1>
         </div>
         
         <div class="flex items-center gap-4">

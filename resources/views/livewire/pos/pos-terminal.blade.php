@@ -5,10 +5,9 @@
     <main class="flex-1 flex flex-col min-w-0 bg-white relative overflow-hidden">
         <!-- Header & Collapsible Unified Filter -->
         <header class="flex flex-col shrink-0 border-b border-slate-100 bg-white" x-data="{ filtersOpen: false }">
-            <div class="px-4 md:px-8 py-4 flex items-center justify-between gap-4">
+            <div class="px-4 md:px-6 py-3 flex items-center justify-between gap-4 border-b border-slate-200 bg-slate-50/50">
                 <div>
-                    <h1 class="text-xl md:text-2xl font-bold tracking-tight text-slate-900">Bán hàng (POS)</h1>
-                    <p class="text-[10px] text-slate-400 uppercase tracking-widest mt-0.5">Quầy 01 • Sẵn sàng giao dịch</p>
+                    <h1 class="text-lg md:text-xl font-black tracking-tight text-slate-900 uppercase">Trạm bán hàng (POS)</h1>
                 </div>
                 
                 <div class="flex items-center gap-3">

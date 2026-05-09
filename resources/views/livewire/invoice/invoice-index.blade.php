@@ -1,8 +1,7 @@
 <div class="h-full flex flex-col">
-    <header class="px-4 md:px-6 py-6 flex flex-col md:flex-row md:items-center justify-between gap-6 border-b border-slate-200 bg-slate-50/50">
+    <header class="px-4 md:px-6 py-4 flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-200 bg-slate-50/50">
         <div>
-            <h1 class="text-3xl font-bold tracking-tight text-slate-900 mb-2">Kiểm tra hóa đơn</h1>
-            <p class="text-sm text-slate-400 font-light italic">Nhật ký giao dịch & minh bạch tài chính</p>
+            <h1 class="text-lg md:text-xl font-black tracking-tight text-slate-900 uppercase">Kiểm tra hóa đơn</h1>
         </div>
         
         <div class="flex items-center gap-4">

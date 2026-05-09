@@ -1,9 +1,8 @@
 <div class="h-full flex flex-col">
     <!-- Dashboard Header -->
-    <header class="px-4 md:px-6 py-6 flex flex-col md:flex-row md:items-center justify-between gap-6 border-b border-slate-200 bg-slate-50/50">
+    <header class="px-4 md:px-6 py-4 flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-200 bg-slate-50/50">
         <div>
-            <h1 class="text-[20px] md:text-[24px] font-bold tracking-tight text-slate-900 mb-2">Quản lý kho hàng</h1>
-            <p class="text-[10px] md:text-[14px] text-slate-500 font-light italic">Giám sát tồn kho & quản lý sản phẩm thời gian thực</p>
+            <h1 class="text-lg md:text-xl font-black tracking-tight text-slate-900 uppercase">Quản lý kho hàng</h1>
         </div>
         
         <div class="flex items-center gap-4">
