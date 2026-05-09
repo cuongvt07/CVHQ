@@ -30,6 +30,7 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/commissions', \App\Livewire\Product\ProductCommission::class)->name('commissions');
     Route::get('/reports/commissions', \App\Livewire\Report\CommissionReport::class)->name('reports.commissions');
     Route::get('/invoices', InvoiceIndex::class)->name('invoices');
+    Route::get('/invoices/returns', \App\Livewire\Invoice\ReturnIndex::class)->name('invoices.returns');
     Route::get('/invoices/{invoice}', \App\Livewire\Invoice\InvoiceDetail::class)->name('invoices.detail');
 
     Route::get('/pos/print/{invoice}', function (App\Models\Invoice $invoice) {

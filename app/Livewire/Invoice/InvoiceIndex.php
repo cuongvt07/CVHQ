@@ -44,8 +44,15 @@ class InvoiceIndex extends Component
     public $importErrors = [];
     public $importBatchId;
 
+    public $startDate = '';
+    public $endDate = '';
+    public $sellerFilter = '';
+
     protected $queryString = [
         'search' => ['except' => ''],
+        'startDate' => ['except' => ''],
+        'endDate' => ['except' => ''],
+        'sellerFilter' => ['except' => ''],
         'perPage' => ['except' => 10],
     ];
 
@@ -128,10 +135,14 @@ class InvoiceIndex extends Component
                 $q->whereNull('status')
                   ->orWhere('status', '!=', 'Cancelled');
             })
+            ->where('status', '!=', 'Returned')
             ->when($this->search, fn($q) => $q->where(function($sub) {
                 $sub->where('invoice_code', 'like', "%{$this->search}%")
                     ->orWhere('seller_name', 'like', "%{$this->search}%");
             }))
+            ->when($this->startDate, fn($q) => $q->whereDate('created_at', '>=', $this->startDate))
+            ->when($this->endDate, fn($q) => $q->whereDate('created_at', '<=', $this->endDate))
+            ->when($this->sellerFilter, fn($q) => $q->where('seller_name', 'like', "%{$this->sellerFilter}%"))
             ->with(['customer'])
             ->latest()
             ->paginate($this->perPage)
@@ -205,8 +216,15 @@ class InvoiceIndex extends Component
                 }
             }
 
+            $newCode = str_replace('HD', 'TH', $invoice->invoice_code);
+            if (!str_contains($newCode, 'TH')) {
+                $newCode = 'TH-' . $invoice->invoice_code;
+            }
+
             $invoice->update([
                 'status' => 'Returned',
+                'invoice_code' => $newCode,
+                'cancelled_at' => now(), // Reusing cancelled_at or adding logic
             ]);
         });
 
