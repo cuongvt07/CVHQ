@@ -35,18 +35,28 @@
                             <input type="text" wire:model.live="search" placeholder="Tên, SKU, Hiệu..." class="w-full bg-white border border-slate-200 rounded-xl px-4 py-2.5 text-xs font-bold text-slate-900 focus:outline-none focus:border-electric-blue/40 focus:ring-4 focus:ring-electric-blue/5 transition-all shadow-sm">
                         </div>
 
-                        <!-- Category Select -->
-                        <div class="flex flex-col gap-2">
-                            <label class="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1 flex items-center gap-2">
-                                <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>
-                                Danh mục
+                        <!-- Multi-Category (with Search) - Matching Product Index -->
+                        <div class="flex flex-col gap-2" x-data="{ catSearch: '' }">
+                            <label class="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1 flex items-center justify-between">
+                                <span class="flex items-center gap-2">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" x2="12" y1="3" y2="15"/></svg>
+                                    Danh mục
+                                </span>
                             </label>
-                            <select wire:model.live="category" class="w-full bg-white border border-slate-200 rounded-xl px-4 py-2.5 text-xs font-bold text-slate-600 focus:outline-none focus:border-electric-blue/40 transition-all cursor-pointer shadow-sm">
-                                <option value="All">Tất cả danh mục</option>
-                                @foreach($categories_list as $cat)
-                                    <option value="{{ $cat }}">{{ $cat }}</option>
-                                @endforeach
-                            </select>
+                            <div class="relative mb-1">
+                                <input type="text" x-model="catSearch" placeholder="Tìm danh mục..." class="w-full bg-white border border-slate-200 rounded-lg px-3 py-1.5 text-[10px] focus:outline-none focus:border-electric-blue/40 shadow-sm">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-300"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+                            </div>
+                            <div class="w-full bg-white border border-slate-200 rounded-xl p-2 h-[100px] overflow-y-auto custom-scrollbar shadow-sm">
+                                <div class="flex flex-col gap-1">
+                                    @foreach($categories_list as $cat)
+                                        <label x-show="'{{ strtolower($cat) }}'.includes(catSearch.toLowerCase())" class="flex items-center gap-2 px-2 py-0.5 hover:bg-slate-50 rounded cursor-pointer transition-colors group">
+                                            <input type="checkbox" wire:model.live="selectedCategories" value="{{ $cat }}" class="w-3.5 h-3.5 rounded border-slate-300 text-electric-blue focus:ring-electric-blue/20 transition-all">
+                                            <span class="text-[10px] font-bold text-slate-600 group-hover:text-slate-900 transition-colors">{{ $cat }}</span>
+                                        </label>
+                                    @endforeach
+                                </div>
+                            </div>
                         </div>
 
                         <!-- Box Code -->
@@ -88,7 +98,7 @@
                     </div>
 
                     <!-- Active Tags Bar (Inside Collapsible) -->
-                    @if(!empty($selectedCategories) || $category !== 'All' || $boxCode || $brandFilter || $stockStatus !== 'all' || $search)
+                    @if(!empty($selectedCategories) || $boxCode || $brandFilter || $stockStatus !== 'all' || $search)
                         <div class="mt-6 pt-6 border-t border-slate-200/60 flex flex-wrap items-center gap-2 animate-in fade-in slide-in-from-top-1 duration-200">
                             <span class="text-[9px] font-black text-slate-400 uppercase tracking-tighter mr-1">Đang lọc:</span>
                             
@@ -99,12 +109,12 @@
                                 </div>
                             @endif
 
-                            @if($category !== 'All')
+                            @foreach($selectedCategories as $cat)
                                 <div class="flex items-center gap-1.5 px-2.5 py-1 bg-electric-blue/5 border border-electric-blue/10 rounded-lg text-[10px] font-bold text-electric-blue shadow-sm">
-                                    <span class="opacity-60">DM:</span> {{ $category }}
-                                    <button wire:click="toggleCategory('All')" class="opacity-40 hover:opacity-100 hover:text-rose-500 transition-all"><svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg></button>
+                                    <span class="opacity-60">DM:</span> {{ $cat }}
+                                    <button wire:click="clearFilter('selectedCategories', '{{ $cat }}')" class="opacity-40 hover:opacity-100 hover:text-rose-500 transition-all"><svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg></button>
                                 </div>
-                            @endif
+                            @endforeach
 
                             @if($boxCode)
                                 <div class="flex items-center gap-1.5 px-2.5 py-1 bg-emerald-50 border border-emerald-100 rounded-lg text-[10px] font-bold text-emerald-600 shadow-sm">
