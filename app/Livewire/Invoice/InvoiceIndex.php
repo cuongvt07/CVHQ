@@ -134,7 +134,8 @@ class InvoiceIndex extends Component
             }))
             ->with(['customer'])
             ->latest()
-            ->paginate($this->perPage);
+            ->paginate($this->perPage)
+            ->onEachSide(1);
     }
 
     public function toggleDetails($id)

@@ -138,7 +138,8 @@ class UserIndex extends Component
             })
             ->when($this->roleFilter !== 'All', fn($q) => $q->where('role', $this->roleFilter))
             ->orderBy('created_at', 'desc')
-            ->paginate($this->perPage);
+            ->paginate($this->perPage)
+            ->onEachSide(1);
     }
 
     public function getAvailablePermissionsProperty()

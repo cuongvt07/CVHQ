@@ -224,7 +224,8 @@ class CustomerIndex extends Component
                                               ->orWhere('customer_code', 'like', "%{$this->search}%")
                                               ->orWhere('phone', 'like', "%{$this->search}%"))
             ->orderBy('created_at', 'desc')
-            ->paginate($this->perPage);
+            ->paginate($this->perPage)
+            ->onEachSide(1);
     }
 
     protected function getRecordsForBulk()

@@ -368,7 +368,8 @@ class ProductIndex extends Component
                 if ($this->stockStatus === 'low_stock') $query->where('stock_quantity', '<', 10)->where('stock_quantity', '>', 0);
             })
             ->orderBy('created_at', 'desc')
-            ->paginate($this->perPage);
+            ->paginate($this->perPage)
+            ->onEachSide(1);
     }
 
     protected function getRecordsForBulk()

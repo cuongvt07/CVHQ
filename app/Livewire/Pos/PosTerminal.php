@@ -199,6 +199,7 @@ class PosTerminal extends Component
             ->where('is_active', true)
             ->orderBy('sku', 'asc')
             ->paginate(24)
+            ->onEachSide(1)
             ->through(function($product) {
                 return [
                     'id' => $product->id,
