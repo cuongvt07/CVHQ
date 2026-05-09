@@ -280,7 +280,7 @@
             </table>
         </div>
 
-        <div class="mt-6">
+        <div class="mt-6 antigravity-pagination">
             {{ $products->links() }}
         </div>
     </div>

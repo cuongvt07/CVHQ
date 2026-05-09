@@ -358,7 +358,7 @@
             </table>
         </div>
 
-        <div class="mt-6">
+        <div class="mt-6 antigravity-pagination">
             {{ $invoices->links() }}
         </div>
     </div>

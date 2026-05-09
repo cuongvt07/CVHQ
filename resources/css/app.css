@@ -125,3 +125,75 @@ body {
         transform: translate(-50%, -50%) scale(1) translateY(0);
     }
 }
+/* Modern Global Pagination Styling */
+.antigravity-pagination nav[role="navigation"] {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1.5rem;
+    width: 100%;
+}
+
+/* Hide the simple "Previous/Next" mobile-only block that often duplicates */
+.antigravity-pagination nav[role="navigation"] > div:first-child:not(:last-child) {
+    display: none !important;
+}
+
+/* Styling for "Showing X to Y of Z results" */
+.antigravity-pagination nav[role="navigation"] > div:first-child {
+    font-size: 10px;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: #94a3b8; /* slate-400 */
+}
+
+/* Container for the page numbers */
+.antigravity-pagination nav[role="navigation"] > div:last-child {
+    display: flex;
+    justify-content: center;
+    background: transparent !important;
+    box-shadow: none !important;
+    border: none !important;
+}
+
+.antigravity-pagination nav[role="navigation"] span.relative, 
+.antigravity-pagination nav[role="navigation"] a.relative {
+    border: 1px solid #e2e8f0 !important; /* border-slate-200 */
+    background-color: white !important;
+    color: #475569 !important; /* text-slate-600 */
+    min-width: 36px;
+    height: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 11px !important;
+    font-weight: 900 !important;
+    border-radius: 10px !important;
+    margin: 0 3px !important;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 0 1px 2px rgba(0,0,0,0.03);
+    padding: 0 !important;
+}
+
+/* Active Page State */
+.antigravity-pagination nav[role="navigation"] span[aria-current="page"] > span {
+    background-color: #0088cc !important; /* electric-blue */
+    color: white !important;
+    border: 1px solid #0088cc !important;
+    box-shadow: 0 4px 12px rgba(0, 136, 204, 0.25);
+}
+
+.antigravity-pagination nav[role="navigation"] a:hover {
+    background-color: #f8fafc !important; /* slate-50 */
+    border-color: #cbd5e1 !important; /* slate-300 */
+    transform: translateY(-1px);
+    color: #0088cc !important;
+}
+
+/* Icons adjustment */
+.antigravity-pagination nav[role="navigation"] svg {
+    width: 14px;
+    height: 14px;
+    stroke-width: 3px;
+}

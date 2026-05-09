@@ -200,7 +200,7 @@
                         </div>
                     @endforeach
                 </div>
-                <div class="mt-8 pt-4 border-t border-slate-50 pos-pagination">
+                <div class="mt-8 pt-4 border-t border-slate-50 antigravity-pagination">
                     {{ $products->links() }}
                 </div>
             </div>
@@ -257,7 +257,7 @@
                         <div class="col-span-2 py-10 flex items-center justify-center text-slate-300 text-xs font-bold uppercase tracking-widest">Không có sản phẩm</div>
                     @endforelse
                 </div>
-                <div class="mt-4 pb-12 pos-pagination">
+                <div class="mt-4 pb-12 antigravity-pagination">
                     {{ $products->links() }}
                 </div>
             </div>
@@ -423,62 +423,5 @@
     <!-- Backdrop -->
     <div x-show="mobileCartOpen" @click="mobileCartOpen = false" class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-[65] md:hidden" x-cloak></div>
 
-    <style>
-        /* Custom Pagination Styling to fix the "Broken/Verbose" look */
-        .pos-pagination nav[role="navigation"] {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 12px;
-            width: 100%;
-        }
-        .pos-pagination nav[role="navigation"] > div:first-child {
-            font-size: 10px;
-            font-weight: 700;
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
-            color: #94a3b8; /* slate-400 */
-        }
-        .pos-pagination nav[role="navigation"] > div:last-child {
-            display: flex;
-            justify-content: center;
-            box-shadow: none !important;
-        }
-        .pos-pagination nav[role="navigation"] span.relative, 
-        .pos-pagination nav[role="navigation"] a.relative {
-            border: 1px solid #e2e8f0 !important; /* border-slate-200 */
-            background-color: white !important;
-            color: #475569 !important; /* text-slate-600 */
-            padding: 6px 12px !important;
-            font-size: 11px !important;
-            font-weight: 800 !important;
-            border-radius: 8px !important;
-            margin: 0 2px !important;
-            transition: all 0.2s;
-        }
-        .pos-pagination nav[role="navigation"] span[aria-current="page"] > span {
-            background-color: #0088cc !important; /* electric-blue */
-            color: white !important;
-            border-color: #0088cc !important;
-        }
-        .pos-pagination nav[role="navigation"] a:hover {
-            background-color: #f8fafc !important; /* slate-50 */
-            border-color: #cbd5e1 !important; /* slate-300 */
-        }
-        
-        /* Hide excessive elements from default pagination */
-        .pos-pagination nav[role="navigation"] svg {
-            width: 16px;
-            height: 16px;
-        }
 
-        /* Prevent Horizontal Scroll */
-        .scrollbar-none::-webkit-scrollbar {
-            display: none;
-        }
-        .scrollbar-none {
-            -ms-overflow-style: none;
-            scrollbar-width: none;
-        }
-    </style>
 </div>
