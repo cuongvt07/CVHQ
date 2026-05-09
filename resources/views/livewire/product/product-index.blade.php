@@ -24,11 +24,21 @@
     <x-delete-modal />
 
     <!-- Search & Filter Bar -->
-    <div class="px-4 md:px-6 py-6 bg-white border-b border-slate-100 flex flex-col gap-6">
+    <div class="px-4 md:px-6 py-4 bg-white border-b border-slate-100 flex flex-col gap-4" x-data="{ filtersOpen: false }">
         <div class="flex flex-col md:flex-row items-center justify-between gap-4">
-            <div class="relative w-full md:w-96 group">
-                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="absolute left-4 top-1/2 -translate-y-1/2 text-slate-300 group-focus-within:text-electric-blue transition-colors"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
-                <input type="text" wire:model.live="search" placeholder="Tìm kiếm theo Tên, Mã (SKU), hoặc Thương hiệu..." class="w-full bg-slate-50 border border-slate-200 rounded-xl py-3 pl-12 pr-6 text-sm focus:outline-none focus:border-electric-blue/40 focus:ring-4 focus:ring-electric-blue/5 transition-all text-slate-900 shadow-sm">
+            <div class="flex items-center gap-4 w-full md:w-auto flex-1">
+                <div class="relative w-full md:w-96 group">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="absolute left-4 top-1/2 -translate-y-1/2 text-slate-300 group-focus-within:text-electric-blue transition-colors"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+                    <input type="text" wire:model.live="search" placeholder="Tìm kiếm theo Tên, Mã (SKU), hoặc Thương hiệu..." class="w-full bg-slate-50 border border-slate-200 rounded-xl py-2.5 pl-12 pr-6 text-sm focus:outline-none focus:border-electric-blue/40 focus:ring-4 focus:ring-electric-blue/5 transition-all text-slate-900 shadow-sm">
+                </div>
+                
+                <button @click="filtersOpen = !filtersOpen" 
+                        :class="filtersOpen ? 'bg-electric-blue text-white border-electric-blue' : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50'"
+                        class="flex items-center gap-2 px-4 py-2.5 border rounded-xl text-xs font-bold transition-all shadow-sm shrink-0">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg>
+                    <span>Bộ lọc nâng cao</span>
+                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" :class="filtersOpen ? 'rotate-180' : ''" class="transition-transform duration-200"><path d="m6 9 6 6 6-6"/></svg>
+                </button>
             </div>
 
             <div class="flex items-center gap-4">
@@ -55,68 +65,72 @@
             </div>
         </div>
 
-        <!-- Filters Grid -->
-        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 p-4 bg-slate-50/50 rounded-2xl border border-slate-100">
-            <!-- Multi-Category (Checkboxes with Scroll) -->
-            <div class="flex flex-col gap-2">
-                <label class="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1 flex items-center gap-2">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>
-                    Danh mục (Chọn nhiều)
-                </label>
-                <div class="w-full bg-white border border-slate-200 rounded-xl p-2 h-[50px] overflow-y-auto custom-scrollbar shadow-sm">
-                    <div class="flex flex-col gap-1">
-                        @foreach($categories_list as $cat)
-                            <label class="flex items-center gap-2 px-2 py-0.5 hover:bg-slate-50 rounded cursor-pointer transition-colors group">
-                                <input type="checkbox" wire:model.live="selectedCategories" value="{{ $cat }}" class="w-3.5 h-3.5 rounded border-slate-300 text-electric-blue focus:ring-electric-blue/20 transition-all">
-                                <span class="text-[10px] font-medium text-slate-600 group-hover:text-slate-900 transition-colors">{{ $cat }}</span>
-                            </label>
-                        @endforeach
+        <!-- Collapsible Filters Grid -->
+        <div x-show="filtersOpen" x-collapse x-cloak>
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 p-4 bg-slate-50/50 rounded-2xl border border-slate-100 mb-2">
+                <!-- Multi-Category (with Search) -->
+                <div class="flex flex-col gap-2" x-data="{ catSearch: '' }">
+                    <label class="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1 flex items-center justify-between">
+                        <span class="flex items-center gap-2">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>
+                            Danh mục
+                        </span>
+                        <span class="text-[8px] opacity-60">Search below ↓</span>
+                    </label>
+                    <div class="relative mb-1">
+                        <input type="text" x-model="catSearch" placeholder="Tìm danh mục..." class="w-full bg-white border border-slate-200 rounded-lg px-3 py-1.5 text-[10px] focus:outline-none focus:border-electric-blue/40 shadow-sm">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-300"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+                    </div>
+                    <div class="w-full bg-white border border-slate-200 rounded-xl p-2 h-[80px] overflow-y-auto custom-scrollbar shadow-sm">
+                        <div class="flex flex-col gap-1">
+                            @foreach($categories_list as $cat)
+                                <label x-show="'{{ strtolower($cat) }}'.includes(catSearch.toLowerCase())" class="flex items-center gap-2 px-2 py-0.5 hover:bg-slate-50 rounded cursor-pointer transition-colors group">
+                                    <input type="checkbox" wire:model.live="selectedCategories" value="{{ $cat }}" class="w-3.5 h-3.5 rounded border-slate-300 text-electric-blue focus:ring-electric-blue/20 transition-all">
+                                    <span class="text-[10px] font-medium text-slate-600 group-hover:text-slate-900 transition-colors">{{ $cat }}</span>
+                                </label>
+                            @endforeach
+                        </div>
                     </div>
                 </div>
-            </div>
 
-            <!-- Box Code Filter -->
-            <div class="flex flex-col gap-2">
-                <label class="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1 flex items-center gap-2">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"/><path d="m3.3 7 8.7 5 8.7-5"/><path d="M12 22V12"/></svg>
-                    Mã thùng / Vị trí
-                </label>
-                <div class="relative">
-                    <input type="text" wire:model.live.debounce.300ms="boxCode" list="box-codes" placeholder="Nhập mã thùng..." class="w-full bg-white border border-slate-200 rounded-xl px-4 py-2.5 text-xs focus:outline-none focus:border-electric-blue/40 shadow-sm">
-                    <datalist id="box-codes">
-                        @foreach($box_codes_list as $code)
-                            <option value="{{ $code }}">
-                        @endforeach
-                    </datalist>
+                <!-- Box Code Filter (No Suggestions) -->
+                <div class="flex flex-col gap-2">
+                    <label class="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1 flex items-center gap-2">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"/><path d="m3.3 7 8.7 5 8.7-5"/><path d="M12 22V12"/></svg>
+                        Mã thùng / Vị trí
+                    </label>
+                    <div class="relative">
+                        <input type="text" wire:model.live.debounce.300ms="boxCode" placeholder="Nhập mã thùng..." class="w-full bg-white border border-slate-200 rounded-xl px-4 py-2.5 text-xs focus:outline-none focus:border-electric-blue/40 shadow-sm">
+                    </div>
                 </div>
-            </div>
 
-            <!-- Stock Status -->
-            <div class="flex flex-col gap-2">
-                <label class="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1 flex items-center gap-2">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z"/><path d="M3 6h18"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>
-                    Trạng thái kho
-                </label>
-                <select wire:model.live="stockStatus" class="w-full bg-white border border-slate-200 rounded-xl px-4 py-2.5 text-xs font-bold text-slate-600 focus:outline-none focus:border-electric-blue/40 shadow-sm cursor-pointer">
-                    <option value="all">Tất cả trạng thái</option>
-                    <option value="in_stock">✅ Còn hàng</option>
-                    <option value="low_stock">⚠️ Sắp hết hàng (< 10)</option>
-                    <option value="out_of_stock">❌ Hết hàng</option>
-                </select>
-            </div>
+                <!-- Stock Status -->
+                <div class="flex flex-col gap-2">
+                    <label class="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1 flex items-center gap-2">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z"/><path d="M3 6h18"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>
+                        Trạng thái kho
+                    </label>
+                    <select wire:model.live="stockStatus" class="w-full bg-white border border-slate-200 rounded-xl px-4 py-2.5 text-xs font-bold text-slate-600 focus:outline-none focus:border-electric-blue/40 shadow-sm cursor-pointer">
+                        <option value="all">Tất cả trạng thái</option>
+                        <option value="in_stock">✅ Còn hàng</option>
+                        <option value="low_stock">⚠️ Sắp hết hàng (< 10)</option>
+                        <option value="out_of_stock">❌ Hết hàng</option>
+                    </select>
+                </div>
 
-            <!-- Brand Filter -->
-            <div class="flex flex-col gap-2">
-                <label class="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1 flex items-center gap-2">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2H2v10l9.29 9.29c.94.94 2.48.94 3.42 0l6.58-6.58c.94-.94.94-2.48 0-3.42L12 2Z"/><path d="M7 7h.01"/></svg>
-                    Thương hiệu
-                </label>
-                <select wire:model.live="brandFilter" class="w-full bg-white border border-slate-200 rounded-xl px-4 py-2.5 text-xs text-slate-600 focus:outline-none focus:border-electric-blue/40 shadow-sm cursor-pointer">
-                    <option value="">Tất cả thương hiệu</option>
-                    @foreach($brands_list as $brand)
-                        <option value="{{ $brand }}">{{ $brand }}</option>
-                    @endforeach
-                </select>
+                <!-- Brand Filter -->
+                <div class="flex flex-col gap-2">
+                    <label class="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1 flex items-center gap-2">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2H2v10l9.29 9.29c.94.94 2.48.94 3.42 0l6.58-6.58c.94-.94.94-2.48 0-3.42L12 2Z"/><path d="M7 7h.01"/></svg>
+                        Thương hiệu
+                    </label>
+                    <select wire:model.live="brandFilter" class="w-full bg-white border border-slate-200 rounded-xl px-4 py-2.5 text-xs text-slate-600 focus:outline-none focus:border-electric-blue/40 shadow-sm cursor-pointer">
+                        <option value="">Tất cả thương hiệu</option>
+                        @foreach($brands_list as $brand)
+                            <option value="{{ $brand }}">{{ $brand }}</option>
+                        @endforeach
+                    </select>
+                </div>
             </div>
         </div>
 

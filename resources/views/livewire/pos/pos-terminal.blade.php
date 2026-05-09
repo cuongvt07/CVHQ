@@ -3,23 +3,26 @@
      x-on:print-invoice.window="window.open($event.detail.url, '_blank')">
     <!-- Main POS Interface -->
     <main class="flex-1 flex flex-col min-w-0 bg-white relative overflow-hidden">
-        <!-- Header & Category Nav -->
-        <header class="px-4 md:px-8 py-4 md:py-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 shrink-0 border-b border-slate-100">
-            <div>
-                <h1 class="text-xl md:text-2xl font-bold tracking-tight text-slate-900">Bán hàng (POS)</h1>
-                <p class="text-[10px] text-slate-400 uppercase tracking-widest mt-0.5">Quầy 01 • Sẵn sàng giao dịch</p>
+        <!-- Header & Search -->
+        <header class="px-4 md:px-8 py-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 shrink-0 border-b border-slate-100" x-data="{ showBoxFilter: false }">
+            <div class="flex items-center gap-4">
+                <div>
+                    <h1 class="text-xl md:text-2xl font-bold tracking-tight text-slate-900">Bán hàng (POS)</h1>
+                    <p class="text-[10px] text-slate-400 uppercase tracking-widest mt-0.5">Quầy 01 • Sẵn sàng giao dịch</p>
+                </div>
+                <button @click="showBoxFilter = !showBoxFilter" 
+                        :class="showBoxFilter ? 'bg-electric-blue text-white' : 'bg-slate-50 text-slate-500 hover:bg-slate-100'"
+                        class="p-2 rounded-xl transition-all shadow-sm flex items-center gap-2 text-[10px] font-bold uppercase tracking-wider">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"/><path d="m3.3 7 8.7 5 8.7-5"/><path d="M12 22V12"/></svg>
+                    <span>Lọc thùng</span>
+                </button>
             </div>
             
             <div class="flex items-center gap-4 w-full sm:w-auto">
-                <!-- Box Code Filter -->
-                <div class="relative w-full sm:w-48">
-                    <input type="text" wire:model.live.debounce.300ms="boxCode" list="pos-box-codes" placeholder="Mã thùng..." 
-                           class="w-full bg-slate-50 border border-slate-200 rounded-full px-4 py-2 text-xs focus:outline-none focus:border-electric-blue/50 transition-all text-slate-900 placeholder:text-slate-400 shadow-sm">
-                    <datalist id="pos-box-codes">
-                        @foreach($box_codes_list as $code)
-                            <option value="{{ $code }}">
-                        @endforeach
-                    </datalist>
+                <!-- Box Code Filter (Collapsible) -->
+                <div x-show="showBoxFilter" x-transition x-cloak class="relative w-full sm:w-48">
+                    <input type="text" wire:model.live.debounce.300ms="boxCode" placeholder="Nhập mã thùng..." 
+                           class="w-full bg-slate-50 border border-slate-200 rounded-full px-4 py-2 text-xs focus:outline-none focus:border-electric-blue/50 transition-all text-slate-900 placeholder:text-slate-400 shadow-sm animate-in slide-in-from-right-4">
                 </div>
 
                 <div class="relative group w-full sm:w-64 md:w-80">
@@ -31,18 +34,30 @@
         </header>
 
         <!-- Category Pills -->
-        <div class="px-4 md:px-8 py-4 shrink-0 bg-slate-50/50 flex flex-col gap-4 border-b border-slate-100">
-            <div class="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-none flex-1">
-                <button wire:click="toggleCategory('All')" 
-                        class="px-5 py-1.5 rounded-full text-[10px] md:text-xs font-bold uppercase tracking-wider transition-all whitespace-nowrap {{ $category === 'All' ? 'bg-electric-blue text-white shadow-[0_4px_15px_rgba(0,136,204,0.3)]' : 'bg-white text-slate-500 border border-slate-200 hover:border-slate-400 hover:text-slate-900' }}">
-                    Tất cả
-                </button>
-                @foreach($categories_list as $cat)
-                    <button wire:click="toggleCategory('{{ $cat }}')" 
-                            class="px-5 py-1.5 rounded-full text-[10px] md:text-xs font-bold uppercase tracking-wider transition-all whitespace-nowrap {{ in_array($cat, $selectedCategories) ? 'bg-electric-blue text-white shadow-[0_4px_15px_rgba(0,136,204,0.3)]' : 'bg-white text-slate-500 border border-slate-200 hover:border-slate-400 hover:text-slate-900' }}">
-                        {{ $cat }}
+        <div class="px-4 md:px-8 py-3 shrink-0 bg-slate-50/50 flex flex-col gap-3 border-b border-slate-100" x-data="{ catSearch: '', showCatSearch: false }">
+            <div class="flex items-center justify-between gap-4">
+                <div class="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-none flex-1">
+                    <button wire:click="toggleCategory('All')" 
+                            class="px-5 py-1.5 rounded-full text-[10px] md:text-xs font-bold uppercase tracking-wider transition-all whitespace-nowrap {{ $category === 'All' ? 'bg-electric-blue text-white shadow-[0_4px_15px_rgba(0,136,204,0.3)]' : 'bg-white text-slate-500 border border-slate-200 hover:border-slate-400 hover:text-slate-900' }}">
+                        Tất cả
                     </button>
-                @endforeach
+                    @foreach($categories_list as $cat)
+                        <button wire:click="toggleCategory('{{ $cat }}')" 
+                                x-show="!catSearch || '{{ strtolower($cat) }}'.includes(catSearch.toLowerCase())"
+                                class="px-5 py-1.5 rounded-full text-[10px] md:text-xs font-bold uppercase tracking-wider transition-all whitespace-nowrap {{ in_array($cat, $selectedCategories) ? 'bg-electric-blue text-white shadow-[0_4px_15px_rgba(0,136,204,0.3)]' : 'bg-white text-slate-500 border border-slate-200 hover:border-slate-400 hover:text-slate-900' }}">
+                            {{ $cat }}
+                        </button>
+                    @endforeach
+                </div>
+                
+                <button @click="showCatSearch = !showCatSearch" class="p-1.5 rounded-lg hover:bg-slate-200 text-slate-400 transition-colors shrink-0">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+                </button>
+            </div>
+
+            <div x-show="showCatSearch" x-transition x-cloak class="relative animate-in slide-in-from-top-2">
+                <input type="text" x-model="catSearch" placeholder="Tìm nhanh danh mục..." class="w-full bg-white border border-slate-200 rounded-lg px-4 py-1.5 text-xs focus:outline-none focus:border-electric-blue/40 shadow-sm">
+                <button @click="catSearch = ''; showCatSearch = false" class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-300 hover:text-rose-500"><svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg></button>
             </div>
             
             @if(!empty($selectedCategories) || $boxCode || $search)
