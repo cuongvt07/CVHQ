@@ -24,6 +24,10 @@ class ProductIndex extends Component
 
     public $search = '';
     public $category = 'All';
+    public $selectedCategories = [];
+    public $boxCode = '';
+    public $brandFilter = '';
+    public $stockStatus = 'all';
     public $importFile;
     public $perPage = 10;
 
@@ -47,6 +51,26 @@ class ProductIndex extends Component
     }
     
     public function updatingCategory()
+    {
+        $this->resetPage();
+        if ($this->category !== 'All') {
+            $this->selectedCategories = [$this->category];
+        } else {
+            $this->selectedCategories = [];
+        }
+    }
+
+    public function updatedSelectedCategories()
+    {
+        $this->resetPage();
+    }
+
+    public function updatedBoxCode()
+    {
+        $this->resetPage();
+    }
+
+    public function updatedStockStatus()
     {
         $this->resetPage();
     }
@@ -249,8 +273,28 @@ class ProductIndex extends Component
                           ->orWhere('location', 'like', "%{$keyword}%");
                     });
                 }
+
+                $query->orderByRaw("CASE 
+                    WHEN sku = ? THEN 1 
+                    WHEN sku LIKE ? THEN 2 
+                    WHEN name LIKE ? THEN 3 
+                    ELSE 4 
+                END", [$this->search, $this->search . '%', $this->search . '%']);
             })
-            ->when($this->category !== 'All', fn($q) => $q->where('category_path', $this->category))
+            ->when($this->selectedCategories, function($query) {
+                $query->whereIn('category_path', $this->selectedCategories);
+            })
+            ->when($this->boxCode, function($query) {
+                $query->where('location', 'like', "%{$this->boxCode}%");
+            })
+            ->when($this->brandFilter, function($query) {
+                $query->where('brand', $this->brandFilter);
+            })
+            ->when($this->stockStatus !== 'all', function($query) {
+                if ($this->stockStatus === 'in_stock') $query->where('stock_quantity', '>', 0);
+                if ($this->stockStatus === 'out_of_stock') $query->where('stock_quantity', '<=', 0);
+                if ($this->stockStatus === 'low_stock') $query->where('stock_quantity', '<', 10)->where('stock_quantity', '>', 0);
+            })
             ->orderBy('created_at', 'desc')
             ->paginate($this->perPage);
     }
@@ -268,7 +312,10 @@ class ProductIndex extends Component
     public function render()
     {
         return view('livewire.product.product-index', [
-            'products' => $this->getProducts()
+            'products' => $this->getProducts(),
+            'categories_list' => Product::whereNotNull('category_path')->distinct()->pluck('category_path'),
+            'brands_list' => Product::whereNotNull('brand')->distinct()->pluck('brand'),
+            'box_codes_list' => Product::whereNotNull('location')->distinct()->pluck('location'),
         ])->layout('layouts.app');
     }
 }

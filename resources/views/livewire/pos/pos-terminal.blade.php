@@ -11,24 +11,43 @@
             </div>
             
             <div class="flex items-center gap-4 w-full sm:w-auto">
+                <!-- Box Code Filter -->
+                <div class="relative w-full sm:w-48">
+                    <input type="text" wire:model.live.debounce.300ms="boxCode" list="pos-box-codes" placeholder="Mã thùng..." 
+                           class="w-full bg-slate-50 border border-slate-200 rounded-full px-4 py-2 text-xs focus:outline-none focus:border-electric-blue/50 transition-all text-slate-900 placeholder:text-slate-400 shadow-sm">
+                    <datalist id="pos-box-codes">
+                        @foreach($box_codes_list as $code)
+                            <option value="{{ $code }}">
+                        @endforeach
+                    </datalist>
+                </div>
+
                 <div class="relative group w-full sm:w-64 md:w-80">
                     <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-300 group-focus-within:text-electric-blue transition-colors"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
                     <input type="text" wire:model.live="search" placeholder="Tìm kiếm sản phẩm..." 
-                           class="w-full bg-white border border-slate-200 rounded-full pl-10 pr-6 py-2 text-sm focus:outline-none focus:border-electric-blue/50 focus:ring-4 focus:ring-electric-blue/10 transition-all text-slate-900 placeholder:text-slate-400">
+                           class="w-full bg-white border border-slate-200 rounded-full pl-10 pr-6 py-2 text-sm focus:outline-none focus:border-electric-blue/50 focus:ring-4 focus:ring-electric-blue/10 transition-all text-slate-900 placeholder:text-slate-400 shadow-sm">
                 </div>
             </div>
         </header>
 
         <!-- Category Pills -->
-        <div class="px-4 md:px-8 py-4 shrink-0 bg-slate-50/50">
-            <div class="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-none">
-                @foreach(['Tất cả' => 'All', 'Kính VR' => 'VR Headsets', 'Kính thông minh' => 'Smart Glasses', 'Phụ kiện' => 'Accessories'] as $label => $cat)
-                    <button wire:click="$set('category', '{{ $cat }}')" 
-                            class="px-5 py-1.5 rounded-full text-[10px] md:text-xs font-bold uppercase tracking-wider transition-all whitespace-nowrap {{ $category === $cat ? 'bg-electric-blue text-white shadow-[0_4px_15px_rgba(0,136,204,0.3)]' : 'bg-white text-slate-500 border border-slate-200 hover:border-slate-400 hover:text-slate-900' }}">
-                        {{ $label }}
+        <div class="px-4 md:px-8 py-4 shrink-0 bg-slate-50/50 flex items-center justify-between gap-4">
+            <div class="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-none flex-1">
+                <button wire:click="toggleCategory('All')" 
+                        class="px-5 py-1.5 rounded-full text-[10px] md:text-xs font-bold uppercase tracking-wider transition-all whitespace-nowrap {{ $category === 'All' ? 'bg-electric-blue text-white shadow-[0_4px_15px_rgba(0,136,204,0.3)]' : 'bg-white text-slate-500 border border-slate-200 hover:border-slate-400 hover:text-slate-900' }}">
+                    Tất cả
+                </button>
+                @foreach($categories_list as $cat)
+                    <button wire:click="toggleCategory('{{ $cat }}')" 
+                            class="px-5 py-1.5 rounded-full text-[10px] md:text-xs font-bold uppercase tracking-wider transition-all whitespace-nowrap {{ in_array($cat, $selectedCategories) ? 'bg-electric-blue text-white shadow-[0_4px_15px_rgba(0,136,204,0.3)]' : 'bg-white text-slate-500 border border-slate-200 hover:border-slate-400 hover:text-slate-900' }}">
+                        {{ $cat }}
                     </button>
                 @endforeach
             </div>
+            
+            @if(count($selectedCategories) > 0)
+                <button wire:click="toggleCategory('All')" class="text-[10px] font-bold text-electric-blue uppercase tracking-widest hover:underline shrink-0 px-2">Xóa lọc</button>
+            @endif
         </div>
 
         <!-- Product Gallery -->

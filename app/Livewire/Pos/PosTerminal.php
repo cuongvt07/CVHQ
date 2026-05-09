@@ -18,13 +18,41 @@ class PosTerminal extends Component
     public $cart = [];
     public $search = '';
     public $category = 'All';
+    public $selectedCategories = [];
+    public $boxCode = '';
 
     public function updatingSearch()
     {
         $this->resetPage();
     }
 
-    public function updatingCategory()
+    public function toggleCategory($cat)
+    {
+        $this->resetPage();
+        if ($cat === 'All') {
+            $this->category = 'All';
+            $this->selectedCategories = [];
+            return;
+        }
+
+        $this->category = 'Custom';
+        if (in_array($cat, $this->selectedCategories)) {
+            $this->selectedCategories = array_diff($this->selectedCategories, [$cat]);
+        } else {
+            $this->selectedCategories[] = $cat;
+        }
+
+        if (empty($this->selectedCategories)) {
+            $this->category = 'All';
+        }
+    }
+
+    public function updatedSelectedCategories()
+    {
+        $this->resetPage();
+    }
+
+    public function updatedBoxCode()
     {
         $this->resetPage();
     }
@@ -108,9 +136,22 @@ class PosTerminal extends Component
                           ->orWhere('location', 'like', "%{$keyword}%");
                     });
                 }
+
+                $query->orderByRaw("CASE 
+                    WHEN sku = ? THEN 1 
+                    WHEN sku LIKE ? THEN 2 
+                    WHEN name LIKE ? THEN 3 
+                    ELSE 4 
+                END", [$this->search, $this->search . '%', $this->search . '%']);
             })
-            ->when($this->category !== 'All', fn($q) => $q->where('category_path', $this->category))
+            ->when($this->selectedCategories, function($query) {
+                $query->whereIn('category_path', $this->selectedCategories);
+            })
+            ->when($this->boxCode, function($query) {
+                $query->where('location', 'like', "%{$this->boxCode}%");
+            })
             ->where('is_active', true)
+            ->orderBy('sku', 'asc')
             ->paginate(24)
             ->through(function($product) {
                 return [
@@ -255,7 +296,9 @@ class PosTerminal extends Component
             'finalAmount' => $this->finalAmount,
             'changeAmount' => $this->changeAmount,
             'customers' => $this->customers,
-            'selectedCustomer' => $this->selectedCustomer
+            'selectedCustomer' => $this->selectedCustomer,
+            'categories_list' => Product::whereNotNull('category_path')->distinct()->pluck('category_path'),
+            'box_codes_list' => Product::whereNotNull('location')->distinct()->pluck('location'),
         ])->layout('layouts.app');
     }
 }
