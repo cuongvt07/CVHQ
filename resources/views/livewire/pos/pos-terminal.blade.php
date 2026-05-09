@@ -4,65 +4,116 @@
     <!-- Main POS Interface -->
     <main class="flex-1 flex flex-col min-w-0 bg-white relative overflow-hidden">
         <!-- Header & Search -->
-        <header class="px-4 md:px-8 py-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 shrink-0 border-b border-slate-100" x-data="{ showBoxFilter: false }">
+        <header class="px-4 md:px-8 py-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 shrink-0 border-b border-slate-100" x-data="{ filtersOpen: false }">
             <div class="flex items-center gap-4">
                 <div>
                     <h1 class="text-xl md:text-2xl font-bold tracking-tight text-slate-900">Bán hàng (POS)</h1>
                     <p class="text-[10px] text-slate-400 uppercase tracking-widest mt-0.5">Quầy 01 • Sẵn sàng giao dịch</p>
                 </div>
-                <button @click="showBoxFilter = !showBoxFilter" 
-                        :class="showBoxFilter ? 'bg-electric-blue text-white' : 'bg-slate-50 text-slate-500 hover:bg-slate-100'"
-                        class="p-2 rounded-xl transition-all shadow-sm flex items-center gap-2 text-[10px] font-bold uppercase tracking-wider">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"/><path d="m3.3 7 8.7 5 8.7-5"/><path d="M12 22V12"/></svg>
-                    <span>Lọc thùng</span>
+                <button @click="filtersOpen = !filtersOpen" 
+                        :class="filtersOpen ? 'bg-electric-blue text-white border-electric-blue' : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50'"
+                        class="flex items-center gap-2 px-4 py-2.5 border rounded-xl text-[10px] font-bold uppercase tracking-wider transition-all shadow-sm shrink-0">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg>
+                    <span>Lọc nâng cao</span>
+                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" :class="filtersOpen ? 'rotate-180' : ''" class="transition-transform duration-200"><path d="m6 9 6 6 6-6"/></svg>
                 </button>
             </div>
             
-            <div class="flex items-center gap-4 w-full sm:w-auto">
-                <!-- Box Code Filter (Collapsible) -->
-                <div x-show="showBoxFilter" x-transition x-cloak class="relative w-full sm:w-48">
-                    <input type="text" wire:model.live.debounce.300ms="boxCode" placeholder="Nhập mã thùng..." 
-                           class="w-full bg-slate-50 border border-slate-200 rounded-full px-4 py-2 text-xs focus:outline-none focus:border-electric-blue/50 transition-all text-slate-900 placeholder:text-slate-400 shadow-sm animate-in slide-in-from-right-4">
-                </div>
-
-                <div class="relative group w-full sm:w-64 md:w-80">
+            <div class="flex items-center gap-4 w-full sm:w-auto flex-1 justify-end">
+                <div class="relative group w-full sm:w-64 md:w-80 lg:w-96">
                     <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="absolute left-4 top-1/2 -translate-y-1/2 text-slate-300 group-focus-within:text-electric-blue transition-colors"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
-                    <input type="text" wire:model.live="search" placeholder="Tìm kiếm sản phẩm..." 
-                           class="w-full bg-white border border-slate-200 rounded-full pl-12 pr-6 py-3 text-base font-medium focus:outline-none focus:border-electric-blue/50 focus:ring-4 focus:ring-electric-blue/10 transition-all text-slate-900 placeholder:text-slate-400 shadow-sm">
+                    <input type="text" wire:model.live="search" placeholder="Tìm tên, mã SKU, hiệu..." 
+                           class="w-full bg-slate-50 border border-slate-200 rounded-full pl-12 pr-6 py-3 text-base font-medium focus:outline-none focus:border-electric-blue/50 focus:ring-4 focus:ring-electric-blue/10 transition-all text-slate-900 placeholder:text-slate-400 shadow-sm">
+                </div>
+            </div>
+
+            <!-- Collapsible Filters Overlay/Grid -->
+            <div x-show="filtersOpen" x-transition x-cloak class="absolute left-0 top-full inset-x-0 bg-white border-b border-slate-200 shadow-2xl z-[60] animate-in slide-in-from-top-4 duration-300">
+                <div class="p-6 md:px-8 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 max-w-7xl mx-auto">
+                    <!-- Multi-Category (with Search) -->
+                    <div class="flex flex-col gap-2" x-data="{ catSearch: '' }">
+                        <label class="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1 flex items-center justify-between">
+                            <span class="flex items-center gap-2">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>
+                                Danh mục
+                            </span>
+                        </label>
+                        <div class="relative mb-1">
+                            <input type="text" x-model="catSearch" placeholder="Tìm danh mục..." class="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-1.5 text-[10px] focus:outline-none focus:border-electric-blue/40 shadow-sm">
+                        </div>
+                        <div class="w-full bg-white border border-slate-200 rounded-xl p-2 h-[80px] overflow-y-auto custom-scrollbar shadow-sm">
+                            <div class="flex flex-col gap-1">
+                                @foreach($categories_list as $cat)
+                                    <label x-show="'{{ strtolower($cat) }}'.includes(catSearch.toLowerCase())" class="flex items-center gap-2 px-2 py-0.5 hover:bg-slate-50 rounded cursor-pointer transition-colors group">
+                                        <input type="checkbox" wire:model.live="selectedCategories" value="{{ $cat }}" class="w-3.5 h-3.5 rounded border-slate-300 text-electric-blue focus:ring-electric-blue/20 transition-all">
+                                        <span class="text-[10px] font-medium text-slate-600 group-hover:text-slate-900 transition-colors">{{ $cat }}</span>
+                                    </label>
+                                @endforeach
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Box Code Filter -->
+                    <div class="flex flex-col gap-2">
+                        <label class="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1 flex items-center gap-2">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"/><path d="m3.3 7 8.7 5 8.7-5"/><path d="M12 22V12"/></svg>
+                            Mã thùng / Vị trí
+                        </label>
+                        <input type="text" wire:model.live.debounce.300ms="boxCode" placeholder="Nhập mã thùng..." class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-xs focus:outline-none focus:border-electric-blue/40 shadow-sm">
+                    </div>
+
+                    <!-- Stock Status -->
+                    <div class="flex flex-col gap-2">
+                        <label class="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1 flex items-center gap-2">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z"/><path d="M3 6h18"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>
+                            Tồn kho
+                        </label>
+                        <select wire:model.live="stockStatus" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-xs font-bold text-slate-600 focus:outline-none focus:border-electric-blue/40 shadow-sm cursor-pointer">
+                            <option value="all">Tất cả trạng thái</option>
+                            <option value="in_stock">✅ Còn hàng</option>
+                            <option value="low_stock">⚠️ Sắp hết (< 10)</option>
+                            <option value="out_of_stock">❌ Hết hàng</option>
+                        </select>
+                    </div>
+
+                    <!-- Brand Filter -->
+                    <div class="flex flex-col gap-2">
+                        <label class="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1 flex items-center gap-2">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2H2v10l9.29 9.29c.94.94 2.48.94 3.42 0l6.58-6.58c.94-.94.94-2.48 0-3.42L12 2Z"/><path d="M7 7h.01"/></svg>
+                            Thương hiệu
+                        </label>
+                        <select wire:model.live="brandFilter" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-xs text-slate-600 focus:outline-none focus:border-electric-blue/40 shadow-sm cursor-pointer">
+                            <option value="">Tất cả hiệu</option>
+                            @foreach($brands_list as $brand)
+                                <option value="{{ $brand }}">{{ $brand }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                </div>
+                <div class="px-8 pb-4 flex justify-end">
+                    <button @click="filtersOpen = false" class="text-[10px] font-black text-electric-blue uppercase tracking-widest hover:underline">Đóng bộ lọc</button>
                 </div>
             </div>
         </header>
 
-        <!-- Category Pills -->
-        <div class="px-4 md:px-8 py-3 shrink-0 bg-slate-50/50 flex flex-col gap-3 border-b border-slate-100" x-data="{ catSearch: '', showCatSearch: false }">
-            <div class="flex items-center justify-between gap-4">
-                <div class="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-none flex-1">
-                    <button wire:click="toggleCategory('All')" 
-                            class="px-5 py-1.5 rounded-full text-[10px] md:text-xs font-bold uppercase tracking-wider transition-all whitespace-nowrap {{ $category === 'All' ? 'bg-electric-blue text-white shadow-[0_4px_15px_rgba(0,136,204,0.3)]' : 'bg-white text-slate-500 border border-slate-200 hover:border-slate-400 hover:text-slate-900' }}">
-                        Tất cả
-                    </button>
-                    @foreach($categories_list as $cat)
-                        <button wire:click="toggleCategory('{{ $cat }}')" 
-                                x-show="!catSearch || '{{ strtolower($cat) }}'.includes(catSearch.toLowerCase())"
-                                class="px-5 py-1.5 rounded-full text-[10px] md:text-xs font-bold uppercase tracking-wider transition-all whitespace-nowrap {{ in_array($cat, $selectedCategories) ? 'bg-electric-blue text-white shadow-[0_4px_15px_rgba(0,136,204,0.3)]' : 'bg-white text-slate-500 border border-slate-200 hover:border-slate-400 hover:text-slate-900' }}">
-                            {{ $cat }}
-                        </button>
-                    @endforeach
-                </div>
-                
-                <button @click="showCatSearch = !showCatSearch" class="p-1.5 rounded-lg hover:bg-slate-200 text-slate-400 transition-colors shrink-0">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+        <!-- Category Pills (Visible Shortcut) -->
+        <div class="px-4 md:px-8 py-3 shrink-0 bg-slate-50/50 flex flex-col gap-3 border-b border-slate-100">
+            <div class="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-none">
+                <button wire:click="toggleCategory('All')" 
+                        class="px-5 py-1.5 rounded-full text-[10px] md:text-xs font-bold uppercase tracking-wider transition-all whitespace-nowrap {{ $category === 'All' ? 'bg-electric-blue text-white shadow-[0_4px_15px_rgba(0,136,204,0.3)]' : 'bg-white text-slate-500 border border-slate-200 hover:border-slate-400 hover:text-slate-900' }}">
+                    Tất cả
                 </button>
-            </div>
-
-            <div x-show="showCatSearch" x-transition x-cloak class="relative animate-in slide-in-from-top-2">
-                <input type="text" x-model="catSearch" placeholder="Tìm nhanh danh mục..." class="w-full bg-white border border-slate-200 rounded-lg px-4 py-1.5 text-xs focus:outline-none focus:border-electric-blue/40 shadow-sm">
-                <button @click="catSearch = ''; showCatSearch = false" class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-300 hover:text-rose-500"><svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg></button>
+                @foreach($categories_list as $cat)
+                    <button wire:click="toggleCategory('{{ $cat }}')" 
+                            class="px-5 py-1.5 rounded-full text-[10px] md:text-xs font-bold uppercase tracking-wider transition-all whitespace-nowrap {{ in_array($cat, $selectedCategories) ? 'bg-electric-blue text-white shadow-[0_4px_15px_rgba(0,136,204,0.3)]' : 'bg-white text-slate-500 border border-slate-200 hover:border-slate-400 hover:text-slate-900' }}">
+                        {{ $cat }}
+                    </button>
+                @endforeach
             </div>
             
-            @if(!empty($selectedCategories) || $boxCode || $search)
+            @if(!empty($selectedCategories) || $boxCode || $brandFilter || $stockStatus !== 'all' || $search)
                 <div class="flex flex-wrap items-center gap-2 animate-in fade-in slide-in-from-top-1 duration-200">
-                    <span class="text-[9px] font-black text-slate-400 uppercase tracking-tighter mr-1">Bộ lọc:</span>
+                    <span class="text-[9px] font-black text-slate-400 uppercase tracking-tighter mr-1">Đang lọc:</span>
                     
                     @if($search)
                         <div class="flex items-center gap-1.5 px-2.5 py-1 bg-white border border-slate-200 rounded-lg text-[10px] font-bold text-slate-600 shadow-sm">
@@ -82,6 +133,20 @@
                         <div class="flex items-center gap-1.5 px-2.5 py-1 bg-emerald-50 border border-emerald-100 rounded-lg text-[10px] font-bold text-emerald-600 shadow-sm">
                             <span class="opacity-60">Thùng:</span> {{ $boxCode }}
                             <button wire:click="clearFilter('boxCode')" class="opacity-40 hover:opacity-100 hover:text-rose-500 transition-all"><svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg></button>
+                        </div>
+                    @endif
+
+                    @if($brandFilter)
+                        <div class="flex items-center gap-1.5 px-2.5 py-1 bg-amber-50 border border-amber-100 rounded-lg text-[10px] font-bold text-amber-600 shadow-sm">
+                            <span class="opacity-60">Hiệu:</span> {{ $brandFilter }}
+                            <button wire:click="clearFilter('brandFilter')" class="opacity-40 hover:opacity-100 hover:text-rose-500 transition-all"><svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg></button>
+                        </div>
+                    @endif
+
+                    @if($stockStatus !== 'all')
+                        <div class="flex items-center gap-1.5 px-2.5 py-1 bg-indigo-50 border border-indigo-100 rounded-lg text-[10px] font-bold text-indigo-600 shadow-sm">
+                            <span class="opacity-60">Kho:</span> {{ $stockStatus === 'in_stock' ? 'Còn hàng' : ($stockStatus === 'low_stock' ? 'Sắp hết' : 'Hết hàng') }}
+                            <button wire:click="clearFilter('stockStatus')" class="opacity-40 hover:opacity-100 hover:text-rose-500 transition-all"><svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg></button>
                         </div>
                     @endif
 
@@ -146,7 +211,7 @@
                         </div>
                     @endforeach
                 </div>
-                <div class="mt-8 pt-4 border-t border-slate-50">
+                <div class="mt-8 pt-4 border-t border-slate-50 pos-pagination">
                     {{ $products->links() }}
                 </div>
             </div>
@@ -203,7 +268,7 @@
                         <div class="col-span-2 py-10 flex items-center justify-center text-slate-300 text-xs font-bold uppercase tracking-widest">Không có sản phẩm</div>
                     @endforelse
                 </div>
-                <div class="mt-4 pb-12">
+                <div class="mt-4 pb-12 pos-pagination">
                     {{ $products->links() }}
                 </div>
             </div>
@@ -368,4 +433,63 @@
 
     <!-- Backdrop -->
     <div x-show="mobileCartOpen" @click="mobileCartOpen = false" class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-[65] md:hidden" x-cloak></div>
+
+    <style>
+        /* Custom Pagination Styling to fix the "Broken/Verbose" look */
+        .pos-pagination nav[role="navigation"] {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 12px;
+            width: 100%;
+        }
+        .pos-pagination nav[role="navigation"] > div:first-child {
+            font-size: 10px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: #94a3b8; /* slate-400 */
+        }
+        .pos-pagination nav[role="navigation"] > div:last-child {
+            display: flex;
+            justify-content: center;
+            box-shadow: none !important;
+        }
+        .pos-pagination nav[role="navigation"] span.relative, 
+        .pos-pagination nav[role="navigation"] a.relative {
+            border: 1px solid #e2e8f0 !important; /* border-slate-200 */
+            background-color: white !important;
+            color: #475569 !important; /* text-slate-600 */
+            padding: 6px 12px !important;
+            font-size: 11px !important;
+            font-weight: 800 !important;
+            border-radius: 8px !important;
+            margin: 0 2px !important;
+            transition: all 0.2s;
+        }
+        .pos-pagination nav[role="navigation"] span[aria-current="page"] > span {
+            background-color: #0088cc !important; /* electric-blue */
+            color: white !important;
+            border-color: #0088cc !important;
+        }
+        .pos-pagination nav[role="navigation"] a:hover {
+            background-color: #f8fafc !important; /* slate-50 */
+            border-color: #cbd5e1 !important; /* slate-300 */
+        }
+        
+        /* Hide excessive elements from default pagination */
+        .pos-pagination nav[role="navigation"] svg {
+            width: 16px;
+            height: 16px;
+        }
+
+        /* Prevent Horizontal Scroll */
+        .scrollbar-none::-webkit-scrollbar {
+            display: none;
+        }
+        .scrollbar-none {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+    </style>
 </div>

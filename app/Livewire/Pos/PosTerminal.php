@@ -20,6 +20,8 @@ class PosTerminal extends Component
     public $category = 'All';
     public $selectedCategories = [];
     public $boxCode = '';
+    public $brandFilter = '';
+    public $stockStatus = 'all';
 
     public function updatingSearch()
     {
@@ -70,11 +72,17 @@ class PosTerminal extends Component
             }
         } elseif ($type === 'boxCode') {
             $this->boxCode = '';
+        } elseif ($type === 'brandFilter') {
+            $this->brandFilter = '';
+        } elseif ($type === 'stockStatus') {
+            $this->stockStatus = 'all';
         } elseif ($type === 'search') {
             $this->search = '';
         } elseif ($type === 'all') {
             $this->selectedCategories = [];
             $this->boxCode = '';
+            $this->brandFilter = '';
+            $this->stockStatus = 'all';
             $this->search = '';
             $this->category = 'All';
         }
@@ -175,6 +183,18 @@ class PosTerminal extends Component
             })
             ->when($this->boxCode, function($query) {
                 $query->where('location', 'like', "%{$this->boxCode}%");
+            })
+            ->when($this->brandFilter, function($query) {
+                $query->where('brand', $this->brandFilter);
+            })
+            ->when($this->stockStatus !== 'all', function($query) {
+                if ($this->stockStatus === 'in_stock') {
+                    $query->where('stock_quantity', '>', 0);
+                } elseif ($this->stockStatus === 'low_stock') {
+                    $query->where('stock_quantity', '>', 0)->where('stock_quantity', '<=', 10);
+                } elseif ($this->stockStatus === 'out_of_stock') {
+                    $query->where('stock_quantity', '<=', 0);
+                }
             })
             ->where('is_active', true)
             ->orderBy('sku', 'asc')
