@@ -174,7 +174,6 @@ class PosTerminal extends Component
             return ($item['item_discount'] ?? 0) * $item['quantity'];
         });
     }
-    }
 
     public function getProducts()
     {
