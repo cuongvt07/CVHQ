@@ -7,13 +7,13 @@
         <header class="flex flex-col shrink-0 border-b border-slate-100 bg-white" x-data="{ filtersOpen: false }">
             <div class="px-4 md:px-6 py-3 flex items-center justify-between gap-4 border-b border-slate-200 bg-slate-50/50">
                 <div>
-                    <h1 class="text-lg md:text-xl font-black tracking-tight text-slate-900 uppercase">Trạm bán hàng (POS)</h1>
+                    <h1 class="text-lg md:text-xl font-black tracking-tight text-slate-900">Trạm bán hàng (POS)</h1>
                 </div>
                 
                 <div class="flex items-center gap-3">
                     <button @click="filtersOpen = !filtersOpen" 
                             :class="filtersOpen ? 'bg-electric-blue text-white border-electric-blue shadow-lg shadow-electric-blue/20' : 'bg-slate-50 text-slate-600 border-slate-200 hover:bg-slate-100'"
-                            class="flex items-center gap-2 px-5 py-2.5 border rounded-2xl text-[11px] font-black uppercase tracking-widest transition-all shrink-0 group">
+                            class="flex items-center gap-2 px-5 py-2.5 border rounded-2xl text-[10px] font-black tracking-widest transition-all shrink-0 group">
                         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="group-hover:scale-110 transition-transform"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg>
                         <span>Bộ lọc & Tìm kiếm</span>
                         <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" :class="filtersOpen ? 'rotate-180' : ''" class="transition-transform duration-300 opacity-50"><path d="m6 9 6 6 6-6"/></svg>
@@ -27,7 +27,7 @@
                     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-5">
                         <!-- Search Bar -->
                         <div class="flex flex-col gap-2">
-                            <label class="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1 flex items-center gap-2">
+                            <label class="text-[9px] font-black text-slate-400 tracking-widest ml-1 flex items-center gap-2">
                                 <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
                                 Tìm sản phẩm
                             </label>
@@ -36,7 +36,7 @@
 
                         <!-- Multi-Category (with Search) - Matching Product Index -->
                         <div class="flex flex-col gap-2" x-data="{ catSearch: '' }">
-                            <label class="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1 flex items-center justify-between">
+                            <label class="text-[9px] font-black text-slate-400 tracking-widest ml-1 flex items-center justify-between">
                                 <span class="flex items-center gap-2">
                                     <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" x2="12" y1="3" y2="15"/></svg>
                                     Danh mục
@@ -60,7 +60,7 @@
 
                         <!-- Box Code -->
                         <div class="flex flex-col gap-2">
-                            <label class="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1 flex items-center gap-2">
+                            <label class="text-[9px] font-black text-slate-400 tracking-widest ml-1 flex items-center gap-2">
                                 <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"/><path d="m3.3 7 8.7 5 8.7-5"/><path d="M12 22V12"/></svg>
                                 Mã thùng / Vị trí
                             </label>
@@ -69,7 +69,7 @@
 
                         <!-- Stock Status -->
                         <div class="flex flex-col gap-2">
-                            <label class="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1 flex items-center gap-2">
+                            <label class="text-[9px] font-black text-slate-400 tracking-widest ml-1 flex items-center gap-2">
                                 <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z"/><path d="M3 6h18"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>
                                 Trạng thái kho
                             </label>
@@ -83,7 +83,7 @@
 
                         <!-- Brand -->
                         <div class="flex flex-col gap-2">
-                            <label class="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1 flex items-center gap-2">
+                            <label class="text-[9px] font-black text-slate-400 tracking-widest ml-1 flex items-center gap-2">
                                 <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2H2v10l9.29 9.29c.94.94 2.48.94 3.42 0l6.58-6.58c.94-.94.94-2.48 0-3.42L12 2Z"/><path d="M7 7h.01"/></svg>
                                 Thương hiệu
                             </label>
@@ -99,7 +99,7 @@
                     <!-- Active Tags Bar (Inside Collapsible) -->
                     @if(!empty($selectedCategories) || $boxCode || $brandFilter || $stockStatus !== 'all' || $search)
                         <div class="mt-6 pt-6 border-t border-slate-200/60 flex flex-wrap items-center gap-2 animate-in fade-in slide-in-from-top-1 duration-200">
-                            <span class="text-[9px] font-black text-slate-400 uppercase tracking-tighter mr-1">Đang lọc:</span>
+                            <span class="text-[8px] font-black text-slate-400 tracking-tighter mr-1">Đang lọc:</span>
                             
                             @if($search)
                                 <div class="flex items-center gap-1.5 px-2.5 py-1 bg-white border border-slate-200 rounded-lg text-[10px] font-bold text-slate-600 shadow-sm">
@@ -136,7 +136,7 @@
                                 </div>
                             @endif
 
-                            <button wire:click="clearFilter('all')" class="text-[9px] font-black text-rose-500 uppercase tracking-tighter hover:underline ml-2">Xóa tất cả</button>
+                            <button wire:click="clearFilter('all')" class="text-[8px] font-black text-rose-500 tracking-tighter hover:underline ml-2">Xóa tất cả</button>
                         </div>
                     @endif
                 </div>
@@ -183,16 +183,16 @@
                                     </div>
                                 @endif
                             </div>
-                            <div class="p-4 flex flex-col flex-1 gap-2">
-                                <h3 class="text-sm font-semibold text-slate-700 group-hover:text-electric-blue transition-colors line-clamp-2 min-h-[2.5rem]">{{ $product['name'] ?: $product['base_name'] }}</h3>
+                            <div class="p-2 flex flex-col flex-1 gap-2">
+                                <h3 class="text-[13px] font-semibold text-slate-700 group-hover:text-electric-blue transition-colors line-clamp-2 min-h-[2.5rem]">{{ $product['name'] ?: $product['base_name'] }}</h3>
                                 <div class="flex items-center justify-between mt-auto pt-2 border-t border-slate-50">
                                     <div>
                                         <span class="text-lg font-extrabold text-electric-blue block">{{ number_format($product['sale_price'], 0, ',', '.') }}</span>
-                                        <span class="text-xs font-bold {{ $product['stock_quantity'] <= 5 ? 'text-rose-600 bg-rose-50' : 'text-slate-700 bg-slate-100' }} px-2 py-1 rounded-lg border border-slate-200 mt-1.5 inline-block">Tồn: {{ $product['stock_quantity'] }}</span>
+                                        <span class="text-[11px] font-bold {{ $product['stock_quantity'] <= 5 ? 'text-rose-600 bg-rose-50' : 'text-slate-700 bg-slate-100' }} px-2 py-1 rounded-lg border border-slate-200 mt-1.5 inline-block">Tồn: {{ $product['stock_quantity'] }}</span>
                                     </div>
                                     <div class="text-right">
-                                        <div class="text-[11px] text-slate-500 font-black uppercase tracking-wider mb-0.5">{{ $product['sku'] }}</div>
-                                        <div class="text-xs text-emerald-600 font-extrabold uppercase bg-emerald-50 px-2 py-0.5 rounded-md inline-block">{{ $product['location'] }}</div>
+                                        <div class="text-[10px] text-slate-500 font-black tracking-wider mb-0.5">{{ $product['sku'] }}</div>
+                                        <div class="text-[11px] text-emerald-600 font-extrabold bg-emerald-50 px-2 py-0.5 rounded-md inline-block">{{ $product['location'] }}</div>
                                     </div>
                                 </div>
                             </div>
@@ -240,20 +240,20 @@
                             </div>
                             <div class="p-3 flex-1 flex flex-col justify-between bg-white border-t border-slate-100">
                                 <div>
-                                    <div class="text-[9px] font-black text-slate-500 uppercase tracking-wider mb-1">{{ $product['sku'] }}</div>
+                                    <div class="text-[8px] font-black text-slate-500 tracking-wider mb-1">{{ $product['sku'] }}</div>
                                     <h3 class="text-xs font-bold text-slate-900 line-clamp-2 leading-tight min-h-[2rem]">{{ $product['name'] ?: $product['base_name'] }}</h3>
                                 </div>
                                 <div class="flex items-end justify-between mt-3">
                                     <p class="text-sm font-black text-electric-blue leading-none">{{ number_format($product['sale_price'] / 1000, 0) }}k</p>
                                     <div class="text-right flex flex-col items-end gap-1">
                                         <div class="text-[9px] font-bold {{ $product['stock_quantity'] <= 5 ? 'text-rose-600 bg-rose-50' : 'text-slate-500 bg-slate-50' }} px-1.5 py-0.5 rounded border border-slate-100 leading-none">Tồn: {{ $product['stock_quantity'] }}</div>
-                                        <div class="text-[9px] font-black text-white bg-emerald-500 px-1.5 py-0.5 rounded uppercase leading-none">{{ $product['location'] }}</div>
+                                        <div class="text-[8px] font-black text-white bg-emerald-500 px-1.5 py-0.5 rounded leading-none">{{ $product['location'] }}</div>
                                     </div>
                                 </div>
                             </div>
                         </div>
                     @empty
-                        <div class="col-span-2 py-10 flex items-center justify-center text-slate-300 text-xs font-bold uppercase tracking-widest">Không có sản phẩm</div>
+                        <div class="col-span-2 py-10 flex items-center justify-center text-slate-300 text-[11px] font-bold tracking-widest">Không có sản phẩm</div>
                     @endforelse
                 </div>
                 <div class="mt-4 pb-12 antigravity-pagination">
@@ -294,7 +294,7 @@
                         </div>
                         <div>
                             <p class="text-sm font-bold text-slate-900">{{ $selectedCustomer->full_name }}</p>
-                            <p class="text-[10px] text-slate-400 uppercase tracking-widest">{{ $selectedCustomer->phone }}</p>
+                            <p class="text-[9px] text-slate-400 tracking-widest">{{ $selectedCustomer->phone }}</p>
                         </div>
                     </div>
                     <button wire:click="$set('customer_id', null)" class="text-slate-300 hover:text-red-500 transition-colors">
@@ -319,10 +319,10 @@
                                     <p class="text-xs font-bold text-slate-900">{{ $customer->full_name }}</p>
                                     <p class="text-[10px] text-slate-400">{{ $customer->phone }}</p>
                                 </div>
-                                <span class="text-[10px] text-electric-blue font-bold uppercase tracking-widest">{{ $customer->customer_code }}</span>
+                                <span class="text-[9px] text-electric-blue font-bold tracking-widest">{{ $customer->customer_code }}</span>
                             </button>
                         @empty
-                            <div class="px-4 py-3 text-center text-[10px] text-slate-300 uppercase tracking-widest">Không tìm thấy</div>
+                            <div class="px-4 py-3 text-center text-[9px] text-slate-300 tracking-widest">Không tìm thấy</div>
                         @endforelse
                     </div>
                 </div>
@@ -334,7 +334,7 @@
             @if(count($cart) === 0)
                 <div class="flex-1 flex flex-col items-center justify-center text-center opacity-40">
                     <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="mb-4 text-slate-200"><circle cx="8" cy="21" r="1"/><circle cx="19" cy="21" r="1"/><path d="M2.05 2.05h2l2.66 12.42a2 2 0 0 0 2 1.58h9.78a2 2 0 0 0 1.95-1.57l1.65-7.43H5.12"/></svg>
-                    <p class="text-xs font-bold uppercase tracking-widest text-slate-400">Giỏ hàng trống</p>
+                    <p class="text-[11px] font-bold tracking-widest text-slate-400">Giỏ hàng trống</p>
                 </div>
             @else
                 @foreach($cart as $item)
@@ -370,25 +370,25 @@
         <!-- Fixed Financials -->
         <div class="p-6 bg-white border-t border-slate-100 flex flex-col gap-3 shrink-0 shadow-[0_-4px_20px_rgba(0,0,0,0.03)]">
             <div class="space-y-2">
-                <div class="flex justify-between items-center text-xs">
-                    <span class="text-slate-400 font-bold uppercase tracking-wider">Tổng tiền hàng</span>
+                <div class="flex justify-between items-center text-[11px]">
+                    <span class="text-slate-400 font-bold tracking-wider">Tổng tiền hàng</span>
                     <span class="text-slate-900 font-bold">{{ number_format($total, 0, ',', '.') }}</span>
                 </div>
-                <div class="flex justify-between items-center text-xs">
-                    <span class="text-slate-400 font-bold uppercase tracking-wider">Giảm giá</span>
+                <div class="flex justify-between items-center text-[11px]">
+                    <span class="text-slate-400 font-bold tracking-wider">Giảm giá</span>
                     <div class="relative w-32"><input type="number" wire:model.live="discount" class="w-full bg-white border border-slate-200 rounded-lg text-right px-2 py-1 text-xs text-slate-900 focus:outline-none focus:border-electric-blue transition-all"></div>
                 </div>
-                <div class="flex justify-between items-center text-xs">
-                    <span class="text-slate-400 font-bold uppercase tracking-wider">Thu khác</span>
+                <div class="flex justify-between items-center text-[11px]">
+                    <span class="text-slate-400 font-bold tracking-wider">Thu khác</span>
                     <div class="relative w-32"><input type="number" wire:model.live="extra_fee" class="w-full bg-white border border-slate-200 rounded-lg text-right px-2 py-1 text-xs text-slate-900 focus:outline-none focus:border-electric-blue transition-all"></div>
                 </div>
                 <div class="pt-3 border-t border-slate-100 flex justify-between items-center">
-                    <span class="text-sm font-bold uppercase tracking-[0.2em] text-slate-900">Khách cần trả</span>
+                    <span class="text-[13px] font-bold tracking-[0.2em] text-slate-900">Khách cần trả</span>
                     <span class="text-2xl font-bold text-electric-blue tracking-tighter">{{ number_format($finalAmount, 0, ',', '.') }}</span>
                 </div>
 
             </div>
-            <button wire:click="checkout" wire:loading.attr="disabled" class="btn-electric w-full py-4 text-xs font-bold uppercase tracking-[0.2em] mt-2 flex items-center justify-center gap-2">
+            <button wire:click="checkout" wire:loading.attr="disabled" class="btn-electric w-full py-4 text-[11px] font-bold tracking-[0.2em] mt-2 flex items-center justify-center gap-2">
                 <span wire:loading.remove>Hoàn tất & In hóa đơn</span>
                 <span wire:loading>Đang xử lý...</span>
             </button>
@@ -402,19 +402,19 @@
             <h3 class="text-xl font-bold text-slate-900 mb-6">Thêm khách hàng nhanh</h3>
             <div class="space-y-4">
                 <div>
-                    <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1.5 ml-1">Tên khách hàng</label>
+                    <label class="block text-[9px] font-bold text-slate-400 tracking-widest mb-1.5 ml-1">Tên khách hàng</label>
                     <input type="text" wire:model="new_customer.full_name" class="w-full bg-white border border-slate-200 rounded-xl px-4 py-3 text-sm text-slate-900 focus:outline-none focus:border-electric-blue transition-all">
                     @error('new_customer.full_name') <span class="text-[10px] text-red-500 mt-1 ml-1">{{ $message }}</span> @enderror
                 </div>
                 <div>
-                    <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1.5 ml-1">Số điện thoại (Tùy chọn)</label>
+                    <label class="block text-[9px] font-bold text-slate-400 tracking-widest mb-1.5 ml-1">Số điện thoại (Tùy chọn)</label>
                     <input type="text" wire:model="new_customer.phone" class="w-full bg-white border border-slate-200 rounded-xl px-4 py-3 text-sm text-slate-900 focus:outline-none focus:border-electric-blue transition-all">
                     @error('new_customer.phone') <span class="text-[10px] text-red-500 mt-1 ml-1">{{ $message }}</span> @enderror
                 </div>
             </div>
             <div class="flex gap-3 mt-8">
-                <button wire:click="$set('is_creating_customer', false)" class="flex-1 px-6 py-3 rounded-xl border border-slate-200 text-slate-400 font-bold text-xs uppercase tracking-widest hover:bg-slate-50 transition-all">Hủy</button>
-                <button wire:click="createCustomer" class="flex-1 btn-electric py-3 text-xs font-bold uppercase tracking-widest">Lưu khách hàng</button>
+                <button wire:click="$set('is_creating_customer', false)" class="flex-1 px-6 py-3 rounded-xl border border-slate-200 text-slate-400 font-bold text-[11px] tracking-widest hover:bg-slate-50 transition-all">Hủy</button>
+                <button wire:click="createCustomer" class="flex-1 btn-electric py-3 text-[11px] font-bold tracking-widest">Lưu khách hàng</button>
             </div>
         </div>
     </div>

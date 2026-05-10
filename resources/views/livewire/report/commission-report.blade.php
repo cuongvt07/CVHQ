@@ -1,6 +1,6 @@
 <div class="h-full flex flex-col">
     <!-- Breadcrumbs / Navigation -->
-    <header class="px-4 md:px-6 py-6 flex items-center justify-between border-b border-slate-200 bg-white">
+    <header class="px-4 md:px-6 py-4 flex items-center justify-between border-b border-slate-200 bg-white">
         <div class="flex items-center gap-4">
             <button wire:click="backToSummary" class="text-sm font-bold {{ $view === 'summary' ? 'text-slate-900' : 'text-slate-400 hover:text-slate-600' }}">Tổng quan hoa hồng</button>
             
@@ -34,26 +34,26 @@
                 <table class="w-full text-left border-collapse">
                     <thead>
                         <tr class="bg-slate-50 border-b border-slate-200">
-                            <th class="px-6 py-4 text-[10px] font-bold text-slate-500 uppercase tracking-widest">Nhân viên</th>
-                            <th class="px-6 py-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest text-right">Số đơn hàng</th>
-                            <th class="px-6 py-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest text-right">Tổng doanh số</th>
-                            <th class="px-6 py-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest text-right">Tổng hoa hồng</th>
-                            <th class="px-6 py-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest text-center">Thao tác</th>
+                            <th class="px-4 py-2 text-[10px] font-bold text-slate-500 uppercase tracking-widest">Nhân viên</th>
+                            <th class="px-4 py-2 text-[10px] font-bold text-slate-400 uppercase tracking-widest text-right">Số đơn hàng</th>
+                            <th class="px-4 py-2 text-[10px] font-bold text-slate-400 uppercase tracking-widest text-right">Tổng doanh số</th>
+                            <th class="px-4 py-2 text-[10px] font-bold text-slate-400 uppercase tracking-widest text-right">Tổng hoa hồng</th>
+                            <th class="px-4 py-2 text-[10px] font-bold text-slate-400 uppercase tracking-widest text-center">Thao tác</th>
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-slate-100 bg-white/50">
                         @foreach($employees as $emp)
                             <tr class="hover:bg-slate-50 transition-colors">
-                                <td class="px-6 py-4">
+                                <td class="px-4 py-2">
                                     <div class="text-sm font-bold text-slate-900">{{ $emp->name }}</div>
                                     <div class="text-[10px] text-slate-400 uppercase tracking-widest">{{ $emp->role }}</div>
                                 </td>
-                                <td class="px-6 py-4 text-right text-sm font-medium text-slate-600">{{ $emp->total_invoices }}</td>
-                                <td class="px-6 py-4 text-right text-sm font-bold text-slate-900">{{ number_format($emp->total_sales, 0, ',', '.') }}</td>
-                                <td class="px-6 py-4 text-right">
+                                <td class="px-4 py-2 text-right text-sm font-medium text-slate-600">{{ $emp->total_invoices }}</td>
+                                <td class="px-4 py-2 text-right text-sm font-bold text-slate-900">{{ number_format($emp->total_sales, 0, ',', '.') }}</td>
+                                <td class="px-4 py-2 text-right">
                                     <span class="text-sm font-bold text-emerald-600">{{ number_format($emp->total_commission, 0, ',', '.') }}</span>
                                 </td>
-                                <td class="px-6 py-4 text-center">
+                                <td class="px-4 py-2 text-center">
                                     <button wire:click="selectEmployee({{ $emp->id }})" class="text-xs font-bold text-electric-blue hover:underline uppercase tracking-widest">Xem chi tiết</button>
                                 </td>
                             </tr>
@@ -76,21 +76,21 @@
                 <table class="w-full text-left border-collapse">
                     <thead>
                         <tr class="bg-slate-50 border-b border-slate-200">
-                            <th class="px-6 py-4 text-[10px] font-bold text-slate-500 uppercase tracking-widest">Mã hóa đơn</th>
-                            <th class="px-6 py-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest">Ngày tạo</th>
-                            <th class="px-6 py-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest text-right">Thành tiền</th>
-                            <th class="px-6 py-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest text-right">Hoa hồng đơn</th>
-                            <th class="px-6 py-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest text-center">Thao tác</th>
+                            <th class="px-4 py-2 text-[10px] font-bold text-slate-500 uppercase tracking-widest">Mã hóa đơn</th>
+                            <th class="px-4 py-2 text-[10px] font-bold text-slate-400 uppercase tracking-widest">Ngày tạo</th>
+                            <th class="px-4 py-2 text-[10px] font-bold text-slate-400 uppercase tracking-widest text-right">Thành tiền</th>
+                            <th class="px-4 py-2 text-[10px] font-bold text-slate-400 uppercase tracking-widest text-right">Hoa hồng đơn</th>
+                            <th class="px-4 py-2 text-[10px] font-bold text-slate-400 uppercase tracking-widest text-center">Thao tác</th>
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-slate-100 bg-white/50">
                         @foreach($invoices as $inv)
                             <tr class="hover:bg-slate-50 transition-colors">
-                                <td class="px-6 py-4 text-sm font-bold text-slate-900">{{ $inv->invoice_code }}</td>
-                                <td class="px-6 py-4 text-xs text-slate-500">{{ $inv->created_at->format('d/m/Y H:i') }}</td>
-                                <td class="px-6 py-4 text-right text-sm font-bold text-slate-900">{{ number_format($inv->final_amount, 0, ',', '.') }}</td>
-                                <td class="px-6 py-4 text-right text-sm font-bold text-emerald-600">{{ number_format($inv->total_commission, 0, ',', '.') }}</td>
-                                <td class="px-6 py-4 text-center">
+                                <td class="px-4 py-2 text-sm font-bold text-slate-900">{{ $inv->invoice_code }}</td>
+                                <td class="px-4 py-2 text-xs text-slate-500">{{ $inv->created_at->format('d/m/Y H:i') }}</td>
+                                <td class="px-4 py-2 text-right text-sm font-bold text-slate-900">{{ number_format($inv->final_amount, 0, ',', '.') }}</td>
+                                <td class="px-4 py-2 text-right text-sm font-bold text-emerald-600">{{ number_format($inv->total_commission, 0, ',', '.') }}</td>
+                                <td class="px-4 py-2 text-center">
                                     <button wire:click="selectInvoice({{ $inv->id }})" class="text-xs font-bold text-electric-blue hover:underline uppercase tracking-widest">Chi tiết đơn</button>
                                 </td>
                             </tr>
