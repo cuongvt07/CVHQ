@@ -60,12 +60,8 @@
              x-transition:leave="transition-opacity ease-in duration-300"
              x-transition:leave-start="opacity-100"
              x-transition:leave-end="opacity-0"
-             @livewire:init.window="
-                Livewire.hook('request', ({ start, end }) => {
-                    start(() => loading = true);
-                    end(() => loading = false);
-                })
-             "
+             @loading-start.window="loading = true"
+             @loading-stop.window="loading = false"
              class="fixed top-0 left-0 w-full z-[9999] pointer-events-none"
              x-cloak>
             <div class="h-0.5 w-full bg-electric-blue/10 overflow-hidden relative">
@@ -82,6 +78,22 @@
                 </div>
             </div>
         </div>
+
+        <script>
+            document.addEventListener('livewire:init', () => {
+                Livewire.hook('request', ({ component, request, respond, succeed, fail }) => {
+                    window.dispatchEvent(new CustomEvent('loading-start'));
+                    
+                    respond(() => {
+                        window.dispatchEvent(new CustomEvent('loading-stop'));
+                    });
+
+                    fail(() => {
+                        window.dispatchEvent(new CustomEvent('loading-stop'));
+                    });
+                });
+            });
+        </script>
 
         <!-- Global Motion Blur Overlay -->
         <div class="fixed top-0 left-0 w-full h-[1px] bg-gradient-to-r from-transparent via-electric-blue/10 to-transparent z-[100] pointer-events-none opacity-50"></div>
