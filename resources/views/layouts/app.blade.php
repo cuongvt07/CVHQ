@@ -50,6 +50,39 @@
 
         @livewireScripts
         <x-notification />
+        
+        <!-- Global Loading Bar -->
+        <div x-data="{ loading: false }" 
+             x-show="loading"
+             x-transition:enter="transition-opacity ease-out duration-300"
+             x-transition:enter-start="opacity-0"
+             x-transition:enter-end="opacity-100"
+             x-transition:leave="transition-opacity ease-in duration-300"
+             x-transition:leave-start="opacity-100"
+             x-transition:leave-end="opacity-0"
+             @livewire:init.window="
+                Livewire.hook('request', ({ start, end }) => {
+                    start(() => loading = true);
+                    end(() => loading = false);
+                })
+             "
+             class="fixed top-0 left-0 w-full z-[9999] pointer-events-none"
+             x-cloak>
+            <div class="h-0.5 w-full bg-electric-blue/10 overflow-hidden relative">
+                <div class="absolute inset-0 bg-electric-blue shadow-[0_0_10px_rgba(0,136,204,0.8)] animate-loading-bar"></div>
+            </div>
+            <!-- Subtle Loading Text -->
+            <div class="absolute top-2 left-1/2 -translate-x-1/2 px-3 py-1 bg-white/80 backdrop-blur-md border border-slate-200 rounded-full shadow-lg">
+                <div class="flex items-center gap-2">
+                    <svg class="animate-spin h-3 w-3 text-electric-blue" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                    <span class="text-[9px] font-black text-slate-600 uppercase tracking-widest">Đang tải dữ liệu...</span>
+                </div>
+            </div>
+        </div>
+
         <!-- Global Motion Blur Overlay -->
         <div class="fixed top-0 left-0 w-full h-[1px] bg-gradient-to-r from-transparent via-electric-blue/10 to-transparent z-[100] pointer-events-none opacity-50"></div>
     </body>
