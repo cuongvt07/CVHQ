@@ -142,7 +142,18 @@ class PosTerminal extends Component
             
             if ($this->cart[$existingIndex]['quantity'] <= 0) {
                 $this->removeFromCart($productId);
+            } else {
+                $this->recalculateTotalDiscount();
             }
+        }
+    }
+
+    public function applyItemDiscount($productId, $discountPerUnit)
+    {
+        $existingIndex = collect($this->cart)->search(fn($item) => $item['id'] === $productId);
+        if ($existingIndex !== false) {
+            $this->cart[$existingIndex]['item_discount'] = (int)$discountPerUnit;
+            $this->recalculateTotalDiscount();
         }
     }
 
@@ -153,7 +164,16 @@ class PosTerminal extends Component
             ->values()
             ->toArray();
             
+        $this->recalculateTotalDiscount();
         $this->dispatch('notify', message: 'Đã xóa khỏi giỏ hàng', type: 'warning');
+    }
+
+    protected function recalculateTotalDiscount()
+    {
+        $this->discount = collect($this->cart)->sum(function($item) {
+            return ($item['item_discount'] ?? 0) * $item['quantity'];
+        });
+    }
     }
 
     public function getProducts()

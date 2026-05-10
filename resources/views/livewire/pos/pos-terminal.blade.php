@@ -300,8 +300,19 @@
                                     <span class="w-8 text-center text-[11px] font-bold text-slate-900">{{ $item['quantity'] }}</span>
                                     <button wire:click="updateQuantity({{ $item['id'] }}, 1)" class="w-6 h-6 flex items-center justify-center text-slate-400 hover:text-electric-blue transition-all"><svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="M12 5v14"/></svg></button>
                                 </div>
-                                <div class="text-right">
-                                    <p class="text-xs font-bold text-slate-900">{{ number_format($item['sale_price'] * $item['quantity'], 0, ',', '.') }}</p>
+                                <div class="flex items-center gap-3">
+                                    <!-- Item Discount Input -->
+                                    <div class="relative w-20">
+                                        <input type="number" 
+                                               placeholder="Giảm giá"
+                                               class="w-full bg-slate-50 border border-slate-200 rounded-lg px-2 py-1 text-[10px] font-bold text-slate-700 focus:outline-none focus:border-electric-blue transition-all"
+                                               x-on:keydown.enter="$wire.applyItemDiscount({{ $item['id'] }}, $event.target.value)"
+                                               x-on:blur="$wire.applyItemDiscount({{ $item['id'] }}, $event.target.value)"
+                                        >
+                                    </div>
+                                    <div class="text-right">
+                                        <p class="text-xs font-bold text-slate-900">{{ number_format($item['sale_price'] * $item['quantity'], 0, ',', '.') }}</p>
+                                    </div>
                                 </div>
                             </div>
                         </div>
