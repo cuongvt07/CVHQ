@@ -141,14 +141,14 @@
                                        value="{{ $product->location }}" 
                                        x-on:blur="$wire.updateField({{ $product->id }}, 'location', $event.target.value)"
                                        x-on:keydown.enter="$event.target.blur()"
-                                       class="w-24 bg-transparent border-0 border-b border-transparent focus:border-electric-blue focus:ring-0 px-0 py-1 text-xs font-bold text-emerald-600 transition-all">
+                                       class="w-24 bg-slate-50 border border-slate-100 rounded-lg px-2 py-1 text-xs font-bold text-emerald-600 transition-all focus:bg-white focus:border-electric-blue focus:ring-0 shadow-inner">
                             </td>
                             <td class="px-4 py-2">
                                 <input type="number" 
                                        value="{{ $product->stock_quantity }}" 
                                        x-on:blur="$wire.updateField({{ $product->id }}, 'stock_quantity', $event.target.value)"
                                        x-on:keydown.enter="$event.target.blur()"
-                                       class="w-16 bg-transparent border-0 border-b border-transparent focus:border-electric-blue focus:ring-0 px-0 py-1 text-sm font-black {{ $product->stock_quantity <= 0 ? 'text-rose-600' : 'text-amber-600' }} transition-all">
+                                       class="w-16 bg-slate-50 border border-slate-100 rounded-lg px-2 py-1 text-sm font-black {{ $product->stock_quantity <= 0 ? 'text-rose-600' : 'text-amber-600' }} transition-all focus:bg-white focus:border-electric-blue focus:ring-0 shadow-inner">
                             </td>
                             <td class="px-4 py-2">
                                 @if($product->stock_quantity <= 0)
