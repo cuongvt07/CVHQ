@@ -84,15 +84,32 @@
                 let requestCount = 0;
                 let loadingTimeout = null;
 
-                Livewire.hook('request', ({ component, request, respond, succeed, fail }) => {
-                    // Exclude polling requests from triggering the loading bar
-                    const isPolling = request.updates.some(u => u.type === 'callMethod' && u.payload.method.includes('poll'));
+                Livewire.hook('request', (args) => {
+                    const { component, request, respond, succeed, fail } = args;
+                    
+                    // Safety check and polling detection
+                    let isPolling = false;
+                    try {
+                        // In Livewire 3, request might be the fetch Request or an internal object
+                        // We check if it's a polling request by looking for common indicators
+                        if (request && request.options && request.options.body) {
+                            const body = JSON.parse(request.options.body);
+                            if (body && body.updates) {
+                                isPolling = body.updates.some(u => 
+                                    u.type === 'callMethod' && 
+                                    (u.payload.method.includes('poll') || u.payload.method.includes('Progress'))
+                                );
+                            }
+                        }
+                    } catch (e) {
+                        // If parsing fails, assume it's not a standard poll we care about
+                    }
+
                     if (isPolling) return;
 
                     requestCount++;
                     
                     if (requestCount === 1) {
-                        // Only show the bar if the request takes longer than 250ms
                         loadingTimeout = setTimeout(() => {
                             window.dispatchEvent(new CustomEvent('loading-start'));
                         }, 250);
