@@ -32,6 +32,7 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/invoices', InvoiceIndex::class)->name('invoices');
     Route::get('/invoices/returns', \App\Livewire\Invoice\ReturnIndex::class)->name('invoices.returns');
     Route::get('/invoices/{invoice}', \App\Livewire\Invoice\InvoiceDetail::class)->name('invoices.detail');
+    Route::get('/system/logs', \App\Livewire\System\ActivityLogList::class)->name('system.logs');
 
     Route::get('/pos/print/{invoice}', function (App\Models\Invoice $invoice) {
         return view('pos.print-invoice', ['invoice' => $invoice]);

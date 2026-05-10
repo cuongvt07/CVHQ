@@ -6,8 +6,11 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
+use App\Traits\Loggable;
+
 class Customer extends Model
 {
+    use Loggable;
     use SoftDeletes;
     protected $fillable = [
         'customer_code', 'full_name', 'phone', 'email', 'address', 'ward',

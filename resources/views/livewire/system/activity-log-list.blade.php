@@ -1,0 +1,124 @@
+<div class="h-full flex flex-col">
+    <!-- Header -->
+    <header class="px-4 md:px-6 py-2 flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-200 bg-slate-50/50">
+        <div>
+            <h1 class="text-lg md:text-xl font-black tracking-tight text-slate-900">Nhật ký hệ thống</h1>
+            <p class="text-[10px] text-slate-500 font-bold tracking-widest uppercase">Theo dõi các thay đổi từ nhân viên</p>
+        </div>
+    </header>
+
+    <!-- Filters -->
+    <div class="px-4 md:px-6 py-4 bg-white border-b border-slate-100 flex flex-wrap items-center gap-4">
+        <div class="flex items-center gap-3 flex-1 min-w-[300px]">
+            <div class="relative flex-1 group">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="absolute left-4 top-1/2 -translate-y-1/2 text-slate-300 group-focus-within:text-electric-blue transition-colors"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+                <input type="text" wire:model.live.debounce.300ms="search" placeholder="Tìm theo nhân viên, ID hoặc loại đối tượng..." class="w-full bg-slate-50 border border-slate-200 rounded-xl py-2 pl-12 pr-6 text-xs focus:outline-none focus:border-electric-blue transition-all text-slate-900 shadow-sm">
+            </div>
+            
+            <select wire:model.live="user_id" class="bg-white border border-slate-200 rounded-xl px-4 py-2 text-xs font-bold text-slate-600 focus:outline-none focus:border-electric-blue transition-all shadow-sm">
+                <option value="">Tất cả nhân viên</option>
+                @foreach($users as $user)
+                    <option value="{{ $user->id }}">{{ $user->name }}</option>
+                @endforeach
+            </select>
+
+            <select wire:model.live="action" class="bg-white border border-slate-200 rounded-xl px-4 py-2 text-xs font-bold text-slate-600 focus:outline-none focus:border-electric-blue transition-all shadow-sm">
+                <option value="">Tất cả hành động</option>
+                @foreach($actions as $act)
+                    <option value="{{ $act }}">{{ ucfirst($act) }}</option>
+                @endforeach
+            </select>
+        </div>
+
+        <div class="flex items-center gap-3">
+            <input type="date" wire:model.live="date_from" class="bg-white border border-slate-200 rounded-xl px-4 py-2 text-xs font-bold text-slate-600 focus:outline-none focus:border-electric-blue transition-all shadow-sm">
+            <span class="text-slate-300">→</span>
+            <input type="date" wire:model.live="date_to" class="bg-white border border-slate-200 rounded-xl px-4 py-2 text-xs font-bold text-slate-600 focus:outline-none focus:border-electric-blue transition-all shadow-sm">
+            
+            <button wire:click="clearFilters" class="p-2 text-slate-400 hover:text-rose-500 transition-colors">
+                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/></svg>
+            </button>
+        </div>
+    </div>
+
+    <!-- Table -->
+    <div class="flex-1 overflow-y-auto custom-scrollbar p-4 md:p-6">
+        <div class="glass-card overflow-hidden border border-slate-200">
+            <table class="w-full text-left border-collapse">
+                <thead>
+                    <tr class="bg-slate-50 border-b border-slate-200">
+                        <th class="px-4 py-3 text-[9px] font-bold text-slate-500 tracking-[0.2em] uppercase">Thời gian</th>
+                        <th class="px-4 py-3 text-[9px] font-bold text-slate-500 tracking-[0.2em] uppercase">Nhân viên</th>
+                        <th class="px-4 py-3 text-[9px] font-bold text-slate-500 tracking-[0.2em] uppercase">Hành động</th>
+                        <th class="px-4 py-3 text-[9px] font-bold text-slate-500 tracking-[0.2em] uppercase">Đối tượng</th>
+                        <th class="px-4 py-3 text-[9px] font-bold text-slate-500 tracking-[0.2em] uppercase">Chi tiết thay đổi</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-100 bg-white/50">
+                    @forelse($logs as $log)
+                        <tr class="hover:bg-slate-50 transition-colors group">
+                            <td class="px-4 py-3">
+                                <div class="text-[11px] font-bold text-slate-900">{{ $log->created_at->format('H:i:s') }}</div>
+                                <div class="text-[10px] text-slate-400">{{ $log->created_at->format('d/m/Y') }}</div>
+                            </td>
+                            <td class="px-4 py-3">
+                                <div class="flex items-center gap-2">
+                                    <div class="w-7 h-7 rounded-full bg-slate-100 border border-slate-200 flex items-center justify-center text-[10px] font-bold text-slate-500 uppercase">
+                                        {{ substr($log->user->name, 0, 1) }}
+                                    </div>
+                                    <span class="text-xs font-bold text-slate-700">{{ $log->user->name }}</span>
+                                </div>
+                            </td>
+                            <td class="px-4 py-3">
+                                <span class="px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-widest
+                                    {{ $log->action === 'created' ? 'bg-emerald-50 text-emerald-600 border border-emerald-100' : '' }}
+                                    {{ $log->action === 'updated' ? 'bg-blue-50 text-blue-600 border border-blue-100' : '' }}
+                                    {{ $log->action === 'deleted' ? 'bg-rose-50 text-rose-600 border border-rose-100' : '' }}">
+                                    {{ $log->action }}
+                                </span>
+                            </td>
+                            <td class="px-4 py-3">
+                                <div class="text-xs font-bold text-slate-900">{{ $log->model_name }}</div>
+                                <div class="text-[10px] text-slate-400 font-mono">ID: #{{ $log->model_id }}</div>
+                            </td>
+                            <td class="px-4 py-3">
+                                @if($log->changes)
+                                    <div class="space-y-1">
+                                        @foreach($log->changes['after'] as $field => $newValue)
+                                            @php 
+                                                $oldValue = $log->changes['before'][$field] ?? 'N/A';
+                                                // Skip massive changes like images or descriptions for readability
+                                                if (is_array($newValue) || strlen((string)$newValue) > 50) continue;
+                                            @endphp
+                                            <div class="text-[10px] flex items-center gap-2">
+                                                <span class="font-black text-slate-400 uppercase tracking-tighter">{{ $field }}:</span>
+                                                <span class="text-rose-500 line-through opacity-50">{{ $oldValue }}</span>
+                                                <svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" class="text-slate-300"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
+                                                <span class="text-emerald-600 font-bold">{{ $newValue }}</span>
+                                            </div>
+                                        @endforeach
+                                    </div>
+                                @else
+                                    <span class="text-[10px] text-slate-300 italic">Không có chi tiết thay đổi</span>
+                                @endif
+                            </td>
+                        </tr>
+                    @empty
+                        <tr>
+                            <td colspan="5" class="px-6 py-20 text-center">
+                                <div class="flex flex-col items-center opacity-30">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="mb-4"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/><path d="M12 18v-6"/><path d="m9 15 3 3 3-3"/></svg>
+                                    <p class="text-xs font-black uppercase tracking-[0.2em]">Không tìm thấy nhật ký hoạt động nào</p>
+                                </div>
+                            </td>
+                        </tr>
+                    @endforelse
+                </tbody>
+            </table>
+        </div>
+
+        <div class="mt-6 antigravity-pagination">
+            {{ $logs->links() }}
+        </div>
+    </div>
+</div>

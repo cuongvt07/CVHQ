@@ -8,9 +8,11 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 
+use App\Traits\Loggable;
+
 class Invoice extends Model
 {
-    use SoftDeletes;
+    use SoftDeletes, Loggable;
     protected $fillable = [
         'invoice_code', 'branch', 'customer_id', 'user_id', 'seller_name', 'sales_channel',
         'total_amount', 'discount_amount', 'extra_fee', 'final_amount', 'total_commission',
