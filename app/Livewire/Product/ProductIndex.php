@@ -332,6 +332,32 @@ class ProductIndex extends Component
         $this->dispatch('notify', message: 'Cập nhật trạng thái thành công!', type: 'success');
     }
 
+    public function updateField($id, $field, $value)
+    {
+        $product = Product::findOrFail($id);
+        
+        $rules = [
+            'location' => 'nullable|string|max:255',
+            'stock_quantity' => 'nullable|numeric|min:0',
+        ];
+        
+        if (!isset($rules[$field])) return;
+
+        try {
+            $validator = \Validator::make([$field => $value], [$field => $rules[$field]]);
+            if ($validator->fails()) {
+                throw new \Exception($validator->errors()->first());
+            }
+
+            $product->update([$field => $value]);
+            $this->dispatch('notify', message: 'Cập nhật thành công!', type: 'success');
+        } catch (\Exception $e) {
+            $this->dispatch('notify', message: 'Lỗi: ' . $e->getMessage(), type: 'error');
+            // Force refresh to revert invalid UI state
+            $this->dispatch('$refresh');
+        }
+    }
+
     public function getProducts()
     {
         return Product::query()

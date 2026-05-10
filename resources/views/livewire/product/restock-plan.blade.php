@@ -115,7 +115,6 @@
                     <tr class="bg-slate-50 border-b border-slate-200">
                         <th class="px-4 py-2 text-[9px] font-bold text-slate-500 tracking-[0.2em]">Sản phẩm</th>
                         <th class="px-4 py-2 text-[9px] font-bold text-slate-400 tracking-[0.2em]">SKU</th>
-                        <th class="px-4 py-2 text-[9px] font-bold text-slate-400 tracking-[0.2em]">Danh mục</th>
                         <th class="px-4 py-2 text-[9px] font-bold text-slate-400 tracking-[0.2em]">Vị trí</th>
                         <th class="px-4 py-2 text-[9px] font-bold text-slate-400 tracking-[0.2em]">Tồn hiện tại</th>
                         <th class="px-4 py-2 text-[9px] font-bold text-slate-400 tracking-[0.2em]">Tình trạng</th>
@@ -133,21 +132,23 @@
                                             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="3" rx="2" ry="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/></svg>
                                         </div>
                                     @endif
-                                    <span class="text-sm font-semibold text-slate-900">{{ $product->base_name }}</span>
+                                    <span class="text-sm font-semibold text-slate-900 line-clamp-1">{{ $product->base_name }}</span>
                                 </div>
                             </td>
                             <td class="px-4 py-2 font-mono text-xs text-slate-500 font-bold tracking-wider">{{ $product->sku }}</td>
                             <td class="px-4 py-2">
-                                <span class="px-3 py-1 rounded-full bg-slate-50 border border-slate-200 text-[10px] font-bold text-slate-600 tracking-wider">{{ $product->category_path }}</span>
+                                <input type="text" 
+                                       value="{{ $product->location }}" 
+                                       x-on:blur="$wire.updateField({{ $product->id }}, 'location', $event.target.value)"
+                                       x-on:keydown.enter="$event.target.blur()"
+                                       class="w-24 bg-transparent border-0 border-b border-transparent focus:border-electric-blue focus:ring-0 px-0 py-1 text-xs font-bold text-emerald-600 transition-all">
                             </td>
                             <td class="px-4 py-2">
-                                <span class="text-xs font-bold text-emerald-600 bg-emerald-50 px-2 py-1 rounded-lg border border-emerald-100">{{ $product->location }}</span>
-                            </td>
-                            <td class="px-4 py-2">
-                                <div class="flex items-center gap-2">
-                                    <span class="text-sm font-black {{ $product->stock_quantity <= 0 ? 'text-rose-600' : 'text-amber-600' }}">{{ $product->stock_quantity }}</span>
-                                    <span class="text-[10px] text-slate-400">cái</span>
-                                </div>
+                                <input type="number" 
+                                       value="{{ $product->stock_quantity }}" 
+                                       x-on:blur="$wire.updateField({{ $product->id }}, 'stock_quantity', $event.target.value)"
+                                       x-on:keydown.enter="$event.target.blur()"
+                                       class="w-16 bg-transparent border-0 border-b border-transparent focus:border-electric-blue focus:ring-0 px-0 py-1 text-sm font-black {{ $product->stock_quantity <= 0 ? 'text-rose-600' : 'text-amber-600' }} transition-all">
                             </td>
                             <td class="px-4 py-2">
                                 @if($product->stock_quantity <= 0)

@@ -135,12 +135,9 @@
                             <input type="checkbox" wire:model.live="selectAll" class="w-4 h-4 rounded border-slate-300 text-electric-blue focus:ring-electric-blue transition-all cursor-pointer">
                         </th>
                         <th class="px-4 py-2 text-[9px] font-bold text-slate-500 tracking-[0.2em]">Thông tin sản phẩm</th>
-                        <th class="px-4 py-2 text-[9px] font-bold text-slate-400 tracking-[0.2em]">Danh mục</th>
-                        <th class="px-4 py-2 text-[9px] font-bold text-slate-400 tracking-[0.2em]">Thương hiệu</th>
                         <th class="px-4 py-2 text-[9px] font-bold text-slate-400 tracking-[0.2em]">Vị trí</th>
                         <th class="px-4 py-2 text-[9px] font-bold text-slate-400 tracking-[0.2em]">Tồn kho</th>
                         <th class="px-4 py-2 text-[9px] font-bold text-slate-400 tracking-[0.2em]">Giá bán</th>
-                        <th class="px-4 py-2 text-[9px] font-bold text-slate-400 tracking-[0.2em]">Trạng thái</th>
                         <th class="px-4 py-2 text-[9px] font-bold text-slate-400 tracking-[0.2em]">Thao tác</th>
                     </tr>
                 </thead>
@@ -155,11 +152,11 @@
                                     <div class="w-10 h-10 rounded-lg overflow-hidden bg-slate-100 border border-slate-200 product-image-container relative" 
                                          x-data="{ hover: false, mouseX: 0, mouseY: 0, zoomX: 50, zoomY: 50 }"
                                          @mousemove="
-                                            mouseX = $event.clientX; 
-                                            mouseY = $event.clientY;
-                                            let rect = $el.getBoundingClientRect();
-                                            zoomX = (($event.clientX - rect.left) / rect.width) * 100;
-                                            zoomY = (($event.clientY - rect.top) / rect.height) * 100;
+                                             mouseX = $event.clientX; 
+                                             mouseY = $event.clientY;
+                                             let rect = $el.getBoundingClientRect();
+                                             zoomX = (($event.clientX - rect.left) / rect.width) * 100;
+                                             zoomY = (($event.clientY - rect.top) / rect.height) * 100;
                                          ">
                                         @if(!empty($product->images) && isset($product->images[0]))
                                             <img src="{{ $product->images[0] }}" @mouseenter="hover = true" @mouseleave="hover = false" class="w-full h-full object-cover">
@@ -182,32 +179,27 @@
                                         @endif
                                     </div>
                                     <div>
-                                        <div class="text-sm font-semibold text-slate-900">{{ $product->name }}</div>
+                                        <div class="text-sm font-semibold text-slate-900 line-clamp-1">{{ $product->name }}</div>
                                         <div class="text-[10px] text-electric-blue font-bold tracking-widest">{{ $product->sku }}</div>
                                     </div>
                                 </div>
                             </td>
                             <td class="px-4 py-2">
-                                <span class="text-xs text-slate-500">{{ $product->category_path }}</span>
+                                <input type="text" 
+                                       value="{{ $product->location }}" 
+                                       x-on:blur="$wire.updateField({{ $product->id }}, 'location', $event.target.value)"
+                                       x-on:keydown.enter="$event.target.blur()"
+                                       class="w-24 bg-transparent border-0 border-b border-transparent focus:border-electric-blue focus:ring-0 px-0 py-1 text-xs font-bold text-electric-blue transition-all">
                             </td>
                             <td class="px-4 py-2">
-                                <span class="text-xs text-slate-500">{{ $product->brand }}</span>
-                            </td>
-                            <td class="px-4 py-2">
-                                <span class="text-xs font-bold text-electric-blue">{{ $product->location }}</span>
-                            </td>
-                            <td class="px-4 py-2">
-                                <span class="text-xs font-bold {{ $product->stock_quantity < 10 ? 'text-orange-600 font-glow' : 'text-slate-900' }}">{{ $product->stock_quantity }}</span>
+                                <input type="number" 
+                                       value="{{ $product->stock_quantity }}" 
+                                       x-on:blur="$wire.updateField({{ $product->id }}, 'stock_quantity', $event.target.value)"
+                                       x-on:keydown.enter="$event.target.blur()"
+                                       class="w-20 bg-transparent border-0 border-b border-transparent focus:border-electric-blue focus:ring-0 px-0 py-1 text-xs font-bold {{ $product->stock_quantity < 10 ? 'text-orange-600' : 'text-slate-900' }} transition-all">
                             </td>
                             <td class="px-4 py-2 italic font-bold">
-                                <span class="text-xs text-slate-900">{{ number_format($product->sale_price, 0, ',', '.') }} VNĐ</span>
-                            </td>
-                            <td class="px-4 py-2">
-                                <button type="button" 
-                                        wire:click="toggleStatus({{ $product->id }})"
-                                        class="relative inline-flex h-5 w-10 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none {{ $product->is_active ? 'bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.4)]' : 'bg-slate-200' }}">
-                                    <span class="pointer-events-none inline-block h-4 w-4 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out {{ $product->is_active ? 'translate-x-5' : 'translate-x-0' }}"></span>
-                                </button>
+                                <span class="text-xs text-slate-900">{{ number_format($product->sale_price, 0, ',', '.') }}</span>
                             </td>
                             <td class="px-4 py-2">
                                 <div class="flex items-center gap-2">
