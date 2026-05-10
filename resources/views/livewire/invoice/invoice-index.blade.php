@@ -19,26 +19,37 @@
 
     <x-import-modal id="invoices" title="Nhập danh sách hóa đơn" model="importFile" />
 
-    <div class="px-4 md:px-6 py-4 bg-white border-b border-slate-100 flex flex-col gap-4" x-data="{ filtersOpen: false }">
+    <div class="px-4 md:px-6 py-4 bg-white border-b border-slate-100 flex flex-col gap-4">
         <div class="flex flex-col md:flex-row items-center justify-between gap-4">
-            <div class="flex items-center gap-4 w-full md:w-auto flex-1">
-                <div class="relative w-full md:w-96 group text-left">
+            <div class="flex flex-wrap items-center gap-3 w-full md:w-auto flex-1">
+                <!-- Search -->
+                <div class="relative w-full md:w-80 group text-left">
                     <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="absolute left-4 top-1/2 -translate-y-1/2 text-slate-300 group-focus-within:text-electric-blue transition-colors"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
-                    <input type="text" wire:model.live="search" placeholder="Tìm kiếm theo Mã hóa đơn hoặc Người bán..." class="w-full bg-slate-50 border border-slate-200 rounded-xl py-3 pl-12 pr-6 text-[13px] focus:outline-none focus:border-electric-blue/40 focus:ring-4 focus:ring-electric-blue/5 transition-all text-slate-900">
+                    <input type="text" wire:model.live="search" placeholder="Tìm kiếm mã hóa đơn, người bán..." class="w-full bg-slate-50 border border-slate-200 rounded-xl py-2.5 pl-12 pr-6 text-[11px] focus:outline-none focus:border-electric-blue transition-all text-slate-900 shadow-sm">
                 </div>
 
-                <button @click="filtersOpen = !filtersOpen" 
-                        :class="filtersOpen ? 'bg-electric-blue text-white shadow-lg shadow-electric-blue/20' : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50'"
-                        class="flex items-center gap-2 px-4 py-2.5 border rounded-xl text-[11px] font-bold transition-all shadow-sm shrink-0 group">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="group-hover:scale-110 transition-transform"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg>
-                    <span>Lọc nâng cao</span>
-                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" :class="filtersOpen ? 'rotate-180' : ''" class="transition-transform duration-300"><path d="m6 9 6 6 6-6"/></svg>
-                </button>
-                
+                <!-- Date Filter Row -->
+                <div class="flex items-center gap-2">
+                    <div class="relative group">
+                        <input type="date" wire:model.live="startDate" class="bg-white border border-slate-200 rounded-xl px-3 py-2 text-[11px] focus:outline-none focus:border-electric-blue transition-all text-slate-600 shadow-sm">
+                    </div>
+                    <span class="text-[10px] font-bold text-slate-300 uppercase tracking-tighter">đến</span>
+                    <div class="relative group">
+                        <input type="date" wire:model.live="endDate" class="bg-white border border-slate-200 rounded-xl px-3 py-2 text-[11px] focus:outline-none focus:border-electric-blue transition-all text-slate-600 shadow-sm">
+                    </div>
+                </div>
+
+                <!-- Seller Filter -->
+                <div class="relative w-full md:w-48 group">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-300 group-focus-within:text-electric-blue transition-colors"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                    <input type="text" wire:model.live="sellerFilter" placeholder="Lọc nhân viên..." class="w-full bg-white border border-slate-200 rounded-xl py-2 pl-9 pr-4 text-[11px] focus:outline-none focus:border-electric-blue transition-all text-slate-900 shadow-sm">
+                </div>
+
                 @if(count($selectedRows) > 0)
-                    <div class="flex items-center gap-3 animate-in fade-in slide-in-from-left-4 duration-300">
-                        <span class="text-[11px] font-bold text-slate-500 tracking-widest whitespace-nowrap">Đã chọn {{ count($selectedRows) }}:</span>
-                        <button wire:click="bulkDelete" wire:confirm="Bạn có chắc chắn muốn xóa?" class="px-4 py-1.5 rounded-xl text-[9px] font-bold bg-rose-50 text-rose-600 border border-rose-100 hover:bg-rose-100 transition-all flex items-center gap-2">
+                    <div class="flex items-center gap-3 animate-in fade-in slide-in-from-left-4 duration-300 ml-2">
+                        <span class="text-[9px] font-black text-slate-400 tracking-widest whitespace-nowrap">Đã chọn {{ count($selectedRows) }}:</span>
+                        <button wire:click="bulkDelete" wire:confirm="Bạn có chắc chắn muốn xóa?" class="px-3 py-1.5 rounded-lg text-[9px] font-bold bg-rose-50 text-rose-600 border border-rose-100 hover:bg-rose-100 transition-all flex items-center gap-2">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/></svg>
                             Xóa
                         </button>
                     </div>
@@ -46,33 +57,13 @@
             </div>
 
             <div class="flex items-center gap-3">
-                <span class="text-[11px] text-slate-400 font-bold tracking-widest">Hiển thị:</span>
+                <span class="text-[10px] text-slate-400 font-bold tracking-widest">Hiển thị:</span>
                 <select wire:model.live="perPage" class="bg-slate-50 border border-slate-200 rounded-lg py-1 px-2 text-[9px] font-bold text-slate-600 focus:outline-none focus:border-electric-blue/40 transition-all cursor-pointer">
                     <option value="10">10</option>
                     <option value="25">25</option>
                     <option value="50">50</option>
                     <option value="100">100</option>
                 </select>
-            </div>
-        </div>
-
-        <!-- Collapsible Filters Grid -->
-        <div x-show="filtersOpen" x-collapse x-cloak>
-            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 p-4 bg-slate-50/50 rounded-2xl border border-slate-100 mb-2">
-                <!-- Date Filter -->
-                <div class="flex flex-col gap-2">
-                    <label class="text-[9px] font-bold text-slate-500 tracking-widest ml-1">Từ ngày</label>
-                    <input type="date" wire:model.live="startDate" class="w-full bg-white border border-slate-200 rounded-xl px-4 py-2.5 text-xs focus:outline-none focus:border-electric-blue/40 shadow-sm">
-                </div>
-                <div class="flex flex-col gap-2">
-                    <label class="text-[9px] font-bold text-slate-500 tracking-widest ml-1">Đến ngày</label>
-                    <input type="date" wire:model.live="endDate" class="w-full bg-white border border-slate-200 rounded-xl px-4 py-2.5 text-xs focus:outline-none focus:border-electric-blue/40 shadow-sm">
-                </div>
-                <!-- Seller Filter -->
-                <div class="flex flex-col gap-2">
-                    <label class="text-[9px] font-bold text-slate-500 tracking-widest ml-1">Nhân viên bán</label>
-                    <input type="text" wire:model.live="sellerFilter" placeholder="Nhập tên nhân viên..." class="w-full bg-white border border-slate-200 rounded-xl px-4 py-2.5 text-xs focus:outline-none focus:border-electric-blue/40 shadow-sm">
-                </div>
             </div>
         </div>
 
