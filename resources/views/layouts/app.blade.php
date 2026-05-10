@@ -81,16 +81,33 @@
 
         <script>
             document.addEventListener('livewire:init', () => {
-                Livewire.hook('request', ({ component, request, respond, succeed, fail }) => {
-                    window.dispatchEvent(new CustomEvent('loading-start'));
-                    
-                    respond(() => {
-                        window.dispatchEvent(new CustomEvent('loading-stop'));
-                    });
+                let requestCount = 0;
+                let loadingTimeout = null;
 
-                    fail(() => {
-                        window.dispatchEvent(new CustomEvent('loading-stop'));
-                    });
+                Livewire.hook('request', ({ component, request, respond, succeed, fail }) => {
+                    // Exclude polling requests from triggering the loading bar
+                    const isPolling = request.updates.some(u => u.type === 'callMethod' && u.payload.method.includes('poll'));
+                    if (isPolling) return;
+
+                    requestCount++;
+                    
+                    if (requestCount === 1) {
+                        // Only show the bar if the request takes longer than 250ms
+                        loadingTimeout = setTimeout(() => {
+                            window.dispatchEvent(new CustomEvent('loading-start'));
+                        }, 250);
+                    }
+                    
+                    const finishRequest = () => {
+                        requestCount = Math.max(0, requestCount - 1);
+                        if (requestCount === 0) {
+                            if (loadingTimeout) clearTimeout(loadingTimeout);
+                            window.dispatchEvent(new CustomEvent('loading-stop'));
+                        }
+                    };
+
+                    respond(finishRequest);
+                    fail(finishRequest);
                 });
             });
         </script>
