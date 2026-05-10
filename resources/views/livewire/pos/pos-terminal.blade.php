@@ -90,7 +90,7 @@
         <!-- Product Gallery -->
         <div class="flex-1 overflow-hidden relative">
             <!-- Desktop Layout -->
-            <div class="hidden md:flex md:flex-col h-full overflow-y-auto custom-scrollbar p-8 bg-white">
+            <div class="hidden md:flex md:flex-col h-full overflow-y-auto custom-scrollbar p-4 bg-white">
                 <div class="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
                     @foreach($products as $product)
                         <div wire:click="addToCart({{ $product['id'] }})"
