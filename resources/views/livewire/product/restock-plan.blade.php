@@ -1,4 +1,4 @@
-<div class="h-full flex flex-col">
+<div class="h-full flex flex-col" wire:poll.3s>
     <!-- Header -->
     <header class="px-4 md:px-6 py-2 flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-200 bg-slate-50/50">
         <div>
