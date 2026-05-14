@@ -301,12 +301,6 @@ class ProductIndex extends Component
             $this->dispatch('notify', message: 'Thêm sản phẩm thành công!', type: 'success');
         }
 
-        // Clear attribute cache
-        \Illuminate\Support\Facades\Cache::forget('unique_product_attribute_keys');
-        foreach ($parsedAttrs as $key => $val) {
-            \Illuminate\Support\Facades\Cache::forget('unique_product_attribute_values_' . md5($key));
-        }
-
         $this->dispatch('close-product-modal');
         $this->resetForm();
     }

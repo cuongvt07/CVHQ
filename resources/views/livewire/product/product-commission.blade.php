@@ -54,7 +54,7 @@
                 </thead>
                 <tbody class="divide-y divide-slate-50">
                     @foreach($products as $product)
-                        <tr class="hover:bg-slate-50/50 transition-colors group">
+                        <tr wire:key="commission-row-{{ $product->id }}" class="hover:bg-slate-50/50 transition-colors group">
                             <td class="px-4 py-2">
                                 <input type="checkbox" class="w-4 h-4 rounded border-slate-300 text-electric-blue focus:ring-electric-blue transition-all cursor-pointer">
                             </td>

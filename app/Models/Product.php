@@ -100,16 +100,14 @@ class Product extends Model
      */
     public static function getUniqueAttributeKeys()
     {
-        return \Illuminate\Support\Facades\Cache::remember('unique_product_attribute_keys', 3600, function () {
-            $allAttributes = self::whereNotNull('attributes')->pluck('attributes');
-            $keys = [];
-            foreach ($allAttributes as $attr) {
-                if (is_array($attr)) {
-                    $keys = array_merge($keys, array_keys($attr));
-                }
+        $allAttributes = self::whereNotNull('attributes')->pluck('attributes');
+        $keys = [];
+        foreach ($allAttributes as $attr) {
+            if (is_array($attr)) {
+                $keys = array_merge($keys, array_keys($attr));
             }
-            return array_values(array_unique(array_filter($keys)));
-        });
+        }
+        return array_values(array_unique(array_filter($keys)));
     }
 
     /**
@@ -119,19 +117,17 @@ class Product extends Model
     {
         if (empty($key)) return [];
         
-        return \Illuminate\Support\Facades\Cache::remember('unique_product_attribute_values_' . md5($key), 3600, function () use ($key) {
-            $allAttributes = self::whereNotNull('attributes')->pluck('attributes');
-            $values = [];
-            foreach ($allAttributes as $attr) {
-                if (is_array($attr) && isset($attr[$key])) {
-                    // Tách các giá trị nếu chúng được lưu dạng chuỗi phẩy "Đỏ, Xanh"
-                    $parts = explode(',', $attr[$key]);
-                    foreach ($parts as $part) {
-                        $values[] = trim($part);
-                    }
+        $allAttributes = self::whereNotNull('attributes')->pluck('attributes');
+        $values = [];
+        foreach ($allAttributes as $attr) {
+            if (is_array($attr) && isset($attr[$key])) {
+                // Tách các giá trị nếu chúng được lưu dạng chuỗi phẩy "Đỏ, Xanh"
+                $parts = explode(',', $attr[$key]);
+                foreach ($parts as $part) {
+                    $values[] = trim($part);
                 }
             }
-            return array_values(array_unique(array_filter($values)));
-        });
+        }
+        return array_values(array_unique(array_filter($values)));
     }
 }

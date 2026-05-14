@@ -68,7 +68,7 @@
                 </thead>
                 <tbody class="divide-y divide-slate-100 bg-white/50">
                     @foreach($customers as $customer)
-                        <tr class="hover:bg-slate-50 transition-colors group/row {{ in_array((string)$customer->id, $selectedRows) ? 'bg-electric-blue/5' : '' }}">
+                        <tr wire:key="customer-row-{{ $customer->id }}" class="hover:bg-slate-50 transition-colors group/row {{ in_array((string)$customer->id, $selectedRows) ? 'bg-electric-blue/5' : '' }}">
                             <td class="px-6 py-4">
                                 <input type="checkbox" wire:model.live="selectedRows" value="{{ $customer->id }}" class="w-4 h-4 rounded border-slate-300 text-electric-blue focus:ring-electric-blue transition-all cursor-pointer">
                             </td>

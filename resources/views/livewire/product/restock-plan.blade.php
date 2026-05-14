@@ -122,7 +122,7 @@
                 </thead>
                 <tbody class="divide-y divide-slate-100 bg-white/50">
                     @forelse($products as $product)
-                        <tr class="hover:bg-slate-50 transition-colors group/row">
+                        <tr wire:key="restock-row-{{ $product->id }}" class="hover:bg-slate-50 transition-colors group/row">
                             <td class="px-4 py-2">
                                 <div class="flex items-center gap-3">
                                     @if(!empty($product->images))

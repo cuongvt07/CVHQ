@@ -123,7 +123,7 @@
                 </thead>
                 <tbody class="divide-y divide-slate-100 bg-white/50">
                     @foreach($invoices as $invoice)
-                        <tr class="hover:bg-slate-50 transition-all group/row {{ in_array((string)$invoice->id, $selectedRows) ? 'bg-electric-blue/5' : '' }} {{ $expandedInvoiceId === $invoice->id ? 'bg-slate-50/80 shadow-inner' : '' }}">
+                        <tr wire:key="invoice-row-{{ $invoice->id }}" class="hover:bg-slate-50 transition-all group/row {{ in_array((string)$invoice->id, $selectedRows) ? 'bg-electric-blue/5' : '' }} {{ $expandedInvoiceId === $invoice->id ? 'bg-slate-50/80 shadow-inner' : '' }}">
                             <td class="px-6 py-4">
                                 <input type="checkbox" wire:model.live="selectedRows" value="{{ $invoice->id }}" class="w-4 h-4 rounded border-slate-300 text-electric-blue focus:ring-electric-blue transition-all cursor-pointer">
                             </td>
@@ -280,7 +280,7 @@
                                                         <tbody class="divide-y divide-slate-50">
                                                             @if($editingInvoiceId === $invoice->id)
                                                                 @foreach($editingItems as $index => $item)
-                                                                    <tr>
+                                                                    <tr wire:key="editing-item-{{ $index }}">
                                                                         <td class="py-2.5">
                                                                             <div class="text-[11px] font-bold text-slate-800">{{ $item['product_name'] }}</div>
                                                                             <div class="text-[9px] text-slate-400 uppercase font-mono">{{ $item['sku'] }}</div>
@@ -306,7 +306,7 @@
                                                                 @endforeach
                                                             @else
                                                                  @foreach($invoice->items as $item)
-                                                                    <tr>
+                                                                    <tr wire:key="invoice-item-{{ $item->id }}">
                                                                         <td class="py-2">
                                                                             <div class="flex items-center gap-3">
                                                                                 <div class="w-10 h-10 rounded-lg overflow-hidden bg-slate-100 border border-slate-200 product-image-container relative" 
