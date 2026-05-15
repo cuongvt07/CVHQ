@@ -27,6 +27,7 @@ class User extends Authenticatable
         'role',
         'can_receive_commission',
         'permissions',
+        'ui_settings',
     ];
 
     /**
@@ -51,6 +52,7 @@ class User extends Authenticatable
             'password' => 'hashed',
             'can_receive_commission' => 'boolean',
             'permissions' => 'array',
+            'ui_settings' => 'array',
         ];
     }
 

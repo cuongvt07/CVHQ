@@ -12,15 +12,20 @@ use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Str;
 use App\Traits\WithBulkActions;
 use App\Traits\HasPermissions;
-use App\Traits\WithColumnVisibility;
+use App\Traits\WithUserPreferences;
 
 class ProductIndex extends Component
 {
-    use WithPagination, WithFileUploads, WithBulkActions, HasPermissions, WithColumnVisibility;
+    use WithPagination, WithFileUploads, WithBulkActions, HasPermissions, WithColumnVisibility, WithUserPreferences;
 
     protected function getModuleKey(): string
     {
         return 'products';
+    }
+
+    protected function getPersistedProperties(): array
+    {
+        return ['perPage', 'branch'];
     }
 
     public $search = '';

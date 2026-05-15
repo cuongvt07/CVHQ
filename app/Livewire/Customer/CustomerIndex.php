@@ -12,11 +12,11 @@ use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Str;
 use App\Traits\WithBulkActions;
 use App\Traits\HasPermissions;
-use App\Traits\WithColumnVisibility;
+use App\Traits\WithUserPreferences;
 
 class CustomerIndex extends Component
 {
-    use WithPagination, WithFileUploads, WithBulkActions, HasPermissions, WithColumnVisibility;
+    use WithPagination, WithFileUploads, WithBulkActions, HasPermissions, WithColumnVisibility, WithUserPreferences;
 
     protected function getModuleKey(): string
     {

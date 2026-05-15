@@ -12,11 +12,12 @@ use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Str;
 use App\Traits\WithBulkActions;
 use App\Traits\HasPermissions;
+use App\Traits\WithUserPreferences;
 use App\Traits\WithColumnVisibility;
 
 class InvoiceIndex extends Component
 {
-    use WithPagination, WithFileUploads, WithBulkActions, HasPermissions, WithColumnVisibility;
+    use WithPagination, WithFileUploads, WithBulkActions, HasPermissions, WithColumnVisibility, WithUserPreferences;
 
     protected function getModuleKey(): string
     {

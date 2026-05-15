@@ -26,83 +26,106 @@
     <x-delete-modal />
 
     <!-- Search & Filter Bar -->
-    <div class="px-4 md:px-6 py-4 bg-white border-b border-slate-100 flex flex-col gap-4">
-        <div class="flex flex-col md:flex-row items-center justify-between gap-4">
-            <div class="flex flex-wrap items-center gap-3 w-full md:w-auto flex-1">
-                <!-- Main Search -->
-                <div class="relative w-full md:w-72 group">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="absolute left-4 top-1/2 -translate-y-1/2 text-slate-300 group-focus-within:text-electric-blue transition-colors"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
-                    <input type="text" wire:model.live="search" placeholder="Tìm tên, mã SKU..." class="w-full bg-slate-50 border border-slate-200 rounded-xl py-2 pl-12 pr-6 text-[11px] focus:outline-none focus:border-electric-blue transition-all text-slate-900 shadow-sm">
-                </div>
+    <!-- Search & Filter Bar -->
+    <div class="px-4 md:px-6 py-4 bg-white border-b border-slate-100 flex flex-col gap-5">
+        <!-- Row 1: Advanced Search Filters -->
+        <div class="flex flex-wrap items-center gap-4">
+            <!-- Main Search -->
+            <div class="relative w-full md:w-80 group">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="absolute left-4 top-1/2 -translate-y-1/2 text-slate-300 group-focus-within:text-electric-blue transition-colors"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+                <input type="text" wire:model.live="search" placeholder="Tìm tên, mã SKU..." class="w-full bg-slate-50 border border-slate-200 rounded-xl py-2.5 pl-12 pr-6 text-[11px] focus:outline-none focus:border-electric-blue transition-all text-slate-900 shadow-sm">
+            </div>
 
-                <!-- Category Filter (Absolute Popup) -->
-                <div class="relative w-full md:w-48" x-data="{ catSearch: '' }">
-                    <div class="relative group">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-300 group-focus-within:text-electric-blue transition-colors"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>
-                        <input type="text" x-model="catSearch" placeholder="Lọc danh mục..." class="w-full bg-white border border-slate-200 rounded-xl py-2 pl-10 pr-4 text-xs focus:outline-none focus:border-electric-blue transition-all text-slate-900 shadow-sm">
-                    </div>
-                    
-                    <!-- Absolute Dropdown -->
-                    <div x-show="catSearch.length > 0" 
-                         x-transition:enter="transition ease-out duration-100"
-                         x-transition:enter-start="opacity-0 scale-95"
-                         x-transition:enter-end="opacity-100 scale-100"
-                         class="absolute z-[100] top-full left-0 w-64 bg-white border border-slate-200 rounded-xl shadow-2xl mt-2 p-2"
-                         x-cloak
-                         @click.away="catSearch = ''">
-                        <div class="max-h-48 overflow-y-auto custom-scrollbar">
-                            @foreach($categories_list as $cat)
-                                <label x-show="'{{ strtolower($cat) }}'.includes(catSearch.toLowerCase())" class="flex items-center gap-2 px-3 py-2 hover:bg-slate-50 rounded-lg cursor-pointer transition-colors group">
-                                    <input type="checkbox" wire:model.live="selectedCategories" value="{{ $cat }}" class="w-4 h-4 rounded border-slate-300 text-electric-blue focus:ring-electric-blue/20 transition-all">
-                                    <span class="text-[10px] font-medium text-slate-600 group-hover:text-slate-900 transition-colors">{{ $cat }}</span>
-                                </label>
-                            @endforeach
-                        </div>
-                    </div>
+            <!-- Category Filter -->
+            <div class="relative w-full md:w-56" x-data="{ catSearch: '' }">
+                <div class="relative group">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-300 group-focus-within:text-electric-blue transition-colors"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>
+                    <input type="text" x-model="catSearch" placeholder="Lọc danh mục..." class="w-full bg-white border border-slate-200 rounded-xl py-2.5 pl-10 pr-4 text-xs focus:outline-none focus:border-electric-blue transition-all text-slate-900 shadow-sm">
                 </div>
-
-                <!-- Box Code Filter -->
-                <div class="relative w-full md:w-40 group">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-300 group-focus-within:text-electric-blue transition-colors"><path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"/><path d="m3.3 7 8.7 5 8.7-5"/><path d="M12 22V12"/></svg>
-                    <input type="text" wire:model.live.debounce.300ms="boxCode" placeholder="Mã thùng..." class="w-full bg-white border border-slate-200 rounded-xl py-2 pl-10 pr-4 text-[11px] focus:outline-none focus:border-electric-blue transition-all text-slate-900 shadow-sm">
+                
+                <!-- Absolute Dropdown -->
+                <div x-show="catSearch.length > 0" 
+                     x-transition:enter="transition ease-out duration-100"
+                     x-transition:enter-start="opacity-0 scale-95"
+                     x-transition:enter-end="opacity-100 scale-100"
+                     class="absolute z-[100] top-full left-0 w-64 bg-white border border-slate-200 rounded-xl shadow-2xl mt-2 p-2"
+                     x-cloak
+                     @click.away="catSearch = ''">
+                    <div class="max-h-48 overflow-y-auto custom-scrollbar">
+                        @foreach($categories_list as $cat)
+                            <label x-show="'{{ strtolower($cat) }}'.includes(catSearch.toLowerCase())" class="flex items-center gap-2 px-3 py-2 hover:bg-slate-50 rounded-lg cursor-pointer transition-colors group">
+                                <input type="checkbox" wire:model.live="selectedCategories" value="{{ $cat }}" class="w-4 h-4 rounded border-slate-300 text-electric-blue focus:ring-electric-blue/20 transition-all">
+                                <span class="text-[10px] font-medium text-slate-600 group-hover:text-slate-900 transition-colors">{{ $cat }}</span>
+                            </label>
+                        @endforeach
+                    </div>
                 </div>
             </div>
 
-            <div class="flex items-center gap-4">
+            <!-- Box Code Filter -->
+            <div class="relative w-full md:w-48 group">
+                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-300 group-focus-within:text-electric-blue transition-colors"><path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"/><path d="m3.3 7 8.7 5 8.7-5"/><path d="M12 22V12"/></svg>
+                <input type="text" wire:model.live.debounce.300ms="boxCode" placeholder="Mã thùng..." class="w-full bg-white border border-slate-200 rounded-xl py-2.5 pl-10 pr-4 text-[11px] focus:outline-none focus:border-electric-blue transition-all text-slate-900 shadow-sm">
+            </div>
+        </div>
+
+        <!-- Row 2: Bulk Actions & Configuration -->
+        <div class="flex flex-col md:flex-row items-center justify-between gap-4 pt-4 border-t border-slate-50">
+            <!-- Left Side: Selection Actions -->
+            <div class="flex items-center gap-3 min-h-[40px]">
                 @if(count($selectedRows) > 0)
-                    <div class="flex items-center gap-3 animate-in fade-in slide-in-from-right-4 duration-300">
-                        <span class="text-[9px] font-bold text-slate-400 tracking-widest">Đã chọn {{ count($selectedRows) }} mục:</span>
-                        <button wire:click="bulkCopyToSG" class="px-4 py-2 rounded-xl text-[9px] font-bold bg-emerald-50 text-emerald-600 border border-emerald-100 hover:bg-emerald-100 transition-all flex items-center gap-2">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="M12 5v14"/><path d="M12 13V7l-3 3"/><path d="m15 10-3-3"/></svg>
+                    <div class="flex items-center gap-3 animate-in fade-in slide-in-from-left-4 duration-300">
+                        <div class="px-3 py-1.5 bg-electric-blue/10 rounded-lg border border-electric-blue/20 flex items-center gap-2">
+                            <span class="w-2 h-2 bg-electric-blue rounded-full animate-pulse"></span>
+                            <span class="text-[10px] font-black text-electric-blue uppercase tracking-widest">Đã chọn {{ count($selectedRows) }} mục</span>
+                        </div>
+                        
+                        <div class="h-6 w-px bg-slate-200 mx-1"></div>
+
+                        <button wire:click="bulkCopyToSG" class="px-4 py-2 rounded-xl text-[9px] font-black bg-emerald-500 text-white hover:bg-emerald-600 transition-all flex items-center gap-2 shadow-[0_4px_12px_rgba(16,185,129,0.2)] uppercase tracking-wider">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="M12 5v14"/><path d="M12 13V7l-3 3"/><path d="m15 10-3-3"/></svg>
                             Sao chép sang SG
                         </button>
-                        <button wire:click="bulkDelete" wire:confirm="Bạn có chắc chắn muốn xóa các mục đã chọn?" class="px-4 py-2 rounded-xl text-[9px] font-bold bg-rose-50 text-rose-600 border border-rose-100 hover:bg-rose-100 transition-all flex items-center gap-2">
+                        
+                        <button wire:click="bulkDelete" wire:confirm="Bạn có chắc chắn muốn xóa các mục đã chọn?" class="px-4 py-2 rounded-xl text-[9px] font-black bg-white text-rose-500 border border-rose-200 hover:bg-rose-50 transition-all flex items-center gap-2 uppercase tracking-wider">
                             <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/></svg>
                             Xóa hàng loạt
                         </button>
                     </div>
-                    <div class="h-8 w-px bg-slate-100"></div>
+                @else
+                    <div class="flex items-center gap-2 text-slate-300 italic animate-in fade-in duration-500">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg>
+                        <span class="text-[10px] font-medium uppercase tracking-widest">Chọn sản phẩm để thực hiện thao tác hàng loạt</span>
+                    </div>
                 @endif
-                
+            </div>
+
+            <!-- Right Side: Display Controls -->
+            <div class="flex items-center gap-6">
                 <!-- Branch Filter -->
-                <div class="flex items-center gap-2 mr-4">
-                    <span class="text-[9px] text-slate-400 font-bold tracking-widest">Chi nhánh:</span>
-                    <div class="flex bg-slate-100 p-1 rounded-xl">
-                        <button wire:click="$set('branch', 'all')" class="px-3 py-1.5 rounded-lg text-[9px] font-bold transition-all {{ $branch === 'all' ? 'bg-white text-electric-blue shadow-sm' : 'text-slate-400 hover:text-slate-600' }}">Tất cả</button>
-                        <button wire:click="$set('branch', 'sg')" class="px-3 py-1.5 rounded-lg text-[9px] font-bold transition-all {{ $branch === 'sg' ? 'bg-white text-emerald-500 shadow-sm' : 'text-slate-400 hover:text-slate-600' }}">Sài Gòn</button>
-                        <button wire:click="$set('branch', 'hn')" class="px-3 py-1.5 rounded-lg text-[9px] font-bold transition-all {{ $branch === 'hn' ? 'bg-white text-rose-500 shadow-sm' : 'text-slate-400 hover:text-slate-600' }}">Hà Nội</button>
+                <div class="flex items-center gap-3">
+                    <span class="text-[10px] text-slate-400 font-bold uppercase tracking-widest">Chi nhánh</span>
+                    <div class="flex bg-slate-100 p-1 rounded-xl border border-slate-200/50">
+                        <button wire:click="$set('branch', 'all')" class="px-4 py-1.5 rounded-lg text-[10px] font-black transition-all {{ $branch === 'all' ? 'bg-white text-electric-blue shadow-sm' : 'text-slate-400 hover:text-slate-600' }}">TẤT CẢ</button>
+                        <button wire:click="$set('branch', 'sg')" class="px-4 py-1.5 rounded-lg text-[10px] font-black transition-all {{ $branch === 'sg' ? 'bg-white text-emerald-500 shadow-sm' : 'text-slate-400 hover:text-slate-600' }}">SÀI GÒN</button>
+                        <button wire:click="$set('branch', 'hn')" class="px-4 py-1.5 rounded-lg text-[10px] font-black transition-all {{ $branch === 'hn' ? 'bg-white text-rose-500 shadow-sm' : 'text-slate-400 hover:text-slate-600' }}">HÀ NỘI</button>
                     </div>
                 </div>
 
-                <div class="flex items-center gap-2">
-                    <span class="text-[9px] text-slate-400 font-bold tracking-widest">Hiển thị:</span>
-                    <select wire:model.live="perPage" class="bg-slate-50 border border-slate-200 rounded-lg py-1.5 px-3 text-[9px] font-bold text-slate-600 focus:outline-none focus:border-electric-blue/40 transition-all cursor-pointer">
+                <div class="h-8 w-px bg-slate-100"></div>
+
+                <!-- Per Page -->
+                <div class="flex items-center gap-3">
+                    <span class="text-[10px] text-slate-400 font-bold uppercase tracking-widest">Hiển thị</span>
+                    <select wire:model.live="perPage" class="bg-white border border-slate-200 rounded-xl py-1.5 px-4 text-[10px] font-black text-slate-600 focus:outline-none focus:border-electric-blue transition-all cursor-pointer shadow-sm">
                         <option value="10">10</option>
                         <option value="25">25</option>
                         <option value="50">50</option>
                         <option value="100">100</option>
                     </select>
                 </div>
+
+                <div class="h-8 w-px bg-slate-100"></div>
 
                 <x-column-toggle 
                     :visibleColumns="$visibleColumns" 
@@ -118,6 +141,7 @@
                 />
             </div>
         </div>
+    </div>
 
 
 
@@ -168,6 +192,9 @@
             <table class="w-full text-left border-collapse">
                 <thead>
                     <tr class="bg-slate-50 border-b border-slate-200">
+                        <th class="px-4 py-2 w-10">
+                            <input type="checkbox" wire:model.live="selectAll" class="w-4 h-4 rounded border-slate-300 text-electric-blue focus:ring-electric-blue transition-all cursor-pointer">
+                        </th>
                         @if(in_array('sku', $visibleColumns))
                         <th class="px-4 py-2">
                             <button wire:click="sortBy('sku')" class="flex items-center gap-1.5 text-[9px] font-bold text-slate-500 tracking-[0.2em] group/btn">
@@ -304,6 +331,7 @@
                                        class="w-24 bg-slate-50 border border-slate-100 rounded-lg px-2 py-1 text-xs font-bold text-electric-blue transition-all focus:bg-white focus:border-electric-blue focus:ring-0 shadow-inner">
                             </td>
                             @endif
+                            @if(in_array('stock', $visibleColumns))
                             <td class="px-4 py-2">
                                 <input type="number" 
                                        value="{{ $product->stock_quantity }}" 
@@ -311,10 +339,15 @@
                                        x-on:keydown.enter="$event.target.blur()"
                                        class="w-20 bg-slate-50 border border-slate-100 rounded-lg px-2 py-1 text-xs font-bold {{ $product->stock_quantity < 10 ? 'text-orange-600' : 'text-slate-900' }} transition-all focus:bg-white focus:border-electric-blue focus:ring-0 shadow-inner">
                             </td>
+                            @endif
+                            @if(in_array('price', $visibleColumns))
                             <td class="px-4 py-2 italic font-bold">
                                 <span class="text-xs text-slate-900">{{ number_format($product->sale_price, 0, ',', '.') }}</span>
                             </td>
-                            <td class="px-4 py-2">
+                            @endif
+                            @if(in_array('actions', $visibleColumns))
+                            <td class="px-4 py-2 text-right">
+                                <div class="flex items-center justify-end gap-1">
                                     <button wire:click="toggleHistory({{ $product->id }})" class="p-1.5 {{ $expandedProductId === $product->id ? 'text-electric-blue' : 'text-slate-400' }} hover:text-electric-blue transition-colors relative group" title="Thẻ kho">
                                         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" x2="8" y1="13" y2="13"/><line x1="16" x2="8" y1="17" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
                                         @if($expandedProductId === $product->id)
@@ -327,7 +360,9 @@
                                     <button wire:click="confirmDelete({{ $product->id }})" class="p-1.5 text-slate-400 hover:text-rose-500 transition-colors">
                                         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/><line x1="10" x2="10" y1="11" y2="17"/><line x1="14" x2="14" y1="11" y2="17"/></svg>
                                     </button>
-                                </td>
+                                </div>
+                            </td>
+                            @endif
                         </tr>
 
                         @if($expandedProductId === $product->id)
