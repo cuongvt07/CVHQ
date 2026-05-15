@@ -45,7 +45,6 @@ class ProductIndex extends Component
     public $branch = 'all';
     public $sortField = 'created_at';
     public $sortDirection = 'desc';
-    public $visibleColumns = [];
 
     // Import Progress
     public $importing = false;
@@ -127,7 +126,15 @@ class ProductIndex extends Component
 
     public function clearFilter($type, $value = null)
     {
-        if ($type === 'selectedCategories') {
+        if ($type === 'all') {
+            $this->selectedCategories = [];
+            $this->boxCode = '';
+            $this->brandFilter = '';
+            $this->stockStatus = 'all';
+            $this->search = '';
+            $this->category = 'All';
+            $this->branch = 'all';
+        } elseif ($type === 'selectedCategories') {
             if ($value) {
                 $this->selectedCategories = array_diff($this->selectedCategories, [$value]);
             } else {
