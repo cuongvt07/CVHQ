@@ -5,6 +5,7 @@ namespace App\Livewire\System;
 use App\Models\ActivityLog;
 use App\Models\User;
 use Livewire\Component;
+use Livewire\WithPagination;
 use App\Traits\WithColumnVisibility;
 use App\Traits\WithUserPreferences;
 

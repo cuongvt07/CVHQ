@@ -8,6 +8,8 @@ use Livewire\WithPagination;
 use Illuminate\Support\Facades\Hash;
 use App\Traits\WithColumnVisibility;
 use App\Traits\WithUserPreferences;
+use App\Traits\WithBulkActions;
+use App\Traits\HasPermissions;
 
 class UserIndex extends Component
 {
