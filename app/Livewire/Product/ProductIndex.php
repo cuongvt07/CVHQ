@@ -67,7 +67,7 @@ class ProductIndex extends Component
     {
         $this->resetPage();
     }
-    
+
     public function updatingCategory()
     {
         $this->resetPage();
@@ -109,9 +109,9 @@ class ProductIndex extends Component
             return;
         }
 
-        $price = (int)$this->sale_price;
+        $price = (int) $this->sale_price;
         $ranges = \App\Models\SystemSetting::get('commission_ranges', []);
-        
+
         foreach ($ranges as $range) {
             if ($price >= $range['min'] && $price < $range['max']) {
                 $this->commission_amount = $range['amount'];
@@ -137,7 +137,7 @@ class ProductIndex extends Component
         } elseif ($type === 'search') {
             $this->search = '';
         }
-        
+
         $this->resetPage();
     }
 
@@ -191,12 +191,12 @@ class ProductIndex extends Component
         try {
             $import = new ProductsImport();
             $import->setImportKey($this->importBatchId);
-            
+
             // Store the file to ensure it's available for the queue worker
             $filePath = $this->importFile->store('imports');
-            
+
             Excel::queueImport($import, $filePath);
-            
+
             $this->importFile = null;
         } catch (\Maatwebsite\Excel\Validators\ValidationException $e) {
             $this->importing = false;
@@ -212,14 +212,15 @@ class ProductIndex extends Component
 
     public function pollImportProgress()
     {
-        if (!$this->importing) return;
+        if (!$this->importing)
+            return;
 
         $progress = Cache::get("import_progress_{$this->importBatchId}");
 
         if ($progress) {
             $this->importTotal = $progress['total'];
             $this->importCurrent = $progress['current'];
-            
+
             if ($this->importTotal > 0) {
                 $this->importProgress = min(100, round(($this->importCurrent / $this->importTotal) * 100));
             }
@@ -227,11 +228,11 @@ class ProductIndex extends Component
             if ($this->importCurrent >= $this->importTotal || $progress['status'] === 'failed' || $progress['status'] === 'finished') {
                 $this->importing = false;
                 $this->importErrors = array_merge($this->importErrors, $progress['errors']);
-                
+
                 if (empty($this->importErrors)) {
                     $this->dispatch('notify', message: 'Import hoàn tất thành công!', type: 'success');
                 }
-                
+
                 $this->dispatch('import-finished', id: 'products');
             }
         }
@@ -276,7 +277,7 @@ class ProductIndex extends Component
     {
         $this->resetForm();
         $this->loadAttributeSuggestions();
-        
+
         // Auto commission logic
         if (\App\Models\SystemSetting::get('auto_commission_enabled') === 'true') {
             $this->updatedSalePrice();
@@ -303,7 +304,7 @@ class ProductIndex extends Component
         $this->existingImages = is_array($product->images) ? $product->images : [];
         $this->newImages = [];
         $this->capturedImages = [];
-        
+
         $this->productAttributes = [];
         if (!empty($product->attributes) && is_array($product->attributes)) {
             foreach ($product->attributes as $key => $value) {
@@ -375,13 +376,13 @@ class ProductIndex extends Component
 
         if ($keepOpen) {
             $nextSku = $this->getNextSku($currentSku);
-            
+
             // Clone data logic: keep everything except specific fields
             $this->productId = null;
             $this->sku = $nextSku;
             $this->location = '';
             $this->productAttributes = [];
-            
+
             $this->loadAttributeSuggestions();
             $this->dispatch('notify', message: 'Đã lưu và sao chép dữ liệu cho sản phẩm tiếp theo!', type: 'success');
         } else {
@@ -419,7 +420,7 @@ class ProductIndex extends Component
     {
         \App\Models\SystemSetting::set('auto_commission_enabled', $this->autoCommissionEnabled ? 'true' : 'false');
         \App\Models\SystemSetting::set('commission_ranges', $this->commissionRanges);
-        
+
         $this->showCommissionSettings = false;
         $this->dispatch('close-commission-modal');
         $this->dispatch('notify', message: 'Đã lưu cấu hình hoa hồng!', type: 'success');
@@ -462,13 +463,13 @@ class ProductIndex extends Component
             $newProduct->stock_quantity = 0;
             $newProduct->location = '';
             $newProduct->save();
-            
+
             $count++;
         }
 
         $this->selectedRows = [];
         $this->selectAll = false;
-        
+
         $message = "Đã sao chép thành công {$count} sản phẩm sang SG.";
         if ($skipped > 0) {
             $message .= " (Bỏ qua {$skipped} mã đã tồn tại hoặc không hợp lệ)";
@@ -499,7 +500,8 @@ class ProductIndex extends Component
 
     private function getNextSku($sku)
     {
-        if (empty($sku)) return '';
+        if (empty($sku))
+            return '';
 
         $nextSku = $sku;
         $iteration = 0;
@@ -508,11 +510,11 @@ class ProductIndex extends Component
             // Try to match pattern TEXT-NUMBER or just TEXTNUMBER
             if (preg_match('/^(.*?)(\d+)$/', $nextSku, $matches)) {
                 $prefix = $matches[1];
-                $number = (int)$matches[2];
+                $number = (int) $matches[2];
                 $nextNumber = $number + 1;
-                
+
                 // Keep leading zeros if any
-                $nextNumberStr = str_pad((string)$nextNumber, strlen($matches[2]), '0', STR_PAD_LEFT);
+                $nextNumberStr = str_pad((string) $nextNumber, strlen($matches[2]), '0', STR_PAD_LEFT);
                 $nextSku = $prefix . $nextNumberStr;
             } else {
                 // If no trailing number, just add -1
@@ -523,7 +525,7 @@ class ProductIndex extends Component
             if (!Product::where('sku', $nextSku)->exists()) {
                 return $nextSku;
             }
-            
+
             $iteration++;
         }
 
@@ -554,13 +556,14 @@ class ProductIndex extends Component
     public function updateField($id, $field, $value)
     {
         $product = Product::findOrFail($id);
-        
+
         $rules = [
             'location' => 'nullable|string|max:255',
             'stock_quantity' => 'nullable|numeric|min:0',
         ];
-        
-        if (!isset($rules[$field])) return;
+
+        if (!isset($rules[$field]))
+            return;
 
         try {
             $validator = \Validator::make([$field => $value], [$field => $rules[$field]]);
@@ -569,13 +572,13 @@ class ProductIndex extends Component
             }
 
             if ($field === 'stock_quantity') {
-                $change = (int)$value - (int)$product->stock_quantity;
+                $change = (int) $value - (int) $product->stock_quantity;
                 if ($change !== 0) {
                     $product->recordStockHistory(
-                        'Adjustment', 
-                        $change, 
-                        null, 
-                        null, 
+                        'Adjustment',
+                        $change,
+                        null,
+                        null,
                         'Điều chỉnh thủ công'
                     );
                 }
@@ -603,21 +606,21 @@ class ProductIndex extends Component
     public function getProducts()
     {
         $query = Product::query()
-            ->when($this->branch !== 'all', function($query) {
+            ->when($this->branch !== 'all', function ($query) {
                 if ($this->branch === 'sg') {
                     $query->where('sku', 'LIKE', 'Z%');
                 } else {
                     $query->where('sku', 'NOT LIKE', 'Z%');
                 }
             })
-            ->when($this->search, function($query) {
+            ->when($this->search, function ($query) {
                 $keywords = array_filter(explode(' ', $this->search));
                 foreach ($keywords as $keyword) {
-                    $query->where(function($q) use ($keyword) {
+                    $query->where(function ($q) use ($keyword) {
                         $q->whereRaw("sku REGEXP ?", ['(^|[^0-9])' . $keyword . '([^0-9]|$)'])
-                          ->orWhereRaw("location REGEXP ?", ['(^|[^0-9])' . $keyword . '([^0-9]|$)'])
-                          ->orWhereRaw("name REGEXP ?", ['(^|[^0-9])' . $keyword . '([^0-9]|$)'])
-                          ->orWhereRaw("brand REGEXP ?", ['(^|[^0-9])' . $keyword . '([^0-9]|$)']);
+                            ->orWhereRaw("location REGEXP ?", ['(^|[^0-9])' . $keyword . '([^0-9]|$)'])
+                            ->orWhereRaw("name REGEXP ?", ['(^|[^0-9])' . $keyword . '([^0-9]|$)'])
+                            ->orWhereRaw("brand REGEXP ?", ['(^|[^0-9])' . $keyword . '([^0-9]|$)']);
                     });
                 }
 
@@ -629,19 +632,22 @@ class ProductIndex extends Component
                     ELSE 5 
                 END", [$this->search, $this->search, $this->search . '%', $this->search . '%']);
             })
-            ->when($this->selectedCategories, function($query) {
+            ->when($this->selectedCategories, function ($query) {
                 $query->whereIn('category_path', $this->selectedCategories);
             })
-            ->when($this->boxCode, function($query) {
+            ->when($this->boxCode, function ($query) {
                 $query->whereRaw("location REGEXP ?", ['(^|[^0-9])' . $this->boxCode . '([^0-9]|$)']);
             })
-            ->when($this->brandFilter, function($query) {
+            ->when($this->brandFilter, function ($query) {
                 $query->where('brand', $this->brandFilter);
             })
-            ->when($this->stockStatus !== 'all', function($query) {
-                if ($this->stockStatus === 'in_stock') $query->where('stock_quantity', '>', 0);
-                if ($this->stockStatus === 'out_of_stock') $query->where('stock_quantity', '<=', 0);
-                if ($this->stockStatus === 'low_stock') $query->where('stock_quantity', '<', 10)->where('stock_quantity', '>', 0);
+            ->when($this->stockStatus !== 'all', function ($query) {
+                if ($this->stockStatus === 'in_stock')
+                    $query->where('stock_quantity', '>', 0);
+                if ($this->stockStatus === 'out_of_stock')
+                    $query->where('stock_quantity', '<=', 0);
+                if ($this->stockStatus === 'low_stock')
+                    $query->where('stock_quantity', '<', 10)->where('stock_quantity', '>', 0);
             });
 
         if (!$this->search) {
