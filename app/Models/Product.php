@@ -130,4 +130,30 @@ class Product extends Model
         }
         return array_values(array_unique(array_filter($values)));
     }
+
+    public function stockHistories(): HasMany
+    {
+        return $this->hasMany(StockHistory::class)->orderBy('created_at', 'desc');
+    }
+
+    /**
+     * Ghi lại lịch sử thay đổi kho
+     */
+    public function recordStockHistory($type, $change, $referenceId = null, $referenceCode = null, $note = null)
+    {
+        $before = (int)$this->stock_quantity;
+        $after = $before + (int)$change;
+
+        return StockHistory::create([
+            'product_id' => $this->id,
+            'type' => $type,
+            'reference_id' => $referenceId,
+            'reference_code' => $referenceCode,
+            'quantity_before' => $before,
+            'quantity_change' => $change,
+            'quantity_after' => $after,
+            'note' => $note,
+            'user_id' => auth()->id(),
+        ]);
+    }
 }

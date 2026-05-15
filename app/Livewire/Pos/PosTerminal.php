@@ -344,6 +344,13 @@ class PosTerminal extends Component
                 // Trừ tồn kho sản phẩm
                 $product = \App\Models\Product::find($item['id']);
                 if ($product) {
+                    $product->recordStockHistory(
+                        'Sale', 
+                        -$item['quantity'], 
+                        $invoice->id, 
+                        $invoice->invoice_code, 
+                        'Bán hàng'
+                    );
                     $product->decrement('stock_quantity', $item['quantity']);
                 }
             }

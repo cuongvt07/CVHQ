@@ -55,6 +55,13 @@ class Invoice extends Model
             // Restore stock for each item
             foreach ($this->items as $item) {
                 if ($item->product) {
+                    $item->product->recordStockHistory(
+                        'Cancel', 
+                        $item->quantity, 
+                        $this->id, 
+                        $this->invoice_code, 
+                        'Hủy hóa đơn'
+                    );
                     $item->product->increment('stock_quantity', $item->quantity);
                 }
             }

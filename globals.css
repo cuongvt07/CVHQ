@@ -59,6 +59,10 @@ body {
   @apply bg-white/10 rounded-full hover:bg-white/20 transition-colors;
 }
 
+.custom-scrollbar-dark::-webkit-scrollbar-thumb {
+  @apply bg-electric-blue/20 hover:bg-electric-blue/40;
+}
+
 /* Base Animations */
 .animate-float {
   animation: float 6s ease-in-out infinite;

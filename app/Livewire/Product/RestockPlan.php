@@ -110,6 +110,19 @@ class RestockPlan extends Component
                 throw new \Exception($validator->errors()->first());
             }
 
+            if ($field === 'stock_quantity') {
+                $change = (int)$value - (int)$product->stock_quantity;
+                if ($change !== 0) {
+                    $product->recordStockHistory(
+                        'Adjustment', 
+                        $change, 
+                        null, 
+                        null, 
+                        'Điều chỉnh thủ công (Kế hoạch nhập hàng)'
+                    );
+                }
+            }
+
             $product->update([$field => $value]);
             $this->dispatch('notify', message: 'Cập nhật thành công!', type: 'success');
         } catch (\Exception $e) {

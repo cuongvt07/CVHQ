@@ -101,6 +101,17 @@ class ProductIndex extends Component
         $this->resetPage();
     }
 
+    public $expandedProductId = null;
+
+    public function toggleHistory($id)
+    {
+        if ($this->expandedProductId === $id) {
+            $this->expandedProductId = null;
+        } else {
+            $this->expandedProductId = $id;
+        }
+    }
+
     // Form properties
     public $productId;
     public $sku, $base_name, $category_path, $brand, $sale_price, $commission_amount, $stock_quantity, $location;
@@ -341,6 +352,19 @@ class ProductIndex extends Component
             $validator = \Validator::make([$field => $value], [$field => $rules[$field]]);
             if ($validator->fails()) {
                 throw new \Exception($validator->errors()->first());
+            }
+
+            if ($field === 'stock_quantity') {
+                $change = (int)$value - (int)$product->stock_quantity;
+                if ($change !== 0) {
+                    $product->recordStockHistory(
+                        'Adjustment', 
+                        $change, 
+                        null, 
+                        null, 
+                        'Điều chỉnh thủ công'
+                    );
+                }
             }
 
             $product->update([$field => $value]);

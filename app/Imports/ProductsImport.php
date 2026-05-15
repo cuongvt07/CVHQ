@@ -134,6 +134,20 @@ class ProductsImport implements OnEachRow, WithHeadingRow, WithChunkReading, Sho
             $data['attributes'] = $parsedAttributes;
 
             $product->fill($data);
+            
+            if ($product->isDirty('stock_quantity')) {
+                $change = (int)$product->stock_quantity - (int)$product->getOriginal('stock_quantity', 0);
+                if ($change !== 0) {
+                    $product->recordStockHistory(
+                        'Import', 
+                        $change, 
+                        null, 
+                        null, 
+                        'Nhập từ file Excel'
+                    );
+                }
+            }
+
             $product->save();
         } catch (\Exception $e) {
             $this->recordError("Dòng {$row->getIndex()}: " . $e->getMessage());

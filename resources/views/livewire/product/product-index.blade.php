@@ -202,7 +202,12 @@
                                 <span class="text-xs text-slate-900">{{ number_format($product->sale_price, 0, ',', '.') }}</span>
                             </td>
                             <td class="px-4 py-2">
-                                <div class="flex items-center gap-2">
+                                    <button wire:click="toggleHistory({{ $product->id }})" class="p-1.5 {{ $expandedProductId === $product->id ? 'text-electric-blue' : 'text-slate-400' }} hover:text-electric-blue transition-colors relative group" title="Thẻ kho">
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" x2="8" y1="13" y2="13"/><line x1="16" x2="8" y1="17" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+                                        @if($expandedProductId === $product->id)
+                                            <span class="absolute -bottom-1 left-1/2 -translate-x-1/2 w-1 h-1 bg-electric-blue rounded-full"></span>
+                                        @endif
+                                    </button>
                                     <button wire:click="edit({{ $product->id }})" class="p-1.5 text-slate-400 hover:text-electric-blue transition-colors">
                                         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
                                     </button>
@@ -212,6 +217,83 @@
                                 </div>
                             </td>
                         </tr>
+
+                        @if($expandedProductId === $product->id)
+                            <tr wire:key="history-row-{{ $product->id }}" class="bg-slate-900/95 backdrop-blur-xl">
+                                <td colspan="6" class="px-6 py-4">
+                                    <div class="flex flex-col gap-4 animate-in fade-in slide-in-from-top-2 duration-300">
+                                        <div class="flex items-center justify-between">
+                                            <div class="flex items-center gap-2">
+                                                <div class="w-1.5 h-6 bg-electric-blue rounded-full"></div>
+                                                <h3 class="text-[11px] font-black text-white uppercase tracking-[0.2em]">Lịch sử thẻ kho: <span class="text-electric-blue">{{ $product->sku }}</span></h3>
+                                            </div>
+                                            <button wire:click="$set('expandedProductId', null)" class="text-slate-500 hover:text-white transition-colors">
+                                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+                                            </button>
+                                        </div>
+
+                                        <div class="max-h-[300px] overflow-y-auto custom-scrollbar-dark border border-white/5 rounded-2xl bg-black/40">
+                                            <table class="w-full text-[11px]">
+                                                <thead class="sticky top-0 bg-black/80 backdrop-blur-md z-10">
+                                                    <tr class="text-slate-500 border-b border-white/5">
+                                                        <th class="px-4 py-3 font-bold text-left">Thời gian</th>
+                                                        <th class="px-4 py-3 font-bold text-left">Loại</th>
+                                                        <th class="px-4 py-3 font-bold text-left">Mã tham chiếu</th>
+                                                        <th class="px-4 py-3 font-bold text-right">Thay đổi</th>
+                                                        <th class="px-4 py-3 font-bold text-right">Tồn cuối</th>
+                                                        <th class="px-4 py-3 font-bold text-left">Ghi chú</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody class="divide-y divide-white/5">
+                                                    @forelse($product->stockHistories()->take(10)->get() as $history)
+                                                        <tr class="text-slate-300 hover:bg-white/5 transition-colors">
+                                                            <td class="px-4 py-3 whitespace-nowrap">{{ $history->created_at->format('d/m/Y H:i') }}</td>
+                                                            <td class="px-4 py-3">
+                                                                @php
+                                                                    $typeColors = [
+                                                                        'Sale' => 'text-emerald-400',
+                                                                        'Purchase' => 'text-electric-blue',
+                                                                        'Adjustment' => 'text-amber-400',
+                                                                        'Cancel' => 'text-rose-400',
+                                                                        'Import' => 'text-purple-400',
+                                                                    ];
+                                                                    $typeLabels = [
+                                                                        'Sale' => 'Bán hàng',
+                                                                        'Purchase' => 'Nhập hàng',
+                                                                        'Adjustment' => 'Điều chỉnh',
+                                                                        'Cancel' => 'Hủy bán',
+                                                                        'Import' => 'Import Excel',
+                                                                    ];
+                                                                @endphp
+                                                                <span class="{{ $typeColors[$history->type] ?? 'text-slate-400' }} font-bold">
+                                                                    {{ $typeLabels[$history->type] ?? $history->type }}
+                                                                </span>
+                                                            </td>
+                                                            <td class="px-4 py-3 font-mono text-[10px]">{{ $history->reference_code ?: '-' }}</td>
+                                                            <td class="px-4 py-3 text-right font-black {{ $history->quantity_change > 0 ? 'text-emerald-400' : 'text-rose-400' }}">
+                                                                {{ $history->quantity_change > 0 ? '+' : '' }}{{ $history->quantity_change }}
+                                                            </td>
+                                                            <td class="px-4 py-3 text-right text-white font-black">{{ $history->quantity_after }}</td>
+                                                            <td class="px-4 py-3 text-slate-500 italic">{{ $history->note ?: '-' }}</td>
+                                                        </tr>
+                                                    @empty
+                                                        <tr>
+                                                            <td colspan="6" class="px-4 py-8 text-center text-slate-600 italic">
+                                                                Chưa có lịch sử biến động kho cho sản phẩm này.
+                                                            </td>
+                                                        </tr>
+                                                    @endforelse
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                        
+                                        <div class="flex justify-end">
+                                            <span class="text-[9px] text-slate-500 uppercase tracking-widest font-bold">Hiển thị 10 hoạt động mới nhất</span>
+                                        </div>
+                                    </div>
+                                </td>
+                            </tr>
+                        @endif
                     @endforeach
                 </tbody>
             </table>
