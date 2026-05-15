@@ -58,12 +58,19 @@
 
             <div class="flex items-center gap-3">
                 <span class="text-[10px] text-slate-400 font-bold tracking-widest">Hiển thị:</span>
-                <select wire:model.live="perPage" class="bg-slate-50 border border-slate-200 rounded-lg py-1 px-2 text-[9px] font-bold text-slate-600 focus:outline-none focus:border-electric-blue/40 transition-all cursor-pointer">
-                    <option value="10">10</option>
-                    <option value="25">25</option>
-                    <option value="50">50</option>
-                    <option value="100">100</option>
                 </select>
+                
+                <x-column-toggle 
+                    :visibleColumns="$visibleColumns" 
+                    :cols="[
+                        'code' => 'Mã hóa đơn',
+                        'customer' => 'Khách hàng',
+                        'amount' => 'Tổng tiền',
+                        'method' => 'Phương thức',
+                        'status' => 'Trạng thái',
+                        'date' => 'Ngày tạo'
+                    ]" 
+                />
             </div>
         </div>
 
@@ -113,12 +120,24 @@
                         <th class="px-6 py-4 w-10">
                             <input type="checkbox" wire:model.live="selectAll" class="w-4 h-4 rounded border-slate-300 text-electric-blue focus:ring-electric-blue transition-all cursor-pointer">
                         </th>
+                        @if(in_array('code', $visibleColumns))
                         <th class="px-6 py-4 text-[9px] font-bold text-slate-400 tracking-[0.2em]">Mã hóa đơn</th>
+                        @endif
+                        @if(in_array('customer', $visibleColumns))
                         <th class="px-6 py-4 text-[9px] font-bold text-slate-400 tracking-[0.2em]">Khách hàng</th>
+                        @endif
+                        @if(in_array('amount', $visibleColumns))
                         <th class="px-6 py-4 text-[9px] font-bold text-slate-400 tracking-[0.2em]">Tổng tiền</th>
+                        @endif
+                        @if(in_array('method', $visibleColumns))
                         <th class="px-6 py-4 text-[9px] font-bold text-slate-400 tracking-[0.2em]">Phương thức</th>
+                        @endif
+                        @if(in_array('status', $visibleColumns))
                         <th class="px-6 py-4 text-[9px] font-bold text-slate-400 tracking-[0.2em]">Trạng thái</th>
+                        @endif
+                        @if(in_array('date', $visibleColumns))
                         <th class="px-6 py-4 text-[9px] font-bold text-slate-400 tracking-[0.2em]">Ngày tạo</th>
+                        @endif
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-slate-100 bg-white/50">
@@ -127,6 +146,7 @@
                             <td class="px-6 py-4">
                                 <input type="checkbox" wire:model.live="selectedRows" value="{{ $invoice->id }}" class="w-4 h-4 rounded border-slate-300 text-electric-blue focus:ring-electric-blue transition-all cursor-pointer">
                             </td>
+                            @if(in_array('code', $visibleColumns))
                             <td class="px-6 py-4 cursor-pointer" wire:click="toggleDetails({{ $invoice->id }})">
                                 <div class="flex items-center gap-3">
                                     <div class="transition-transform duration-300 {{ $expandedInvoiceId === $invoice->id ? 'rotate-90' : '' }}">
@@ -138,21 +158,31 @@
                                     </div>
                                 </div>
                             </td>
+                            @endif
+                            @if(in_array('customer', $visibleColumns))
                             <td class="px-6 py-4 cursor-pointer" wire:click="toggleDetails({{ $invoice->id }})">
                                 <div class="text-xs text-slate-700">{{ $invoice->customer->full_name ?? 'Khách lẻ' }}</div>
                             </td>
+                            @endif
+                            @if(in_array('amount', $visibleColumns))
                             <td class="px-6 py-4 italic font-bold">
                                 <div class="text-sm text-slate-900">{{ number_format($invoice->final_amount, 0, ',', '.') }} VNĐ</div>
                             </td>
+                            @endif
+                            @if(in_array('method', $visibleColumns))
                             <td class="px-6 py-4">
                                 <div class="flex items-center gap-2">
                                     <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-slate-300"><rect width="20" height="14" x="2" y="5" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg>
                                     <span class="text-[11px] text-slate-400 tracking-widest">Tiền mặt</span>
                                 </div>
                             </td>
+                            @endif
+                            @if(in_array('status', $visibleColumns))
                             <td class="px-6 py-4">
                                 <span class="px-3 py-1 rounded-full bg-emerald-50 text-emerald-600 text-[9px] font-bold tracking-wider border border-emerald-100 shadow-sm">{{ $invoice->status === 'Completed' || !$invoice->status ? 'Hoàn thành' : $invoice->status }}</span>
                             </td>
+                            @endif
+                            @if(in_array('date', $visibleColumns))
                             <td class="px-6 py-4">
                                 <div class="flex items-center justify-between gap-4">
                                     <div class="text-xs text-slate-400 font-mono">{{ $invoice->created_at->format('Y-m-d H:i') }}</div>
@@ -164,6 +194,7 @@
                                     </div>
                                 </div>
                             </td>
+                            @endif
                         </tr>
                         @if($expandedInvoiceId === $invoice->id)
                             <tr class="bg-slate-50/40 animate-in slide-in-from-top-2 duration-300">

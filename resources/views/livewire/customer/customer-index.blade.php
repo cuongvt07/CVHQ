@@ -41,12 +41,21 @@
 
         <div class="flex items-center gap-3">
             <span class="text-xs text-slate-500 font-bold uppercase tracking-widest">Hiển thị:</span>
-            <select wire:model.live="perPage" class="bg-slate-50 border border-slate-200 rounded-lg py-1 px-2 text-[10px] font-bold text-slate-600 focus:outline-none focus:border-electric-blue/40 transition-all cursor-pointer">
-                <option value="10">10</option>
-                <option value="25">25</option>
                 <option value="50">50</option>
                 <option value="100">100</option>
             </select>
+
+            <x-column-toggle 
+                :visibleColumns="$visibleColumns" 
+                :cols="[
+                    'customer' => 'Khách hàng',
+                    'group' => 'Nhóm',
+                    'debt' => 'Nợ hiện tại',
+                    'spent' => 'Tổng chi tiêu',
+                    'status' => 'Trạng thái',
+                    'actions' => 'Thao tác'
+                ]" 
+            />
         </div>
     </div>
 
@@ -58,12 +67,24 @@
                         <th class="px-6 py-4 w-10">
                             <input type="checkbox" wire:model.live="selectAll" class="w-4 h-4 rounded border-slate-300 text-electric-blue focus:ring-electric-blue transition-all cursor-pointer">
                         </th>
+                        @if(in_array('customer', $visibleColumns))
                         <th class="px-6 py-4 text-[10px] font-bold text-slate-500 uppercase tracking-[0.2em]">Khách hàng</th>
+                        @endif
+                        @if(in_array('group', $visibleColumns))
                         <th class="px-6 py-4 text-[10px] font-bold text-slate-400 uppercase tracking-[0.2em]">Nhóm</th>
+                        @endif
+                        @if(in_array('debt', $visibleColumns))
                         <th class="px-6 py-4 text-[10px] font-bold text-slate-400 uppercase tracking-[0.2em]">Nợ hiện tại</th>
+                        @endif
+                        @if(in_array('spent', $visibleColumns))
                         <th class="px-6 py-4 text-[10px] font-bold text-slate-400 uppercase tracking-[0.2em]">Tổng chi tiêu</th>
+                        @endif
+                        @if(in_array('status', $visibleColumns))
                         <th class="px-6 py-4 text-[10px] font-bold text-slate-400 uppercase tracking-[0.2em]">Trạng thái</th>
+                        @endif
+                        @if(in_array('actions', $visibleColumns))
                         <th class="px-6 py-4 text-[10px] font-bold text-slate-400 uppercase tracking-[0.2em]">Thao tác</th>
+                        @endif
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-slate-100 bg-white/50">
@@ -72,6 +93,7 @@
                             <td class="px-6 py-4">
                                 <input type="checkbox" wire:model.live="selectedRows" value="{{ $customer->id }}" class="w-4 h-4 rounded border-slate-300 text-electric-blue focus:ring-electric-blue transition-all cursor-pointer">
                             </td>
+                            @if(in_array('customer', $visibleColumns))
                             <td class="px-6 py-4">
                                 <div class="flex items-center gap-4">
                                     <div class="w-10 h-10 rounded-full bg-electric-blue/10 flex items-center justify-center text-electric-blue font-bold border border-electric-blue/20">
@@ -83,15 +105,23 @@
                                     </div>
                                 </div>
                             </td>
+                            @endif
+                            @if(in_array('group', $visibleColumns))
                             <td class="px-6 py-4">
                                 <span class="px-3 py-1 rounded-full bg-slate-50 border border-slate-200 text-[10px] font-bold text-slate-600 tracking-wider">{{ $customer->customer_group }}</span>
                             </td>
+                            @endif
+                            @if(in_array('debt', $visibleColumns))
                              <td class="px-6 py-4">
                                 <span class="text-xs font-bold {{ $customer->current_debt > 0 ? 'text-rose-600' : 'text-slate-400' }}">{{ number_format($customer->current_debt, 0, ',', '.') }} VNĐ</span>
                             </td>
+                            @endif
+                            @if(in_array('spent', $visibleColumns))
                             <td class="px-6 py-4">
                                 <span class="text-xs font-bold text-slate-900">{{ number_format($customer->total_spent, 0, ',', '.') }} VNĐ</span>
                             </td>
+                            @endif
+                            @if(in_array('status', $visibleColumns))
                             <td class="px-6 py-4">
                                 <button type="button" 
                                         wire:click="toggleStatus({{ $customer->id }})"
@@ -99,6 +129,8 @@
                                     <span class="pointer-events-none inline-block h-4 w-4 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out {{ $customer->status === 'Active' ? 'translate-x-5' : 'translate-x-0' }}"></span>
                                 </button>
                             </td>
+                            @endif
+                            @if(in_array('actions', $visibleColumns))
                             <td class="px-6 py-4">
                                 <div class="flex items-center gap-2">
                                     <button wire:click="edit({{ $customer->id }})" class="p-1.5 text-slate-400 hover:text-electric-blue transition-colors">
@@ -109,6 +141,7 @@
                                     </button>
                                 </div>
                             </td>
+                            @endif
                         </tr>
                     @endforeach
                 </tbody>

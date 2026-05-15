@@ -12,10 +12,11 @@ use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Str;
 use App\Traits\WithBulkActions;
 use App\Traits\HasPermissions;
+use App\Traits\WithColumnVisibility;
 
 class ProductIndex extends Component
 {
-    use WithPagination, WithFileUploads, WithBulkActions, HasPermissions;
+    use WithPagination, WithFileUploads, WithBulkActions, HasPermissions, WithColumnVisibility;
 
     protected function getModuleKey(): string
     {
@@ -30,6 +31,10 @@ class ProductIndex extends Component
     public $stockStatus = 'all';
     public $importFile;
     public $perPage = 10;
+    public $branch = 'all';
+    public $sortField = 'created_at';
+    public $sortDirection = 'desc';
+    public $visibleColumns = [];
 
     // Import Progress
     public $importing = false;
@@ -39,10 +44,17 @@ class ProductIndex extends Component
     public $importErrors = [];
     public $importBatchId;
 
+    // Commission Settings
+    public $showCommissionSettings = false;
+    public $autoCommissionEnabled = false;
+    public $commissionRanges = [];
+
     protected $queryString = [
-        'search' => ['except' => ''],
-        'category' => ['except' => 'All'],
         'perPage' => ['except' => 10],
+        'branch' => ['except' => 'all'],
+        'sortField' => ['except' => 'created_at'],
+        'sortDirection' => ['except' => 'desc'],
+        'visibleColumns' => ['except' => ['sku', 'name', 'brand', 'category', 'price', 'stock', 'location', 'actions']],
     ];
 
     public function updatingSearch()
@@ -75,9 +87,31 @@ class ProductIndex extends Component
         $this->resetPage();
     }
 
+    public function updatedBranch()
+    {
+        $this->resetPage();
+    }
+
     public function updatingPerPage()
     {
         $this->resetPage();
+    }
+
+    public function updatedSalePrice()
+    {
+        if (\App\Models\SystemSetting::get('auto_commission_enabled') !== 'true') {
+            return;
+        }
+
+        $price = (int)$this->sale_price;
+        $ranges = \App\Models\SystemSetting::get('commission_ranges', []);
+        
+        foreach ($ranges as $range) {
+            if ($price >= $range['min'] && $price < $range['max']) {
+                $this->commission_amount = $range['amount'];
+                break;
+            }
+        }
     }
 
     public function clearFilter($type, $value = null)
@@ -116,8 +150,9 @@ class ProductIndex extends Component
     public $productId;
     public $sku, $base_name, $category_path, $brand, $sale_price, $commission_amount, $stock_quantity, $location;
     public $is_active = true;
-    public $newImage;
-    public $existingImage;
+    public $newImages = []; // Array of UploadedFile objects
+    public $existingImages = []; // Array of strings (paths)
+    public $capturedImages = []; // Array of Base64 strings
     public $productAttributes = []; // [['key' => '', 'value' => '']]
     public $existingKeys = [];
 
@@ -130,7 +165,7 @@ class ProductIndex extends Component
         'stock_quantity' => 'nullable|numeric|min:0',
         'location' => 'nullable|string|max:255',
         'is_active' => 'boolean',
-        'newImage' => 'nullable|image|max:2048',
+        'newImages.*' => 'nullable|image|max:5120',
     ];
 
     public function import()
@@ -208,9 +243,9 @@ class ProductIndex extends Component
         $this->stock_quantity = 999;
         $this->location = '';
         $this->is_active = true;
-        $this->newImage = null;
-        $this->newImage = null;
-        $this->existingImage = null;
+        $this->newImages = [];
+        $this->existingImages = [];
+        $this->capturedImages = [];
         $this->productAttributes = [];
         $this->resetErrorBag();
     }
@@ -235,6 +270,12 @@ class ProductIndex extends Component
     {
         $this->resetForm();
         $this->loadAttributeSuggestions();
+        
+        // Auto commission logic
+        if (\App\Models\SystemSetting::get('auto_commission_enabled') === 'true') {
+            $this->updatedSalePrice();
+        }
+
         $this->dispatch('open-product-modal');
     }
 
@@ -253,7 +294,9 @@ class ProductIndex extends Component
         $this->stock_quantity = $product->stock_quantity;
         $this->location = $product->location;
         $this->is_active = $product->is_active;
-        $this->existingImage = !empty($product->images) ? $product->images[0] : null;
+        $this->existingImages = is_array($product->images) ? $product->images : [];
+        $this->newImages = [];
+        $this->capturedImages = [];
         
         $this->productAttributes = [];
         if (!empty($product->attributes) && is_array($product->attributes)) {
@@ -275,51 +318,66 @@ class ProductIndex extends Component
 
         $this->validate($rules);
 
-        $data = [
+        // Parse structured attributes
+        $attributes = [];
+        foreach ($this->productAttributes as $attr) {
+            $key = trim($attr['key'] ?? '');
+            if (!empty($key)) {
+                $attributes[$key] = trim($attr['value'] ?? '');
+            }
+        }
+
+        $productData = [
             'sku' => $this->sku,
             'base_name' => $this->base_name,
             'category_path' => $this->category_path,
             'brand' => $this->brand,
             'sale_price' => $this->sale_price,
+            'commission_amount' => $this->commission_amount,
             'stock_quantity' => $this->stock_quantity === '' || $this->stock_quantity === null ? 999 : $this->stock_quantity,
             'location' => $this->location,
             'is_active' => $this->is_active,
+            'attributes' => $attributes,
         ];
 
-        if (auth()->user()->hasPermission('product.edit_commission')) {
-            $data['commission_amount'] = $this->commission_amount;
+        // Process Images
+        $allImagePaths = $this->existingImages;
+
+        // Handle uploaded images
+        foreach ($this->newImages as $image) {
+            $allImagePaths[] = $image->store('products', 'public');
         }
 
-        if ($this->newImage) {
-            $path = $this->newImage->store('products', 'public');
-            $data['images'] = [asset('storage/' . $path)];
+        // Handle captured images (Base64)
+        foreach ($this->capturedImages as $base64) {
+            $imageData = base64_decode(preg_replace('#^data:image/\w+;base64,#i', '', $base64));
+            $fileName = 'products/' . Str::random(40) . '.png';
+            \Storage::disk('public')->put($fileName, $imageData);
+            $allImagePaths[] = $fileName;
         }
 
-        // Parse structured attributes
-        $parsedAttrs = [];
-        foreach ($this->productAttributes as $attr) {
-            $key = trim($attr['key'] ?? '');
-            if (!empty($key)) {
-                $parsedAttrs[$key] = trim($attr['value'] ?? '');
-            }
-        }
-        $data['attributes'] = $parsedAttrs;
+        $productData['images'] = $allImagePaths;
 
         if ($this->productId) {
-            Product::find($this->productId)->update($data);
+            $product = Product::findOrFail($this->productId);
+            $product->update($productData);
             $this->dispatch('notify', message: 'Cập nhật sản phẩm thành công!', type: 'success');
         } else {
-            Product::create($data);
+            Product::create($productData);
             $this->dispatch('notify', message: 'Thêm sản phẩm thành công!', type: 'success');
         }
 
         if ($keepOpen) {
             $nextSku = $this->getNextSku($currentSku);
-            $this->resetForm();
+            
+            // Clone data logic: keep everything except specific fields
+            $this->productId = null;
             $this->sku = $nextSku;
+            $this->location = '';
+            $this->productAttributes = [];
+            
             $this->loadAttributeSuggestions();
-            // We don't close the modal, just reset for next
-            $this->dispatch('notify', message: 'Đã lưu và chuẩn bị tạo sản phẩm tiếp theo!', type: 'success');
+            $this->dispatch('notify', message: 'Đã lưu và sao chép dữ liệu cho sản phẩm tiếp theo!', type: 'success');
         } else {
             $this->dispatch('close-product-modal');
             $this->resetForm();
@@ -329,6 +387,108 @@ class ProductIndex extends Component
     public function saveAndCreateNext()
     {
         $this->save(true);
+    }
+
+    // Commission Settings Methods
+    public function openCommissionSettings()
+    {
+        $this->autoCommissionEnabled = \App\Models\SystemSetting::get('auto_commission_enabled') === 'true';
+        $this->commissionRanges = \App\Models\SystemSetting::get('commission_ranges', []);
+        $this->showCommissionSettings = true;
+        $this->dispatch('open-commission-modal');
+    }
+
+    public function addCommissionRange()
+    {
+        $this->commissionRanges[] = ['min' => 0, 'max' => 0, 'amount' => 0];
+    }
+
+    public function removeCommissionRange($index)
+    {
+        unset($this->commissionRanges[$index]);
+        $this->commissionRanges = array_values($this->commissionRanges);
+    }
+
+    public function saveCommissionSettings()
+    {
+        \App\Models\SystemSetting::set('auto_commission_enabled', $this->autoCommissionEnabled ? 'true' : 'false');
+        \App\Models\SystemSetting::set('commission_ranges', $this->commissionRanges);
+        
+        $this->showCommissionSettings = false;
+        $this->dispatch('close-commission-modal');
+        $this->dispatch('notify', message: 'Đã lưu cấu hình hoa hồng!', type: 'success');
+    }
+
+    protected function getDefaultVisibleColumns(): array
+    {
+        return ['sku', 'name', 'brand', 'category', 'price', 'stock', 'location', 'actions'];
+    }
+
+    public function bulkCopyToSG()
+    {
+        if (empty($this->selectedRows)) {
+            $this->dispatch('notify', message: 'Vui lòng chọn sản phẩm cần sao chép!', type: 'warning');
+            return;
+        }
+
+        $products = Product::whereIn('id', $this->selectedRows)->get();
+        $count = 0;
+        $skipped = 0;
+
+        foreach ($products as $product) {
+            // Skip if already a SG product
+            if (Str::startsWith($product->sku, 'Z')) {
+                $skipped++;
+                continue;
+            }
+
+            $newSku = 'Z' . $product->sku;
+
+            // Check if SKU already exists
+            if (Product::where('sku', $newSku)->exists()) {
+                $skipped++;
+                continue;
+            }
+
+            // Create new SG product
+            $newProduct = $product->replicate();
+            $newProduct->sku = $newSku;
+            $newProduct->stock_quantity = 0;
+            $newProduct->location = '';
+            $newProduct->save();
+            
+            $count++;
+        }
+
+        $this->selectedRows = [];
+        $this->selectAll = false;
+        
+        $message = "Đã sao chép thành công {$count} sản phẩm sang SG.";
+        if ($skipped > 0) {
+            $message .= " (Bỏ qua {$skipped} mã đã tồn tại hoặc không hợp lệ)";
+        }
+
+        $this->dispatch('notify', message: $message, type: 'success');
+        $this->branch = 'sg'; // Switch to SG branch to see new items
+    }
+
+    public function removeImage($index, $type)
+    {
+        if ($type === 'existing') {
+            unset($this->existingImages[$index]);
+            $this->existingImages = array_values($this->existingImages);
+        } elseif ($type === 'new') {
+            unset($this->newImages[$index]);
+            $this->newImages = array_values($this->newImages);
+        } elseif ($type === 'captured') {
+            unset($this->capturedImages[$index]);
+            $this->capturedImages = array_values($this->capturedImages);
+        }
+    }
+
+    public function addCapturedImage($dataUri)
+    {
+        $this->capturedImages[] = $dataUri;
     }
 
     private function getNextSku($sku)
@@ -424,9 +584,26 @@ class ProductIndex extends Component
         }
     }
 
+    public function sortBy($field)
+    {
+        if ($this->sortField === $field) {
+            $this->sortDirection = $this->sortDirection === 'asc' ? 'desc' : 'asc';
+        } else {
+            $this->sortField = $field;
+            $this->sortDirection = 'asc';
+        }
+    }
+
     public function getProducts()
     {
-        return Product::query()
+        $query = Product::query()
+            ->when($this->branch !== 'all', function($query) {
+                if ($this->branch === 'sg') {
+                    $query->where('sku', 'LIKE', 'Z%');
+                } else {
+                    $query->where('sku', 'NOT LIKE', 'Z%');
+                }
+            })
             ->when($this->search, function($query) {
                 $keywords = array_filter(explode(' ', $this->search));
                 foreach ($keywords as $keyword) {
@@ -459,10 +636,13 @@ class ProductIndex extends Component
                 if ($this->stockStatus === 'in_stock') $query->where('stock_quantity', '>', 0);
                 if ($this->stockStatus === 'out_of_stock') $query->where('stock_quantity', '<=', 0);
                 if ($this->stockStatus === 'low_stock') $query->where('stock_quantity', '<', 10)->where('stock_quantity', '>', 0);
-            })
-            ->orderBy('created_at', 'desc')
-            ->paginate($this->perPage)
-            ->onEachSide(1);
+            });
+
+        if (!$this->search) {
+            $query->orderBy($this->sortField, $this->sortDirection);
+        }
+
+        return $query->paginate($this->perPage)->onEachSide(1);
     }
 
     protected function getRecordsForBulk()

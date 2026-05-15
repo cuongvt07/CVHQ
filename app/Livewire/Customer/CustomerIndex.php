@@ -12,10 +12,11 @@ use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Str;
 use App\Traits\WithBulkActions;
 use App\Traits\HasPermissions;
+use App\Traits\WithColumnVisibility;
 
 class CustomerIndex extends Component
 {
-    use WithPagination, WithFileUploads, WithBulkActions, HasPermissions;
+    use WithPagination, WithFileUploads, WithBulkActions, HasPermissions, WithColumnVisibility;
 
     protected function getModuleKey(): string
     {
@@ -38,6 +39,7 @@ class CustomerIndex extends Component
     public $customerId;
     public $customer_code, $full_name, $phone, $email, $address, $customer_group, $note;
     public $status = 'Active';
+    public $visibleColumns = [];
 
     protected $rules = [
         'customer_code' => 'required|unique:customers,customer_code',
@@ -51,6 +53,7 @@ class CustomerIndex extends Component
     protected $queryString = [
         'search' => ['except' => ''],
         'perPage' => ['except' => 10],
+        'visibleColumns' => ['except' => ['customer', 'group', 'debt', 'spent', 'status', 'actions']],
     ];
 
     public function updatingSearch()
@@ -236,6 +239,11 @@ class CustomerIndex extends Component
     protected function getModelForBulk()
     {
         return Customer::class;
+    }
+
+    protected function getDefaultVisibleColumns(): array
+    {
+        return ['customer', 'group', 'debt', 'spent', 'status', 'actions'];
     }
 
     public function render()

@@ -12,10 +12,11 @@ use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Str;
 use App\Traits\WithBulkActions;
 use App\Traits\HasPermissions;
+use App\Traits\WithColumnVisibility;
 
 class InvoiceIndex extends Component
 {
-    use WithPagination, WithFileUploads, WithBulkActions, HasPermissions;
+    use WithPagination, WithFileUploads, WithBulkActions, HasPermissions, WithColumnVisibility;
 
     protected function getModuleKey(): string
     {
@@ -35,6 +36,7 @@ class InvoiceIndex extends Component
     public $editProductSearch = '';
     public $editingItems = [];
     public $itemsToDelete = [];
+    public $visibleColumns = [];
 
     // Import Progress
     public $importing = false;
@@ -54,6 +56,7 @@ class InvoiceIndex extends Component
         'endDate' => ['except' => ''],
         'sellerFilter' => ['except' => ''],
         'perPage' => ['except' => 10],
+        'visibleColumns' => ['except' => ['code', 'customer', 'amount', 'method', 'status', 'date']],
     ];
 
     public function updatingSearch()
@@ -434,6 +437,11 @@ class InvoiceIndex extends Component
     protected function getModelForBulk()
     {
         return Invoice::class;
+    }
+
+    protected function getDefaultVisibleColumns(): array
+    {
+        return ['code', 'customer', 'amount', 'method', 'status', 'date'];
     }
 
     public function render()

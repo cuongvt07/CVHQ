@@ -83,7 +83,7 @@
                             <!-- Price -->
                             <div class="space-y-2">
                                 <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Giá bán (VNĐ)</label>
-                                <input type="number" wire:model="sale_price" class="w-full bg-slate-50 border border-slate-200 rounded-2xl py-3 px-5 text-sm focus:outline-none focus:border-electric-blue/40 focus:ring-4 focus:ring-electric-blue/5 transition-all">
+                                <input type="number" wire:model.live="sale_price" class="w-full bg-slate-50 border border-slate-200 rounded-2xl py-3 px-5 text-sm focus:outline-none focus:border-electric-blue/40 focus:ring-4 focus:ring-electric-blue/5 transition-all">
                                 @error('sale_price') <span class="text-[10px] text-rose-500 font-bold ml-1">{{ $message }}</span> @enderror
                             </div>
 
@@ -104,30 +104,108 @@
                             </div>
                         </div>
 
-                        <!-- Image Upload -->
-                        <div class="space-y-2">
-                            <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Hình ảnh sản phẩm</label>
-                            <div class="flex items-center gap-6">
-                                <div class="w-24 h-24 rounded-2xl bg-slate-100 border border-slate-200 overflow-hidden shrink-0">
-                                    @if($this->newImage)
-                                        <img src="{{ $this->newImage->temporaryUrl() }}" class="w-full h-full object-cover">
-                                    @elseif($this->existingImage)
-                                        <img src="{{ $this->existingImage }}" class="w-full h-full object-cover">
-                                    @else
-                                        <div class="w-full h-full flex items-center justify-center text-slate-300">
-                                            <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="3" rx="2" ry="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/></svg>
-                                        </div>
-                                    @endif
-                                </div>
-                                <div class="flex-1">
-                                    <input type="file" wire:model="newImage" id="product-image" class="hidden">
-                                    <label for="product-image" class="inline-flex items-center gap-2 px-6 py-2.5 bg-white border border-slate-200 text-slate-600 rounded-xl text-xs font-bold hover:bg-slate-50 hover:border-slate-300 transition-all cursor-pointer">
-                                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" x2="12" y1="3" y2="15"/></svg>
-                                        Tải ảnh mới
+                        <!-- Multi-Image & Camera Section -->
+                        <div class="space-y-4" x-data="{ 
+                            showCamera: false,
+                            stream: null,
+                            async startCamera() {
+                                this.showCamera = true;
+                                try {
+                                    this.stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
+                                    $refs.video.srcObject = this.stream;
+                                } catch (err) {
+                                    console.error('Error accessing camera:', err);
+                                    this.showCamera = false;
+                                    alert('Không thể truy cập máy ảnh. Vui lòng kiểm tra quyền truy cập.');
+                                }
+                            },
+                            stopCamera() {
+                                if (this.stream) {
+                                    this.stream.getTracks().forEach(track => track.stop());
+                                    this.stream = null;
+                                }
+                                this.showCamera = false;
+                            },
+                            capture() {
+                                const canvas = document.createElement('canvas');
+                                canvas.width = $refs.video.videoWidth;
+                                canvas.height = $refs.video.videoHeight;
+                                canvas.getContext('2d').drawImage($refs.video, 0, 0);
+                                const dataUri = canvas.toDataURL('image/png');
+                                $wire.addCapturedImage(dataUri);
+                                this.stopCamera();
+                            }
+                        }" x-on:close-product-modal.window="stopCamera()">
+                            <div class="flex items-center justify-between">
+                                <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Hình ảnh sản phẩm</label>
+                                <div class="flex gap-2">
+                                    <button type="button" @click="startCamera()" class="text-[10px] font-bold text-emerald-500 uppercase tracking-widest hover:underline flex items-center gap-1 transition-all">
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z"/><circle cx="12" cy="13" r="3"/></svg>
+                                        Chụp ảnh
+                                    </button>
+                                    <input type="file" wire:model="newImages" id="product-images" class="hidden" multiple accept="image/*">
+                                    <label for="product-images" class="text-[10px] font-bold text-electric-blue uppercase tracking-widest hover:underline flex items-center gap-1 transition-all cursor-pointer">
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" x2="12" y1="3" y2="15"/></svg>
+                                        Tải ảnh
                                     </label>
-                                    <p class="text-[10px] text-slate-400 mt-2 italic">Dung lượng tối đa 2MB. Hỗ trợ JPG, PNG.</p>
                                 </div>
                             </div>
+
+                            <!-- Camera View -->
+                            <div x-show="showCamera" x-cloak class="relative rounded-3xl overflow-hidden bg-black aspect-video border-2 border-emerald-500/30">
+                                <video x-ref="video" autoplay playsinline class="w-full h-full object-cover"></video>
+                                <div class="absolute bottom-4 inset-x-0 flex justify-center gap-3">
+                                    <button type="button" @click="capture()" class="w-12 h-12 rounded-full bg-emerald-500 text-white flex items-center justify-center shadow-lg hover:scale-110 transition-transform">
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/></svg>
+                                    </button>
+                                    <button type="button" @click="stopCamera()" class="w-12 h-12 rounded-full bg-rose-500 text-white flex items-center justify-center shadow-lg hover:scale-110 transition-transform">
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+                                    </button>
+                                </div>
+                            </div>
+
+                            <!-- Image Grid -->
+                            <div class="grid grid-cols-4 md:grid-cols-6 gap-4">
+                                <!-- Existing Images -->
+                                @foreach($existingImages as $index => $path)
+                                    <div class="relative aspect-square rounded-2xl bg-slate-100 border border-slate-200 overflow-hidden group">
+                                        <img src="{{ Str::startsWith($path, 'http') ? $path : asset('storage/' . $path) }}" class="w-full h-full object-cover">
+                                        <button type="button" wire:click="removeImage({{ $index }}, 'existing')" class="absolute top-1 right-1 w-6 h-6 rounded-full bg-rose-500/80 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                                            <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+                                        </button>
+                                    </div>
+                                @endforeach
+
+                                <!-- New Uploaded Images -->
+                                @foreach($newImages as $index => $image)
+                                    <div class="relative aspect-square rounded-2xl bg-slate-100 border border-electric-blue/30 overflow-hidden group">
+                                        <img src="{{ $image->temporaryUrl() }}" class="w-full h-full object-cover">
+                                        <div class="absolute inset-0 bg-electric-blue/10 pointer-events-none"></div>
+                                        <button type="button" wire:click="removeImage({{ $index }}, 'new')" class="absolute top-1 right-1 w-6 h-6 rounded-full bg-rose-500/80 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                                            <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+                                        </button>
+                                    </div>
+                                @endforeach
+
+                                <!-- Captured Images -->
+                                @foreach($capturedImages as $index => $base64)
+                                    <div class="relative aspect-square rounded-2xl bg-slate-100 border border-emerald-500/30 overflow-hidden group">
+                                        <img src="{{ $base64 }}" class="w-full h-full object-cover">
+                                        <div class="absolute inset-0 bg-emerald-500/10 pointer-events-none"></div>
+                                        <button type="button" wire:click="removeImage({{ $index }}, 'captured')" class="absolute top-1 right-1 w-6 h-6 rounded-full bg-rose-500/80 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                                            <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+                                        </button>
+                                    </div>
+                                @endforeach
+
+                                <!-- Empty State / Placeholder if no images -->
+                                @if(empty($existingImages) && empty($newImages) && empty($capturedImages))
+                                    <div class="aspect-square rounded-2xl bg-slate-50 border-2 border-dashed border-slate-200 flex flex-col items-center justify-center text-slate-300">
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="3" rx="2" ry="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/></svg>
+                                    </div>
+                                @endif
+                            </div>
+                            <p class="text-[10px] text-slate-400 italic">Mẹo: Bạn có thể thêm nhiều ảnh cùng lúc hoặc chụp từ máy ảnh.</p>
                         </div>
 
                         <!-- Attributes Management -->
