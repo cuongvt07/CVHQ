@@ -183,7 +183,6 @@
                 <button wire:click="clearFilter('all')" class="text-[8px] font-black text-rose-500 tracking-tighter hover:underline ml-2">Xóa tất cả bộ lọc</button>
             </div>
         @endif
-    </div>
 
     <!-- Main Content (Binary Surface) -->
     <div class="flex-1 overflow-y-auto custom-scrollbar p-4 md:p-6">
