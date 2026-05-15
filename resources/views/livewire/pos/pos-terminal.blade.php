@@ -315,7 +315,14 @@
                                         >
                                     </div>
                                     <div class="text-right">
-                                        <p class="text-xs font-bold text-slate-900">{{ number_format($item['sale_price'] * $item['quantity'], 0, ',', '.') }}</p>
+                                        <p class="text-[10px] font-bold {{ $global_discount_type === '%' ? 'text-slate-400 line-through' : 'text-slate-900' }}">
+                                            {{ number_format($item['sale_price'] * $item['quantity'], 0, ',', '.') }}
+                                        </p>
+                                        @if($global_discount_type === '%' && isset($item['calculated_discount']) && $item['calculated_discount'] > 0)
+                                            <p class="text-xs font-black text-rose-500 mt-0.5">
+                                                {{ number_format(($item['sale_price'] * $item['quantity']) - $item['calculated_discount'], 0, ',', '.') }}
+                                            </p>
+                                        @endif
                                     </div>
                                 </div>
                             </div>
