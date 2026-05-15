@@ -235,47 +235,56 @@
                                         <div class="max-h-[300px] overflow-y-auto custom-scrollbar-dark border border-white/5 rounded-2xl bg-black/40">
                                             <table class="w-full text-[11px]">
                                                 <thead class="sticky top-0 bg-black/80 backdrop-blur-md z-10">
-                                                    <tr class="text-slate-500 border-b border-white/5">
-                                                        <th class="px-4 py-3 font-bold text-left">Thời gian</th>
-                                                        <th class="px-4 py-3 font-bold text-left">Loại</th>
-                                                        <th class="px-4 py-3 font-bold text-left">Mã tham chiếu</th>
-                                                        <th class="px-4 py-3 font-bold text-right">Thay đổi</th>
-                                                        <th class="px-4 py-3 font-bold text-right">Tồn cuối</th>
-                                                        <th class="px-4 py-3 font-bold text-left">Ghi chú</th>
-                                                    </tr>
-                                                </thead>
-                                                <tbody class="divide-y divide-white/5">
-                                                    @forelse($product->stockHistories()->take(10)->get() as $history)
-                                                        <tr class="text-slate-300 hover:bg-white/5 transition-colors">
-                                                            <td class="px-4 py-3 whitespace-nowrap">{{ $history->created_at->format('d/m/Y H:i') }}</td>
-                                                            <td class="px-4 py-3">
-                                                                @php
-                                                                    $typeColors = [
-                                                                        'Sale' => 'text-emerald-400',
-                                                                        'Purchase' => 'text-electric-blue',
-                                                                        'Adjustment' => 'text-amber-400',
-                                                                        'Cancel' => 'text-rose-400',
-                                                                        'Import' => 'text-purple-400',
-                                                                    ];
-                                                                    $typeLabels = [
-                                                                        'Sale' => 'Bán hàng',
-                                                                        'Purchase' => 'Nhập hàng',
-                                                                        'Adjustment' => 'Điều chỉnh',
-                                                                        'Cancel' => 'Hủy bán',
-                                                                        'Import' => 'Import Excel',
-                                                                    ];
-                                                                @endphp
-                                                                <span class="{{ $typeColors[$history->type] ?? 'text-slate-400' }} font-bold">
-                                                                    {{ $typeLabels[$history->type] ?? $history->type }}
-                                                                </span>
-                                                            </td>
-                                                            <td class="px-4 py-3 font-mono text-[10px]">{{ $history->reference_code ?: '-' }}</td>
-                                                            <td class="px-4 py-3 text-right font-black {{ $history->quantity_change > 0 ? 'text-emerald-400' : 'text-rose-400' }}">
-                                                                {{ $history->quantity_change > 0 ? '+' : '' }}{{ $history->quantity_change }}
-                                                            </td>
-                                                            <td class="px-4 py-3 text-right text-white font-black">{{ $history->quantity_after }}</td>
-                                                            <td class="px-4 py-3 text-slate-500 italic">{{ $history->note ?: '-' }}</td>
+                                                        <tr class="text-slate-500 border-b border-white/5">
+                                                            <th class="px-4 py-3 font-bold text-left">Thời gian</th>
+                                                            <th class="px-4 py-3 font-bold text-left">Loại</th>
+                                                            <th class="px-4 py-3 font-bold text-left">Mã tham chiếu</th>
+                                                            <th class="px-4 py-3 font-bold text-right">Thay đổi</th>
+                                                            <th class="px-4 py-3 font-bold text-right">Tồn cuối</th>
+                                                            <th class="px-4 py-3 font-bold text-left">Người thực hiện</th>
+                                                            <th class="px-4 py-3 font-bold text-left">Ghi chú</th>
                                                         </tr>
+                                                    </thead>
+                                                    <tbody class="divide-y divide-white/5">
+                                                        @forelse($product->stockHistories()->with('user')->take(10)->get() as $history)
+                                                            <tr class="text-slate-300 hover:bg-white/5 transition-colors">
+                                                                <td class="px-4 py-3 whitespace-nowrap">{{ $history->created_at->format('d/m/Y H:i') }}</td>
+                                                                <td class="px-4 py-3">
+                                                                    @php
+                                                                        $typeColors = [
+                                                                            'Sale' => 'text-emerald-400',
+                                                                            'Purchase' => 'text-electric-blue',
+                                                                            'Adjustment' => 'text-amber-400',
+                                                                            'Cancel' => 'text-rose-400',
+                                                                            'Import' => 'text-purple-400',
+                                                                        ];
+                                                                        $typeLabels = [
+                                                                            'Sale' => 'Bán hàng',
+                                                                            'Purchase' => 'Nhập hàng',
+                                                                            'Adjustment' => 'Điều chỉnh',
+                                                                            'Cancel' => 'Hủy bán',
+                                                                            'Import' => 'Import Excel',
+                                                                        ];
+                                                                    @endphp
+                                                                    <span class="{{ $typeColors[$history->type] ?? 'text-slate-400' }} font-bold">
+                                                                        {{ $typeLabels[$history->type] ?? $history->type }}
+                                                                    </span>
+                                                                </td>
+                                                                <td class="px-4 py-3 font-mono text-[10px]">{{ $history->reference_code ?: '-' }}</td>
+                                                                <td class="px-4 py-3 text-right font-black {{ $history->quantity_change > 0 ? 'text-emerald-400' : 'text-rose-400' }}">
+                                                                    {{ $history->quantity_change > 0 ? '+' : '' }}{{ $history->quantity_change }}
+                                                                </td>
+                                                                <td class="px-4 py-3 text-right text-white font-black">{{ $history->quantity_after }}</td>
+                                                                <td class="px-4 py-3">
+                                                                    <div class="flex items-center gap-2">
+                                                                        <div class="w-5 h-5 rounded-full bg-white/5 border border-white/10 flex items-center justify-center text-[8px] font-black text-electric-blue">
+                                                                            {{ $history->user ? strtoupper(substr($history->user->name, 0, 1)) : '?' }}
+                                                                        </div>
+                                                                        <span class="text-slate-400">{{ $history->user->name ?? 'Hệ thống' }}</span>
+                                                                    </div>
+                                                                </td>
+                                                                <td class="px-4 py-3 text-slate-500 italic">{{ $history->note ?: '-' }}</td>
+                                                            </tr>
                                                     @empty
                                                         <tr>
                                                             <td colspan="6" class="px-4 py-8 text-center text-slate-600 italic">
