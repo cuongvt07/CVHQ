@@ -167,7 +167,7 @@
                             <!-- Image Grid -->
                             <div class="grid grid-cols-4 md:grid-cols-6 gap-4">
                                 <!-- Existing Images -->
-                                @foreach($existingImages as $index => $path)
+                                @foreach($this->existingImages as $index => $path)
                                     <div class="relative aspect-square rounded-2xl bg-slate-100 border border-slate-200 overflow-hidden group">
                                         <img src="{{ Str::startsWith($path, 'http') ? $path : asset('storage/' . $path) }}" class="w-full h-full object-cover">
                                         <button type="button" wire:click="removeImage({{ $index }}, 'existing')" class="absolute top-1 right-1 w-6 h-6 rounded-full bg-rose-500/80 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
@@ -177,7 +177,7 @@
                                 @endforeach
 
                                 <!-- New Uploaded Images -->
-                                @foreach($newImages as $index => $image)
+                                @foreach($this->newImages as $index => $image)
                                     <div class="relative aspect-square rounded-2xl bg-slate-100 border border-electric-blue/30 overflow-hidden group">
                                         <img src="{{ $image->temporaryUrl() }}" class="w-full h-full object-cover">
                                         <div class="absolute inset-0 bg-electric-blue/10 pointer-events-none"></div>
@@ -188,9 +188,9 @@
                                 @endforeach
 
                                 <!-- Captured Images -->
-                                @foreach($capturedImages as $index => $base64)
+                                @foreach($this->capturedImages as $index => $dataUri)
                                     <div class="relative aspect-square rounded-2xl bg-slate-100 border border-emerald-500/30 overflow-hidden group">
-                                        <img src="{{ $base64 }}" class="w-full h-full object-cover">
+                                        <img src="{{ $dataUri }}" class="w-full h-full object-cover">
                                         <div class="absolute inset-0 bg-emerald-500/10 pointer-events-none"></div>
                                         <button type="button" wire:click="removeImage({{ $index }}, 'captured')" class="absolute top-1 right-1 w-6 h-6 rounded-full bg-rose-500/80 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
                                             <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
@@ -199,7 +199,7 @@
                                 @endforeach
 
                                 <!-- Empty State / Placeholder if no images -->
-                                @if(empty($existingImages) && empty($newImages) && empty($capturedImages))
+                                @if(empty($this->existingImages) && empty($this->newImages) && empty($this->capturedImages))
                                     <div class="aspect-square rounded-2xl bg-slate-50 border-2 border-dashed border-slate-200 flex flex-col items-center justify-center text-slate-300">
                                         <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="3" rx="2" ry="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/></svg>
                                     </div>
