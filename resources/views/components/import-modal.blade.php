@@ -40,10 +40,10 @@
                  x-transition:leave="ease-in duration-200" 
                  x-transition:leave-start="opacity-100 translate-y-0 sm:scale-100" 
                  x-transition:leave-end="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95" 
-                 class="relative transform overflow-hidden rounded-3xl bg-white text-left shadow-2xl transition-all sm:my-8 sm:w-full sm:max-w-lg border border-slate-200">
+                 class="relative transform overflow-hidden rounded-3xl bg-white text-left shadow-2xl transition-all sm:my-8 sm:w-full sm:max-w-2xl border border-slate-200">
                 
-                <div class="px-8 pt-8 pb-6">
-                    <div class="flex items-center justify-between mb-6">
+                <div class="px-8 pt-6 pb-4">
+                    <div class="flex items-center justify-between mb-4">
                         <h3 class="text-xl font-bold text-slate-900">{{ $title }}</h3>
                         <button @click="open = false" class="text-slate-400 hover:text-slate-600 transition-colors" x-show="!$wire.importing">
                             <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
@@ -143,7 +143,7 @@
                             </div>
                         @enderror
 
-                        <div class="bg-slate-50/50 px-8 py-6 -mx-8 -mb-6 mt-8 flex flex-row-reverse gap-3">
+                        <div class="bg-slate-50/50 px-8 py-4 -mx-8 -mb-4 mt-6 flex flex-row-reverse gap-3">
                             <button wire:click="{{ $method }}" 
                                     wire:loading.attr="disabled"
                                     @if(!$this->{$model}) disabled @endif

@@ -26,10 +26,10 @@
                  x-transition:leave="ease-in duration-200" 
                  x-transition:leave-start="opacity-100 translate-y-0 sm:scale-100" 
                  x-transition:leave-end="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95" 
-                 class="relative transform overflow-hidden rounded-[2.5rem] bg-white text-left shadow-2xl transition-all sm:my-8 sm:w-full sm:max-w-xl border border-slate-200">
+                 class="relative transform overflow-hidden rounded-[2.5rem] bg-white text-left shadow-2xl transition-all sm:my-8 sm:w-full sm:max-w-3xl border border-slate-200">
                 
-                <div class="px-10 pt-10 pb-8">
-                    <div class="flex items-center justify-between mb-8">
+                <div class="px-8 pt-8 pb-6">
+                    <div class="flex items-center justify-between mb-6">
                         <div>
                             <h3 class="text-2xl font-bold text-slate-900">{{ $this->userId ? 'Cập nhật nhân viên' : 'Thêm nhân viên mới' }}</h3>
                             <p class="text-xs text-slate-400 mt-1 uppercase tracking-widest font-bold">Thông tin tài khoản hệ thống</p>
@@ -39,7 +39,7 @@
                         </button>
                     </div>
 
-                    <form wire:submit.prevent="save" class="space-y-6">
+                    <form wire:submit.prevent="save" class="space-y-4">
                         <!-- Name -->
                         <div class="space-y-2">
                             <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Họ và tên</label>
@@ -123,7 +123,7 @@
                     </form>
                 </div>
 
-                <div class="bg-slate-50/50 px-10 py-8 flex flex-row-reverse gap-3">
+                <div class="bg-slate-50/50 px-8 py-5 flex flex-row-reverse gap-3">
                     <button wire:click="save" 
                             wire:loading.attr="disabled"
                             class="btn-electric px-10 py-3 shadow-[0_10px_20px_rgba(0,209,255,0.2)]">
