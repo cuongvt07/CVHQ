@@ -265,8 +265,9 @@ class ProductIndex extends Component
         $this->dispatch('open-product-modal');
     }
 
-    public function save()
+    public function save($keepOpen = false)
     {
+        $currentSku = $this->sku;
         $rules = $this->rules;
         if ($this->productId) {
             $rules['sku'] = 'required|unique:products,sku,' . $this->productId;
@@ -312,8 +313,55 @@ class ProductIndex extends Component
             $this->dispatch('notify', message: 'Thêm sản phẩm thành công!', type: 'success');
         }
 
-        $this->dispatch('close-product-modal');
-        $this->resetForm();
+        if ($keepOpen) {
+            $nextSku = $this->getNextSku($currentSku);
+            $this->resetForm();
+            $this->sku = $nextSku;
+            $this->loadAttributeSuggestions();
+            // We don't close the modal, just reset for next
+            $this->dispatch('notify', message: 'Đã lưu và chuẩn bị tạo sản phẩm tiếp theo!', type: 'success');
+        } else {
+            $this->dispatch('close-product-modal');
+            $this->resetForm();
+        }
+    }
+
+    public function saveAndCreateNext()
+    {
+        $this->save(true);
+    }
+
+    private function getNextSku($sku)
+    {
+        if (empty($sku)) return '';
+
+        $nextSku = $sku;
+        $iteration = 0;
+
+        while ($iteration < 100) { // Safety break
+            // Try to match pattern TEXT-NUMBER or just TEXTNUMBER
+            if (preg_match('/^(.*?)(\d+)$/', $nextSku, $matches)) {
+                $prefix = $matches[1];
+                $number = (int)$matches[2];
+                $nextNumber = $number + 1;
+                
+                // Keep leading zeros if any
+                $nextNumberStr = str_pad((string)$nextNumber, strlen($matches[2]), '0', STR_PAD_LEFT);
+                $nextSku = $prefix . $nextNumberStr;
+            } else {
+                // If no trailing number, just add -1
+                $nextSku = $nextSku . '-1';
+            }
+
+            // Check if this SKU exists
+            if (!Product::where('sku', $nextSku)->exists()) {
+                return $nextSku;
+            }
+            
+            $iteration++;
+        }
+
+        return $nextSku . '-copy';
     }
 
     public function confirmDelete($id)

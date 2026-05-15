@@ -203,11 +203,20 @@
                 <div class="bg-slate-50/50 px-10 py-8 flex flex-row-reverse gap-3">
                     <button wire:click="save" 
                             wire:loading.attr="disabled"
-                            class="btn-electric px-10 py-3 shadow-[0_10px_20px_rgba(0,209,255,0.2)]">
+                            class="btn-electric px-8 py-3 shadow-[0_10px_20px_rgba(0,209,255,0.2)]">
                         <span wire:loading.remove wire:target="save">Lưu thay đổi</span>
                         <span wire:loading wire:target="save" class="flex items-center gap-2">
                             <svg class="animate-spin" xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg>
                             Đang xử lý...
+                        </span>
+                    </button>
+                    <button wire:click="saveAndCreateNext" 
+                            wire:loading.attr="disabled"
+                            class="px-8 py-3 bg-white border border-slate-200 text-slate-600 rounded-antigravity-pill text-sm font-bold hover:bg-slate-50 hover:border-electric-blue/40 hover:text-electric-blue transition-all shadow-sm">
+                        <span wire:loading.remove wire:target="saveAndCreateNext">Lưu & Tạo tiếp</span>
+                        <span wire:loading wire:target="saveAndCreateNext" class="flex items-center gap-2">
+                            <svg class="animate-spin" xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg>
+                            Đang lưu...
                         </span>
                     </button>
                     <button @click="open = false" class="px-8 py-3 text-sm font-bold text-slate-500 hover:text-slate-900 transition-colors">
