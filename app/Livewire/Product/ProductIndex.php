@@ -31,7 +31,7 @@ class ProductIndex extends Component
 
     protected function getDefaultVisibleColumns(): array
     {
-        return ['image', 'sku', 'name', 'branch_stock', 'sale_price', 'status', 'actions'];
+        return ['sku', 'brand', 'category', 'location', 'stock', 'price', 'actions'];
     }
 
     public $search = '';
@@ -431,10 +431,6 @@ class ProductIndex extends Component
         $this->dispatch('notify', message: 'Đã lưu cấu hình hoa hồng!', type: 'success');
     }
 
-    protected function getDefaultVisibleColumns(): array
-    {
-        return ['sku', 'name', 'brand', 'category', 'price', 'stock', 'location', 'actions'];
-    }
 
     public function bulkCopyToSG()
     {
