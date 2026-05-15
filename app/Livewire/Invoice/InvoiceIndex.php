@@ -37,7 +37,11 @@ class InvoiceIndex extends Component
     public $editProductSearch = '';
     public $editingItems = [];
     public $itemsToDelete = [];
-    public $visibleColumns = [];
+
+    protected function getDefaultVisibleColumns(): array
+    {
+        return ['code', 'time', 'customer', 'amount', 'seller', 'status', 'actions'];
+    }
 
     // Import Progress
     public $importing = false;

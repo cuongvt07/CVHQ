@@ -22,7 +22,11 @@ class CategoryIndex extends Component
 
     public $search = '';
     public $perPage = 10;
-    public $visibleColumns = [];
+
+    protected function getDefaultVisibleColumns(): array
+    {
+        return ['name', 'slug', 'created_at', 'actions'];
+    }
 
     // Form properties
     public $categoryId;

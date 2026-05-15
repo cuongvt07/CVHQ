@@ -24,6 +24,11 @@ class CustomerIndex extends Component
         return 'customers';
     }
 
+    protected function getDefaultVisibleColumns(): array
+    {
+        return ['info', 'type', 'total_spent', 'last_purchase', 'actions'];
+    }
+
     public $search = '';
     public $importFile;
     public $perPage = 10;

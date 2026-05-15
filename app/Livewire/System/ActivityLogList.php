@@ -23,7 +23,11 @@ class ActivityLogList extends Component
     public $date_from = '';
     public $date_to = '';
     public $perPage = 25;
-    public $visibleColumns = [];
+
+    protected function getDefaultVisibleColumns(): array
+    {
+        return ['time', 'user', 'action', 'object', 'details'];
+    }
 
     protected $queryString = [
         'user_id' => ['except' => ''],

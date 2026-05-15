@@ -29,8 +29,12 @@ class ProductCommission extends Component
 
     public $search = '';
     public $perPage = 15;
-    public $visibleColumns = [];
     public $importFile;
+
+    protected function getDefaultVisibleColumns(): array
+    {
+        return ['sku', 'name', 'unit', 'sale_price', 'cost_price', 'profit', 'commission'];
+    }
 
     // Import Properties (for modal compatibility)
     public $importing = false;

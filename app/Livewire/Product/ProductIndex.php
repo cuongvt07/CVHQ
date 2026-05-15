@@ -29,6 +29,11 @@ class ProductIndex extends Component
         return ['perPage', 'branch'];
     }
 
+    protected function getDefaultVisibleColumns(): array
+    {
+        return ['image', 'sku', 'name', 'branch_stock', 'sale_price', 'status', 'actions'];
+    }
+
     public $search = '';
     public $category = 'All';
     public $selectedCategories = [];

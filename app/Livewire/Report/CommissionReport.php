@@ -24,7 +24,11 @@ class CommissionReport extends Component
     public $selectedUserId = null;
     public $selectedInvoiceId = null;
     public $dateRange = 'this_month';
-    public $visibleColumns = [];
+
+    protected function getDefaultVisibleColumns(): array
+    {
+        return ['employee', 'orders', 'sales', 'commission', 'actions'];
+    }
 
     public function selectEmployee($userId)
     {

@@ -21,7 +21,11 @@ class UserIndex extends Component
     public $search = '';
     public $roleFilter = 'All';
     public $perPage = 10;
-    public $visibleColumns = [];
+
+    protected function getDefaultVisibleColumns(): array
+    {
+        return ['info', 'role', 'created_at', 'actions'];
+    }
 
     protected $queryString = [
         'search' => ['except' => ''],
