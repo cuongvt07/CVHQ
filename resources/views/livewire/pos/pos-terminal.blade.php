@@ -297,7 +297,11 @@
                             <div class="flex justify-between items-center">
                                 <div class="flex items-center bg-slate-100 rounded-lg p-0.5">
                                     <button wire:click="updateQuantity({{ $item['id'] }}, -1)" class="w-6 h-6 flex items-center justify-center text-slate-400 hover:text-red-500 transition-all"><svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/></svg></button>
-                                    <span class="w-8 text-center text-[11px] font-bold text-slate-900">{{ $item['quantity'] }}</span>
+                                    <input type="number" 
+                                           value="{{ $item['quantity'] }}" 
+                                           x-on:blur="$wire.setQuantity({{ $item['id'] }}, $event.target.value)"
+                                           x-on:keydown.enter="$event.target.blur()"
+                                           class="w-10 text-center bg-transparent border-none p-0 text-[11px] font-bold text-slate-900 focus:ring-0">
                                     <button wire:click="updateQuantity({{ $item['id'] }}, 1)" class="w-6 h-6 flex items-center justify-center text-slate-400 hover:text-electric-blue transition-all"><svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="M12 5v14"/></svg></button>
                                 </div>
                                 <div class="flex items-center gap-3">
@@ -331,7 +335,18 @@
                 </div>
                 <div class="flex justify-between items-center text-[11px]">
                     <span class="text-slate-400 font-bold tracking-wider">Giảm giá</span>
-                    <div class="relative w-32"><input type="number" wire:model.live="discount" class="w-full bg-white border border-slate-200 rounded-lg text-right px-2 py-1 text-xs text-slate-900 focus:outline-none focus:border-electric-blue transition-all"></div>
+                    <div class="flex items-center gap-2 bg-white border border-slate-200 rounded-xl px-2 py-1 shadow-sm">
+                        <!-- Toggle VND / % -->
+                        <div class="flex bg-slate-100 rounded-lg p-0.5">
+                            <button wire:click="setGlobalDiscountType('vnd')" 
+                                    class="px-2 py-1 rounded-md text-[9px] font-black transition-all {{ $global_discount_type === 'vnd' ? 'bg-white text-electric-blue shadow-sm' : 'text-slate-400' }}">VND</button>
+                            <button wire:click="setGlobalDiscountType('%')" 
+                                    class="px-2 py-1 rounded-md text-[9px] font-black transition-all {{ $global_discount_type === '%' ? 'bg-white text-electric-blue shadow-sm' : 'text-slate-400' }}">%</button>
+                        </div>
+                        <input type="number" wire:model.live="global_discount_value" 
+                               class="w-24 bg-transparent text-right px-1 py-0.5 text-xs font-bold text-slate-900 focus:outline-none transition-all"
+                               placeholder="0">
+                    </div>
                 </div>
                 <div class="flex justify-between items-center text-[11px]">
                     <span class="text-slate-400 font-bold tracking-wider">Thu khác</span>

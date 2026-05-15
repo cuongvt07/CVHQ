@@ -91,7 +91,9 @@ class PosTerminal extends Component
     }
 
     // Financials
-    public $discount = 0;
+    public $discount = 0; // This will now represent the total calculated discount
+    public $global_discount_type = 'vnd'; // 'vnd' or '%'
+    public $global_discount_value = 0;
     public $extra_fee = 0;
     public $paid_amount = 0;
 
@@ -148,6 +150,21 @@ class PosTerminal extends Component
         }
     }
 
+    public function setQuantity($productId, $quantity)
+    {
+        $existingIndex = collect($this->cart)->search(fn($item) => $item['id'] === $productId);
+        
+        if ($existingIndex !== false) {
+            $this->cart[$existingIndex]['quantity'] = max(0, (int)$quantity);
+            
+            if ($this->cart[$existingIndex]['quantity'] <= 0) {
+                $this->removeFromCart($productId);
+            } else {
+                $this->recalculateTotalDiscount();
+            }
+        }
+    }
+
     public function applyItemDiscount($productId, $discountPerUnit)
     {
         $existingIndex = collect($this->cart)->search(fn($item) => $item['id'] === $productId);
@@ -170,9 +187,49 @@ class PosTerminal extends Component
 
     protected function recalculateTotalDiscount()
     {
-        $this->discount = collect($this->cart)->sum(function($item) {
-            return ($item['item_discount'] ?? 0) * $item['quantity'];
-        });
+        $totalDiscount = 0;
+        
+        foreach ($this->cart as &$item) {
+            $itemPrice = (int)$item['sale_price'];
+            $itemQty = (int)$item['quantity'];
+            $itemDiscountFixed = (int)($item['item_discount'] ?? 0);
+            
+            if ($this->global_discount_type === '%') {
+                // Logic: (item_discount / price) + global_%
+                $itemDiscountPercent = $itemPrice > 0 ? ($itemDiscountFixed / $itemPrice * 100) : 0;
+                $totalPercent = $itemDiscountPercent + (float)$this->global_discount_value;
+                $item['calculated_discount'] = ($totalPercent / 100) * $itemPrice * $itemQty;
+            } else {
+                // Logic: item_discount + global_vnd (pro-rated or just additive)
+                // The user specifically asked for the % logic. For VND, we'll keep it additive for now 
+                // but the global VND will be handled in getFinalAmountProperty.
+                $item['calculated_discount'] = $itemDiscountFixed * $itemQty;
+            }
+            
+            $totalDiscount += $item['calculated_discount'];
+        }
+
+        if ($this->global_discount_type === 'vnd') {
+            $totalDiscount += (int)$this->global_discount_value;
+        }
+
+        $this->discount = $totalDiscount;
+    }
+
+    public function setGlobalDiscountType($type)
+    {
+        $this->global_discount_type = $type;
+        $this->recalculateTotalDiscount();
+    }
+
+    public function updatedGlobalDiscountType()
+    {
+        $this->recalculateTotalDiscount();
+    }
+
+    public function updatedGlobalDiscountValue()
+    {
+        $this->recalculateTotalDiscount();
     }
 
     public function getProducts()
