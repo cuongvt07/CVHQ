@@ -34,7 +34,6 @@ class InvoiceIndex extends Component
     public $editingInvoiceId = null;
     public $editCustomerId = null;
     public $editCustomerSearch = '';
-    public $editProductSearch = '';
     public $editingItems = [];
     public $itemsToDelete = [];
 
@@ -42,6 +41,7 @@ class InvoiceIndex extends Component
     {
         return ['code', 'time', 'customer', 'amount', 'seller', 'status', 'actions'];
     }
+
 
     // Import Progress
     public $importing = false;
@@ -442,11 +442,6 @@ class InvoiceIndex extends Component
     protected function getModelForBulk()
     {
         return Invoice::class;
-    }
-
-    protected function getDefaultVisibleColumns(): array
-    {
-        return ['code', 'customer', 'amount', 'method', 'status', 'date'];
     }
 
     public function render()

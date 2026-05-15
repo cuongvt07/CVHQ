@@ -29,6 +29,7 @@ class CustomerIndex extends Component
         return ['info', 'type', 'total_spent', 'last_purchase', 'actions'];
     }
 
+
     public $search = '';
     public $importFile;
     public $perPage = 10;
@@ -245,11 +246,6 @@ class CustomerIndex extends Component
     protected function getModelForBulk()
     {
         return Customer::class;
-    }
-
-    protected function getDefaultVisibleColumns(): array
-    {
-        return ['customer', 'group', 'debt', 'spent', 'status', 'actions'];
     }
 
     public function render()
