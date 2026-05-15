@@ -12,6 +12,7 @@ use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Str;
 use App\Traits\WithBulkActions;
 use App\Traits\HasPermissions;
+use App\Traits\WithColumnVisibility;
 use App\Traits\WithUserPreferences;
 
 class ProductIndex extends Component
