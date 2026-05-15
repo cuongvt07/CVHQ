@@ -6,12 +6,12 @@ use App\Models\User;
 use Livewire\Component;
 use Livewire\WithPagination;
 use Illuminate\Support\Facades\Hash;
-use App\Traits\WithBulkActions;
-use App\Traits\HasPermissions;
+use App\Traits\WithColumnVisibility;
+use App\Traits\WithUserPreferences;
 
 class UserIndex extends Component
 {
-    use WithPagination, WithBulkActions, HasPermissions;
+    use WithPagination, WithBulkActions, HasPermissions, WithColumnVisibility, WithUserPreferences;
 
     protected function getModuleKey(): string
     {
@@ -21,6 +21,7 @@ class UserIndex extends Component
     public $search = '';
     public $roleFilter = 'All';
     public $perPage = 10;
+    public $visibleColumns = [];
 
     protected $queryString = [
         'search' => ['except' => ''],

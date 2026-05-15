@@ -80,6 +80,18 @@
                 <option value="50">50</option>
             </select>
         </div>
+
+        <div class="h-8 w-px bg-slate-100 mx-1"></div>
+
+        <x-column-toggle 
+            :visibleColumns="$visibleColumns" 
+            :cols="[
+                'name' => 'Tên danh mục',
+                'slug' => 'Slug (Đường dẫn)',
+                'created_at' => 'Ngày tạo',
+                'actions' => 'Thao tác'
+            ]" 
+        />
     </div>
 
     <!-- Main Content -->
@@ -91,10 +103,18 @@
                         <th class="px-6 py-4 w-10">
                             <input type="checkbox" wire:model.live="selectAll" class="w-4 h-4 rounded border-slate-300 text-electric-blue focus:ring-electric-blue transition-all cursor-pointer">
                         </th>
+                        @if(in_array('name', $visibleColumns))
                         <th class="px-6 py-4 text-[10px] font-bold text-slate-500 uppercase tracking-[0.2em]">Tên danh mục</th>
+                        @endif
+                        @if(in_array('slug', $visibleColumns))
                         <th class="px-6 py-4 text-[10px] font-bold text-slate-400 uppercase tracking-[0.2em]">Slug (Đường dẫn)</th>
+                        @endif
+                        @if(in_array('created_at', $visibleColumns))
                         <th class="px-6 py-4 text-[10px] font-bold text-slate-400 uppercase tracking-[0.2em]">Ngày tạo</th>
+                        @endif
+                        @if(in_array('actions', $visibleColumns))
                         <th class="px-6 py-4 text-[10px] font-bold text-slate-400 uppercase tracking-[0.2em]">Thao tác</th>
+                        @endif
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-slate-100 bg-white/50">
@@ -103,15 +123,22 @@
                             <td class="px-6 py-4">
                                 <input type="checkbox" wire:model.live="selectedRows" value="{{ $cat->id }}" class="w-4 h-4 rounded border-slate-300 text-electric-blue focus:ring-electric-blue transition-all cursor-pointer">
                             </td>
+                            @if(in_array('name', $visibleColumns))
                             <td class="px-6 py-4">
                                 <div class="text-sm font-semibold text-slate-900">{{ $cat->name }}</div>
                             </td>
+                            @endif
+                            @if(in_array('slug', $visibleColumns))
                             <td class="px-6 py-4">
                                 <span class="text-xs text-slate-400 font-mono">{{ $cat->slug }}</span>
                             </td>
+                            @endif
+                            @if(in_array('created_at', $visibleColumns))
                             <td class="px-6 py-4">
                                 <div class="text-xs text-slate-400 font-mono">{{ $cat->created_at->format('Y-m-d H:i') }}</div>
                             </td>
+                            @endif
+                            @if(in_array('actions', $visibleColumns))
                             <td class="px-6 py-4">
                                 <div class="flex items-center gap-2">
                                     <button wire:click="edit({{ $cat->id }})" class="p-1.5 text-slate-400 hover:text-electric-blue transition-colors">
@@ -122,6 +149,7 @@
                                     </button>
                                 </div>
                             </td>
+                            @endif
                         </tr>
                     @endforeach
                 </tbody>

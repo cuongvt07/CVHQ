@@ -15,18 +15,21 @@ use Maatwebsite\Excel\Facades\Excel;
 use App\Traits\HasPermissions;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Str;
+use App\Traits\WithColumnVisibility;
+use App\Traits\WithUserPreferences;
 
 class ProductCommission extends Component
 {
-    use WithPagination, WithFileUploads, WithBulkActions, HasPermissions;
+    use WithPagination, WithFileUploads, WithBulkActions, HasPermissions, WithColumnVisibility, WithUserPreferences;
 
     protected function getModuleKey(): string
     {
-        return 'commissions';
+        return 'product_commissions';
     }
 
     public $search = '';
     public $perPage = 15;
+    public $visibleColumns = [];
     public $importFile;
 
     // Import Properties (for modal compatibility)

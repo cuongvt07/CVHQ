@@ -24,6 +24,20 @@
                 <option value="this_month">Tháng này</option>
                 <option value="last_month">Tháng trước</option>
             </select>
+
+            @if($view === 'summary')
+                <div class="h-8 w-px bg-slate-100 mx-1"></div>
+                <x-column-toggle 
+                    :visibleColumns="$visibleColumns" 
+                    :cols="[
+                        'employee' => 'Nhân viên',
+                        'orders' => 'Số đơn hàng',
+                        'sales' => 'Tổng doanh số',
+                        'commission' => 'Tổng hoa hồng',
+                        'actions' => 'Thao tác'
+                    ]" 
+                />
+            @endif
         </div>
     </header>
 
@@ -34,28 +48,48 @@
                 <table class="w-full text-left border-collapse">
                     <thead>
                         <tr class="bg-slate-50 border-b border-slate-200">
+                            @if(in_array('employee', $visibleColumns))
                             <th class="px-4 py-2 text-[10px] font-bold text-slate-500 uppercase tracking-widest">Nhân viên</th>
+                            @endif
+                            @if(in_array('orders', $visibleColumns))
                             <th class="px-4 py-2 text-[10px] font-bold text-slate-400 uppercase tracking-widest text-right">Số đơn hàng</th>
+                            @endif
+                            @if(in_array('sales', $visibleColumns))
                             <th class="px-4 py-2 text-[10px] font-bold text-slate-400 uppercase tracking-widest text-right">Tổng doanh số</th>
+                            @endif
+                            @if(in_array('commission', $visibleColumns))
                             <th class="px-4 py-2 text-[10px] font-bold text-slate-400 uppercase tracking-widest text-right">Tổng hoa hồng</th>
+                            @endif
+                            @if(in_array('actions', $visibleColumns))
                             <th class="px-4 py-2 text-[10px] font-bold text-slate-400 uppercase tracking-widest text-center">Thao tác</th>
+                            @endif
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-slate-100 bg-white/50">
                         @foreach($employees as $emp)
                             <tr class="hover:bg-slate-50 transition-colors">
+                                @if(in_array('employee', $visibleColumns))
                                 <td class="px-4 py-2">
                                     <div class="text-sm font-bold text-slate-900">{{ $emp->name }}</div>
                                     <div class="text-[10px] text-slate-400 uppercase tracking-widest">{{ $emp->role }}</div>
                                 </td>
+                                @endif
+                                @if(in_array('orders', $visibleColumns))
                                 <td class="px-4 py-2 text-right text-sm font-medium text-slate-600">{{ $emp->total_invoices }}</td>
+                                @endif
+                                @if(in_array('sales', $visibleColumns))
                                 <td class="px-4 py-2 text-right text-sm font-bold text-slate-900">{{ number_format($emp->total_sales, 0, ',', '.') }}</td>
+                                @endif
+                                @if(in_array('commission', $visibleColumns))
                                 <td class="px-4 py-2 text-right">
                                     <span class="text-sm font-bold text-emerald-600">{{ number_format($emp->total_commission, 0, ',', '.') }}</span>
                                 </td>
+                                @endif
+                                @if(in_array('actions', $visibleColumns))
                                 <td class="px-4 py-2 text-center">
                                     <button wire:click="selectEmployee({{ $emp->id }})" class="text-xs font-bold text-electric-blue hover:underline uppercase tracking-widest">Xem chi tiết</button>
                                 </td>
+                                @endif
                             </tr>
                         @endforeach
                     </tbody>

@@ -8,20 +8,23 @@ use Carbon\Carbon;
 use Livewire\Component;
 use Livewire\WithPagination;
 use App\Traits\HasPermissions;
+use App\Traits\WithColumnVisibility;
+use App\Traits\WithUserPreferences;
 
 class CommissionReport extends Component
 {
-    use WithPagination, HasPermissions;
+    use WithPagination, HasPermissions, WithColumnVisibility, WithUserPreferences;
 
     protected function getModuleKey(): string
     {
-        return 'reports';
+        return 'commission_report';
     }
 
     public $view = 'summary'; // summary, employee_detail, invoice_detail
     public $selectedUserId = null;
     public $selectedInvoiceId = null;
     public $dateRange = 'this_month';
+    public $visibleColumns = [];
 
     public function selectEmployee($userId)
     {

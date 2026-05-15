@@ -38,6 +38,31 @@
             <button wire:click="clearFilters" class="p-2 text-slate-400 hover:text-rose-500 transition-colors">
                 <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/></svg>
             </button>
+
+            <div class="h-8 w-px bg-slate-100 mx-2"></div>
+
+            <div class="flex items-center gap-3">
+                <span class="text-[11px] text-slate-400 font-bold tracking-widest">Hiển thị:</span>
+                <select wire:model.live="perPage" class="bg-white border border-slate-200 rounded-xl py-1.5 px-3 text-[10px] font-black text-slate-600 focus:outline-none focus:border-electric-blue transition-all cursor-pointer shadow-sm">
+                    <option value="10">10</option>
+                    <option value="25">25</option>
+                    <option value="50">50</option>
+                    <option value="100">100</option>
+                </select>
+            </div>
+
+            <div class="h-8 w-px bg-slate-100 mx-2"></div>
+
+            <x-column-toggle 
+                :visibleColumns="$visibleColumns" 
+                :cols="[
+                    'time' => 'Thời gian',
+                    'user' => 'Nhân viên',
+                    'action' => 'Hành động',
+                    'object' => 'Đối tượng',
+                    'details' => 'Chi tiết'
+                ]" 
+            />
         </div>
     </div>
 
@@ -47,20 +72,33 @@
             <table class="w-full text-left border-collapse">
                 <thead>
                     <tr class="bg-slate-50 border-b border-slate-200">
+                        @if(in_array('time', $visibleColumns))
                         <th class="px-4 py-3 text-[9px] font-bold text-slate-500 tracking-[0.2em] uppercase">Thời gian</th>
+                        @endif
+                        @if(in_array('user', $visibleColumns))
                         <th class="px-4 py-3 text-[9px] font-bold text-slate-500 tracking-[0.2em] uppercase">Nhân viên</th>
+                        @endif
+                        @if(in_array('action', $visibleColumns))
                         <th class="px-4 py-3 text-[9px] font-bold text-slate-500 tracking-[0.2em] uppercase">Hành động</th>
+                        @endif
+                        @if(in_array('object', $visibleColumns))
                         <th class="px-4 py-3 text-[9px] font-bold text-slate-500 tracking-[0.2em] uppercase">Đối tượng</th>
+                        @endif
+                        @if(in_array('details', $visibleColumns))
                         <th class="px-4 py-3 text-[9px] font-bold text-slate-500 tracking-[0.2em] uppercase">Chi tiết thay đổi</th>
+                        @endif
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-slate-100 bg-white/50">
                     @forelse($logs as $log)
                         <tr class="hover:bg-slate-50 transition-colors group">
+                            @if(in_array('time', $visibleColumns))
                             <td class="px-4 py-3">
                                 <div class="text-[11px] font-bold text-slate-900">{{ $log->created_at->format('H:i:s') }}</div>
                                 <div class="text-[10px] text-slate-400">{{ $log->created_at->format('d/m/Y') }}</div>
                             </td>
+                            @endif
+                            @if(in_array('user', $visibleColumns))
                             <td class="px-4 py-3">
                                 <div class="flex items-center gap-2">
                                     <div class="w-7 h-7 rounded-full bg-slate-100 border border-slate-200 flex items-center justify-center text-[10px] font-bold text-slate-500 uppercase">
@@ -69,6 +107,8 @@
                                     <span class="text-xs font-bold text-slate-700">{{ $log->user->name }}</span>
                                 </div>
                             </td>
+                            @endif
+                            @if(in_array('action', $visibleColumns))
                             <td class="px-4 py-3">
                                 <span class="px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-widest
                                     {{ $log->action === 'created' ? 'bg-emerald-50 text-emerald-600 border border-emerald-100' : '' }}
@@ -77,10 +117,14 @@
                                     {{ $log->action }}
                                 </span>
                             </td>
+                            @endif
+                            @if(in_array('object', $visibleColumns))
                             <td class="px-4 py-3">
                                 <div class="text-xs font-bold text-slate-900">{{ $log->model_name }}</div>
                                 <div class="text-[10px] text-slate-400 font-mono">ID: #{{ $log->model_id }}</div>
                             </td>
+                            @endif
+                            @if(in_array('details', $visibleColumns))
                             <td class="px-4 py-3">
                                 @if($log->changes)
                                     <div class="space-y-1">
@@ -102,6 +146,7 @@
                                     <span class="text-[10px] text-slate-300 italic">Không có chi tiết thay đổi</span>
                                 @endif
                             </td>
+                            @endif
                         </tr>
                     @empty
                         <tr>

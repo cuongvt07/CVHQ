@@ -8,10 +8,12 @@ use Livewire\WithPagination;
 use App\Traits\WithBulkActions;
 use Illuminate\Support\Str;
 use App\Traits\HasPermissions;
+use App\Traits\WithColumnVisibility;
+use App\Traits\WithUserPreferences;
 
 class CategoryIndex extends Component
 {
-    use WithPagination, WithBulkActions, HasPermissions;
+    use WithPagination, WithBulkActions, HasPermissions, WithColumnVisibility, WithUserPreferences;
 
     protected function getModuleKey(): string
     {
@@ -20,6 +22,7 @@ class CategoryIndex extends Component
 
     public $search = '';
     public $perPage = 10;
+    public $visibleColumns = [];
 
     // Form properties
     public $categoryId;

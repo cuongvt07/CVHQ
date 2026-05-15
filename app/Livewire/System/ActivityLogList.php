@@ -5,11 +5,17 @@ namespace App\Livewire\System;
 use App\Models\ActivityLog;
 use App\Models\User;
 use Livewire\Component;
-use Livewire\WithPagination;
+use App\Traits\WithColumnVisibility;
+use App\Traits\WithUserPreferences;
 
 class ActivityLogList extends Component
 {
-    use WithPagination;
+    use WithPagination, WithColumnVisibility, WithUserPreferences;
+
+    protected function getModuleKey(): string
+    {
+        return 'activity_logs';
+    }
 
     public $search = '';
     public $user_id = '';
@@ -17,12 +23,14 @@ class ActivityLogList extends Component
     public $date_from = '';
     public $date_to = '';
     public $perPage = 25;
+    public $visibleColumns = [];
 
     protected $queryString = [
         'user_id' => ['except' => ''],
         'action' => ['except' => ''],
         'date_from' => ['except' => ''],
         'date_to' => ['except' => ''],
+        'perPage' => ['except' => 25],
     ];
 
     public function mount()

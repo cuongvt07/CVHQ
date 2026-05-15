@@ -26,6 +26,34 @@
                 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" x2="12" y1="15" y2="3"/></svg>
                 Xuất file
             </button>
+
+            <div class="h-8 w-px bg-slate-200 mx-1"></div>
+
+            <div class="flex items-center gap-3">
+                <span class="text-[11px] text-slate-400 font-bold tracking-widest">Hiển thị:</span>
+                <select wire:model.live="perPage" class="bg-white border border-slate-200 rounded-xl py-1.5 px-3 text-[10px] font-black text-slate-600 focus:outline-none focus:border-electric-blue transition-all cursor-pointer shadow-sm">
+                    <option value="15">15</option>
+                    <option value="25">25</option>
+                    <option value="50">50</option>
+                    <option value="100">100</option>
+                </select>
+            </div>
+
+            <div class="h-8 w-px bg-slate-200 mx-1"></div>
+
+            <x-column-toggle 
+                :visibleColumns="$visibleColumns" 
+                :cols="[
+                    'sku' => 'Mã hàng',
+                    'name' => 'Tên hàng',
+                    'unit' => 'ĐVT',
+                    'sale_price' => 'Giá bán',
+                    'cost_price' => 'Giá vốn',
+                    'profit' => 'Lợi nhuận',
+                    'commission' => 'Hoa hồng'
+                ]" 
+            />
+
             <button class="p-2 bg-white border border-slate-200 text-slate-400 rounded-xl hover:text-slate-600 shadow-sm">
                 <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="7" height="7" x="3" y="3" rx="1"/><rect width="7" height="7" x="14" y="3" rx="1"/><rect width="7" height="7" x="14" y="14" rx="1"/><rect width="7" height="7" x="3" y="14" rx="1"/></svg>
             </button>
@@ -43,13 +71,27 @@
                         <th class="px-4 py-2 w-10">
                             <input type="checkbox" class="w-4 h-4 rounded border-slate-300 text-electric-blue focus:ring-electric-blue transition-all cursor-pointer">
                         </th>
+                        @if(in_array('sku', $visibleColumns))
                         <th class="px-4 py-2 text-[10px] font-bold text-slate-900 tracking-wider">Mã hàng</th>
+                        @endif
+                        @if(in_array('name', $visibleColumns))
                         <th class="px-4 py-2 text-[10px] font-bold text-slate-900 tracking-wider">Tên hàng</th>
+                        @endif
+                        @if(in_array('unit', $visibleColumns))
                         <th class="px-4 py-2 text-[10px] font-bold text-slate-900 tracking-wider">Đơn vị tính</th>
+                        @endif
+                        @if(in_array('sale_price', $visibleColumns))
                         <th class="px-4 py-2 text-[11px] font-bold text-slate-900 uppercase tracking-wider text-right">Giá bán chung</th>
+                        @endif
+                        @if(in_array('cost_price', $visibleColumns))
                         <th class="px-4 py-2 text-[11px] font-bold text-slate-900 uppercase tracking-wider text-right">Giá vốn</th>
+                        @endif
+                        @if(in_array('profit', $visibleColumns))
                         <th class="px-4 py-2 text-[11px] font-bold text-slate-900 uppercase tracking-wider text-right">Lợi nhuận tạm tính <span class="text-slate-300">ⓘ</span></th>
+                        @endif
+                        @if(in_array('commission', $visibleColumns))
                         <th class="px-4 py-2 text-[11px] font-bold text-slate-900 uppercase tracking-wider text-right bg-slate-100/30">Bảng hoa hồng chung</th>
+                        @endif
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-slate-50">
@@ -58,9 +100,12 @@
                             <td class="px-4 py-2">
                                 <input type="checkbox" class="w-4 h-4 rounded border-slate-300 text-electric-blue focus:ring-electric-blue transition-all cursor-pointer">
                             </td>
+                            @if(in_array('sku', $visibleColumns))
                             <td class="px-4 py-2">
                                 <span class="text-xs font-bold text-slate-600">{{ $product->sku }}</span>
                             </td>
+                            @endif
+                            @if(in_array('name', $visibleColumns))
                             <td class="px-4 py-2">
                                 <div class="flex items-center gap-3">
                                     <div class="w-10 h-10 rounded-lg overflow-hidden bg-slate-100 border border-slate-200 product-image-container relative" 
@@ -95,18 +140,28 @@
                                     <span class="text-xs text-slate-600 line-clamp-1">{{ $product->name }}</span>
                                 </div>
                             </td>
+                            @endif
+                            @if(in_array('unit', $visibleColumns))
                             <td class="px-4 py-2">
                                 <span class="text-xs text-slate-400">{{ $product->unit ?? 'Cái' }}</span>
                             </td>
+                            @endif
+                            @if(in_array('sale_price', $visibleColumns))
                             <td class="px-4 py-2 text-right">
                                 <span class="text-xs font-medium text-slate-900">{{ number_format($product->sale_price, 0, ',', '.') }}</span>
                             </td>
+                            @endif
+                            @if(in_array('cost_price', $visibleColumns))
                             <td class="px-4 py-2 text-right">
                                 <span class="text-xs font-medium text-slate-900">{{ number_format($product->cost_price, 0, ',', '.') }}</span>
                             </td>
+                            @endif
+                            @if(in_array('profit', $visibleColumns))
                             <td class="px-4 py-2 text-right">
                                 <span class="text-xs font-bold text-slate-900">{{ number_format($product->sale_price - $product->cost_price, 0, ',', '.') }}</span>
                             </td>
+                            @endif
+                            @if(in_array('commission', $visibleColumns))
                             <td class="px-4 py-2 text-right bg-slate-50/30">
                                 <div class="flex justify-end">
                                     <input type="number" 
@@ -115,6 +170,7 @@
                                            class="w-24 bg-white border border-slate-200 rounded-lg px-3 py-1.5 text-xs text-right font-bold text-slate-700 focus:outline-none focus:border-electric-blue transition-all">
                                 </div>
                             </td>
+                            @endif
                         </tr>
                     @endforeach
                 </tbody>

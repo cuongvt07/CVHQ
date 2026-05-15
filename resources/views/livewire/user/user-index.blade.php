@@ -41,6 +41,18 @@
                     <option value="50">50</option>
                 </select>
             </div>
+
+            <div class="h-8 w-px bg-slate-100"></div>
+
+            <x-column-toggle 
+                :visibleColumns="$visibleColumns" 
+                :cols="[
+                    'info' => 'Họ tên & Email',
+                    'role' => 'Vai trò',
+                    'created_at' => 'Ngày tạo',
+                    'actions' => 'Thao tác'
+                ]" 
+            />
         </div>
     </div>
 
@@ -53,10 +65,18 @@
                         <th class="px-4 py-2 w-10">
                             <input type="checkbox" wire:model.live="selectAll" class="w-4 h-4 rounded border-slate-300 text-electric-blue focus:ring-electric-blue transition-all cursor-pointer">
                         </th>
+                        @if(in_array('info', $visibleColumns))
                         <th class="px-4 py-2 text-[9px] font-bold text-slate-500 tracking-[0.2em]">Họ tên & Email</th>
+                        @endif
+                        @if(in_array('role', $visibleColumns))
                         <th class="px-4 py-2 text-[9px] font-bold text-slate-400 tracking-[0.2em]">Vai trò</th>
+                        @endif
+                        @if(in_array('created_at', $visibleColumns))
                         <th class="px-4 py-2 text-[9px] font-bold text-slate-400 tracking-[0.2em]">Ngày tạo</th>
+                        @endif
+                        @if(in_array('actions', $visibleColumns))
                         <th class="px-4 py-2 text-[9px] font-bold text-slate-400 tracking-[0.2em]">Thao tác</th>
+                        @endif
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-slate-100 bg-white/50">
@@ -65,20 +85,27 @@
                             <td class="px-4 py-2">
                                 <input type="checkbox" wire:model.live="selectedRows" value="{{ $user->id }}" class="w-4 h-4 rounded border-slate-300 text-electric-blue focus:ring-electric-blue transition-all cursor-pointer">
                             </td>
+                            @if(in_array('info', $visibleColumns))
                             <td class="px-4 py-2">
                                 <div>
                                     <div class="text-sm font-semibold text-slate-900">{{ $user->name }}</div>
                                     <div class="text-xs text-slate-400">{{ $user->email }}</div>
                                 </div>
                             </td>
+                            @endif
+                            @if(in_array('role', $visibleColumns))
                             <td class="px-4 py-2">
                                 <span class="px-3 py-1 rounded-full text-[9px] font-bold tracking-widest {{ $user->role === 'admin' ? 'bg-amber-50 text-amber-600 border border-amber-100' : 'bg-slate-50 text-slate-500 border border-slate-100' }}">
                                     {{ $user->role === 'admin' ? 'Quản trị viên' : 'Nhân viên' }}
                                 </span>
                             </td>
+                            @endif
+                            @if(in_array('created_at', $visibleColumns))
                             <td class="px-4 py-2">
                                 <span class="text-xs text-slate-500">{{ $user->created_at->format('d/m/Y') }}</span>
                             </td>
+                            @endif
+                            @if(in_array('actions', $visibleColumns))
                             <td class="px-4 py-2">
                                 <div class="flex items-center gap-2">
                                     <button wire:click="edit({{ $user->id }})" class="p-1.5 text-slate-400 hover:text-electric-blue transition-colors">
@@ -89,6 +116,7 @@
                                     </button>
                                 </div>
                             </td>
+                            @endif
                         </tr>
                     @endforeach
                 </tbody>
