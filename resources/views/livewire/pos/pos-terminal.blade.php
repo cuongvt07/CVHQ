@@ -143,34 +143,36 @@
             {{-- Mobile --}}
             <div class="md:hidden h-full overflow-y-auto bg-white p-3 pb-32">
                 <div class="grid grid-cols-2 gap-3 mb-6">
-                    @forelse($products as $product)
-                        <div wire:click="addToCart({{ $product['id'] }})" class="bg-white border border-slate-200 rounded-2xl flex flex-col shadow-sm active:scale-95 transition-transform h-full z-10">
-                            <div class="h-28 bg-slate-50 relative shrink-0 product-image-container rounded-t-2xl overflow-hidden">
-                                @if($product['image'])
-                                    <img src="{{ $product['image'] }}" class="w-full h-full object-cover">
-                                @else
-                                    <div class="w-full h-full flex items-center justify-center text-slate-200">
-                                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="3" rx="2" ry="2"/></svg>
-                                    </div>
-                                @endif
-                            </div>
-                            <div class="p-3 flex-1 flex flex-col justify-between bg-white border-t border-slate-100">
-                                <div>
-                                    <div class="text-[8px] font-black text-slate-500 tracking-wider mb-1">{{ $product['sku'] }}</div>
-                                    <h3 class="text-xs font-bold text-slate-900 line-clamp-2 leading-tight min-h-[2rem]">{{ $product['name'] ?: $product['base_name'] }}</h3>
+                    @if(count($products) > 0)
+                        @foreach($products as $product)
+                            <div wire:click="addToCart({{ $product['id'] }})" class="bg-white border border-slate-200 rounded-2xl flex flex-col shadow-sm active:scale-95 transition-transform h-full z-10">
+                                <div class="h-28 bg-slate-50 relative shrink-0 product-image-container rounded-t-2xl overflow-hidden">
+                                    @if($product['image'])
+                                        <img src="{{ $product['image'] }}" class="w-full h-full object-cover">
+                                    @else
+                                        <div class="w-full h-full flex items-center justify-center text-slate-200">
+                                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="3" rx="2" ry="2"/></svg>
+                                        </div>
+                                    @endif
                                 </div>
-                                <div class="flex items-end justify-between mt-3">
-                                    <p class="text-sm font-black text-electric-blue leading-none">{{ number_format($product['sale_price'] / 1000, 0) }}k</p>
-                                    <div class="text-right flex flex-col items-end gap-1">
-                                        <div class="text-[9px] font-bold {{ $product['stock_quantity'] <= 5 ? 'text-rose-600 bg-rose-50' : 'text-slate-500 bg-slate-50' }} px-1.5 py-0.5 rounded border border-slate-100 leading-none">Tồn: {{ $product['stock_quantity'] }}</div>
-                                        <div class="text-[8px] font-black text-white bg-emerald-500 px-1.5 py-0.5 rounded leading-none">{{ $product['location'] }}</div>
+                                <div class="p-3 flex-1 flex flex-col justify-between bg-white border-t border-slate-100">
+                                    <div>
+                                        <div class="text-[8px] font-black text-slate-500 tracking-wider mb-1">{{ $product['sku'] }}</div>
+                                        <h3 class="text-xs font-bold text-slate-900 line-clamp-2 leading-tight min-h-[2rem]">{{ $product['name'] ?: $product['base_name'] }}</h3>
+                                    </div>
+                                    <div class="flex items-end justify-between mt-3">
+                                        <p class="text-sm font-black text-electric-blue leading-none">{{ number_format($product['sale_price'] / 1000, 0) }}k</p>
+                                        <div class="text-right flex flex-col items-end gap-1">
+                                            <div class="text-[9px] font-bold {{ $product['stock_quantity'] <= 5 ? 'text-rose-600 bg-rose-50' : 'text-slate-500 bg-slate-50' }} px-1.5 py-0.5 rounded border border-slate-100 leading-none">Tồn: {{ $product['stock_quantity'] }}</div>
+                                            <div class="text-[8px] font-black text-white bg-emerald-500 px-1.5 py-0.5 rounded leading-none">{{ $product['location'] }}</div>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
-                        </div>
-                    @empty
+                        @endforeach
+                    @else
                         <div class="col-span-2 py-10 flex items-center justify-center text-slate-300 text-[11px] font-bold tracking-widest">Không có sản phẩm</div>
-                    @endforelse
+                    @endif
                 </div>
                 <div class="mt-4 pb-12 antigravity-pagination">{{ $products->links() }}</div>
             </div>
@@ -276,17 +278,19 @@
                     </div>
                     <div x-show="open && customer_search.length >= 2" @click.away="open = false"
                          class="absolute inset-x-0 top-full mt-2 bg-white border border-slate-200 rounded-2xl shadow-2xl z-[80] overflow-hidden" x-cloak>
-                        @forelse($customers as $customer)
-                            <button wire:click="selectCustomer({{ $customer->id }})" class="w-full px-4 py-3 text-left hover:bg-slate-50 transition-colors border-b border-slate-100 last:border-0 flex items-center justify-between">
-                                <div>
-                                    <p class="text-xs font-bold text-slate-900">{{ $customer->full_name }}</p>
-                                    <p class="text-[10px] text-slate-400">{{ $customer->phone }}</p>
-                                </div>
-                                <span class="text-[9px] text-electric-blue font-bold tracking-widest">{{ $customer->customer_code }}</span>
-                            </button>
-                        @empty
+                        @if(count($customers) > 0)
+                            @foreach($customers as $customer)
+                                <button wire:click="selectCustomer({{ $customer->id }})" class="w-full px-4 py-3 text-left hover:bg-slate-50 transition-colors border-b border-slate-100 last:border-0 flex items-center justify-between">
+                                    <div>
+                                        <p class="text-xs font-bold text-slate-900">{{ $customer->full_name }}</p>
+                                        <p class="text-[10px] text-slate-400">{{ $customer->phone }}</p>
+                                    </div>
+                                    <span class="text-[9px] text-electric-blue font-bold tracking-widest">{{ $customer->customer_code }}</span>
+                                </button>
+                            @endforeach
+                        @else
                             <div class="px-4 py-3 text-center text-[9px] text-slate-300 tracking-widest">Không tìm thấy</div>
-                        @endforelse
+                        @endif
                     </div>
                 </div>
             @endif
@@ -424,7 +428,7 @@
                     </button>
                 </div>
 
-                @forelse($extra_fees as $fi => $fee)
+                @foreach($extra_fees as $fi => $fee)
                     <div wire:key="fee-{{ $fi }}" class="flex items-center gap-1.5 animate-in fade-in slide-in-from-top-1 duration-150">
                         <input type="text"
                                wire:model.live="tabs.{{ $activeTab }}.extra_fees.{{ $fi }}.name"
@@ -439,9 +443,7 @@
                             <svg xmlns="http://www.w3.org/2000/svg" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
                         </button>
                     </div>
-                @empty
-                    {{-- No extra fees --}}
-                @endforelse
+                @endforeach
 
                 @if($extraFeeTotal > 0)
                     <div class="flex justify-between items-center text-[10px] font-bold text-amber-600 bg-amber-50 rounded-lg px-2.5 py-1.5 border border-amber-100">
