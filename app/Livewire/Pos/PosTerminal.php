@@ -684,7 +684,7 @@ class PosTerminal extends Component
     public function render()
     {
         $tab = $this->getTab();
-        return view('components.pos.⚡pos-terminal', [
+        return view('components.pos.pos-terminal', [
             'products'           => $this->getProducts(),
             'cart'               => $tab['cart'] ?? [],
             'total'              => $this->total,
