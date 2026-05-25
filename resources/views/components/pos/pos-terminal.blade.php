@@ -287,16 +287,23 @@
                     @php $__channels = $sales_channels ?? []; @endphp
                     @if(count($__channels) > 0)
                         @foreach($__channels as $ch)
-                            @php $isActive = (int)($currentTab['sales_channel_id'] ?? 0) === (int) $ch->id; @endphp
-                            <button type="button" wire:click="setSalesChannel({{ $ch->id }})"
-                                    class="flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[10px] font-bold uppercase tracking-wider transition-all border
-                                           {{ $isActive
-                                              ? 'text-white shadow-sm'
-                                              : 'bg-white text-slate-500 border-slate-200 hover:border-slate-300' }}"
-                                    style="{{ $isActive ? 'background-color:' . $ch->color . '; border-color:' . $ch->color . ';' : '' }}">
-                                <span class="w-2 h-2 rounded-full shrink-0" style="background-color: {{ $isActive ? '#ffffff' : $ch->color }};"></span>
-                                {{ $ch->name }}
-                            </button>
+                            @php
+                                $chId = is_object($ch) ? ($ch->id ?? null) : ($ch['id'] ?? null);
+                                $chColor = is_object($ch) ? ($ch->color ?? '') : ($ch['color'] ?? '');
+                                $chName = is_object($ch) ? ($ch->name ?? '') : ($ch['name'] ?? '');
+                                $isActive = (int)($currentTab['sales_channel_id'] ?? 0) === (int) ($chId ?? 0);
+                            @endphp
+                            @if($chId !== null)
+                                <button type="button" wire:click="setSalesChannel({{ $chId }})"
+                                        class="flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[10px] font-bold uppercase tracking-wider transition-all border
+                                               {{ $isActive
+                                                  ? 'text-white shadow-sm'
+                                                  : 'bg-white text-slate-500 border-slate-200 hover:border-slate-300' }}"
+                                        style="{{ $isActive ? 'background-color:' . $chColor . '; border-color:' . $chColor . ';' : '' }}">
+                                    <span class="w-2 h-2 rounded-full shrink-0" style="background-color: {{ $isActive ? '#ffffff' : $chColor }};"></span>
+                                    {{ $chName }}
+                                </button>
+                            @endif
                         @endforeach
                     @else
                         <a href="{{ route('system.sales-channels') }}" class="text-[10px] font-bold text-electric-blue underline">Chưa có kênh — tạo ngay</a>
