@@ -45,6 +45,17 @@
                     <input type="text" wire:model.live="sellerFilter" placeholder="Lọc nhân viên..." class="w-full bg-white border border-slate-200 rounded-xl py-2 pl-9 pr-4 text-[11px] focus:outline-none focus:border-electric-blue transition-all text-slate-900 shadow-sm">
                 </div>
 
+                <!-- Sales Channel Filter -->
+                <div class="relative w-full md:w-44 group">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-300 group-focus-within:text-electric-blue transition-colors pointer-events-none"><circle cx="12" cy="12" r="10"/><path d="M2 12h20"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+                    <select wire:model.live="channelFilter" class="appearance-none w-full bg-white border border-slate-200 rounded-xl py-2 pl-9 pr-4 text-[11px] focus:outline-none focus:border-electric-blue transition-all text-slate-700 shadow-sm cursor-pointer">
+                        <option value="">Tất cả kênh</option>
+                        @foreach(($sales_channels ?? []) as $ch)
+                            <option value="{{ $ch->id }}">{{ $ch->name }}</option>
+                        @endforeach
+                    </select>
+                </div>
+
                 @if(count($selectedRows) > 0)
                     <div class="flex items-center gap-3 animate-in fade-in slide-in-from-left-4 duration-300 ml-2">
                         <span class="text-[9px] font-black text-slate-400 tracking-widest whitespace-nowrap">Đã chọn {{ count($selectedRows) }}:</span>
@@ -75,7 +86,7 @@
         </div>
 
         <!-- Active Filters Tags -->
-        @if($startDate || $endDate || $sellerFilter || $search)
+        @if($startDate || $endDate || $sellerFilter || $search || $channelFilter)
             <div class="flex flex-wrap items-center gap-2 animate-in fade-in slide-in-from-top-1 duration-200">
                 <span class="text-[8px] font-black text-slate-400 tracking-tighter mr-1">Đang áp dụng:</span>
                 
@@ -104,6 +115,15 @@
                     <div class="flex items-center gap-1.5 px-2.5 py-1 bg-amber-50 border border-amber-100 rounded-lg text-[10px] font-bold text-amber-600 group shadow-sm">
                         <span class="opacity-60">NV:</span> {{ $sellerFilter }}
                         <button wire:click="clearFilter('sellerFilter')" class="opacity-30 hover:opacity-100 hover:text-rose-500 transition-all"><svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg></button>
+                    </div>
+                @endif
+
+                @if($channelFilter)
+                    @php $__activeChannel = ($sales_channels ?? collect())->firstWhere('id', (int) $channelFilter); @endphp
+                    <div class="flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[10px] font-bold text-white group shadow-sm"
+                         style="background-color: {{ $__activeChannel?->color ?? '#64748b' }};">
+                        <span class="opacity-80">Kênh:</span> {{ $__activeChannel?->name ?? '—' }}
+                        <button wire:click="$set('channelFilter', '')" class="opacity-60 hover:opacity-100 transition-all"><svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg></button>
                     </div>
                 @endif
 
