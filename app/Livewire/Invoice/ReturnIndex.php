@@ -5,10 +5,16 @@ namespace App\Livewire\Invoice;
 use App\Models\Invoice;
 use Livewire\Component;
 use Livewire\WithPagination;
+use App\Traits\HasPermissions;
 
 class ReturnIndex extends Component
 {
-    use WithPagination;
+    use WithPagination, HasPermissions;
+
+    protected function getModuleKey(): string
+    {
+        return 'invoices';
+    }
 
     public $search = '';
     public $startDate = '';

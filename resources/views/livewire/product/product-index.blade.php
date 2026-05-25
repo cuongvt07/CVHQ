@@ -114,6 +114,17 @@
 
                 <div class="h-8 w-px bg-slate-100"></div>
 
+                <!-- Quick Edit Mode -->
+                <div class="flex items-center">
+                    <button wire:click="$toggle('quickEditMode')" 
+                            class="flex items-center gap-2 px-4 py-2 border rounded-xl text-[10px] font-black transition-all cursor-pointer {{ $quickEditMode ? 'bg-electric-blue/10 border-electric-blue text-electric-blue shadow-sm' : 'bg-white border-slate-200 text-slate-500 hover:text-slate-700' }}">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="{{ $quickEditMode ? 'text-electric-blue' : 'text-slate-400' }}"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+                        SỬA NHANH
+                    </button>
+                </div>
+
+                <div class="h-8 w-px bg-slate-100"></div>
+
                 <!-- Per Page -->
                 <div class="flex items-center gap-3">
                     <span class="text-[10px] text-slate-400 font-bold uppercase tracking-widest">Hiển thị</span>
@@ -301,47 +312,96 @@
                                             </div>
                                         @endif
                                     </div>
-                                    <div>
-                                        <div class="text-sm font-semibold text-slate-900 line-clamp-1">{{ $product->name }}</div>
-                                        <div class="text-[10px] text-electric-blue font-bold tracking-widest">{{ $product->sku }}</div>
+                                    <div class="flex-1 min-w-0">
+                                        @if($quickEditMode)
+                                            <div class="space-y-1">
+                                                <input type="text" 
+                                                       value="{{ $product->base_name }}" 
+                                                       x-on:blur="$wire.updateField({{ $product->id }}, 'base_name', $event.target.value)"
+                                                       x-on:keydown.enter="$event.target.blur()"
+                                                       class="w-full bg-slate-50 border border-slate-100 rounded-lg px-2 py-1 text-xs font-bold text-slate-900 transition-all focus:bg-white focus:border-electric-blue focus:ring-0 shadow-inner"
+                                                       placeholder="Tên sản phẩm">
+                                                <input type="text" 
+                                                       value="{{ $product->sku }}" 
+                                                       x-on:blur="$wire.updateField({{ $product->id }}, 'sku', $event.target.value)"
+                                                       x-on:keydown.enter="$event.target.blur()"
+                                                       class="w-full bg-slate-50 border border-slate-100 rounded-lg px-2 py-1 text-[10px] font-bold text-electric-blue transition-all focus:bg-white focus:border-electric-blue focus:ring-0 shadow-inner"
+                                                       placeholder="Mã SKU">
+                                            </div>
+                                        @else
+                                            <div class="text-sm font-semibold text-slate-900 line-clamp-1">{{ $product->name }}</div>
+                                            <div class="text-[10px] text-electric-blue font-bold tracking-widest">{{ $product->sku }}</div>
+                                        @endif
                                     </div>
                                 </div>
                             </td>
                             @endif
-
+ 
                             @if(in_array('brand', $visibleColumns))
                             <td class="px-4 py-2">
-                                <span class="px-2 py-1 bg-slate-50 text-slate-600 rounded text-[10px] font-bold">{{ $product->brand ?: '-' }}</span>
+                                @if($quickEditMode)
+                                    <input type="text" 
+                                           value="{{ $product->brand }}" 
+                                           x-on:blur="$wire.updateField({{ $product->id }}, 'brand', $event.target.value)"
+                                           x-on:keydown.enter="$event.target.blur()"
+                                           class="w-full min-w-[100px] bg-slate-50 border border-slate-100 rounded-lg px-2 py-1 text-xs font-bold text-slate-600 transition-all focus:bg-white focus:border-electric-blue focus:ring-0 shadow-inner">
+                                @else
+                                    <span class="px-2 py-1 bg-slate-50 text-slate-600 rounded text-[10px] font-bold">{{ $product->brand ?: '-' }}</span>
+                                @endif
                             </td>
                             @endif
-
+ 
                             @if(in_array('category', $visibleColumns))
                             <td class="px-4 py-2">
-                                <span class="text-[10px] text-slate-500 font-medium">{{ $product->category_path ?: '-' }}</span>
+                                @if($quickEditMode)
+                                    <input type="text" 
+                                           value="{{ $product->category_path }}" 
+                                           x-on:blur="$wire.updateField({{ $product->id }}, 'category_path', $event.target.value)"
+                                           x-on:keydown.enter="$event.target.blur()"
+                                           class="w-full min-w-[120px] bg-slate-50 border border-slate-100 rounded-lg px-2 py-1 text-xs font-bold text-slate-500 transition-all focus:bg-white focus:border-electric-blue focus:ring-0 shadow-inner">
+                                @else
+                                    <span class="text-[10px] text-slate-500 font-medium">{{ $product->category_path ?: '-' }}</span>
+                                @endif
                             </td>
                             @endif
-
+ 
                             @if(in_array('location', $visibleColumns))
                             <td class="px-4 py-2">
-                                <input type="text" 
-                                       value="{{ $product->location }}" 
-                                       x-on:blur="$wire.updateField({{ $product->id }}, 'location', $event.target.value)"
-                                       x-on:keydown.enter="$event.target.blur()"
-                                       class="w-24 bg-slate-50 border border-slate-100 rounded-lg px-2 py-1 text-xs font-bold text-electric-blue transition-all focus:bg-white focus:border-electric-blue focus:ring-0 shadow-inner">
+                                @if($quickEditMode)
+                                    <input type="text" 
+                                           value="{{ $product->location }}" 
+                                           x-on:blur="$wire.updateField({{ $product->id }}, 'location', $event.target.value)"
+                                           x-on:keydown.enter="$event.target.blur()"
+                                           class="w-24 bg-slate-50 border border-slate-100 rounded-lg px-2 py-1 text-xs font-bold text-electric-blue transition-all focus:bg-white focus:border-electric-blue focus:ring-0 shadow-inner">
+                                @else
+                                    <span class="text-xs font-bold text-slate-700">{{ $product->location ?: '-' }}</span>
+                                @endif
                             </td>
                             @endif
                             @if(in_array('stock', $visibleColumns))
                             <td class="px-4 py-2">
-                                <input type="number" 
-                                       value="{{ $product->stock_quantity }}" 
-                                       x-on:blur="$wire.updateField({{ $product->id }}, 'stock_quantity', $event.target.value)"
-                                       x-on:keydown.enter="$event.target.blur()"
-                                       class="w-20 bg-slate-50 border border-slate-100 rounded-lg px-2 py-1 text-xs font-bold {{ $product->stock_quantity < 10 ? 'text-orange-600' : 'text-slate-900' }} transition-all focus:bg-white focus:border-electric-blue focus:ring-0 shadow-inner">
+                                @if($quickEditMode)
+                                    <input type="number" 
+                                           value="{{ $product->stock_quantity }}" 
+                                           x-on:blur="$wire.updateField({{ $product->id }}, 'stock_quantity', $event.target.value)"
+                                           x-on:keydown.enter="$event.target.blur()"
+                                           class="w-20 bg-slate-50 border border-slate-100 rounded-lg px-2 py-1 text-xs font-bold {{ $product->stock_quantity < 10 ? 'text-orange-600' : 'text-slate-900' }} transition-all focus:bg-white focus:border-electric-blue focus:ring-0 shadow-inner">
+                                @else
+                                    <span class="text-xs font-bold {{ $product->stock_quantity < 10 ? 'text-orange-600' : 'text-slate-700' }}">{{ $product->stock_quantity }}</span>
+                                @endif
                             </td>
                             @endif
                             @if(in_array('price', $visibleColumns))
                             <td class="px-4 py-2 italic font-bold">
-                                <span class="text-xs text-slate-900">{{ number_format($product->sale_price, 0, ',', '.') }}</span>
+                                @if($quickEditMode)
+                                    <input type="number" 
+                                           value="{{ $product->sale_price }}" 
+                                           x-on:blur="$wire.updateField({{ $product->id }}, 'sale_price', $event.target.value)"
+                                           x-on:keydown.enter="$event.target.blur()"
+                                           class="w-28 bg-slate-50 border border-slate-100 rounded-lg px-2 py-1 text-xs font-bold text-slate-900 transition-all focus:bg-white focus:border-electric-blue focus:ring-0 shadow-inner">
+                                @else
+                                    <span class="text-xs text-slate-900">{{ number_format($product->sale_price, 0, ',', '.') }}</span>
+                                @endif
                             </td>
                             @endif
                             @if(in_array('actions', $visibleColumns))

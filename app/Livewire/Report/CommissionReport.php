@@ -17,7 +17,7 @@ class CommissionReport extends Component
 
     protected function getModuleKey(): string
     {
-        return 'commission_report';
+        return 'reports';
     }
 
     public $view = 'summary'; // summary, employee_detail, invoice_detail

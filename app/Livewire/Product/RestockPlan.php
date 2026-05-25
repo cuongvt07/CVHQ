@@ -5,10 +5,16 @@ namespace App\Livewire\Product;
 use App\Models\Product;
 use Livewire\Component;
 use Livewire\WithPagination;
+use App\Traits\HasPermissions;
 
 class RestockPlan extends Component
 {
-    use WithPagination;
+    use WithPagination, HasPermissions;
+
+    protected function getModuleKey(): string
+    {
+        return 'products';
+    }
 
     public $threshold = 10;
     public $search = '';

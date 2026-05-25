@@ -43,6 +43,7 @@ class ProductIndex extends Component
     public $importFile;
     public $perPage = 10;
     public $branch = 'all';
+    public $quickEditMode = false;
     public $sortField = 'created_at';
     public $sortDirection = 'desc';
 
@@ -566,6 +567,11 @@ class ProductIndex extends Component
         $product = Product::findOrFail($id);
 
         $rules = [
+            'sku' => 'required|unique:products,sku,' . $id,
+            'base_name' => 'required|min:3',
+            'brand' => 'nullable|string|max:255',
+            'category_path' => 'nullable|string|max:255',
+            'sale_price' => 'required|numeric|min:0',
             'location' => 'nullable|string|max:255',
             'stock_quantity' => 'nullable|numeric|min:0',
         ];
@@ -587,7 +593,7 @@ class ProductIndex extends Component
                         $change,
                         null,
                         null,
-                        'Điều chỉnh thủ công'
+                        'Điều chỉnh thủ công (Sửa nhanh)'
                     );
                 }
             }

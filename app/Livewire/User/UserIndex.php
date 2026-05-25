@@ -161,6 +161,7 @@ class UserIndex extends Component
                 ]
             ],
             'categories' => ['label' => 'Danh mục', 'actions' => []],
+            'commissions' => ['label' => 'Bảng hoa hồng', 'actions' => []],
             'customers' => ['label' => 'Khách hàng', 'actions' => []],
             'users' => ['label' => 'Nhân viên', 'actions' => []],
             'invoices' => [

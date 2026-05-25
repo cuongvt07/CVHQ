@@ -35,6 +35,9 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/system/logs', \App\Livewire\System\ActivityLogList::class)->name('system.logs');
 
     Route::get('/pos/print/{invoice}', function (App\Models\Invoice $invoice) {
+        if (!auth()->user()->hasPermission('pos') && !auth()->user()->hasPermission('invoices')) {
+            abort(403, 'Bạn không có quyền in hóa đơn này!');
+        }
         return view('pos.print-invoice', ['invoice' => $invoice]);
     })->name('pos.print');
 });

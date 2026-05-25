@@ -24,7 +24,7 @@ class ProductCommission extends Component
 
     protected function getModuleKey(): string
     {
-        return 'product_commissions';
+        return 'commissions';
     }
 
     public $search = '';
