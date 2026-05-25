@@ -76,7 +76,12 @@ class PosTerminal extends Component
     protected function defaultSalesChannelId(): ?int
     {
         // Default to the first active channel (sorted), if any exist.
-        return SalesChannel::active()->orderBy('sort_order')->orderBy('id')->value('id');
+        // Wrapped to survive if migration hasn't run yet.
+        try {
+            return SalesChannel::active()->orderBy('sort_order')->orderBy('id')->value('id');
+        } catch (\Throwable $e) {
+            return null;
+        }
     }
 
     public function setSalesChannel($channelId): void
@@ -694,7 +699,18 @@ class PosTerminal extends Component
             'categories_list'    => Product::whereNotNull('category_path')->distinct()->pluck('category_path'),
             'brands_list'        => Product::whereNotNull('brand')->distinct()->pluck('brand'),
             'box_codes_list'     => Product::whereNotNull('location')->distinct()->pluck('location'),
-            'sales_channels'     => SalesChannel::active()->orderBy('sort_order')->orderBy('name')->get(),
+            'sales_channels'     => $this->safeSalesChannels(),
         ])->layout('layouts.app');
+    }
+
+    protected function safeSalesChannels()
+    {
+        // Survive missing sales_channels table (migration not yet run on this env).
+        try {
+            return SalesChannel::active()->orderBy('sort_order')->orderBy('name')->get();
+        } catch (\Throwable $e) {
+            \Log::warning('POS render skipped sales channels lookup: ' . $e->getMessage());
+            return collect();
+        }
     }
 }
