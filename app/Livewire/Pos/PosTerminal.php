@@ -135,7 +135,8 @@ class PosTerminal extends Component
 
     protected function persistTabs(): void
     {
-        $this->dispatchBrowserEvent('posTabsUpdate', ['tabs' => $this->tabs, 'active' => $this->activeTab]);
+        // Livewire v4: $this->dispatch reaches browser via Livewire.on('posTabsUpdate', ...)
+        $this->dispatch('posTabsUpdate', tabs: $this->tabs, active: $this->activeTab);
     }
 
     // ═══════════════════════════════════════════════════════════════════════
@@ -250,9 +251,9 @@ class PosTerminal extends Component
             $this->recalculateTotalDiscount();
         }
 
-        // Persist tabs to browser localStorage via a browser event
+        // Persist tabs to browser localStorage via a Livewire dispatch (heard by Livewire.on in the view)
         if (str_starts_with($name, 'tabs')) {
-            $this->dispatchBrowserEvent('posTabsUpdate', ['tabs' => $this->tabs, 'active' => $this->activeTab]);
+            $this->dispatch('posTabsUpdate', tabs: $this->tabs, active: $this->activeTab);
         }
     }
 
@@ -309,6 +310,178 @@ class PosTerminal extends Component
             $tab['extra_fees'][$feeIndex][$field] = ($field === 'amount') ? (int)$value : $value;
         }
         $this->setTab($tab);
+    }
+
+    // ═══════════════════════════════════════════════════════════════════════
+    // CART OPERATIONS (all per-tab via getTab/setTab)
+    // ═══════════════════════════════════════════════════════════════════════
+
+    public function addToCart(int $productId): void
+    {
+        $product = Product::find($productId);
+        if (!$product || !$product->is_active) {
+            $this->dispatch('notify', message: 'Sản phẩm không tồn tại!', type: 'error');
+            return;
+        }
+
+        $tab = $this->getTab();
+
+        $found = false;
+        foreach ($tab['cart'] as &$item) {
+            if ((int)$item['id'] === (int)$productId) {
+                $item['quantity']++;
+                $found = true;
+                break;
+            }
+        }
+        unset($item);
+
+        if (!$found) {
+            $tab['cart'][] = [
+                'id'                  => $product->id,
+                'sku'                 => $product->sku,
+                'name'                => $product->name,
+                'sale_price'          => (int) $product->sale_price,
+                'quantity'            => 1,
+                'commission_amount'   => (int) ($product->commission_amount ?? 0),
+                'image'               => !empty($product->images) ? $product->images[0] : null,
+                'discount'            => 0,
+                'calculated_discount' => 0,
+            ];
+        }
+
+        $this->setTab($tab);
+        $this->recalculateTotalDiscount();
+    }
+
+    public function updateQuantity(int $productId, int $delta): void
+    {
+        $tab = $this->getTab();
+        foreach ($tab['cart'] as $i => &$item) {
+            if ((int)$item['id'] === (int)$productId) {
+                $item['quantity'] = max(0, (int)$item['quantity'] + $delta);
+                if ($item['quantity'] === 0) {
+                    array_splice($tab['cart'], $i, 1);
+                    $tab['cart'] = array_values($tab['cart']);
+                }
+                break;
+            }
+        }
+        unset($item);
+        $this->setTab($tab);
+        $this->recalculateTotalDiscount();
+    }
+
+    public function setQuantity(int $productId, $value): void
+    {
+        $qty = max(0, (int) $value);
+        $tab = $this->getTab();
+        foreach ($tab['cart'] as $i => &$item) {
+            if ((int)$item['id'] === (int)$productId) {
+                if ($qty === 0) {
+                    array_splice($tab['cart'], $i, 1);
+                    $tab['cart'] = array_values($tab['cart']);
+                } else {
+                    $item['quantity'] = $qty;
+                }
+                break;
+            }
+        }
+        unset($item);
+        $this->setTab($tab);
+        $this->recalculateTotalDiscount();
+    }
+
+    public function removeFromCart(int $productId): void
+    {
+        $tab = $this->getTab();
+        $tab['cart'] = array_values(array_filter(
+            $tab['cart'],
+            fn($item) => (int)$item['id'] !== (int)$productId
+        ));
+        $this->setTab($tab);
+        $this->recalculateTotalDiscount();
+    }
+
+    public function applyItemDiscount(int $productId, $value): void
+    {
+        $discount = max(0, (int) $value);
+        $tab = $this->getTab();
+        foreach ($tab['cart'] as &$item) {
+            if ((int)$item['id'] === (int)$productId) {
+                $item['discount'] = $discount;
+                break;
+            }
+        }
+        unset($item);
+        $this->setTab($tab);
+        $this->recalculateTotalDiscount();
+    }
+
+    public function setGlobalDiscountType(string $type): void
+    {
+        if (!in_array($type, ['vnd', '%'], true)) return;
+        $tab = $this->getTab();
+        $tab['global_discount_type'] = $type;
+        $this->setTab($tab);
+        $this->recalculateTotalDiscount();
+    }
+
+    public function recalculateTotalDiscount(): void
+    {
+        $tab  = $this->getTab();
+        $cart = $tab['cart'] ?? [];
+
+        $lineSubtotal = fn($item) => (int)$item['sale_price'] * (int)$item['quantity'];
+        $total        = array_sum(array_map($lineSubtotal, $cart));
+        $type         = $tab['global_discount_type'] ?? 'vnd';
+        $rawValue     = (float)($tab['global_discount_value'] ?? 0);
+
+        if ($type === '%') {
+            $pct = max(0.0, min(100.0, $rawValue));
+            foreach ($cart as $i => $item) {
+                $cart[$i]['calculated_discount'] = (int) round($lineSubtotal($item) * $pct / 100);
+            }
+            $globalDiscount = (int) array_sum(array_column($cart, 'calculated_discount'));
+        } else {
+            foreach ($cart as $i => $item) {
+                $cart[$i]['calculated_discount'] = 0;
+            }
+            $globalDiscount = (int) max(0, min($rawValue, $total));
+        }
+
+        $itemDiscountTotal = (int) array_sum(array_map(fn($it) => (int)($it['discount'] ?? 0), $cart));
+
+        $tab['cart']     = $cart;
+        $tab['discount'] = $globalDiscount + $itemDiscountTotal;
+        $this->setTab($tab);
+    }
+
+    // ═══════════════════════════════════════════════════════════════════════
+    // FILTER CHIP CLEAR (gallery filters are shared across tabs)
+    // ═══════════════════════════════════════════════════════════════════════
+
+    public function clearFilter(string $filter, ?string $value = null): void
+    {
+        if ($filter === 'all') {
+            $this->search = '';
+            $this->selectedCategories = [];
+            $this->category = 'All';
+            $this->boxCode = '';
+            $this->resetPage();
+            return;
+        }
+        if ($filter === 'search') {
+            $this->search = '';
+        } elseif ($filter === 'boxCode') {
+            $this->boxCode = '';
+        } elseif ($filter === 'selectedCategories' && $value !== null) {
+            $this->selectedCategories = array_values(array_diff($this->selectedCategories, [$value]));
+            if (empty($this->selectedCategories)) {
+                $this->category = 'All';
+            }
+        }
+        $this->resetPage();
     }
 
     // ═══════════════════════════════════════════════════════════════════════

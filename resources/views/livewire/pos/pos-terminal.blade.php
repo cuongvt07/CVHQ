@@ -489,28 +489,26 @@
          class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-[65] md:hidden" x-cloak></div>
 
     <script>
-        // Restore saved POS tabs from localStorage on full page load
-        window.addEventListener('load', function () {
+        // Restore saved POS tabs from localStorage on full page load (Livewire v4: dispatch w/ named params)
+        document.addEventListener('livewire:init', function () {
             try {
                 const saved = localStorage.getItem('cvha_pos_tabs');
                 if (saved) {
                     const parsed = JSON.parse(saved);
-                    if (parsed) {
-                        Livewire.emit('restoreTabs', parsed);
-                    }
+                    if (parsed) Livewire.dispatch('restoreTabs', { payload: parsed });
                 }
             } catch (e) {
                 console.error('Restore POS tabs failed', e);
             }
-        });
 
-        // Listen for server-side events to persist tabs
-        window.addEventListener('posTabsUpdate', function (e) {
-            try {
-                localStorage.setItem('cvha_pos_tabs', JSON.stringify(e.detail));
-            } catch (err) {
-                // ignore
-            }
+            // Persist tabs when backend dispatches the event (CustomEvent detail = first dispatch arg)
+            Livewire.on('posTabsUpdate', function (detail) {
+                try {
+                    // v4 wraps args in an array — unwrap if needed
+                    const data = Array.isArray(detail) ? detail[0] : detail;
+                    localStorage.setItem('cvha_pos_tabs', JSON.stringify(data));
+                } catch (err) { /* ignore */ }
+            });
         });
 
         // Keyboard shortcuts for quick tab operations
@@ -521,17 +519,17 @@
 
             // Alt+N: add tab
             if (e.altKey && !e.shiftKey && e.key.toLowerCase() === 'n') {
-                e.preventDefault(); Livewire.emit('addTab'); return;
+                e.preventDefault(); Livewire.dispatch('addTab'); return;
             }
 
             // Alt+W: close active tab
             if (e.altKey && !e.shiftKey && e.key.toLowerCase() === 'w') {
-                e.preventDefault(); Livewire.emit('closeActiveTab'); return;
+                e.preventDefault(); Livewire.dispatch('closeActiveTab'); return;
             }
 
             // Alt+ArrowRight / ArrowLeft: next / prev tab
-            if (e.altKey && e.key === 'ArrowRight') { e.preventDefault(); Livewire.emit('nextTab'); return; }
-            if (e.altKey && e.key === 'ArrowLeft')  { e.preventDefault(); Livewire.emit('prevTab'); return; }
+            if (e.altKey && e.key === 'ArrowRight') { e.preventDefault(); Livewire.dispatch('nextTab'); return; }
+            if (e.altKey && e.key === 'ArrowLeft')  { e.preventDefault(); Livewire.dispatch('prevTab'); return; }
         });
     </script>
 </div>
