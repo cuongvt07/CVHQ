@@ -297,7 +297,7 @@
             <div class="flex items-center gap-2">
                 <span class="text-[9px] font-black text-slate-400 tracking-widest uppercase shrink-0">Kênh bán</span>
                 <div class="flex-1 flex flex-wrap gap-1 items-center">
-                    @forelse($sales_channels as $ch)
+                    @forelse(($sales_channels ?? collect()) as $ch)
                         @php $isActive = (int)($currentTab['sales_channel_id'] ?? 0) === (int) $ch->id; @endphp
                         <button type="button" wire:click="setSalesChannel({{ $ch->id }})"
                                 class="flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[10px] font-bold uppercase tracking-wider transition-all border
