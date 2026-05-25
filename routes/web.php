@@ -33,7 +33,6 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/invoices/returns', \App\Livewire\Invoice\ReturnIndex::class)->name('invoices.returns');
     Route::get('/invoices/{invoice}', \App\Livewire\Invoice\InvoiceDetail::class)->name('invoices.detail');
     Route::get('/system/logs', \App\Livewire\System\ActivityLogList::class)->name('system.logs');
-    Route::get('/system/sales-channels', \App\Livewire\System\SalesChannelIndex::class)->name('system.sales-channels');
 
     Route::get('/pos/print/{invoice}', function (App\Models\Invoice $invoice) {
         if (!auth()->user()->hasPermission('pos') && !auth()->user()->hasPermission('invoices')) {

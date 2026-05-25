@@ -3,7 +3,6 @@
 namespace App\Livewire\Pos;
 
 use App\Models\Product;
-use App\Models\SalesChannel;
 use Livewire\Component;
 use Livewire\WithPagination;
 use App\Traits\HasPermissions;
@@ -57,6 +56,16 @@ class PosTerminal extends Component
     // TAB MANAGEMENT
     // ═══════════════════════════════════════════════════════════════════════
 
+    // Hardcoded sales channels — no DB. Edit this array to add/remove channels.
+    public const SALES_CHANNELS = [
+        ['name' => 'Trực tiếp', 'color' => '#0088CC'],
+        ['name' => 'Shopee',    'color' => '#EE4D2D'],
+        ['name' => 'TikTok',    'color' => '#000000'],
+        ['name' => 'Facebook',  'color' => '#1877F2'],
+        ['name' => 'Zalo',      'color' => '#0068FF'],
+        ['name' => 'Email',     'color' => '#94A3B8'],
+    ];
+
     protected function makeNewTab(?string $label = null): array
     {
         $tabNumber = count($this->tabs) + 1;
@@ -67,35 +76,19 @@ class PosTerminal extends Component
             'discount'             => 0,
             'global_discount_type' => 'vnd',
             'global_discount_value'=> 0,
-            'extra_fees'           => [],   // [{name:'', amount:0}, ...]
+            'extra_fees'           => [],
             'paid_amount'          => 0,
-            'sales_channel_id'     => $this->defaultSalesChannelId(),
+            'sales_channel'        => self::SALES_CHANNELS[0]['name'],
         ];
     }
 
-    protected function defaultSalesChannelId(): ?int
-    {
-        try {
-            return SalesChannel::active()->orderBy('sort_order')->orderBy('id')->value('id');
-        } catch (\Throwable $e) {
-            return null;
-        }
-    }
-
-    public function setSalesChannel($channelId = null): void
+    public function setSalesChannel($channelName = null): void
     {
         $tab = $this->getTab();
-        $tab['sales_channel_id'] = ($channelId === null || $channelId === '') ? null : (int) $channelId;
+        $channelName = is_string($channelName) ? trim($channelName) : '';
+        $valid = array_column(self::SALES_CHANNELS, 'name');
+        $tab['sales_channel'] = in_array($channelName, $valid, true) ? $channelName : null;
         $this->setTab($tab);
-    }
-
-    protected function safeSalesChannels()
-    {
-        try {
-            return SalesChannel::active()->orderBy('sort_order')->orderBy('name')->get();
-        } catch (\Throwable $e) {
-            return collect();
-        }
     }
 
     public function addTab(): void
@@ -302,7 +295,9 @@ class PosTerminal extends Component
                 'global_discount_value' => (float) ($t['global_discount_value'] ?? 0),
                 'extra_fees' => $t['extra_fees'] ?? [],
                 'paid_amount' => (int) ($t['paid_amount'] ?? 0),
-                'sales_channel_id' => isset($t['sales_channel_id']) && $t['sales_channel_id'] !== '' ? (int) $t['sales_channel_id'] : null,
+                'sales_channel' => isset($t['sales_channel']) && in_array($t['sales_channel'], array_column(self::SALES_CHANNELS, 'name'), true)
+                                    ? $t['sales_channel']
+                                    : self::SALES_CHANNELS[0]['name'],
             ];
         }
 
@@ -624,10 +619,10 @@ class PosTerminal extends Component
                 ->map(fn($f) => $f['name'] . ' (' . number_format((int)$f['amount'], 0, ',', '.') . 'đ)')
                 ->join('; ');
 
-            $channelId   = $tab['sales_channel_id'] ?? null;
-            $channelName = $channelId
-                ? (SalesChannel::find($channelId)?->name ?? 'POS')
-                : 'POS';
+            $channelName = $tab['sales_channel'] ?? null;
+            if (!$channelName || !in_array($channelName, array_column(self::SALES_CHANNELS, 'name'), true)) {
+                $channelName = 'POS';
+            }
 
             $invoice = \App\Models\Invoice::create([
                 'invoice_code'     => 'HD' . time(),
@@ -636,7 +631,6 @@ class PosTerminal extends Component
                 'user_id'          => auth()->id(),
                 'seller_name'      => auth()->user()?->name ?? 'Admin POS',
                 'sales_channel'    => $channelName,
-                'sales_channel_id' => $channelId,
                 'total_amount'     => $this->total,
                 'discount_amount'  => $tab['discount'] ?? 0,
                 'extra_fee'        => $extraFeeTotal,
@@ -706,7 +700,7 @@ class PosTerminal extends Component
             'categories_list'    => Product::whereNotNull('category_path')->distinct()->pluck('category_path'),
             'brands_list'        => Product::whereNotNull('brand')->distinct()->pluck('brand'),
             'box_codes_list'     => Product::whereNotNull('location')->distinct()->pluck('location'),
-            'sales_channels'     => $this->safeSalesChannels(),
+            'sales_channels'     => self::SALES_CHANNELS,
         ])->layout('layouts.app');
     }
 }

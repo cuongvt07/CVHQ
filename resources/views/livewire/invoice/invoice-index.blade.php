@@ -51,7 +51,7 @@
                     <select wire:model.live="channelFilter" class="appearance-none w-full bg-white border border-slate-200 rounded-xl py-2 pl-9 pr-4 text-[11px] focus:outline-none focus:border-electric-blue transition-all text-slate-700 shadow-sm cursor-pointer">
                         <option value="">Tất cả kênh</option>
                         @foreach(($sales_channels ?? []) as $ch)
-                            <option value="{{ $ch->id }}">{{ $ch->name }}</option>
+                            <option value="{{ $ch['name'] }}">{{ $ch['name'] }}</option>
                         @endforeach
                     </select>
                 </div>
@@ -119,10 +119,15 @@
                 @endif
 
                 @if($channelFilter)
-                    @php $__activeChannel = ($sales_channels ?? collect())->firstWhere('id', (int) $channelFilter); @endphp
+                    @php
+                        $__activeColor = '#64748b';
+                        foreach (($sales_channels ?? []) as $__c) {
+                            if (($__c['name'] ?? '') === $channelFilter) { $__activeColor = $__c['color'] ?? '#64748b'; break; }
+                        }
+                    @endphp
                     <div class="flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[10px] font-bold text-white group shadow-sm"
-                         style="background-color: {{ $__activeChannel?->color ?? '#64748b' }};">
-                        <span class="opacity-80">Kênh:</span> {{ $__activeChannel?->name ?? '—' }}
+                         style="background-color: {{ $__activeColor }};">
+                        <span class="opacity-80">Kênh:</span> {{ $channelFilter }}
                         <button wire:click="$set('channelFilter', '')" class="opacity-60 hover:opacity-100 transition-all"><svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg></button>
                     </div>
                 @endif

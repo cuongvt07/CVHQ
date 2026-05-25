@@ -292,38 +292,32 @@
             @endif
         </div>
 
-        {{-- ── SALES CHANNEL SELECTOR ───────────────────────── --}}
+        {{-- ── SALES CHANNEL SELECTOR (hardcoded list) ──────── --}}
         <div class="px-4 pb-3 shrink-0">
             @php
                 $__channels = $sales_channels ?? [];
-                $__activeChannelId = (int)($currentTab['sales_channel_id'] ?? 0);
-                $__activeChannel = null;
-                if ($__activeChannelId > 0 && count($__channels) > 0) {
-                    foreach ($__channels as $__c) {
-                        if ((int) $__c->id === $__activeChannelId) { $__activeChannel = $__c; break; }
-                    }
+                $__activeName = (string)($currentTab['sales_channel'] ?? '');
+                $__activeColor = null;
+                foreach ($__channels as $__c) {
+                    if (($__c['name'] ?? '') === $__activeName) { $__activeColor = $__c['color'] ?? null; break; }
                 }
             @endphp
             <div class="flex items-center gap-2">
                 <span class="text-[9px] font-black text-slate-400 tracking-widest uppercase shrink-0">Kênh bán</span>
-                @if(count($__channels) > 0)
-                    <div class="relative flex-1">
-                        @if($__activeChannel)
-                            <span class="absolute left-3 top-1/2 -translate-y-1/2 w-2.5 h-2.5 rounded-full shrink-0 pointer-events-none" style="background-color: {{ $__activeChannel->color }};"></span>
-                        @endif
-                        <select
-                            wire:change="setSalesChannel($event.target.value)"
-                            class="appearance-none w-full bg-white border border-slate-200 rounded-xl py-2 {{ $__activeChannel ? 'pl-8' : 'pl-3' }} pr-8 text-[11px] font-bold text-slate-700 focus:outline-none focus:border-electric-blue transition-all shadow-sm cursor-pointer">
-                            <option value="">— Chọn kênh bán —</option>
-                            @foreach($__channels as $ch)
-                                <option value="{{ $ch->id }}" {{ $__activeChannelId === (int) $ch->id ? 'selected' : '' }}>{{ $ch->name }}</option>
-                            @endforeach
-                        </select>
-                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none"><path d="m6 9 6 6 6-6"/></svg>
-                    </div>
-                @else
-                    <a href="{{ route('system.sales-channels') }}" class="text-[10px] font-bold text-electric-blue underline">Chưa có kênh — tạo ngay</a>
-                @endif
+                <div class="relative flex-1">
+                    @if($__activeColor)
+                        <span class="absolute left-3 top-1/2 -translate-y-1/2 w-2.5 h-2.5 rounded-full shrink-0 pointer-events-none" style="background-color: {{ $__activeColor }};"></span>
+                    @endif
+                    <select
+                        wire:change="setSalesChannel($event.target.value)"
+                        class="appearance-none w-full bg-white border border-slate-200 rounded-xl py-2 {{ $__activeColor ? 'pl-8' : 'pl-3' }} pr-8 text-[11px] font-bold text-slate-700 focus:outline-none focus:border-electric-blue transition-all shadow-sm cursor-pointer">
+                        <option value="">— Chọn kênh bán —</option>
+                        @foreach($__channels as $ch)
+                            <option value="{{ $ch['name'] }}" {{ $__activeName === $ch['name'] ? 'selected' : '' }}>{{ $ch['name'] }}</option>
+                        @endforeach
+                    </select>
+                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none"><path d="m6 9 6 6 6-6"/></svg>
+                </div>
             </div>
         </div>
 
