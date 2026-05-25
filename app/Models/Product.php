@@ -75,8 +75,8 @@ class Product extends Model
     }
 
     protected $casts = [
-        'attributes' => 'json',
-        'images' => 'json',
+        'attributes' => 'array',
+        'images' => 'array',
         'is_active' => 'boolean',
         'is_direct_sale' => 'boolean',
         'is_combo' => 'boolean',
