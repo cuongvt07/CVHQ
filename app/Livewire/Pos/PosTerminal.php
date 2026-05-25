@@ -84,7 +84,7 @@ class PosTerminal extends Component
         }
     }
 
-    public function setSalesChannel($channelId): void
+    public function setSalesChannel($channelId = null): void
     {
         $tab = $this->getTab();
         $tab['sales_channel_id'] = $channelId === null || $channelId === '' ? null : (int) $channelId;
