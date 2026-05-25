@@ -26,7 +26,7 @@ class CustomerIndex extends Component
 
     protected function getDefaultVisibleColumns(): array
     {
-        return ['info', 'type', 'total_spent', 'last_purchase', 'actions'];
+        return ['customer', 'group', 'debt', 'spent', 'status', 'actions'];
     }
 
 

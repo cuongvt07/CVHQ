@@ -8,15 +8,18 @@ trait WithColumnVisibility
 
     public function initializeWithColumnVisibility()
     {
+        $defaults = $this->getDefaultVisibleColumns();
+
         if (auth()->check()) {
             $saved = auth()->user()->ui_settings[$this->getModuleKey()]['columns'] ?? null;
-            if ($saved) {
-                $this->visibleColumns = $saved;
+            if (is_array($saved) && array_intersect($saved, $defaults)) {
+                // Saved set has at least one currently-valid key, accept it (filtered to valid keys).
+                $this->visibleColumns = array_values(array_intersect($saved, $defaults));
             }
         }
 
         if (empty($this->visibleColumns)) {
-            $this->visibleColumns = $this->getDefaultVisibleColumns();
+            $this->visibleColumns = $defaults;
         }
     }
 

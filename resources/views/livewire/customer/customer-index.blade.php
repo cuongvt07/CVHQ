@@ -41,11 +41,14 @@
 
         <div class="flex items-center gap-3">
             <span class="text-xs text-slate-500 font-bold uppercase tracking-widest">Hiển thị:</span>
+            <select wire:model.live="perPage" class="bg-white border border-slate-200 rounded-lg px-3 py-1.5 text-xs font-bold text-slate-700 focus:outline-none focus:border-electric-blue transition-all">
+                <option value="10">10</option>
+                <option value="25">25</option>
                 <option value="50">50</option>
                 <option value="100">100</option>
             </select>
 
-            <x-column-toggle 
+            <x-column-toggle
                 :visibleColumns="$visibleColumns" 
                 :cols="[
                     'customer' => 'Khách hàng',

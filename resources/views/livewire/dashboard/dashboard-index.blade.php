@@ -61,35 +61,116 @@
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
         
         <!-- Big Sales Chart -->
-        <div class="lg:col-span-2 glass-card p-4 md:p-6 flex flex-col gap-6 min-h-[400px]">
-            <div class="flex items-center justify-between">
-                <h3 class="text-[14px] md:text-[18px] font-bold tracking-tight text-slate-900">Biểu đồ Doanh thu (7 ngày)</h3>
-                <div class="flex items-center gap-2">
-                    <span class="w-2 h-2 rounded-full bg-electric-blue shadow-[0_0_8px_rgba(0,136,204,0.6)]"></span>
-                    <span class="text-[9px] md:text-[13px] font-bold text-slate-400 uppercase tracking-widest">Xu hướng tăng trưởng</span>
+        @php
+            $vals = collect($chartData)->pluck('val')->all();
+            $maxVal = max(max($vals), 1); // floor 1 to avoid div-by-zero / flat-zero collapse
+            $sumVal = array_sum($vals);
+            $avgVal = (int) round($sumVal / max(count($vals), 1));
+
+            $padT = 24; $padR = 28; $padB = 40; $padL = 70;
+            $vbW = 720; $vbH = 300;
+            $chartW = $vbW - $padL - $padR;
+            $chartH = $vbH - $padT - $padB;
+
+            $count = count($chartData);
+            $points = [];
+            foreach ($chartData as $i => $d) {
+                $x = $padL + ($count > 1 ? $i * $chartW / ($count - 1) : $chartW / 2);
+                $y = $padT + (1 - $d['val'] / $maxVal) * $chartH;
+                $points[] = [
+                    'x'    => round($x, 2),
+                    'y'    => round($y, 2),
+                    'val'  => (int) $d['val'],
+                    'day'  => $d['day'],
+                    'date' => $d['date'],
+                ];
+            }
+            $linePath = 'M ' . collect($points)->map(fn($p) => $p['x'] . ' ' . $p['y'])->join(' L ');
+            $bottomY  = $padT + $chartH;
+            $areaPath = $linePath
+                . ' L ' . end($points)['x'] . ' ' . $bottomY
+                . ' L ' . reset($points)['x'] . ' ' . $bottomY . ' Z';
+
+            // 4 Y-axis ticks: 0, max/3, 2max/3, max
+            $ticks = [];
+            for ($t = 0; $t <= 3; $t++) {
+                $tickVal = $maxVal * $t / 3;
+                $ticks[] = [
+                    'y'    => round($padT + (1 - $t / 3) * $chartH, 2),
+                    'val'  => $tickVal,
+                    'label'=> $tickVal >= 1_000_000
+                        ? number_format($tickVal / 1_000_000, 1) . 'M'
+                        : ($tickVal >= 1_000
+                            ? number_format($tickVal / 1_000, 0) . 'k'
+                            : number_format($tickVal, 0)),
+                ];
+            }
+            $avgY = round($padT + (1 - $avgVal / $maxVal) * $chartH, 2);
+        @endphp
+        <div class="lg:col-span-2 glass-card p-4 md:p-6 flex flex-col gap-4 min-h-[400px]">
+            <div class="flex items-start justify-between gap-4">
+                <div>
+                    <h3 class="text-[14px] md:text-[18px] font-bold tracking-tight text-slate-900">Biểu đồ Doanh thu (7 ngày)</h3>
+                    <p class="text-[9px] md:text-[12px] text-slate-400 uppercase tracking-widest mt-0.5">Cập nhật theo dữ liệu hóa đơn thật</p>
+                </div>
+                <div class="text-right">
+                    <p class="text-[9px] md:text-[11px] font-bold text-slate-400 uppercase tracking-widest">Tổng 7 ngày</p>
+                    <p class="text-[18px] md:text-[22px] font-bold text-electric-blue tracking-tight">{{ number_format($sumVal, 0, ',', '.') }}<span class="text-[10px] md:text-[13px] text-slate-400 ml-1">đ</span></p>
                 </div>
             </div>
-            
-            <!-- Futuristic SVG Chart -->
-            <div class="flex-1 flex items-end justify-between gap-4 mt-4 relative">
-                @foreach($chartData as $data)
-                    <div class="flex-1 flex flex-col items-center gap-3 group relative pointer-events-auto">
-                        <div class="w-full bg-gradient-to-t from-electric-blue/40 to-electric-blue/5 rounded-t-lg transition-all group-hover:scale-x-110 group-hover:shadow-[0_4px_20px_rgba(0,136,204,0.3)] relative"
-                             style="height: {{ $data['val'] * 3 }}px;">
-                             <div class="absolute -top-10 left-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-opacity bg-slate-900 text-white text-[9px] md:text-[13px] font-bold py-1 px-2 rounded-md shadow-2xl whitespace-nowrap">
-                                {{ number_format($data['val'] * 1000, 0, ',', '.') }}đ
-                             </div>
-                        </div>
-                        <span class="text-[9px] md:text-[13px] font-bold text-slate-400 group-hover:text-slate-900 transition-colors uppercase tracking-widest">{{ $data['day'] }}</span>
-                    </div>
-                @endforeach
-                <!-- Background Grid Lines -->
-                <div class="absolute inset-0 flex flex-col justify-between pointer-events-none opacity-[0.05]">
-                    <div class="border-t border-slate-900 w-full"></div>
-                    <div class="border-t border-slate-900 w-full"></div>
-                    <div class="border-t border-slate-900 w-full"></div>
-                    <div class="border-t border-slate-900 w-full"></div>
-                </div>
+
+            <div class="flex-1 w-full">
+                <svg viewBox="0 0 {{ $vbW }} {{ $vbH }}" class="w-full h-auto" preserveAspectRatio="xMidYMid meet">
+                    <defs>
+                        <linearGradient id="revAreaFill" x1="0" y1="0" x2="0" y2="1">
+                            <stop offset="0%"   stop-color="#0088CC" stop-opacity="0.35"/>
+                            <stop offset="100%" stop-color="#0088CC" stop-opacity="0"/>
+                        </linearGradient>
+                    </defs>
+
+                    {{-- Grid lines + Y-axis labels --}}
+                    @foreach($ticks as $t)
+                        <line x1="{{ $padL }}" y1="{{ $t['y'] }}" x2="{{ $vbW - $padR }}" y2="{{ $t['y'] }}"
+                              stroke="#e2e8f0" stroke-width="1" stroke-dasharray="3 5"/>
+                        <text x="{{ $padL - 10 }}" y="{{ $t['y'] + 4 }}" font-size="12" font-weight="700"
+                              text-anchor="end" fill="#94a3b8">{{ $t['label'] }}</text>
+                    @endforeach
+
+                    {{-- Average line --}}
+                    @if($avgVal > 0)
+                        <line x1="{{ $padL }}" y1="{{ $avgY }}" x2="{{ $vbW - $padR }}" y2="{{ $avgY }}"
+                              stroke="#94a3b8" stroke-width="1" stroke-dasharray="6 4" opacity="0.6"/>
+                        <text x="{{ $vbW - $padR - 4 }}" y="{{ $avgY - 6 }}" font-size="10" font-weight="700"
+                              text-anchor="end" fill="#64748b">TB {{ $avgVal >= 1000 ? number_format($avgVal / 1000, 0) . 'k' : $avgVal }}</text>
+                    @endif
+
+                    {{-- Area fill --}}
+                    <path d="{{ $areaPath }}" fill="url(#revAreaFill)"/>
+
+                    {{-- Line --}}
+                    <path d="{{ $linePath }}" fill="none" stroke="#0088CC" stroke-width="2.5"
+                          stroke-linejoin="round" stroke-linecap="round"/>
+
+                    {{-- Points + tooltips --}}
+                    @foreach($points as $p)
+                        <g>
+                            <circle cx="{{ $p['x'] }}" cy="{{ $p['y'] }}" r="4.5"
+                                    fill="#fff" stroke="#0088CC" stroke-width="2.5"/>
+                            {{-- larger transparent hit target for hover/title tooltip --}}
+                            <circle cx="{{ $p['x'] }}" cy="{{ $p['y'] }}" r="16" fill="transparent" class="cursor-pointer">
+                                <title>{{ $p['day'] }} {{ $p['date'] }} — {{ number_format($p['val'], 0, ',', '.') }}đ</title>
+                            </circle>
+                        </g>
+                    @endforeach
+
+                    {{-- X-axis labels --}}
+                    @foreach($points as $p)
+                        <text x="{{ $p['x'] }}" y="{{ $vbH - 18 }}" font-size="13" font-weight="700"
+                              text-anchor="middle" fill="#64748b">{{ $p['day'] }}</text>
+                        <text x="{{ $p['x'] }}" y="{{ $vbH - 4 }}" font-size="10" font-weight="600"
+                              text-anchor="middle" fill="#cbd5e1">{{ $p['date'] }}</text>
+                    @endforeach
+                </svg>
             </div>
         </div>
 
@@ -111,6 +192,10 @@
                                 <span class="text-[9px] md:text-[13px] text-slate-400 uppercase tracking-widest font-mono">{{ $activity->invoice_code }}</span>
                                 <span class="text-[8px] md:text-[12px] text-slate-300">{{ $activity->created_at->diffForHumans() }}</span>
                             </div>
+                            <div class="flex items-center gap-1.5 mt-1 text-[9px] md:text-[12px] text-slate-500">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-slate-300 shrink-0"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                                <span class="truncate">Người tạo: <span class="font-bold text-slate-700">{{ $activity->user->name ?? $activity->seller_name ?? '—' }}</span></span>
+                            </div>
                         </div>
                     </div>
                 @endforeach
@@ -122,5 +207,78 @@
             </a>
         </div>
 
+    </div>
+
+    {{-- ─────────────────────────────────────────────────────────────────── --}}
+    {{-- TOP 10 BEST-SELLING PRODUCTS                                      --}}
+    {{-- ─────────────────────────────────────────────────────────────────── --}}
+    @php
+        $maxQty = collect($topProducts)->max('total_qty') ?: 1;
+        $rangeLabels = [
+            'today' => 'Hôm nay',
+            '7d'    => '7 ngày',
+            '30d'   => '30 ngày',
+            '90d'   => '90 ngày',
+            'year'  => 'Năm nay',
+            'all'   => 'Tất cả',
+        ];
+    @endphp
+    <div class="glass-card p-4 md:p-6 flex flex-col gap-5">
+        <div class="flex flex-col md:flex-row md:items-center justify-between gap-3">
+            <div>
+                <h3 class="text-[14px] md:text-[18px] font-bold tracking-tight text-slate-900">Top 10 mặt hàng bán chạy</h3>
+                <p class="text-[9px] md:text-[12px] text-slate-400 uppercase tracking-widest mt-0.5">Theo khoảng thời gian — sắp xếp theo số lượng bán</p>
+            </div>
+
+            {{-- Range selector --}}
+            <div class="flex flex-wrap items-center gap-1 bg-slate-50 border border-slate-200 rounded-xl p-1 shrink-0">
+                @foreach($rangeLabels as $key => $label)
+                    <button wire:click="setTopProductsRange('{{ $key }}')"
+                            class="px-3 py-1.5 rounded-lg text-[10px] md:text-[12px] font-bold uppercase tracking-wider transition-all
+                                   {{ $topProductsRange === $key
+                                      ? 'bg-white text-electric-blue shadow-sm border border-slate-200'
+                                      : 'text-slate-400 hover:text-slate-700' }}">
+                        {{ $label }}
+                    </button>
+                @endforeach
+            </div>
+        </div>
+
+        @if(count($topProducts) === 0)
+            <div class="py-10 flex flex-col items-center justify-center text-center opacity-50 gap-2">
+                <svg xmlns="http://www.w3.org/2000/svg" width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="text-slate-300"><path d="M3 3v18h18"/><path d="M7 16h2"/><path d="M11 13h2"/><path d="M15 10h2"/></svg>
+                <p class="text-[11px] font-bold tracking-widest text-slate-400 uppercase">Chưa có dữ liệu trong khoảng này</p>
+            </div>
+        @else
+            <div class="flex flex-col gap-3">
+                @foreach($topProducts as $i => $product)
+                    @php $widthPct = max(2, round(($product['total_qty'] / $maxQty) * 100)); @endphp
+                    <div class="group">
+                        <div class="flex items-center justify-between gap-3 mb-1.5">
+                            <div class="flex items-center gap-2 min-w-0">
+                                <span class="shrink-0 w-6 h-6 rounded-md text-[10px] font-black flex items-center justify-center
+                                             {{ $i < 3 ? 'bg-electric-blue text-white' : 'bg-slate-100 text-slate-500' }}">
+                                    {{ $i + 1 }}
+                                </span>
+                                <div class="min-w-0">
+                                    <h4 class="text-[11px] md:text-[13px] font-bold text-slate-900 truncate">{{ $product['name'] }}</h4>
+                                    <span class="text-[8px] md:text-[10px] font-mono text-slate-400 tracking-widest">{{ $product['sku'] }}</span>
+                                </div>
+                            </div>
+                            <div class="flex items-baseline gap-3 shrink-0 text-right">
+                                <span class="text-[12px] md:text-[14px] font-bold text-slate-900">{{ number_format($product['total_qty'], 0, ',', '.') }}</span>
+                                <span class="text-[9px] md:text-[11px] text-slate-400 uppercase tracking-widest">đã bán</span>
+                                <span class="text-[10px] md:text-[12px] font-bold text-emerald-600 ml-2">{{ number_format($product['total_revenue'], 0, ',', '.') }}đ</span>
+                            </div>
+                        </div>
+                        <div class="w-full h-2 bg-slate-100 rounded-full overflow-hidden">
+                            <div class="h-full rounded-full transition-all duration-500 ease-out
+                                        {{ $i < 3 ? 'bg-gradient-to-r from-electric-blue to-cyan-400' : 'bg-gradient-to-r from-slate-300 to-slate-200' }}"
+                                 style="width: {{ $widthPct }}%;"></div>
+                        </div>
+                    </div>
+                @endforeach
+            </div>
+        @endif
     </div>
 </div>
