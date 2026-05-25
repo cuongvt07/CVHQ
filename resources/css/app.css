@@ -164,18 +164,18 @@ body {
     border: none !important;
 }
 
-.antigravity-pagination nav[role="navigation"] span.relative, 
+.antigravity-pagination nav[role="navigation"] span.relative,
 .antigravity-pagination nav[role="navigation"] a.relative {
     border: 1px solid #e2e8f0 !important; /* border-slate-200 */
     background-color: white !important;
     color: #475569 !important; /* text-slate-600 */
-    min-width: 36px;
-    height: 36px;
+    min-width: 38px;
+    height: 38px;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 11px !important;
-    font-weight: 900 !important;
+    font-size: 12px !important;
+    font-weight: 800 !important;
     border-radius: 10px !important;
     margin: 0 3px !important;
     transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
@@ -183,17 +183,40 @@ body {
     padding: 0 !important;
 }
 
-/* Active Page State */
-.antigravity-pagination nav[role="navigation"] span[aria-current="page"] > span {
-    background-color: #0088cc !important; /* electric-blue */
-    color: white !important;
-    border: 1px solid #0088cc !important;
-    box-shadow: 0 4px 12px rgba(0, 136, 204, 0.25);
+/* Active Page State — target the inner styled span (the actual visible box) AND
+   the bare wrapper case, so both Laravel paginator markups are covered. */
+.antigravity-pagination nav[role="navigation"] span[aria-current="page"] > span,
+.antigravity-pagination nav[role="navigation"] span[aria-current="page"]:not(:has(> span.relative)) {
+    background-image: linear-gradient(135deg, #00a5f5 0%, #0077b3 100%) !important;
+    background-color: #0088cc !important;
+    color: #ffffff !important;
+    border: 1px solid #0077b3 !important;
+    box-shadow:
+        0 0 0 3px rgba(0, 136, 204, 0.18),
+        0 6px 18px rgba(0, 136, 204, 0.40) !important;
+    transform: scale(1.10);
+    font-size: 13px !important;
+    font-weight: 900 !important;
+    min-width: 44px;
+    height: 44px;
+    z-index: 5;
+    position: relative;
+}
+
+/* Wrapper has no visual of its own; keep it inline so the inner box scales cleanly */
+.antigravity-pagination nav[role="navigation"] span[aria-current="page"] {
+    display: inline-flex;
+    align-items: center;
+    background: transparent !important;
+    border: 0 !important;
+    box-shadow: none !important;
+    padding: 0 !important;
+    margin: 0 3px !important;
 }
 
 .antigravity-pagination nav[role="navigation"] a:hover {
-    background-color: #f8fafc !important; /* slate-50 */
-    border-color: #cbd5e1 !important; /* slate-300 */
+    background-color: #f0f9ff !important; /* sky-50 */
+    border-color: #0088cc !important;
     transform: translateY(-1px);
     color: #0088cc !important;
 }

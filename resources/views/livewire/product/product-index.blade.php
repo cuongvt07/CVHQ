@@ -514,7 +514,15 @@
             </table>
         </div>
 
-        <div class="mt-6 antigravity-pagination">
+        <div class="mt-6 antigravity-pagination flex flex-col items-center gap-3">
+            <div class="inline-flex items-center gap-2 px-4 py-1.5 bg-white border border-slate-200 rounded-full shadow-sm">
+                <span class="text-[10px] font-black text-slate-400 tracking-[0.2em] uppercase">Trang</span>
+                <span class="text-[14px] font-black text-electric-blue">{{ $products->currentPage() }}</span>
+                <span class="text-[12px] font-bold text-slate-300">/</span>
+                <span class="text-[12px] font-bold text-slate-600">{{ $products->lastPage() }}</span>
+                <span class="text-[10px] font-bold text-slate-400 ml-2">·</span>
+                <span class="text-[10px] font-bold text-slate-500">{{ number_format($products->total()) }} sản phẩm</span>
+            </div>
             {{ $products->links() }}
         </div>
     </div>
