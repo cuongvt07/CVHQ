@@ -15,7 +15,7 @@ class Invoice extends Model
     use SoftDeletes, Loggable;
     protected $fillable = [
         'invoice_code', 'branch', 'customer_id', 'user_id', 'seller_name', 'sales_channel',
-        'total_amount', 'discount_amount', 'extra_fee', 'final_amount', 'total_commission',
+        'total_amount', 'discount_amount', 'extra_fee', 'extra_fee_name', 'final_amount', 'total_commission',
         'paid_amount', 'cash_amount', 'card_amount', 'wallet_amount',
         'transfer_amount', 'status', 'delivery_status', 'created_at',
         'cancel_reason', 'cancelled_at', 'cancelled_by'
