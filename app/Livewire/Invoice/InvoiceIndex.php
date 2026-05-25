@@ -54,15 +54,22 @@ class InvoiceIndex extends Component
     public $startDate = '';
     public $endDate = '';
     public $sellerFilter = '';
+    public $channelFilter = '';
 
     protected $queryString = [
         'search' => ['except' => ''],
         'startDate' => ['except' => ''],
         'endDate' => ['except' => ''],
         'sellerFilter' => ['except' => ''],
+        'channelFilter' => ['except' => ''],
         'perPage' => ['except' => 10],
         'visibleColumns' => ['except' => ['code', 'customer', 'amount', 'method', 'status', 'date']],
     ];
+
+    public function updatingChannelFilter()
+    {
+        $this->resetPage();
+    }
 
     public function updatingSearch()
     {
@@ -151,7 +158,8 @@ class InvoiceIndex extends Component
             ->when($this->startDate, fn($q) => $q->whereDate('created_at', '>=', $this->startDate))
             ->when($this->endDate, fn($q) => $q->whereDate('created_at', '<=', $this->endDate))
             ->when($this->sellerFilter, fn($q) => $q->where('seller_name', 'like', "%{$this->sellerFilter}%"))
-            ->with(['customer'])
+            ->when($this->channelFilter !== '' && $this->channelFilter !== null, fn($q) => $q->where('sales_channel_id', $this->channelFilter))
+            ->with(['customer', 'salesChannel'])
             ->latest()
             ->paginate($this->perPage)
             ->onEachSide(1);
@@ -447,7 +455,8 @@ class InvoiceIndex extends Component
     public function render()
     {
         return view('livewire.invoice.invoice-index', [
-            'invoices' => $this->getInvoices()
+            'invoices'       => $this->getInvoices(),
+            'sales_channels' => \App\Models\SalesChannel::active()->orderBy('sort_order')->orderBy('name')->get(),
         ])->layout('layouts.app');
     }
 }

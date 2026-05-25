@@ -3,6 +3,7 @@
 namespace App\Livewire\Pos;
 
 use App\Models\Product;
+use App\Models\SalesChannel;
 use Livewire\Component;
 use Livewire\WithPagination;
 use App\Traits\HasPermissions;
@@ -68,7 +69,21 @@ class PosTerminal extends Component
             'global_discount_value'=> 0,
             'extra_fees'           => [],   // [{name:'', amount:0}, ...]
             'paid_amount'          => 0,
+            'sales_channel_id'     => $this->defaultSalesChannelId(),
         ];
+    }
+
+    protected function defaultSalesChannelId(): ?int
+    {
+        // Default to the first active channel (sorted), if any exist.
+        return SalesChannel::active()->orderBy('sort_order')->orderBy('id')->value('id');
+    }
+
+    public function setSalesChannel($channelId): void
+    {
+        $tab = $this->getTab();
+        $tab['sales_channel_id'] = $channelId === null || $channelId === '' ? null : (int) $channelId;
+        $this->setTab($tab);
     }
 
     public function addTab(): void
@@ -275,6 +290,7 @@ class PosTerminal extends Component
                 'global_discount_value' => (float) ($t['global_discount_value'] ?? 0),
                 'extra_fees' => $t['extra_fees'] ?? [],
                 'paid_amount' => (int) ($t['paid_amount'] ?? 0),
+                'sales_channel_id' => isset($t['sales_channel_id']) && $t['sales_channel_id'] !== '' ? (int) $t['sales_channel_id'] : null,
             ];
         }
 
@@ -596,22 +612,28 @@ class PosTerminal extends Component
                 ->map(fn($f) => $f['name'] . ' (' . number_format((int)$f['amount'], 0, ',', '.') . 'đ)')
                 ->join('; ');
 
+            $channelId   = $tab['sales_channel_id'] ?? null;
+            $channelName = $channelId
+                ? (SalesChannel::find($channelId)?->name ?? 'POS')
+                : 'POS';
+
             $invoice = \App\Models\Invoice::create([
-                'invoice_code'   => 'HD' . time(),
-                'branch'         => 'Antigravity HQ',
-                'customer_id'    => $tab['customer_id'],
-                'user_id'        => auth()->id(),
-                'seller_name'    => auth()->user()?->name ?? 'Admin POS',
-                'sales_channel'  => 'POS',
-                'total_amount'   => $this->total,
-                'discount_amount'=> $tab['discount'] ?? 0,
-                'extra_fee'      => $extraFeeTotal,
-                'extra_fee_name' => $extraFeeName ?: null,
-                'final_amount'   => $this->finalAmount,
-                'total_commission'=> $totalCommission,
-                'paid_amount'    => $this->finalAmount,
-                'status'         => 'Completed',
-                'delivery_status'=> 'Delivered',
+                'invoice_code'     => 'HD' . time(),
+                'branch'           => 'Antigravity HQ',
+                'customer_id'      => $tab['customer_id'],
+                'user_id'          => auth()->id(),
+                'seller_name'      => auth()->user()?->name ?? 'Admin POS',
+                'sales_channel'    => $channelName,
+                'sales_channel_id' => $channelId,
+                'total_amount'     => $this->total,
+                'discount_amount'  => $tab['discount'] ?? 0,
+                'extra_fee'        => $extraFeeTotal,
+                'extra_fee_name'   => $extraFeeName ?: null,
+                'final_amount'     => $this->finalAmount,
+                'total_commission' => $totalCommission,
+                'paid_amount'      => $this->finalAmount,
+                'status'           => 'Completed',
+                'delivery_status'  => 'Delivered',
             ]);
 
             foreach ($tab['cart'] as $item) {
@@ -672,6 +694,7 @@ class PosTerminal extends Component
             'categories_list'    => Product::whereNotNull('category_path')->distinct()->pluck('category_path'),
             'brands_list'        => Product::whereNotNull('brand')->distinct()->pluck('brand'),
             'box_codes_list'     => Product::whereNotNull('location')->distinct()->pluck('location'),
+            'sales_channels'     => SalesChannel::active()->orderBy('sort_order')->orderBy('name')->get(),
         ])->layout('layouts.app');
     }
 }

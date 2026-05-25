@@ -292,6 +292,29 @@
             @endif
         </div>
 
+        {{-- ── SALES CHANNEL SELECTOR ───────────────────────── --}}
+        <div class="px-4 pb-3 shrink-0">
+            <div class="flex items-center gap-2">
+                <span class="text-[9px] font-black text-slate-400 tracking-widest uppercase shrink-0">Kênh bán</span>
+                <div class="flex-1 flex flex-wrap gap-1 items-center">
+                    @forelse($sales_channels as $ch)
+                        @php $isActive = (int)($currentTab['sales_channel_id'] ?? 0) === (int) $ch->id; @endphp
+                        <button type="button" wire:click="setSalesChannel({{ $ch->id }})"
+                                class="flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[10px] font-bold uppercase tracking-wider transition-all border
+                                       {{ $isActive
+                                          ? 'text-white shadow-sm'
+                                          : 'bg-white text-slate-500 border-slate-200 hover:border-slate-300' }}"
+                                style="{{ $isActive ? 'background-color:' . $ch->color . '; border-color:' . $ch->color . ';' : '' }}">
+                            <span class="w-2 h-2 rounded-full shrink-0" style="background-color: {{ $isActive ? '#ffffff' : $ch->color }};"></span>
+                            {{ $ch->name }}
+                        </button>
+                    @empty
+                        <a href="{{ route('system.sales-channels') }}" class="text-[10px] font-bold text-electric-blue underline">Chưa có kênh — tạo ngay</a>
+                    @endforelse
+                </div>
+            </div>
+        </div>
+
         {{-- ── CART ITEMS (scrollable) ──────────────────────── --}}
         <div class="flex-1 min-h-0 overflow-y-auto p-4 flex flex-col gap-3 custom-scrollbar bg-slate-50/30">
             @if(count($cart) === 0)
