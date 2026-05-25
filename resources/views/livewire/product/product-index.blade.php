@@ -138,7 +138,38 @@
 
                 <div class="h-8 w-px bg-slate-100"></div>
 
-                <x-column-toggle 
+                {{-- Inline paginator: prev arrow + "current / last" + next arrow --}}
+                @php
+                    $curPage  = $products->currentPage();
+                    $lastPage = max(1, $products->lastPage());
+                    $onFirst  = $curPage <= 1;
+                    $onLast   = $curPage >= $lastPage;
+                @endphp
+                <div class="flex items-center gap-1 bg-white border border-slate-200 rounded-xl shadow-sm p-1" title="Trang {{ $curPage }} / {{ $lastPage }} ({{ number_format($products->total()) }} sản phẩm)">
+                    <button wire:click="previousPage" @disabled($onFirst)
+                            class="w-8 h-8 flex items-center justify-center rounded-lg transition-all
+                                   {{ $onFirst ? 'text-slate-200 cursor-not-allowed' : 'text-slate-500 hover:text-electric-blue hover:bg-electric-blue/5' }}"
+                            aria-label="Trang trước">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>
+                    </button>
+
+                    <div class="flex items-baseline gap-1 px-2 select-none">
+                        <span class="text-[12px] font-black text-electric-blue tracking-tight tabular-nums">{{ $curPage }}</span>
+                        <span class="text-[10px] font-bold text-slate-300">/</span>
+                        <span class="text-[11px] font-bold text-slate-500 tabular-nums">{{ $lastPage }}</span>
+                    </div>
+
+                    <button wire:click="nextPage" @disabled($onLast)
+                            class="w-8 h-8 flex items-center justify-center rounded-lg transition-all
+                                   {{ $onLast ? 'text-slate-200 cursor-not-allowed' : 'text-slate-500 hover:text-electric-blue hover:bg-electric-blue/5' }}"
+                            aria-label="Trang sau">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"/></svg>
+                    </button>
+                </div>
+
+                <div class="h-8 w-px bg-slate-100"></div>
+
+                <x-column-toggle
                     :visibleColumns="$visibleColumns" 
                     :cols="[
                         'sku' => 'Mã & Thông tin',
@@ -514,15 +545,7 @@
             </table>
         </div>
 
-        <div class="mt-6 antigravity-pagination flex flex-col items-center gap-3">
-            <div class="inline-flex items-center gap-2 px-4 py-1.5 bg-white border border-slate-200 rounded-full shadow-sm">
-                <span class="text-[10px] font-black text-slate-400 tracking-[0.2em] uppercase">Trang</span>
-                <span class="text-[14px] font-black text-electric-blue">{{ $products->currentPage() }}</span>
-                <span class="text-[12px] font-bold text-slate-300">/</span>
-                <span class="text-[12px] font-bold text-slate-600">{{ $products->lastPage() }}</span>
-                <span class="text-[10px] font-bold text-slate-400 ml-2">·</span>
-                <span class="text-[10px] font-bold text-slate-500">{{ number_format($products->total()) }} sản phẩm</span>
-            </div>
+        <div class="mt-6 antigravity-pagination">
             {{ $products->links() }}
         </div>
     </div>
