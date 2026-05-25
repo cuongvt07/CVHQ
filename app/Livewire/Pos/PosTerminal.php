@@ -29,16 +29,11 @@ class PosTerminal extends Component
     public int $activeTab = 0;
     protected $listeners = [
         'restoreTabs',
-        'renameTab',
         'addTab',
         'closeActiveTab',
-        'duplicateTab',
-        'moveTabLeft',
-        'moveTabRight',
         'nextTab',
         'prevTab',
         'switchTab',
-        'reorderTabs'
     ];
 
     // ── Customer search UI state (not per-tab) ──────────────────────────────
@@ -228,57 +223,6 @@ class PosTerminal extends Component
         $this->closeTab($this->activeTab);
     }
 
-    // Rename a tab
-    public function renameTab(int $index, string $label): void
-    {
-        if (!isset($this->tabs[$index])) return;
-        $this->tabs[$index]['label'] = trim($label) ?: $this->tabs[$index]['label'];
-        $this->persistTabs();
-        $this->dispatch('notify', message: 'Đã đổi tên tab', type: 'success');
-    }
-
-    // Duplicate a tab
-    public function duplicateTab(int $index): void
-    {
-        if (!isset($this->tabs[$index])) return;
-        if (count($this->tabs) >= 8) {
-            $this->dispatch('notify', message: 'Tối đa 8 đơn cùng lúc!', type: 'warning');
-            return;
-        }
-        $copy = $this->tabs[$index];
-        $copy['label'] = $copy['label'] . ' (copy)';
-        $this->tabs[] = $copy;
-        $this->activeTab = count($this->tabs) - 1;
-        $this->persistTabs();
-    }
-
-    // Move tab left / right
-    public function moveTabLeft(int $index): void
-    {
-        if ($index <= 0 || !isset($this->tabs[$index])) return;
-        $tabs = $this->tabs;
-        $temp = $tabs[$index - 1];
-        $tabs[$index - 1] = $tabs[$index];
-        $tabs[$index] = $temp;
-        $this->tabs = array_values($tabs);
-        if ($this->activeTab === $index) $this->activeTab = $index - 1;
-        elseif ($this->activeTab === $index - 1) $this->activeTab = $index;
-        $this->persistTabs();
-    }
-
-    public function moveTabRight(int $index): void
-    {
-        if (!isset($this->tabs[$index]) || $index >= count($this->tabs) - 1) return;
-        $tabs = $this->tabs;
-        $temp = $tabs[$index + 1];
-        $tabs[$index + 1] = $tabs[$index];
-        $tabs[$index] = $temp;
-        $this->tabs = array_values($tabs);
-        if ($this->activeTab === $index) $this->activeTab = $index + 1;
-        elseif ($this->activeTab === $index + 1) $this->activeTab = $index;
-        $this->persistTabs();
-    }
-
     // Cycle next/prev tab (wrap-around)
     public function nextTab(): void
     {
@@ -293,34 +237,6 @@ class PosTerminal extends Component
         $count = count($this->tabs);
         if ($count <= 1) return;
         $this->activeTab = ($this->activeTab - 1 + $count) % $count;
-        $this->persistTabs();
-    }
-
-    // Reorder tabs via drag & drop (from index -> to index)
-    public function reorderTabs(int $from, int $to): void
-    {
-        if (!isset($this->tabs[$from]) || $from === $to) return;
-
-        $tabs = $this->tabs;
-        $item = $tabs[$from];
-        array_splice($tabs, $from, 1);
-        if ($to > $from) $to = $to - 1; // adjust target after removal
-        array_splice($tabs, $to, 0, [$item]);
-
-        // adjust active index
-        $active = $this->activeTab;
-        if ($active === $from) {
-            $newActive = $to;
-        } elseif ($from < $active && $to >= $active) {
-            $newActive = $active - 1;
-        } elseif ($from > $active && $to <= $active) {
-            $newActive = $active + 1;
-        } else {
-            $newActive = $active;
-        }
-
-        $this->tabs = array_values($tabs);
-        $this->activeTab = max(0, min($newActive, count($this->tabs) - 1));
         $this->persistTabs();
     }
 

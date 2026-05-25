@@ -1,0 +1,10 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(dir d:\\\\CVHQ)",
+      "Bash(php -l \"d:/CVHQ/app/Livewire/Pos/PosTerminal.php\")",
+      "Bash(php --version)",
+      "Bash(git -C \"d:/CVHQ\" show HEAD:app/Livewire/Pos/PosTerminal.php)"
+    ]
+  }
+}

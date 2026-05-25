@@ -204,11 +204,7 @@
         <div class="shrink-0 bg-white border-b border-slate-100 px-2 pt-2">
             <div class="flex items-end gap-0.5 overflow-x-auto no-scrollbar">
                 @foreach($tabs as $i => $tab)
-                    <div wire:key="tab-{{ $i }}" draggable="true"
-                        ondragstart="event.dataTransfer.setData('text/tab-index', '{{ $i }}'); event.currentTarget.classList.add('opacity-50');"
-                        ondragend="event.currentTarget.classList.remove('opacity-50');"
-                        ondragover="event.preventDefault();"
-                        ondrop="(function(e){ e.preventDefault(); const from = e.dataTransfer.getData('text/tab-index'); const to = {{ $i }}; if(from !== null && from !== '') Livewire.emit('reorderTabs', parseInt(from), to); })()"
+                    <div wire:key="tab-{{ $i }}"
                         class="group relative flex items-center gap-1.5 shrink-0 px-3 py-2 cursor-pointer rounded-t-xl transition-all select-none
                               {{ $activeTab === $i
                                  ? 'bg-white border border-b-white border-slate-200 text-electric-blue shadow-[0_-2px_8px_rgba(0,0,0,0.06)] z-10'
@@ -221,32 +217,17 @@
                         {{-- Label --}}
                         <span class="text-[10px] font-bold whitespace-nowrap">{{ $tab['label'] }}</span>
 
-                        {{-- Cart count badge --}}
-                        @if(count($tab['cart']) > 0)
-                            <span class="w-4 h-4 rounded-full text-[8px] font-black flex items-center justify-center shrink-0
-                                         {{ $activeTab === $i ? 'bg-electric-blue text-white' : 'bg-slate-200 text-slate-500' }}">
-                                {{ count($tab['cart']) }}
+                        {{-- Cart count badge: total quantity across all items in the tab --}}
+                        @php($tabQty = (int) array_sum(array_column($tab['cart'] ?? [], 'quantity')))
+                        @if($tabQty > 0)
+                            <span class="min-w-[18px] h-[18px] px-1 rounded-full text-[9px] font-black flex items-center justify-center shrink-0
+                                         {{ $activeTab === $i ? 'bg-electric-blue text-white' : 'bg-slate-200 text-slate-600' }}">
+                                {{ $tabQty }}
                             </span>
                         @endif
 
-                        {{-- Tab actions: move, duplicate, rename, close --}}
+                        {{-- Tab actions: close --}}
                         <div class="flex items-center gap-1 ml-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                            <button wire:click.stop="moveTabLeft({{ $i }})" title="Dời trái" class="w-6 h-6 flex items-center justify-center text-slate-300 hover:text-slate-600 rounded-md">
-                                <svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18L9 12l6-6"/></svg>
-                            </button>
-
-                            <button wire:click.stop="moveTabRight({{ $i }})" title="Dời phải" class="w-6 h-6 flex items-center justify-center text-slate-300 hover:text-slate-600 rounded-md">
-                                <svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"/></svg>
-                            </button>
-
-                            <button wire:click.stop="duplicateTab({{ $i }})" title="Nhân bản" class="w-6 h-6 flex items-center justify-center text-slate-300 hover:text-slate-600 rounded-md">
-                                <svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="11" height="11" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
-                            </button>
-
-                            <button onclick="(function(){ const l = prompt('Tên tab mới', @json($tab['label'])); if(l !== null){ Livewire.emit('renameTab', {{ $i }}, l); } })()" title="Đổi tên" class="w-6 h-6 flex items-center justify-center text-slate-300 hover:text-slate-600 rounded-md">
-                                <svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21v-3a4 4 0 0 1 4-4h3"/><path d="M16.5 6.5 19.5 9.5"/><path d="M14.5 4.5l5 5"/></svg>
-                            </button>
-
                             <button wire:click.stop="closeTab({{ $i }})" title="Đóng" class="w-6 h-6 flex items-center justify-center text-slate-300 hover:text-rose-500 rounded-md">
                                 <svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
                             </button>
@@ -551,30 +532,6 @@
             // Alt+ArrowRight / ArrowLeft: next / prev tab
             if (e.altKey && e.key === 'ArrowRight') { e.preventDefault(); Livewire.emit('nextTab'); return; }
             if (e.altKey && e.key === 'ArrowLeft')  { e.preventDefault(); Livewire.emit('prevTab'); return; }
-
-            // Alt+D: duplicate active tab
-            if (e.altKey && !e.shiftKey && e.key.toLowerCase() === 'd') {
-                e.preventDefault();
-                try {
-                    const saved = JSON.parse(localStorage.getItem('cvha_pos_tabs') || '{}');
-                    const active = (saved && typeof saved.active !== 'undefined') ? saved.active : 0;
-                    Livewire.emit('duplicateTab', active);
-                } catch (err) { /* ignore */ }
-                return;
-            }
-
-            // Alt+R: rename active tab (prompt)
-            if (e.altKey && !e.shiftKey && e.key.toLowerCase() === 'r') {
-                e.preventDefault();
-                try {
-                    const saved = JSON.parse(localStorage.getItem('cvha_pos_tabs') || '{}');
-                    const active = (saved && typeof saved.active !== 'undefined') ? saved.active : 0;
-                    const current = (saved && saved.tabs && saved.tabs[active] && saved.tabs[active].label) ? saved.tabs[active].label : '';
-                    const label = prompt('Tên tab mới', current);
-                    if (label !== null) Livewire.emit('renameTab', active, label);
-                } catch (err) { /* ignore */ }
-                return;
-            }
         });
     </script>
 </div>
