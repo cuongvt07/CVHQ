@@ -22,7 +22,7 @@
     {{-- SIDEBAR: Checkout Panel --}}
     <aside
         :class="{ 'translate-y-0': mobileCartOpen, 'translate-y-full md:translate-y-0': !mobileCartOpen }"
-        class="fixed inset-x-0 bottom-0 h-[95vh] md:h-full md:static md:w-96 lg:w-[28rem] flex flex-col border-l border-slate-200 bg-white md:bg-slate-50/80 backdrop-blur-3xl z-[70] transition-transform duration-500 rounded-t-[2.5rem] md:rounded-none shadow-2xl md:shadow-none overflow-hidden"
+        class="fixed inset-x-0 bottom-0 h-[95vh] md:h-full md:static md:w-80 lg:w-96 flex flex-col border-l border-slate-200 bg-white md:bg-slate-50/80 backdrop-blur-3xl z-[70] transition-transform duration-500 rounded-t-[2.5rem] md:rounded-none shadow-2xl md:shadow-none overflow-hidden"
         x-cloak>
 
         {{-- Mobile handle --}}

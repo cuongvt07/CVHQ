@@ -1,9 +1,9 @@
 {{-- POS Tabs Bar: multi-tab management (per-tab cart state) --}}
-<div class="shrink-0 bg-white border-b border-slate-100 px-2 pt-2">
+<div class="shrink-0 bg-white border-b border-slate-100 px-1 pt-1">
     <div class="flex items-end gap-0.5 overflow-x-auto no-scrollbar">
         @foreach($tabs as $i => $tab)
             <div wire:key="tab-{{ $i }}"
-                class="group relative flex items-center gap-1.5 shrink-0 px-3 py-2 cursor-pointer rounded-t-xl transition-all select-none
+                class="group relative flex items-center gap-1 shrink-0 px-2 py-1.5 cursor-pointer rounded-t-lg transition-all select-none
                       {{ $activeTab === $i
                          ? 'bg-white border border-b-white border-slate-200 text-electric-blue shadow-[0_-2px_8px_rgba(0,0,0,0.06)] z-10'
                          : 'bg-slate-50 text-slate-400 hover:text-slate-600 hover:bg-slate-100' }}"
