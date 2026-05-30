@@ -60,34 +60,5 @@
         </div>
     </div>
 
-    {{-- Mobile --}}
-    <div class="md:hidden h-full overflow-y-auto bg-white p-1 pb-24">
-        <div class="grid grid-cols-3 gap-1 mb-3">
-            @if(count($products) > 0)
-                @foreach($products as $product)
-                    <div wire:click="addToCart({{ $product['id'] }})" class="bg-white border border-slate-200 rounded-lg flex flex-col shadow-sm active:scale-95 transition-transform h-full z-10">
-                        <div class="aspect-square bg-slate-50 relative shrink-0 product-image-container rounded-t-lg overflow-hidden">
-                            @if($product['image'])
-                                <img src="{{ $product['image'] }}" class="w-full h-full object-cover">
-                            @else
-                                <div class="w-full h-full flex items-center justify-center text-slate-200">
-                                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="3" rx="2" ry="2"/></svg>
-                                </div>
-                            @endif
-                        </div>
-                        <div class="p-1 flex-1 flex flex-col gap-0.5 bg-white">
-                            <h3 class="text-[10px] font-bold text-slate-900 line-clamp-2 leading-tight">{{ $product['name'] ?: $product['base_name'] }}</h3>
-                            <div class="flex items-center justify-between gap-0.5">
-                                <p class="text-[11px] font-black text-electric-blue leading-none">{{ number_format($product['sale_price'] / 1000, 0) }}k</p>
-                                <span class="text-[9px] font-bold {{ $product['stock_quantity'] <= 5 ? 'text-rose-600 bg-rose-50' : 'text-slate-500 bg-slate-50' }} px-1 py-px rounded shrink-0">{{ $product['stock_quantity'] }}</span>
-                            </div>
-                        </div>
-                    </div>
-                @endforeach
-            @else
-                <div class="col-span-3 py-6 flex items-center justify-center text-slate-300 text-[11px] font-bold">Không có sản phẩm</div>
-            @endif
-        </div>
-        <div class="mt-2 pb-8 antigravity-pagination">{{ $products->links() }}</div>
-    </div>
+    {{-- Mobile gallery REMOVED: mobile now uses partials/mobile-product-picker.blade.php overlay --}}
 </div>

@@ -26,7 +26,7 @@
                     <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="M12 5v14"/></svg>
                 </button>
             </div>
-            <div x-show="open && customer_search.length >= 2" @click.away="open = false"
+            <div x-show="open && $wire.customer_search && $wire.customer_search.length >= 2" @click.away="open = false"
                  class="absolute inset-x-0 top-full mt-2 bg-white border border-slate-200 rounded-2xl shadow-2xl z-[80] overflow-hidden" x-cloak>
                 @if(count($customers) > 0)
                     @foreach($customers as $customer)
