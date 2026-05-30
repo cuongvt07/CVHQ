@@ -13,12 +13,24 @@
 
                 <span class="text-[10px] font-bold whitespace-nowrap">{{ $tab['label'] }}</span>
 
-                @php($tabQty = (int) array_sum(array_column($tab['cart'] ?? [], 'quantity')))
+                @php
+                    $tabQty = (int) array_sum(array_column($tab['cart'] ?? [], 'quantity'));
+                    $tabHasPriceEdit = false;
+                    foreach (($tab['cart'] ?? []) as $__it) {
+                        if (isset($__it['original_price']) && (int) $__it['sale_price'] !== (int) $__it['original_price']) {
+                            $tabHasPriceEdit = true;
+                            break;
+                        }
+                    }
+                @endphp
                 @if($tabQty > 0)
                     <span class="min-w-[18px] h-[18px] px-1 rounded-full text-[9px] font-black flex items-center justify-center shrink-0
                                  {{ $activeTab === $i ? 'bg-electric-blue text-white' : 'bg-slate-200 text-slate-600' }}">
                         {{ $tabQty }}
                     </span>
+                @endif
+                @if($tabHasPriceEdit)
+                    <span class="w-2 h-2 rounded-full bg-amber-500 shadow-[0_0_4px_rgba(245,158,11,0.6)] shrink-0" title="Có sản phẩm đã sửa giá"></span>
                 @endif
 
                 <div class="flex items-center gap-1 ml-1 opacity-0 group-hover:opacity-100 transition-opacity">

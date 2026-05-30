@@ -22,7 +22,7 @@
                 <span class="absolute left-2.5 top-1/2 -translate-y-1/2 w-2 h-2 rounded-full shrink-0 pointer-events-none" style="background-color: {{ $__activeChannelColor }};"></span>
             @endif
             <select wire:change="setSalesChannel($event.target.value)"
-                    class="appearance-none w-full bg-white border border-slate-200 rounded-lg py-1.5 {{ $__activeChannelColor ? 'pl-7' : 'pl-2.5' }} pr-7 text-[11px] font-bold text-slate-700 focus:outline-none focus:border-electric-blue transition-all cursor-pointer">
+                    class="appearance-none w-full bg-white border border-slate-200 rounded py-0.5 {{ $__activeChannelColor ? 'pl-6' : 'pl-2' }} pr-6 text-[11px] font-bold text-slate-700 focus:outline-none focus:border-electric-blue cursor-pointer leading-tight">
                 <option value="">— Chọn kênh —</option>
                 @foreach($__channels as $ch)
                     <option value="{{ $ch['name'] }}" {{ $__activeChannelName === $ch['name'] ? 'selected' : '' }}>{{ $ch['name'] }}</option>
@@ -38,7 +38,7 @@
         <div class="flex-1 flex gap-0.5">
             @foreach($__methods as $pm)
                 <button type="button" wire:click="setPaymentMethod('{{ $pm['key'] }}')"
-                        class="flex-1 px-1 py-1 rounded text-[9px] font-bold uppercase tracking-wider transition-all border
+                        class="flex-1 px-1 py-0.5 rounded text-[9px] font-bold uppercase tracking-wider transition-all border leading-tight
                                {{ $__activePaymentKey === $pm['key']
                                   ? 'bg-electric-blue text-white border-electric-blue'
                                   : 'bg-white text-slate-500 border-slate-200 hover:border-slate-300' }}">

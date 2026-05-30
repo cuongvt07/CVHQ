@@ -366,11 +366,24 @@ class PosTerminal extends Component
             return;
         }
 
+        $stock = (int) ($product->stock_quantity ?? 0);
+
+        // Hết hàng: không cho thêm
+        if ($stock <= 0) {
+            $this->dispatch('notify', message: 'Sản phẩm "' . $product->name . '" đã hết hàng!', type: 'warning');
+            return;
+        }
+
         $tab = $this->getTab();
 
         $found = false;
         foreach ($tab['cart'] as &$item) {
             if ((int)$item['id'] === (int)$productId) {
+                // Kiểm tra vượt tồn kho trước khi tăng
+                if ($item['quantity'] + 1 > $stock) {
+                    $this->dispatch('notify', message: 'Vượt tồn kho! Còn lại ' . $stock . ' "' . $product->name . '"', type: 'warning');
+                    return;
+                }
                 $item['quantity']++;
                 $found = true;
                 break;
@@ -384,6 +397,7 @@ class PosTerminal extends Component
                 'sku'                 => $product->sku,
                 'name'                => $product->name,
                 'sale_price'          => (int) $product->sale_price,
+                'original_price'      => (int) $product->sale_price,
                 'quantity'            => 1,
                 'commission_amount'   => (int) ($product->commission_amount ?? 0),
                 'image'               => !empty($product->images) ? $product->images[0] : null,
@@ -401,7 +415,18 @@ class PosTerminal extends Component
         $tab = $this->getTab();
         foreach ($tab['cart'] as $i => &$item) {
             if ((int)$item['id'] === (int)$productId) {
-                $item['quantity'] = max(0, (int)$item['quantity'] + $delta);
+                $newQty = max(0, (int)$item['quantity'] + $delta);
+
+                // Khi tăng số lượng, kiểm tra vượt tồn kho
+                if ($delta > 0) {
+                    $stock = (int) (Product::where('id', $productId)->value('stock_quantity') ?? 0);
+                    if ($newQty > $stock) {
+                        $this->dispatch('notify', message: 'Vượt tồn kho! Còn lại ' . $stock . ' "' . $item['name'] . '"', type: 'warning');
+                        return;
+                    }
+                }
+
+                $item['quantity'] = $newQty;
                 if ($item['quantity'] === 0) {
                     array_splice($tab['cart'], $i, 1);
                     $tab['cart'] = array_values($tab['cart']);
@@ -420,6 +445,15 @@ class PosTerminal extends Component
         $tab = $this->getTab();
         foreach ($tab['cart'] as $i => &$item) {
             if ((int)$item['id'] === (int)$productId) {
+                // Cap qty tại tồn kho khi gõ trực tiếp
+                if ($qty > 0) {
+                    $stock = (int) (Product::where('id', $productId)->value('stock_quantity') ?? 0);
+                    if ($qty > $stock) {
+                        $this->dispatch('notify', message: 'Số lượng vượt tồn kho. Đã giới hạn ở ' . $stock, type: 'warning');
+                        $qty = $stock;
+                    }
+                }
+
                 if ($qty === 0) {
                     array_splice($tab['cart'], $i, 1);
                     $tab['cart'] = array_values($tab['cart']);
@@ -466,7 +500,25 @@ class PosTerminal extends Component
         $tab = $this->getTab();
         foreach ($tab['cart'] as &$item) {
             if ((int)$item['id'] === (int)$productId) {
+                // Lưu original_price nếu chưa có (lần đầu sửa giá cho item cũ từ localStorage)
+                if (!isset($item['original_price'])) {
+                    $item['original_price'] = (int) $item['sale_price'];
+                }
                 $item['sale_price'] = $price;
+                break;
+            }
+        }
+        unset($item);
+        $this->setTab($tab);
+        $this->recalculateTotalDiscount();
+    }
+
+    public function resetUnitPrice(int $productId): void
+    {
+        $tab = $this->getTab();
+        foreach ($tab['cart'] as &$item) {
+            if ((int)$item['id'] === (int)$productId && isset($item['original_price'])) {
+                $item['sale_price'] = (int) $item['original_price'];
                 break;
             }
         }

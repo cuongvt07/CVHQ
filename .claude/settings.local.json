@@ -4,7 +4,16 @@
       "Bash(dir d:\\\\CVHQ)",
       "Bash(php -l \"d:/CVHQ/app/Livewire/Pos/PosTerminal.php\")",
       "Bash(php --version)",
-      "Bash(git -C \"d:/CVHQ\" show HEAD:app/Livewire/Pos/PosTerminal.php)"
+      "Bash(git -C \"d:/CVHQ\" show HEAD:app/Livewire/Pos/PosTerminal.php)",
+      "Bash(git -C \"d:/CVHQ\" status --short)",
+      "Bash(git -C \"d:/CVHQ\" log --oneline -8)",
+      "Bash(git -C \"d:/CVHQ\" branch --show-current)",
+      "Bash(git -C \"d:/CVHQ\" remote -v)",
+      "Bash(git -C \"d:/CVHQ\" reset --hard 909560b5f575a2c425728f877cf52b55ba100d75)",
+      "Bash(git -C \"d:/CVHQ\" push --force origin main)",
+      "Bash(git -C \"d:/CVHQ\" log --oneline -5)",
+      "Bash(git -C \"d:/CVHQ\" grep -n \"sales_channel\\\\|SalesChannel\" app/Livewire/Pos/PosTerminal.php)",
+      "Bash(awk '/@if\\\\\\(|@else|@endif|@foreach|@endforeach|@php|@endphp/ {print NR\": \"$0}' \"d:/CVHQ/resources/views/components/pos/pos-terminal.blade.php\")"
     ]
   }
 }

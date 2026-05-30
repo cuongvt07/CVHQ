@@ -7,8 +7,16 @@
         </div>
     @else
         @foreach($cart as $item)
+            @php
+                $__orig = isset($item['original_price']) ? (int) $item['original_price'] : null;
+                $__priceEdited = $__orig !== null && (int) $item['sale_price'] !== $__orig;
+                $__priceHigher = $__priceEdited && (int) $item['sale_price'] > $__orig;
+            @endphp
             <div wire:key="cart-item-{{ $item['id'] }}" x-data="{ editPrice: false }"
-                 class="group/item bg-white px-1.5 py-1 rounded border border-slate-100 relative">
+                 class="group/item px-1.5 py-1 rounded border relative
+                        {{ $__priceEdited
+                            ? 'bg-amber-50/60 border-amber-200 ring-1 ring-amber-200/50'
+                            : 'bg-white border-slate-100' }}">
 
                 <div class="flex items-center gap-2">
                     {{-- STT --}}
@@ -55,12 +63,25 @@
                         </button>
                     </div>
 
-                    {{-- Unit price (click to edit) --}}
+                    {{-- Unit price (click to edit, highlight when changed from original) --}}
                     <div class="flex items-center gap-1 text-[10px]">
                         <span x-show="!editPrice" @click="editPrice = true; $nextTick(() => $refs.priceInput.focus())"
-                              class="font-bold text-electric-blue cursor-pointer hover:underline whitespace-nowrap" title="Click sửa giá">
+                              class="font-bold cursor-pointer hover:underline whitespace-nowrap {{ $__priceEdited ? 'text-amber-700' : 'text-electric-blue' }}"
+                              title="{{ $__priceEdited ? 'Đã sửa từ ' . number_format($__orig, 0, ',', '.') . 'đ' : 'Click để sửa giá' }}">
                             {{ number_format($item['sale_price'], 0, ',', '.') }}
                         </span>
+                        @if($__priceEdited)
+                            {{-- Mũi tên báo tăng/giảm --}}
+                            <span class="text-[9px] font-black {{ $__priceHigher ? 'text-rose-500' : 'text-emerald-500' }}" title="{{ $__priceHigher ? 'Tăng giá' : 'Giảm giá' }}">{{ $__priceHigher ? '▲' : '▼' }}</span>
+                            {{-- Giá gốc strikethrough --}}
+                            <span class="text-[9px] text-slate-400 line-through whitespace-nowrap">{{ number_format($__orig, 0, ',', '.') }}</span>
+                            {{-- Nút reset về giá gốc --}}
+                            <button type="button" wire:click="resetUnitPrice({{ $item['id'] }})"
+                                    class="text-[9px] text-slate-400 hover:text-amber-600 transition-colors"
+                                    title="Khôi phục giá gốc">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
+                            </button>
+                        @endif
                         <input x-show="editPrice" x-ref="priceInput" x-cloak
                                type="number"
                                value="{{ $item['sale_price'] }}"
