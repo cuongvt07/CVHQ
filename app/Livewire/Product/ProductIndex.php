@@ -291,12 +291,45 @@ class ProductIndex extends Component
         $this->resetForm();
         $this->loadAttributeSuggestions();
 
+        // Auto-generate SKU (e.g. SP000001 → SP000002 → ...)
+        $this->sku = $this->generateNewSku();
+
         // Auto commission logic
         if (\App\Models\SystemSetting::get('auto_commission_enabled') === 'true') {
             $this->updatedSalePrice();
         }
 
         $this->dispatch('open-product-modal');
+    }
+
+    /**
+     * Auto-generate SKU for a brand-new product.
+     * Pattern: "SP" + zero-padded 6-digit sequence (e.g. SP000001).
+     * Picks the highest existing SP-numeric SKU and adds 1; falls back to SP000001.
+     */
+    private function generateNewSku(): string
+    {
+        $prefix = \App\Models\SystemSetting::get('sku_prefix', 'SP');
+        $padding = (int) \App\Models\SystemSetting::get('sku_padding', 6);
+
+        // Find highest existing SKU matching prefix + digits
+        $latest = Product::where('sku', 'like', $prefix . '%')
+            ->orderByRaw('CAST(SUBSTRING(sku, ?) AS UNSIGNED) DESC', [strlen($prefix) + 1])
+            ->value('sku');
+
+        $nextNumber = 1;
+        if ($latest && preg_match('/^' . preg_quote($prefix, '/') . '(\d+)$/', $latest, $m)) {
+            $nextNumber = (int) $m[1] + 1;
+        }
+
+        // Find next non-conflicting (in case of concurrent inserts)
+        $candidate = $prefix . str_pad((string) $nextNumber, $padding, '0', STR_PAD_LEFT);
+        while (Product::where('sku', $candidate)->exists()) {
+            $nextNumber++;
+            $candidate = $prefix . str_pad((string) $nextNumber, $padding, '0', STR_PAD_LEFT);
+        }
+
+        return $candidate;
     }
 
     public function edit($id)

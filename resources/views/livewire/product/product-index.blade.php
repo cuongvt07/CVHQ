@@ -145,25 +145,25 @@
                     $onFirst  = $curPage <= 1;
                     $onLast   = $curPage >= $lastPage;
                 @endphp
-                <div class="flex items-center gap-1 bg-white border border-slate-200 rounded-xl shadow-sm p-1" title="Trang {{ $curPage }} / {{ $lastPage }} ({{ number_format($products->total()) }} sản phẩm)">
+                <div class="flex items-center gap-0.5 bg-white border border-slate-200 rounded-md shadow-sm px-0.5 py-0.5" title="Trang {{ $curPage }} / {{ $lastPage }} ({{ number_format($products->total()) }} sản phẩm)">
                     <button wire:click="previousPage" @disabled($onFirst)
-                            class="w-8 h-8 flex items-center justify-center rounded-lg transition-all
+                            class="w-6 h-6 flex items-center justify-center rounded transition-colors
                                    {{ $onFirst ? 'text-slate-200 cursor-not-allowed' : 'text-slate-500 hover:text-electric-blue hover:bg-electric-blue/5' }}"
                             aria-label="Trang trước">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>
+                        <svg xmlns="http://www.w3.org/2000/svg" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>
                     </button>
 
-                    <div class="flex items-baseline gap-1 px-2 select-none">
-                        <span class="text-[12px] font-black text-electric-blue tracking-tight tabular-nums">{{ $curPage }}</span>
-                        <span class="text-[10px] font-bold text-slate-300">/</span>
-                        <span class="text-[11px] font-bold text-slate-500 tabular-nums">{{ $lastPage }}</span>
+                    <div class="flex items-baseline gap-0.5 px-1 select-none">
+                        <span class="text-[10px] font-black text-electric-blue tracking-tight tabular-nums">{{ $curPage }}</span>
+                        <span class="text-[9px] font-bold text-slate-300">/</span>
+                        <span class="text-[10px] font-bold text-slate-500 tabular-nums">{{ $lastPage }}</span>
                     </div>
 
                     <button wire:click="nextPage" @disabled($onLast)
-                            class="w-8 h-8 flex items-center justify-center rounded-lg transition-all
+                            class="w-6 h-6 flex items-center justify-center rounded transition-colors
                                    {{ $onLast ? 'text-slate-200 cursor-not-allowed' : 'text-slate-500 hover:text-electric-blue hover:bg-electric-blue/5' }}"
                             aria-label="Trang sau">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"/></svg>
+                        <svg xmlns="http://www.w3.org/2000/svg" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"/></svg>
                     </button>
                 </div>
 

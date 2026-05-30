@@ -13,7 +13,9 @@
       "Bash(git -C \"d:/CVHQ\" push --force origin main)",
       "Bash(git -C \"d:/CVHQ\" log --oneline -5)",
       "Bash(git -C \"d:/CVHQ\" grep -n \"sales_channel\\\\|SalesChannel\" app/Livewire/Pos/PosTerminal.php)",
-      "Bash(awk '/@if\\\\\\(|@else|@endif|@foreach|@endforeach|@php|@endphp/ {print NR\": \"$0}' \"d:/CVHQ/resources/views/components/pos/pos-terminal.blade.php\")"
+      "Bash(awk '/@if\\\\\\(|@else|@endif|@foreach|@endforeach|@php|@endphp/ {print NR\": \"$0}' \"d:/CVHQ/resources/views/components/pos/pos-terminal.blade.php\")",
+      "Bash(Get-ChildItem -Path \"d:\\\\CVHQ\" -Recurse -Include \"*product-modal*\", \"*ProductIndex*\" -ErrorAction SilentlyContinue)",
+      "Bash(Select-Object FullName)"
     ]
   }
 }

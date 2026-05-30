@@ -132,12 +132,12 @@ body {
         transform: translate(-50%, -50%) scale(1) translateY(0);
     }
 }
-/* Modern Global Pagination Styling */
+/* Compact Pagination — petite, responsive, works on both PC + mobile */
 .antigravity-pagination nav[role="navigation"] {
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 1.5rem;
+    gap: 0.375rem; /* 6px between "Showing X-Y of Z" and page buttons */
     width: 100%;
 }
 
@@ -146,64 +146,65 @@ body {
     display: none !important;
 }
 
-/* Styling for "Showing X to Y of Z results" */
+/* "Showing X to Y of Z results" — small + muted */
 .antigravity-pagination nav[role="navigation"] > div:first-child {
-    font-size: 10px;
-    font-weight: 800;
+    font-size: 9px;
+    font-weight: 700;
     text-transform: uppercase;
-    letter-spacing: 0.1em;
-    color: #94a3b8; /* slate-400 */
+    letter-spacing: 0.08em;
+    color: #94a3b8;
 }
 
 /* Container for the page numbers */
 .antigravity-pagination nav[role="navigation"] > div:last-child {
     display: flex;
     justify-content: center;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 2px;
     background: transparent !important;
     box-shadow: none !important;
     border: none !important;
 }
 
+/* Default page button (number, ellipsis, prev/next arrows) */
 .antigravity-pagination nav[role="navigation"] span.relative,
 .antigravity-pagination nav[role="navigation"] a.relative {
-    border: 1px solid #e2e8f0 !important; /* border-slate-200 */
+    border: 1px solid #e2e8f0 !important;
     background-color: white !important;
-    color: #475569 !important; /* text-slate-600 */
-    min-width: 38px;
-    height: 38px;
-    display: flex;
+    color: #64748b !important; /* slate-500 */
+    min-width: 26px;
+    height: 26px;
+    display: inline-flex;
     align-items: center;
     justify-content: center;
-    font-size: 12px !important;
-    font-weight: 800 !important;
-    border-radius: 10px !important;
-    margin: 0 3px !important;
-    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-    box-shadow: 0 1px 2px rgba(0,0,0,0.03);
-    padding: 0 !important;
+    font-size: 10px !important;
+    font-weight: 700 !important;
+    border-radius: 6px !important;
+    margin: 0 !important;
+    transition: all 0.15s ease;
+    box-shadow: none;
+    padding: 0 6px !important;
+    line-height: 1;
 }
 
-/* Active Page State — target the inner styled span (the actual visible box) AND
-   the bare wrapper case, so both Laravel paginator markups are covered. */
+/* Active page — chỉ nổi bật bằng màu, không scale to */
 .antigravity-pagination nav[role="navigation"] span[aria-current="page"] > span,
 .antigravity-pagination nav[role="navigation"] span[aria-current="page"]:not(:has(> span.relative)) {
-    background-image: linear-gradient(135deg, #00a5f5 0%, #0077b3 100%) !important;
     background-color: #0088cc !important;
+    background-image: none !important;
     color: #ffffff !important;
     border: 1px solid #0077b3 !important;
-    box-shadow:
-        0 0 0 3px rgba(0, 136, 204, 0.18),
-        0 6px 18px rgba(0, 136, 204, 0.40) !important;
-    transform: scale(1.10);
-    font-size: 13px !important;
+    box-shadow: 0 1px 3px rgba(0, 136, 204, 0.35) !important;
     font-weight: 900 !important;
-    min-width: 44px;
-    height: 44px;
-    z-index: 5;
+    /* same size as default — no scale/oversize */
+    min-width: 26px;
+    height: 26px;
+    z-index: 2;
     position: relative;
 }
 
-/* Wrapper has no visual of its own; keep it inline so the inner box scales cleanly */
+/* Wrapper invisible, no margin override needed (inherits flex gap) */
 .antigravity-pagination nav[role="navigation"] span[aria-current="page"] {
     display: inline-flex;
     align-items: center;
@@ -211,19 +212,49 @@ body {
     border: 0 !important;
     box-shadow: none !important;
     padding: 0 !important;
-    margin: 0 3px !important;
+    margin: 0 !important;
 }
 
-.antigravity-pagination nav[role="navigation"] a:hover {
-    background-color: #f0f9ff !important; /* sky-50 */
+/* Hover (only on enabled <a>, not disabled spans) */
+.antigravity-pagination nav[role="navigation"] a.relative:hover {
+    background-color: #f0f9ff !important;
     border-color: #0088cc !important;
-    transform: translateY(-1px);
     color: #0088cc !important;
 }
 
-/* Icons adjustment */
+/* Disabled state — washed out */
+.antigravity-pagination nav[role="navigation"] span.relative[aria-disabled="true"] {
+    opacity: 0.4;
+    cursor: not-allowed;
+}
+
+/* Arrows (prev/next) — slightly tighter */
 .antigravity-pagination nav[role="navigation"] svg {
-    width: 14px;
-    height: 14px;
-    stroke-width: 3px;
+    width: 11px;
+    height: 11px;
+    stroke-width: 2.5px;
+}
+
+/* Mobile: even more petite */
+@media (max-width: 640px) {
+    .antigravity-pagination nav[role="navigation"] {
+        gap: 0.25rem;
+    }
+    .antigravity-pagination nav[role="navigation"] > div:first-child {
+        font-size: 8px;
+    }
+    .antigravity-pagination nav[role="navigation"] span.relative,
+    .antigravity-pagination nav[role="navigation"] a.relative,
+    .antigravity-pagination nav[role="navigation"] span[aria-current="page"] > span,
+    .antigravity-pagination nav[role="navigation"] span[aria-current="page"]:not(:has(> span.relative)) {
+        min-width: 22px;
+        height: 22px;
+        font-size: 9px !important;
+        border-radius: 5px !important;
+        padding: 0 4px !important;
+    }
+    .antigravity-pagination nav[role="navigation"] svg {
+        width: 9px;
+        height: 9px;
+    }
 }

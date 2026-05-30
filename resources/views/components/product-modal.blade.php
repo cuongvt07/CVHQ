@@ -26,55 +26,55 @@
                  x-transition:leave="ease-in duration-200" 
                  x-transition:leave-start="opacity-100 translate-y-0 sm:scale-100" 
                  x-transition:leave-end="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95" 
-                 class="relative transform overflow-hidden rounded-[2.5rem] bg-white text-left shadow-2xl transition-all sm:my-8 sm:w-full sm:max-w-4xl border border-slate-200">
-                
-                <div class="px-8 pt-8 pb-6">
-                    <div class="flex items-center justify-between mb-6">
+                 class="relative transform overflow-hidden rounded-2xl sm:rounded-[2.5rem] bg-white text-left shadow-2xl transition-all sm:my-8 w-full sm:max-w-4xl border border-slate-200 max-h-[95vh] flex flex-col">
+
+                <div class="px-4 sm:px-8 pt-4 sm:pt-8 pb-4 sm:pb-6 overflow-y-auto">
+                    <div class="flex items-center justify-between mb-4 sm:mb-6">
                         <div>
-                            <h3 class="text-2xl font-bold text-slate-900">{{ $this->productId ? 'Cập nhật sản phẩm' : 'Thêm sản phẩm mới' }}</h3>
-                            <p class="text-xs text-slate-400 mt-1 uppercase tracking-widest font-bold">Thông tin chi tiết mặt hàng</p>
+                            <h3 class="text-lg sm:text-2xl font-bold text-slate-900">{{ $this->productId ? 'Cập nhật sản phẩm' : 'Thêm sản phẩm mới' }}</h3>
+                            <p class="text-[10px] sm:text-xs text-slate-400 mt-0.5 sm:mt-1 uppercase tracking-widest font-bold">Thông tin chi tiết mặt hàng</p>
                         </div>
-                        <button @click="open = false" class="w-10 h-10 rounded-full bg-slate-50 flex items-center justify-center text-slate-400 hover:text-slate-600 transition-colors">
+                        <button @click="open = false" class="w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-slate-50 flex items-center justify-center text-slate-400 hover:text-slate-600 transition-colors">
                             <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
                         </button>
                     </div>
 
-                    <form wire:submit.prevent="save" class="space-y-4">
-                        <div class="grid grid-cols-2 gap-6">
+                    <form wire:submit.prevent="save" class="space-y-3 sm:space-y-4">
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-6">
                             <!-- SKU -->
                             <div class="space-y-2">
                                 <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Mã sản phẩm (SKU)</label>
-                                <input type="text" wire:model="sku" class="w-full bg-slate-50 border border-slate-200 rounded-2xl py-3 px-5 text-sm focus:outline-none focus:border-electric-blue/40 focus:ring-4 focus:ring-electric-blue/5 transition-all" placeholder="Ví dụ: SP001">
+                                <input type="text" wire:model="sku" class="w-full bg-slate-50 border border-slate-200 rounded-xl sm:rounded-2xl py-2 sm:py-3 px-3 sm:px-5 text-[13px] sm:text-sm focus:outline-none focus:border-electric-blue/40 focus:ring-2 sm:focus:ring-4 focus:ring-electric-blue/5 transition-all" placeholder="Ví dụ: SP001">
                                 @error('sku') <span class="text-[10px] text-rose-500 font-bold ml-1">{{ $message }}</span> @enderror
                             </div>
 
                             <!-- Name -->
                             <div class="space-y-2">
                                 <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Tên hàng</label>
-                                <input type="text" wire:model="base_name" class="w-full bg-slate-50 border border-slate-200 rounded-2xl py-3 px-5 text-sm focus:outline-none focus:border-electric-blue/40 focus:ring-4 focus:ring-electric-blue/5 transition-all" placeholder="Tên hàng gốc">
+                                <input type="text" wire:model="base_name" class="w-full bg-slate-50 border border-slate-200 rounded-xl sm:rounded-2xl py-2 sm:py-3 px-3 sm:px-5 text-[13px] sm:text-sm focus:outline-none focus:border-electric-blue/40 focus:ring-2 sm:focus:ring-4 focus:ring-electric-blue/5 transition-all" placeholder="Tên hàng gốc">
                                 @error('base_name') <span class="text-[10px] text-rose-500 font-bold ml-1">{{ $message }}</span> @enderror
                             </div>
                         </div>
 
-                        <div class="grid grid-cols-3 gap-6">
+                        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-6">
                             <!-- Category -->
                             <div class="space-y-2">
                                 <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Danh mục</label>
-                                <input type="text" wire:model="category_path" class="w-full bg-slate-50 border border-slate-200 rounded-2xl py-3 px-5 text-sm focus:outline-none focus:border-electric-blue/40 focus:ring-4 focus:ring-electric-blue/5 transition-all" placeholder="Ví dụ: Phần cứng">
+                                <input type="text" wire:model="category_path" class="w-full bg-slate-50 border border-slate-200 rounded-xl sm:rounded-2xl py-2 sm:py-3 px-3 sm:px-5 text-[13px] sm:text-sm focus:outline-none focus:border-electric-blue/40 focus:ring-2 sm:focus:ring-4 focus:ring-electric-blue/5 transition-all" placeholder="Ví dụ: Phần cứng">
                                 @error('category_path') <span class="text-[10px] text-rose-500 font-bold ml-1">{{ $message }}</span> @enderror
                             </div>
 
                             <!-- Brand -->
                             <div class="space-y-2">
                                 <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Thương hiệu</label>
-                                <input type="text" wire:model="brand" class="w-full bg-slate-50 border border-slate-200 rounded-2xl py-3 px-5 text-sm focus:outline-none focus:border-electric-blue/40 focus:ring-4 focus:ring-electric-blue/5 transition-all" placeholder="Ví dụ: Apple">
+                                <input type="text" wire:model="brand" class="w-full bg-slate-50 border border-slate-200 rounded-xl sm:rounded-2xl py-2 sm:py-3 px-3 sm:px-5 text-[13px] sm:text-sm focus:outline-none focus:border-electric-blue/40 focus:ring-2 sm:focus:ring-4 focus:ring-electric-blue/5 transition-all" placeholder="Ví dụ: Apple">
                                 @error('brand') <span class="text-[10px] text-rose-500 font-bold ml-1">{{ $message }}</span> @enderror
                             </div>
 
                             <!-- Location -->
                             <div class="space-y-2">
                                 <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Vị trí hàng hóa</label>
-                                <input type="text" wire:model="location" class="w-full bg-slate-50 border border-slate-200 rounded-2xl py-3 px-5 text-sm focus:outline-none focus:border-electric-blue/40 focus:ring-4 focus:ring-electric-blue/5 transition-all" placeholder="Ví dụ: Kệ A1">
+                                <input type="text" wire:model="location" class="w-full bg-slate-50 border border-slate-200 rounded-xl sm:rounded-2xl py-2 sm:py-3 px-3 sm:px-5 text-[13px] sm:text-sm focus:outline-none focus:border-electric-blue/40 focus:ring-2 sm:focus:ring-4 focus:ring-electric-blue/5 transition-all" placeholder="Ví dụ: Kệ A1">
                                 @error('location') <span class="text-[10px] text-rose-500 font-bold ml-1">{{ $message }}</span> @enderror
                             </div>
                         </div>
@@ -83,7 +83,7 @@
                             <!-- Price -->
                             <div class="space-y-2">
                                 <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Giá bán (VNĐ)</label>
-                                <input type="number" wire:model.live="sale_price" class="w-full bg-slate-50 border border-slate-200 rounded-2xl py-3 px-5 text-sm focus:outline-none focus:border-electric-blue/40 focus:ring-4 focus:ring-electric-blue/5 transition-all">
+                                <input type="number" wire:model.live="sale_price" class="w-full bg-slate-50 border border-slate-200 rounded-xl sm:rounded-2xl py-2 sm:py-3 px-3 sm:px-5 text-[13px] sm:text-sm focus:outline-none focus:border-electric-blue/40 focus:ring-2 sm:focus:ring-4 focus:ring-electric-blue/5 transition-all">
                                 @error('sale_price') <span class="text-[10px] text-rose-500 font-bold ml-1">{{ $message }}</span> @enderror
                             </div>
 
@@ -99,7 +99,7 @@
                             <!-- Stock -->
                             <div class="space-y-2">
                                 <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Số lượng tồn kho</label>
-                                <input type="number" wire:model="stock_quantity" class="w-full bg-slate-50 border border-slate-200 rounded-2xl py-3 px-5 text-sm focus:outline-none focus:border-electric-blue/40 focus:ring-4 focus:ring-electric-blue/5 transition-all">
+                                <input type="number" wire:model="stock_quantity" class="w-full bg-slate-50 border border-slate-200 rounded-xl sm:rounded-2xl py-2 sm:py-3 px-3 sm:px-5 text-[13px] sm:text-sm focus:outline-none focus:border-electric-blue/40 focus:ring-2 sm:focus:ring-4 focus:ring-electric-blue/5 transition-all">
                                 @error('stock_quantity') <span class="text-[10px] text-rose-500 font-bold ml-1">{{ $message }}</span> @enderror
                             </div>
                         </div>
@@ -165,12 +165,12 @@
                             </div>
 
                             <!-- Image Grid -->
-                            <div class="grid grid-cols-4 md:grid-cols-6 gap-4">
+                            <div class="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-2 sm:gap-4">
                                 <!-- Existing Images -->
                                 @foreach($this->existingImages as $index => $path)
                                     <div class="relative aspect-square rounded-2xl bg-slate-100 border border-slate-200 overflow-hidden group">
                                         <img src="{{ Str::startsWith($path, 'http') ? $path : asset('storage/' . $path) }}" class="w-full h-full object-cover">
-                                        <button type="button" wire:click="removeImage({{ $index }}, 'existing')" class="absolute top-1 right-1 w-6 h-6 rounded-full bg-rose-500/80 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                                        <button type="button" wire:click="removeImage({{ $index }}, 'existing')" class="absolute top-1 right-1 w-7 h-7 rounded-full bg-rose-500 text-white flex items-center justify-center shadow-md md:opacity-0 md:group-hover:opacity-100 transition-opacity active:scale-90">
                                             <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
                                         </button>
                                     </div>
@@ -181,7 +181,7 @@
                                     <div class="relative aspect-square rounded-2xl bg-slate-100 border border-electric-blue/30 overflow-hidden group">
                                         <img src="{{ $image->temporaryUrl() }}" class="w-full h-full object-cover">
                                         <div class="absolute inset-0 bg-electric-blue/10 pointer-events-none"></div>
-                                        <button type="button" wire:click="removeImage({{ $index }}, 'new')" class="absolute top-1 right-1 w-6 h-6 rounded-full bg-rose-500/80 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                                        <button type="button" wire:click="removeImage({{ $index }}, 'new')" class="absolute top-1 right-1 w-7 h-7 rounded-full bg-rose-500 text-white flex items-center justify-center shadow-md md:opacity-0 md:group-hover:opacity-100 transition-opacity active:scale-90">
                                             <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
                                         </button>
                                     </div>
@@ -192,7 +192,7 @@
                                     <div class="relative aspect-square rounded-2xl bg-slate-100 border border-emerald-500/30 overflow-hidden group">
                                         <img src="{{ $dataUri }}" class="w-full h-full object-cover">
                                         <div class="absolute inset-0 bg-emerald-500/10 pointer-events-none"></div>
-                                        <button type="button" wire:click="removeImage({{ $index }}, 'captured')" class="absolute top-1 right-1 w-6 h-6 rounded-full bg-rose-500/80 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                                        <button type="button" wire:click="removeImage({{ $index }}, 'captured')" class="absolute top-1 right-1 w-7 h-7 rounded-full bg-rose-500 text-white flex items-center justify-center shadow-md md:opacity-0 md:group-hover:opacity-100 transition-opacity active:scale-90">
                                             <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
                                         </button>
                                     </div>
@@ -278,26 +278,26 @@
                     </form>
                 </div>
 
-                <div class="bg-slate-50/50 px-8 py-5 flex flex-row-reverse gap-3">
-                    <button wire:click="save" 
+                <div class="bg-slate-50/50 border-t border-slate-100 px-3 sm:px-8 py-3 sm:py-5 flex flex-col-reverse sm:flex-row-reverse gap-2 sm:gap-3 shrink-0">
+                    <button wire:click="save"
                             wire:loading.attr="disabled"
-                            class="btn-electric px-8 py-3 shadow-[0_10px_20px_rgba(0,209,255,0.2)]">
+                            class="btn-electric w-full sm:w-auto px-6 sm:px-8 py-2.5 sm:py-3 text-sm shadow-[0_10px_20px_rgba(0,209,255,0.2)]">
                         <span wire:loading.remove wire:target="save">Lưu thay đổi</span>
-                        <span wire:loading wire:target="save" class="flex items-center gap-2">
+                        <span wire:loading wire:target="save" class="flex items-center justify-center gap-2">
                             <svg class="animate-spin" xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg>
                             Đang xử lý...
                         </span>
                     </button>
-                    <button wire:click="saveAndCreateNext" 
+                    <button wire:click="saveAndCreateNext"
                             wire:loading.attr="disabled"
-                            class="px-8 py-3 bg-white border border-slate-200 text-slate-600 rounded-antigravity-pill text-sm font-bold hover:bg-slate-50 hover:border-electric-blue/40 hover:text-electric-blue transition-all shadow-sm">
+                            class="w-full sm:w-auto px-6 sm:px-8 py-2.5 sm:py-3 bg-white border border-slate-200 text-slate-600 rounded-antigravity-pill text-sm font-bold hover:bg-slate-50 hover:border-electric-blue/40 hover:text-electric-blue transition-all shadow-sm">
                         <span wire:loading.remove wire:target="saveAndCreateNext">Lưu & Tạo tiếp</span>
-                        <span wire:loading wire:target="saveAndCreateNext" class="flex items-center gap-2">
+                        <span wire:loading wire:target="saveAndCreateNext" class="flex items-center justify-center gap-2">
                             <svg class="animate-spin" xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg>
                             Đang lưu...
                         </span>
                     </button>
-                    <button @click="open = false" class="px-8 py-3 text-sm font-bold text-slate-500 hover:text-slate-900 transition-colors">
+                    <button @click="open = false" class="w-full sm:w-auto px-6 sm:px-8 py-2.5 sm:py-3 text-sm font-bold text-slate-500 hover:text-slate-900 transition-colors">
                         Hủy bỏ
                     </button>
                 </div>
