@@ -438,10 +438,20 @@
                             @if(in_array('actions', $visibleColumns))
                             <td class="px-4 py-2 text-right">
                                 <div class="flex items-center justify-end gap-1">
-                                    <button wire:click="toggleHistory({{ $product->id }})" class="p-1.5 {{ $expandedProductId === $product->id ? 'text-electric-blue' : 'text-slate-400' }} hover:text-electric-blue transition-colors relative group" title="Thẻ kho">
-                                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" x2="8" y1="13" y2="13"/><line x1="16" x2="8" y1="17" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+                                    <button wire:click="toggleHistory({{ $product->id }})"
+                                            class="inline-flex items-center gap-1 px-2 py-1 rounded-md text-[10px] font-black uppercase tracking-wider border transition-all
+                                                   {{ $expandedProductId === $product->id
+                                                      ? 'bg-electric-blue text-white border-electric-blue shadow-sm'
+                                                      : 'bg-electric-blue/5 text-electric-blue border-electric-blue/20 hover:bg-electric-blue/10 hover:border-electric-blue/40' }}"
+                                            title="Xem thẻ kho — lịch sử biến động tồn kho">
+                                        {{-- Box + chart icon: gợi ý "thẻ kho" --}}
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"/><path d="m3.3 7 8.7 5 8.7-5"/><path d="M12 22V12"/></svg>
+                                        <span class="hidden lg:inline">Thẻ kho</span>
+                                        {{-- Chevron: ▼ closed, ▲ open --}}
                                         @if($expandedProductId === $product->id)
-                                            <span class="absolute -bottom-1 left-1/2 -translate-x-1/2 w-1 h-1 bg-electric-blue rounded-full"></span>
+                                            <svg xmlns="http://www.w3.org/2000/svg" width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="m18 15-6-6-6 6"/></svg>
+                                        @else
+                                            <svg xmlns="http://www.w3.org/2000/svg" width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
                                         @endif
                                     </button>
                                     <button wire:click="edit({{ $product->id }})" class="p-1.5 text-slate-400 hover:text-electric-blue transition-colors">
