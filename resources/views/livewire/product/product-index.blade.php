@@ -1,24 +1,32 @@
 <div class="h-full flex flex-col" wire:poll.3s>
-    <!-- Dashboard Header -->
-    <header class="px-4 md:px-6 py-2 flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-200 bg-slate-50/50">
-        <div>
-            <h1 class="text-lg md:text-xl font-black tracking-tight text-slate-900">Quản lý kho hàng</h1>
+    <!-- Dashboard Header — compact mobile -->
+    <header class="px-3 md:px-6 py-2 md:py-3 flex items-center justify-between gap-2 border-b border-slate-200 bg-slate-50/50">
+        <h1 class="text-base md:text-xl font-black tracking-tight text-slate-900 shrink truncate">Kho hàng</h1>
+
+        <div class="flex items-center gap-1.5 md:gap-2 shrink-0">
+            {{-- Cấu hình hoa hồng (mobile: icon only) --}}
+            <button wire:click="openCommissionSettings"
+                    class="flex items-center gap-1.5 px-2 md:px-4 py-2 md:py-2.5 bg-white border border-slate-200 text-slate-600 rounded-lg md:rounded-xl text-[11px] md:text-[13px] font-bold hover:bg-slate-50 hover:border-slate-300 transition-all"
+                    title="Cấu hình hoa hồng">
+                <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+                <span class="hidden md:inline">Cấu hình hoa hồng</span>
+            </button>
+
+            {{-- Nhập Excel (mobile: icon only) --}}
+            <button @click="$dispatch('open-import-products')"
+                    class="flex items-center gap-1.5 px-2 md:px-4 py-2 md:py-2.5 bg-white border border-slate-200 text-slate-600 rounded-lg md:rounded-xl text-[11px] md:text-[13px] font-bold hover:bg-slate-50 hover:border-slate-300 transition-all"
+                    title="Nhập file Excel">
+                <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" x2="12" y1="3" y2="15"/></svg>
+                <span class="hidden md:inline">Nhập Excel</span>
+            </button>
+
+            {{-- Thêm sản phẩm (always shows label, key action) --}}
+            <button wire:click="create" class="btn-electric flex items-center gap-1.5 px-3 md:px-6 py-2 md:py-2.5 text-[11px] md:text-[13px] font-bold tracking-wider rounded-lg md:rounded-xl">
+                <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="M12 5v14"/></svg>
+                <span class="hidden sm:inline">Thêm sản phẩm</span>
+                <span class="sm:hidden">Thêm</span>
+            </button>
         </div>
-        
-            <button wire:click="openCommissionSettings" class="flex items-center gap-2 px-4 md:px-6 py-2.5 bg-white border border-slate-200 text-slate-600 rounded-xl text-[9px] md:text-[13px] font-bold hover:bg-slate-50 hover:border-slate-300 transition-all cursor-pointer">
-                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
-                Cấu hình hoa hồng
-            </button>
-
-            <button @click="$dispatch('open-import-products')" class="flex items-center gap-2 px-4 md:px-6 py-2.5 bg-white border border-slate-200 text-slate-600 rounded-xl text-[9px] md:text-[13px] font-bold hover:bg-slate-50 hover:border-slate-300 transition-all cursor-pointer">
-                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" x2="12" y1="3" y2="15"/></svg>
-                Nhập file Excel
-            </button>
-
-            <button wire:click="create" class="btn-electric flex items-center gap-2 px-4 md:px-6 py-2.5 text-[9px] md:text-[13px] font-bold tracking-widest">
-                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="M12 5v14"/></svg>
-                Thêm sản phẩm
-            </button>
     </header>
 
     <x-import-modal id="products" title="Nhập danh sách sản phẩm" model="importFile" />
@@ -26,10 +34,67 @@
     <x-delete-modal />
 
     <!-- Search & Filter Bar -->
-    <!-- Search & Filter Bar -->
-    <div class="px-4 md:px-6 py-4 bg-white border-b border-slate-100 flex flex-col gap-5">
-        <!-- Row 1: Advanced Search Filters -->
-        <div class="flex flex-wrap items-center gap-4">
+    <div x-data="{ mobileFilterOpen: false }" class="px-3 md:px-6 py-2 md:py-4 bg-white border-b border-slate-100 flex flex-col gap-2 md:gap-5">
+
+        {{-- Mobile: search + filter button in 1 row --}}
+        <div class="md:hidden flex items-center gap-2">
+            <div class="relative flex-1">
+                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-300"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+                <input type="text" wire:model.live="search" placeholder="Tìm tên, mã SKU..." class="w-full bg-slate-50 border border-slate-200 rounded-lg py-2 pl-9 pr-3 text-[12px] focus:outline-none focus:border-electric-blue text-slate-900">
+            </div>
+            @php $__activeFilterCount = (is_array($selectedCategories ?? null) ? count($selectedCategories) : 0) + ($boxCode ? 1 : 0); @endphp
+            <button @click="mobileFilterOpen = !mobileFilterOpen"
+                    class="shrink-0 relative w-10 h-10 flex items-center justify-center rounded-lg border transition-colors
+                           {{ $__activeFilterCount > 0
+                              ? 'border-electric-blue bg-electric-blue/10 text-electric-blue'
+                              : 'border-slate-200 text-slate-500' }}"
+                    title="Bộ lọc">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg>
+                @if($__activeFilterCount > 0)
+                    <span class="absolute -top-1 -right-1 w-4 h-4 bg-electric-blue text-white text-[9px] font-black rounded-full flex items-center justify-center">{{ $__activeFilterCount }}</span>
+                @endif
+            </button>
+        </div>
+
+        {{-- Mobile filter panel (slide-down) --}}
+        <div x-show="mobileFilterOpen" x-cloak
+             x-transition:enter="transition ease-out duration-200"
+             x-transition:enter-start="opacity-0 -translate-y-1"
+             x-transition:enter-end="opacity-100 translate-y-0"
+             class="md:hidden bg-slate-50 border border-slate-200 rounded-lg p-2 space-y-2">
+
+            {{-- Category list --}}
+            <div>
+                <div class="text-[9px] font-black text-slate-500 tracking-widest uppercase mb-1">Danh mục</div>
+                <div class="max-h-32 overflow-y-auto bg-white border border-slate-200 rounded p-1 custom-scrollbar">
+                    @if(count($categories_list) === 0)
+                        <div class="text-[10px] text-slate-300 text-center py-2">Không có danh mục</div>
+                    @else
+                        @foreach($categories_list as $cat)
+                            <label class="flex items-center gap-2 px-2 py-1 hover:bg-slate-50 rounded cursor-pointer">
+                                <input type="checkbox" wire:model.live="selectedCategories" value="{{ $cat }}" class="w-3.5 h-3.5 rounded border-slate-300 text-electric-blue focus:ring-electric-blue/20">
+                                <span class="text-[11px] font-medium text-slate-700">{{ $cat }}</span>
+                            </label>
+                        @endforeach
+                    @endif
+                </div>
+            </div>
+
+            <div>
+                <div class="text-[9px] font-black text-slate-500 tracking-widest uppercase mb-1">Mã thùng</div>
+                <input type="text" wire:model.live.debounce.300ms="boxCode" placeholder="Nhập mã thùng..." class="w-full bg-white border border-slate-200 rounded px-2 py-1.5 text-[11px] focus:outline-none focus:border-electric-blue text-slate-900">
+            </div>
+
+            <div class="flex items-center justify-between gap-2 pt-1">
+                <button wire:click="$set('selectedCategories', []); $set('boxCode', '')"
+                        class="text-[10px] font-black text-rose-500 hover:underline">Xóa tất cả</button>
+                <button @click="mobileFilterOpen = false"
+                        class="px-3 py-1 bg-electric-blue text-white rounded text-[10px] font-bold uppercase tracking-wider">Xong</button>
+            </div>
+        </div>
+
+        {{-- Desktop filter row (unchanged, hidden on mobile) --}}
+        <div class="hidden md:flex flex-wrap items-center gap-4">
             <!-- Main Search -->
             <div class="relative w-full md:w-80 group">
                 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="absolute left-4 top-1/2 -translate-y-1/2 text-slate-300 group-focus-within:text-electric-blue transition-colors"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
@@ -42,9 +107,7 @@
                     <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-300 group-focus-within:text-electric-blue transition-colors"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>
                     <input type="text" x-model="catSearch" placeholder="Lọc danh mục..." class="w-full bg-white border border-slate-200 rounded-xl py-2.5 pl-10 pr-4 text-xs focus:outline-none focus:border-electric-blue transition-all text-slate-900 shadow-sm">
                 </div>
-                
-                <!-- Absolute Dropdown -->
-                <div x-show="catSearch.length > 0" 
+                <div x-show="catSearch.length > 0"
                      x-transition:enter="transition ease-out duration-100"
                      x-transition:enter-start="opacity-0 scale-95"
                      x-transition:enter-end="opacity-100 scale-100"
@@ -53,7 +116,7 @@
                      @click.away="catSearch = ''">
                     <div class="max-h-48 overflow-y-auto custom-scrollbar">
                         @foreach($categories_list as $cat)
-                            <label x-show="'{{ strtolower($cat) }}'.includes(catSearch.toLowerCase())" class="flex items-center gap-2 px-3 py-2 hover:bg-slate-50 rounded-lg cursor-pointer transition-colors group">
+                            <label x-show="'{{ addslashes(strtolower($cat)) }}'.includes(catSearch.toLowerCase())" class="flex items-center gap-2 px-3 py-2 hover:bg-slate-50 rounded-lg cursor-pointer transition-colors group">
                                 <input type="checkbox" wire:model.live="selectedCategories" value="{{ $cat }}" class="w-4 h-4 rounded border-slate-300 text-electric-blue focus:ring-electric-blue/20 transition-all">
                                 <span class="text-[10px] font-medium text-slate-600 group-hover:text-slate-900 transition-colors">{{ $cat }}</span>
                             </label>
@@ -69,8 +132,8 @@
             </div>
         </div>
 
-        <!-- Row 2: Bulk Actions & Configuration -->
-        <div class="flex flex-col md:flex-row items-center justify-between gap-4 pt-4 border-t border-slate-50">
+        <!-- Row 2: Bulk Actions & Configuration (desktop only, mobile uses simplified filter) -->
+        <div class="hidden md:flex flex-col md:flex-row items-center justify-between gap-4 pt-4 border-t border-slate-50">
             <!-- Left Side: Selection Actions -->
             <div class="flex items-center gap-3 min-h-[40px]">
                 @if(count($selectedRows) > 0)
@@ -226,10 +289,102 @@
             </div>
         @endif
 
-    <!-- Main Content (Binary Surface) -->
-    <div class="flex-1 overflow-y-auto custom-scrollbar p-4 md:p-6">
-        <!-- High-Density Table List -->
-        <div class="glass-card overflow-hidden border border-slate-200">
+    <!-- Main Content -->
+    <div class="flex-1 overflow-y-auto custom-scrollbar p-2 md:p-6">
+
+        {{-- Mobile card list (compact, tap-friendly) --}}
+        <div class="md:hidden flex flex-col gap-1.5">
+            @if(count($products) === 0)
+                <div class="py-10 text-center text-slate-300 text-[11px] font-bold tracking-widest">Không có sản phẩm</div>
+            @else
+                @foreach($products as $product)
+                    <div wire:key="m-prod-{{ $product->id }}" class="bg-white border border-slate-200 rounded-lg p-2 flex items-start gap-2 shadow-sm">
+
+                        {{-- Checkbox + Image --}}
+                        <div class="flex flex-col items-center gap-1.5 shrink-0">
+                            <input type="checkbox" wire:model.live="selectedRows" value="{{ $product->id }}"
+                                   class="w-4 h-4 rounded border-slate-300 text-electric-blue focus:ring-electric-blue/20">
+                            <div class="w-12 h-12 rounded bg-slate-50 overflow-hidden">
+                                @if(!empty($product->images))
+                                    <img src="{{ $product->images[0] }}" class="w-full h-full object-cover">
+                                @else
+                                    <div class="w-full h-full flex items-center justify-center text-slate-200">
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="3" rx="2" ry="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/></svg>
+                                    </div>
+                                @endif
+                            </div>
+                        </div>
+
+                        {{-- Main info --}}
+                        <div class="flex-1 min-w-0 space-y-1">
+                            {{-- Name + SKU --}}
+                            <div class="min-w-0">
+                                <div class="text-[12px] font-bold text-slate-900 leading-tight line-clamp-2">{{ $product->name ?: $product->base_name }}</div>
+                                <div class="flex items-center gap-1.5 mt-0.5">
+                                    <span class="text-[9px] font-mono font-bold text-slate-500">{{ $product->sku }}</span>
+                                    @if($product->location)
+                                        <span class="text-[9px] font-bold text-emerald-600 bg-emerald-50 px-1 py-px rounded">{{ $product->location }}</span>
+                                    @endif
+                                </div>
+                            </div>
+
+                            {{-- Price + Stock --}}
+                            <div class="flex items-center gap-2 text-[11px]">
+                                <span class="font-extrabold text-electric-blue">{{ number_format($product->sale_price, 0, ',', '.') }}đ</span>
+                                <span class="font-bold {{ $product->stock_quantity <= 5 ? 'text-rose-600 bg-rose-50' : 'text-slate-600 bg-slate-50' }} px-1.5 py-0.5 rounded text-[10px]">Tồn: {{ $product->stock_quantity }}</span>
+                                @if($product->brand)
+                                    <span class="text-[10px] text-slate-400 truncate">{{ $product->brand }}</span>
+                                @endif
+                            </div>
+
+                            {{-- Actions --}}
+                            <div class="flex items-center gap-1.5 pt-1">
+                                <button wire:click="toggleHistory({{ $product->id }})"
+                                        class="inline-flex items-center gap-1 px-2 py-1 rounded text-[10px] font-black uppercase tracking-wider border
+                                               {{ $expandedProductId === $product->id
+                                                  ? 'bg-electric-blue text-white border-electric-blue'
+                                                  : 'bg-electric-blue/5 text-electric-blue border-electric-blue/20' }}">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"/><path d="m3.3 7 8.7 5 8.7-5"/><path d="M12 22V12"/></svg>
+                                    Thẻ kho
+                                </button>
+                                <button wire:click="edit({{ $product->id }})"
+                                        class="w-7 h-7 flex items-center justify-center rounded border border-slate-200 text-slate-500 hover:text-electric-blue hover:border-electric-blue/40 transition-colors"
+                                        title="Sửa">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+                                </button>
+                                <button wire:click="confirmDelete({{ $product->id }})"
+                                        class="w-7 h-7 flex items-center justify-center rounded border border-slate-200 text-slate-500 hover:text-rose-500 hover:border-rose-300 transition-colors"
+                                        title="Xóa">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/></svg>
+                                </button>
+                            </div>
+
+                            {{-- Inline expanded stock history (mobile-friendly) --}}
+                            @if($expandedProductId === $product->id)
+                                <div class="mt-2 pt-2 border-t border-slate-100 bg-slate-50/50 -mx-2 -mb-2 px-2 pb-2 rounded-b-lg">
+                                    <div class="text-[9px] font-black text-slate-500 uppercase tracking-widest mb-1">Thẻ kho (10 gần nhất)</div>
+                                    <div class="space-y-1 max-h-48 overflow-y-auto">
+                                        @foreach($product->stockHistories()->with('user')->take(10)->get() as $h)
+                                            <div class="flex items-center justify-between gap-2 text-[10px] py-0.5">
+                                                <span class="text-slate-500">{{ $h->created_at->format('d/m H:i') }}</span>
+                                                <span class="font-bold {{ in_array($h->type, ['Sale','Cancel']) ? 'text-rose-600' : 'text-emerald-600' }}">
+                                                    {{ $h->quantity_change > 0 ? '+' : '' }}{{ $h->quantity_change }}
+                                                </span>
+                                                <span class="text-slate-400 text-[9px] truncate">{{ $h->reference_code ?: $h->type }}</span>
+                                                <span class="font-bold text-slate-900">→{{ $h->quantity_after }}</span>
+                                            </div>
+                                        @endforeach
+                                    </div>
+                                </div>
+                            @endif
+                        </div>
+                    </div>
+                @endforeach
+            @endif
+        </div>
+
+        <!-- Desktop table (hidden on mobile) -->
+        <div class="hidden md:block glass-card overflow-hidden border border-slate-200">
             <table class="w-full text-left border-collapse">
                 <thead>
                     <tr class="bg-slate-50 border-b border-slate-200">
