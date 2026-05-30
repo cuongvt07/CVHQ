@@ -17,9 +17,9 @@
         @livewireStyles
     </head>
     <body class="antialiased bg-white text-slate-900 selection:bg-electric-blue selection:text-white overflow-hidden h-screen"
-          x-data="{ 
-            sidebarOpen: false, 
-            sidebarCollapsed: false 
+          x-data="{
+            sidebarOpen: false,
+            sidebarCollapsed: @json(request()->routeIs('pos'))
           }">
         
         <div class="flex h-full w-full">

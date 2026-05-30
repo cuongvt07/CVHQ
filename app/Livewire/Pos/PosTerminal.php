@@ -56,6 +56,24 @@ class PosTerminal extends Component
     // TAB MANAGEMENT
     // ═══════════════════════════════════════════════════════════════════════
 
+    // Hardcoded sales channels — edit here to add/remove
+    public const SALES_CHANNELS = [
+        ['name' => 'Trực tiếp', 'color' => '#0088CC'],
+        ['name' => 'Shopee',    'color' => '#EE4D2D'],
+        ['name' => 'TikTok',    'color' => '#000000'],
+        ['name' => 'Facebook',  'color' => '#1877F2'],
+        ['name' => 'Zalo',      'color' => '#0068FF'],
+        ['name' => 'Email',     'color' => '#94A3B8'],
+    ];
+
+    // Hardcoded payment methods — keys map to invoices.{cash,transfer,card,wallet}_amount columns
+    public const PAYMENT_METHODS = [
+        ['key' => 'cash',     'name' => 'Tiền mặt',    'icon' => 'wallet'],
+        ['key' => 'transfer', 'name' => 'Chuyển khoản','icon' => 'send'],
+        ['key' => 'card',     'name' => 'Thẻ',         'icon' => 'credit-card'],
+        ['key' => 'wallet',   'name' => 'Ví điện tử',  'icon' => 'smartphone'],
+    ];
+
     protected function makeNewTab(?string $label = null): array
     {
         $tabNumber = count($this->tabs) + 1;
@@ -66,9 +84,27 @@ class PosTerminal extends Component
             'discount'             => 0,
             'global_discount_type' => 'vnd',
             'global_discount_value'=> 0,
-            'extra_fees'           => [],   // [{name:'', amount:0}, ...]
+            'extra_fees'           => [],
             'paid_amount'          => 0,
+            'sales_channel'        => self::SALES_CHANNELS[0]['name'],
+            'payment_method'       => self::PAYMENT_METHODS[0]['key'],
         ];
+    }
+
+    public function setSalesChannel($name = null): void
+    {
+        $tab = $this->getTab();
+        $valid = array_column(self::SALES_CHANNELS, 'name');
+        $tab['sales_channel'] = (is_string($name) && in_array($name, $valid, true)) ? $name : null;
+        $this->setTab($tab);
+    }
+
+    public function setPaymentMethod($key = null): void
+    {
+        $tab = $this->getTab();
+        $valid = array_column(self::PAYMENT_METHODS, 'key');
+        $tab['payment_method'] = (is_string($key) && in_array($key, $valid, true)) ? $key : 'cash';
+        $this->setTab($tab);
     }
 
     public function addTab(): void
@@ -275,6 +311,12 @@ class PosTerminal extends Component
                 'global_discount_value' => (float) ($t['global_discount_value'] ?? 0),
                 'extra_fees' => $t['extra_fees'] ?? [],
                 'paid_amount' => (int) ($t['paid_amount'] ?? 0),
+                'sales_channel' => isset($t['sales_channel']) && in_array($t['sales_channel'], array_column(self::SALES_CHANNELS, 'name'), true)
+                                    ? $t['sales_channel']
+                                    : self::SALES_CHANNELS[0]['name'],
+                'payment_method' => isset($t['payment_method']) && in_array($t['payment_method'], array_column(self::PAYMENT_METHODS, 'key'), true)
+                                    ? $t['payment_method']
+                                    : self::PAYMENT_METHODS[0]['key'],
             ];
         }
 
@@ -410,6 +452,21 @@ class PosTerminal extends Component
         foreach ($tab['cart'] as &$item) {
             if ((int)$item['id'] === (int)$productId) {
                 $item['discount'] = $discount;
+                break;
+            }
+        }
+        unset($item);
+        $this->setTab($tab);
+        $this->recalculateTotalDiscount();
+    }
+
+    public function updateUnitPrice(int $productId, $value): void
+    {
+        $price = max(0, (int) $value);
+        $tab = $this->getTab();
+        foreach ($tab['cart'] as &$item) {
+            if ((int)$item['id'] === (int)$productId) {
+                $item['sale_price'] = $price;
                 break;
             }
         }
@@ -596,13 +653,30 @@ class PosTerminal extends Component
                 ->map(fn($f) => $f['name'] . ' (' . number_format((int)$f['amount'], 0, ',', '.') . 'đ)')
                 ->join('; ');
 
-            $invoice = \App\Models\Invoice::create([
+            $channelName = $tab['sales_channel'] ?? null;
+            if (!$channelName || !in_array($channelName, array_column(self::SALES_CHANNELS, 'name'), true)) {
+                $channelName = 'POS';
+            }
+            $paymentKey = $tab['payment_method'] ?? 'cash';
+            $validPaymentKeys = array_column(self::PAYMENT_METHODS, 'key');
+            if (!in_array($paymentKey, $validPaymentKeys, true)) $paymentKey = 'cash';
+
+            // Allocate final amount into the matching payment column
+            $paymentColumns = [
+                'cash_amount'     => 0,
+                'transfer_amount' => 0,
+                'card_amount'     => 0,
+                'wallet_amount'   => 0,
+            ];
+            $paymentColumns[$paymentKey . '_amount'] = $this->finalAmount;
+
+            $invoice = \App\Models\Invoice::create(array_merge([
                 'invoice_code'   => 'HD' . time(),
                 'branch'         => 'Antigravity HQ',
                 'customer_id'    => $tab['customer_id'],
                 'user_id'        => auth()->id(),
                 'seller_name'    => auth()->user()?->name ?? 'Admin POS',
-                'sales_channel'  => 'POS',
+                'sales_channel'  => $channelName,
                 'total_amount'   => $this->total,
                 'discount_amount'=> $tab['discount'] ?? 0,
                 'extra_fee'      => $extraFeeTotal,
@@ -612,7 +686,7 @@ class PosTerminal extends Component
                 'paid_amount'    => $this->finalAmount,
                 'status'         => 'Completed',
                 'delivery_status'=> 'Delivered',
-            ]);
+            ], $paymentColumns));
 
             foreach ($tab['cart'] as $item) {
                 \App\Models\InvoiceItem::create([
@@ -672,6 +746,8 @@ class PosTerminal extends Component
             'categories_list'    => Product::whereNotNull('category_path')->distinct()->pluck('category_path'),
             'brands_list'        => Product::whereNotNull('brand')->distinct()->pluck('brand'),
             'box_codes_list'     => Product::whereNotNull('location')->distinct()->pluck('location'),
+            'sales_channels'     => self::SALES_CHANNELS,
+            'payment_methods'    => self::PAYMENT_METHODS,
         ])->layout('layouts.app');
     }
 }
