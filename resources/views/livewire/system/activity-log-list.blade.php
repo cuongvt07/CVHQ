@@ -90,7 +90,8 @@
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-slate-100 bg-white/50">
-                    @forelse($logs as $log)
+                    @if(count($logs) > 0)
+                    @foreach($logs as $log)
                         <tr class="hover:bg-slate-50 transition-colors group">
                             @if(in_array('time', $visibleColumns))
                             <td class="px-4 py-3">
@@ -148,7 +149,8 @@
                             </td>
                             @endif
                         </tr>
-                    @empty
+                    @endforeach
+                    @else
                         <tr>
                             <td colspan="5" class="px-6 py-20 text-center">
                                 <div class="flex flex-col items-center opacity-30">
@@ -157,7 +159,7 @@
                                 </div>
                             </td>
                         </tr>
-                    @endforelse
+                    @endif
                 </tbody>
             </table>
         </div>

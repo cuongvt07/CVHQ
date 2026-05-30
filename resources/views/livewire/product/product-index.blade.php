@@ -483,7 +483,9 @@
                                                         </tr>
                                                     </thead>
                                                     <tbody class="divide-y divide-white/5">
-                                                        @forelse($product->stockHistories()->with('user')->take(10)->get() as $history)
+                                                        @php $__histories = $product->stockHistories()->with('user')->take(10)->get(); @endphp
+                                                        @if(count($__histories) > 0)
+                                                        @foreach($__histories as $history)
                                                             <tr class="text-slate-300 hover:bg-white/5 transition-colors">
                                                                 <td class="px-4 py-3 whitespace-nowrap">{{ $history->created_at->format('d/m/Y H:i') }}</td>
                                                                 <td class="px-4 py-3">
@@ -522,13 +524,14 @@
                                                                 </td>
                                                                 <td class="px-4 py-3 text-slate-500 italic">{{ $history->note ?: '-' }}</td>
                                                             </tr>
-                                                    @empty
+                                                        @endforeach
+                                                        @else
                                                         <tr>
                                                             <td colspan="6" class="px-4 py-8 text-center text-slate-600 italic">
                                                                 Chưa có lịch sử biến động kho cho sản phẩm này.
                                                             </td>
                                                         </tr>
-                                                    @endforelse
+                                                        @endif
                                                 </tbody>
                                             </table>
                                         </div>

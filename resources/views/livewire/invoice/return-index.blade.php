@@ -56,7 +56,8 @@
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-slate-100 bg-white/50">
-                    @forelse($invoices as $invoice)
+                    @if(count($invoices) > 0)
+                    @foreach($invoices as $invoice)
                         <tr class="hover:bg-slate-50 transition-colors group">
                             <td class="px-6 py-4">
                                 <span class="text-sm font-black text-rose-600 tracking-tight">{{ $invoice->invoice_code }}</span>
@@ -83,14 +84,15 @@
                                 </div>
                             </td>
                         </tr>
-                    @empty
+                    @endforeach
+                    @else
                         <tr>
                             <td colspan="6" class="px-6 py-20 text-center opacity-30">
                                 <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="mx-auto mb-4"><path d="M3 7V5a2 2 0 0 1 2-2h2"/><path d="M17 3h2a2 2 0 0 1 2 2v2"/><path d="M21 17v2a2 2 0 0 1-2 2h-2"/><path d="M7 21H5a2 2 0 0 1-2-2v-2"/><circle cx="12" cy="12" r="3"/><path d="m16 16-9-9"/></svg>
                                 <p class="text-xs font-black uppercase tracking-widest">Chưa có đơn trả hàng nào</p>
                             </td>
                         </tr>
-                    @endforelse
+                    @endif
                 </tbody>
             </table>
         </div>

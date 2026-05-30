@@ -121,7 +121,8 @@
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-slate-100 bg-white/50">
-                    @forelse($products as $product)
+                    @if(count($products) > 0)
+                        @foreach($products as $product)
                         <tr wire:key="restock-row-{{ $product->id }}" class="hover:bg-slate-50 transition-colors group/row">
                             <td class="px-4 py-2">
                                 <div class="flex items-center gap-3">
@@ -164,7 +165,8 @@
                                 @endif
                             </td>
                         </tr>
-                    @empty
+                        @endforeach
+                    @else
                         <tr>
                             <td colspan="6" class="px-6 py-20 text-center">
                                 <div class="flex flex-col items-center opacity-30">
@@ -173,7 +175,7 @@
                                 </div>
                             </td>
                         </tr>
-                    @endforelse
+                    @endif
                 </tbody>
             </table>
         </div>
