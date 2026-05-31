@@ -54,51 +54,80 @@
     <x-delete-modal />
 
     <!-- Search & Filter Bar -->
-    <div class="px-4 md:px-6 py-4 bg-white border-b border-slate-100 flex flex-col md:flex-row items-center justify-between gap-4">
-        <div class="flex items-center gap-4 w-full md:w-auto">
-            <div class="relative w-full md:w-96 group">
+    <div x-data="{ mobileFilterOpen: false }" @keydown.escape.window="mobileFilterOpen = false" class="px-3 md:px-6 py-2 md:py-4 bg-white border-b border-slate-100 flex flex-col gap-2">
+        {{-- Trigger row: search + bulk delete chip + filter button --}}
+        <div class="flex items-center gap-2">
+            <div class="relative flex-1 group">
                 <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="absolute left-4 top-1/2 -translate-y-1/2 text-slate-300 group-focus-within:text-electric-blue transition-colors"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
                 <input type="text" wire:model.live="search" placeholder="Tìm kiếm danh mục..." class="w-full bg-slate-50 border border-slate-200 rounded-xl py-3 pl-12 pr-6 text-sm focus:outline-none focus:border-electric-blue/40 focus:ring-4 focus:ring-electric-blue/5 transition-all text-slate-900">
             </div>
 
             @if(count($selectedRows) > 0)
-                <div class="flex items-center gap-3 animate-in fade-in slide-in-from-left-4 duration-300">
-                    <span class="text-xs font-bold text-slate-500 uppercase tracking-widest whitespace-nowrap">Đã chọn {{ count($selectedRows) }} mục:</span>
-                    <button wire:click="bulkDelete" wire:confirm="Bạn có chắc chắn muốn xóa các danh mục đã chọn?" class="px-4 py-1.5 rounded-xl text-[10px] font-bold uppercase bg-rose-50 text-rose-600 border border-rose-100 hover:bg-rose-100 transition-all flex items-center gap-2">
+                <div class="flex items-center gap-2 animate-in fade-in slide-in-from-left-4 duration-300">
+                    <span class="hidden md:inline text-xs font-bold text-slate-500 uppercase tracking-widest whitespace-nowrap">Đã chọn {{ count($selectedRows) }} mục:</span>
+                    <button wire:click="bulkDelete" wire:confirm="Bạn có chắc chắn muốn xóa các danh mục đã chọn?" class="px-3 py-1.5 rounded-xl text-[10px] font-bold uppercase bg-rose-50 text-rose-600 border border-rose-100 hover:bg-rose-100 transition-all flex items-center gap-2">
                         <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/></svg>
                         Xóa
                     </button>
                 </div>
             @endif
+
+            {{-- Filter button (bánh răng / phễu) --}}
+            @php $__activeFilterCount = 0; @endphp
+            <button @click="mobileFilterOpen = !mobileFilterOpen"
+                    class="shrink-0 relative w-10 h-10 flex items-center justify-center rounded-lg border transition-colors
+                           {{ $__activeFilterCount > 0
+                              ? 'border-electric-blue bg-electric-blue/10 text-electric-blue'
+                              : 'border-slate-200 text-slate-500' }}"
+                    title="Bộ lọc">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg>
+                @if($__activeFilterCount > 0)
+                    <span class="absolute -top-1 -right-1 w-4 h-4 bg-electric-blue text-white text-[9px] font-black rounded-full flex items-center justify-center">{{ $__activeFilterCount }}</span>
+                @endif
+            </button>
         </div>
 
-        <div class="flex items-center gap-3">
-            <span class="text-xs text-slate-400 font-bold uppercase tracking-widest">Hiển thị:</span>
-            <select wire:model.live="perPage" class="bg-slate-50 border border-slate-200 rounded-lg py-1 px-2 text-[10px] font-bold text-slate-600 focus:outline-none focus:border-electric-blue/40 transition-all cursor-pointer">
-                <option value="10">10</option>
-                <option value="25">25</option>
-                <option value="50">50</option>
-            </select>
+        {{-- Slide-down filter panel --}}
+        <div x-show="mobileFilterOpen" x-cloak
+             x-transition:enter="transition ease-out duration-200"
+             x-transition:enter-start="opacity-0 -translate-y-1"
+             x-transition:enter-end="opacity-100 translate-y-0"
+             @click.outside="mobileFilterOpen = false"
+             class="bg-slate-50 border border-slate-200 rounded-lg p-3 space-y-3">
+
+            <div>
+                <div class="text-[9px] font-black text-slate-500 tracking-widest uppercase mb-1">Hiển thị mỗi trang</div>
+                <select wire:model.live="perPage" class="w-full bg-white border border-slate-200 rounded px-2 py-1.5 text-[11px] focus:outline-none focus:border-electric-blue text-slate-900">
+                    <option value="10">10</option>
+                    <option value="25">25</option>
+                    <option value="50">50</option>
+                </select>
+            </div>
+
+            <div>
+                <div class="text-[9px] font-black text-slate-500 tracking-widest uppercase mb-1">Cột hiển thị</div>
+                <x-column-toggle
+                    :visibleColumns="$visibleColumns"
+                    :cols="[
+                        'name' => 'Tên danh mục',
+                        'slug' => 'Slug (Đường dẫn)',
+                        'created_at' => 'Ngày tạo',
+                        'actions' => 'Thao tác'
+                    ]"
+                />
+            </div>
+
+            <div class="flex items-center justify-end pt-1">
+                <button @click="mobileFilterOpen = false" class="px-3 py-1 bg-electric-blue text-white rounded text-[10px] font-bold uppercase tracking-wider">Xong</button>
+            </div>
         </div>
-
-        <div class="h-8 w-px bg-slate-100 mx-1"></div>
-
-        <x-column-toggle 
-            :visibleColumns="$visibleColumns" 
-            :cols="[
-                'name' => 'Tên danh mục',
-                'slug' => 'Slug (Đường dẫn)',
-                'created_at' => 'Ngày tạo',
-                'actions' => 'Thao tác'
-            ]" 
-        />
     </div>
 
     <!-- Main Content -->
     <div class="flex-1 overflow-y-auto custom-scrollbar p-4 md:p-6">
         <div class="glass-card overflow-hidden border border-slate-200">
             <table class="w-full text-left border-collapse">
-                <thead>
+                <thead class="sticky top-0 z-10 bg-slate-50">
                     <tr class="bg-slate-50 border-b border-slate-200">
                         <th class="px-6 py-4 w-10">
                             <input type="checkbox" wire:model.live="selectAll" class="w-4 h-4 rounded border-slate-300 text-electric-blue focus:ring-electric-blue transition-all cursor-pointer">

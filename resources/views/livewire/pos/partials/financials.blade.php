@@ -67,7 +67,7 @@
             <span class="text-xl font-bold text-electric-blue tracking-tight">{{ number_format($finalAmount, 0, ',', '.') }}</span>
         </div>
 
-        <div class="flex items-center gap-2 bg-slate-50 border border-slate-200 rounded-lg px-2 py-1">
+        <div class="flex items-center gap-2 bg-slate-50 border border-slate-200 rounded-lg px-2 py-1 shadow-[inset_0_1px_2px_rgba(0,0,0,0.06)]">
             <span class="text-[10px] font-bold text-slate-400 whitespace-nowrap">Tiền nhận</span>
             <input type="number"
                    wire:model.live="tabs.{{ $activeTab }}.paid_amount"

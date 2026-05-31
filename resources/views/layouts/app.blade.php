@@ -37,7 +37,8 @@
             <!-- Persistent Sidebar -->
             <x-sidebar />
 
-            <div class="flex-1 flex flex-col min-w-0 h-full overflow-hidden">
+            <div class="flex-1 flex flex-col min-w-0 h-full overflow-hidden transition-[padding] duration-300"
+                 :class="{ 'pl-16 lg:pl-0': sidebarCollapsed }">
                 <!-- Persistent Header -->
                 <x-topbar />
 

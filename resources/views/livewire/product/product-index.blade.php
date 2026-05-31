@@ -4,13 +4,7 @@
         <h1 class="text-base md:text-xl font-black tracking-tight text-slate-900 shrink truncate">Kho hàng</h1>
 
         <div class="flex items-center gap-1.5 md:gap-2 shrink-0">
-            {{-- Cấu hình hoa hồng (mobile: icon only) --}}
-            <button wire:click="openCommissionSettings"
-                    class="flex items-center gap-1.5 px-2 md:px-4 py-2 md:py-2.5 bg-white border border-slate-200 text-slate-600 rounded-lg md:rounded-xl text-[11px] md:text-[13px] font-bold hover:bg-slate-50 hover:border-slate-300 transition-all"
-                    title="Cấu hình hoa hồng">
-                <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
-                <span class="hidden md:inline">Cấu hình hoa hồng</span>
-            </button>
+            {{-- Cấu hình hoa hồng MOVED to sidebar Cấu hình group --}}
 
             {{-- Nhập Excel (mobile: icon only) --}}
             <button @click="$dispatch('open-import-products')"
@@ -34,15 +28,50 @@
     <x-delete-modal />
 
     <!-- Search & Filter Bar -->
-    <div x-data="{ mobileFilterOpen: false }" class="px-3 md:px-6 py-2 md:py-4 bg-white border-b border-slate-100 flex flex-col gap-2 md:gap-5">
+    <div x-data="{ mobileFilterOpen: false, branchOpen: false }" class="px-3 md:px-6 py-2 md:py-4 bg-white border-b border-slate-100 flex flex-col gap-2 md:gap-5">
 
-        {{-- Mobile: search + filter button in 1 row --}}
+        {{-- Mobile: search + branch dropdown + filter button in 1 row --}}
         <div class="md:hidden flex items-center gap-2">
             <div class="relative flex-1">
                 <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-300"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
                 <input type="text" wire:model.live="search" placeholder="Tìm tên, mã SKU..." class="w-full bg-slate-50 border border-slate-200 rounded-lg py-2 pl-9 pr-3 text-[12px] focus:outline-none focus:border-electric-blue text-slate-900">
             </div>
-            @php $__activeFilterCount = (is_array($selectedCategories ?? null) ? count($selectedCategories) : 0) + ($boxCode ? 1 : 0); @endphp
+
+            {{-- Branch dropdown — hiện chi nhánh đang active, tap để đổi --}}
+            @php
+                $__branchMap = ['all' => ['label' => 'Tất cả', 'color' => 'text-slate-600 border-slate-200', 'dot' => 'bg-slate-400'],
+                                'sg'  => ['label' => 'Sài Gòn', 'color' => 'text-emerald-700 border-emerald-300', 'dot' => 'bg-emerald-500'],
+                                'hn'  => ['label' => 'Hà Nội', 'color' => 'text-rose-700 border-rose-300', 'dot' => 'bg-rose-500']];
+                $__currentBranch = $__branchMap[$branch] ?? $__branchMap['all'];
+            @endphp
+            <div class="relative shrink-0" @click.away="branchOpen = false">
+                <button @click="branchOpen = !branchOpen"
+                        class="flex items-center gap-1.5 h-10 px-2.5 rounded-lg border bg-white {{ $__currentBranch['color'] }}">
+                    <span class="w-2 h-2 rounded-full {{ $__currentBranch['dot'] }}"></span>
+                    <span class="text-[11px] font-black uppercase tracking-wider whitespace-nowrap">{{ $__currentBranch['label'] }}</span>
+                    <svg xmlns="http://www.w3.org/2000/svg" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" :class="branchOpen ? 'rotate-180' : ''" class="transition-transform"><path d="m6 9 6 6 6-6"/></svg>
+                </button>
+                <div x-show="branchOpen" x-cloak
+                     x-transition:enter="transition ease-out duration-150"
+                     x-transition:enter-start="opacity-0 -translate-y-1"
+                     x-transition:enter-end="opacity-100 translate-y-0"
+                     class="absolute right-0 top-full mt-1 z-50 w-32 bg-white border border-slate-200 rounded-lg shadow-xl p-1">
+                    @foreach($__branchMap as $key => $info)
+                        <button wire:click="$set('branch', '{{ $key }}')" @click="branchOpen = false"
+                                class="w-full flex items-center gap-2 px-2 py-1.5 rounded text-[11px] font-bold transition-colors text-left
+                                       {{ $branch === $key ? 'bg-slate-50 ' . $info['color'] : 'text-slate-600 hover:bg-slate-50' }}">
+                            <span class="w-2 h-2 rounded-full {{ $info['dot'] }}"></span>
+                            {{ $info['label'] }}
+                            @if($branch === $key)
+                                <svg xmlns="http://www.w3.org/2000/svg" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" class="ml-auto"><polyline points="20 6 9 17 4 12"/></svg>
+                            @endif
+                        </button>
+                    @endforeach
+                </div>
+            </div>
+
+            {{-- Filter button (bánh răng / phễu) --}}
+            @php $__activeFilterCount = ($boxCode ? 1 : 0); @endphp
             <button @click="mobileFilterOpen = !mobileFilterOpen"
                     class="shrink-0 relative w-10 h-10 flex items-center justify-center rounded-lg border transition-colors
                            {{ $__activeFilterCount > 0
@@ -63,31 +92,15 @@
              x-transition:enter-end="opacity-100 translate-y-0"
              class="md:hidden bg-slate-50 border border-slate-200 rounded-lg p-2 space-y-2">
 
-            {{-- Category list --}}
-            <div>
-                <div class="text-[9px] font-black text-slate-500 tracking-widest uppercase mb-1">Danh mục</div>
-                <div class="max-h-32 overflow-y-auto bg-white border border-slate-200 rounded p-1 custom-scrollbar">
-                    @if(count($categories_list) === 0)
-                        <div class="text-[10px] text-slate-300 text-center py-2">Không có danh mục</div>
-                    @else
-                        @foreach($categories_list as $cat)
-                            <label class="flex items-center gap-2 px-2 py-1 hover:bg-slate-50 rounded cursor-pointer">
-                                <input type="checkbox" wire:model.live="selectedCategories" value="{{ $cat }}" class="w-3.5 h-3.5 rounded border-slate-300 text-electric-blue focus:ring-electric-blue/20">
-                                <span class="text-[11px] font-medium text-slate-700">{{ $cat }}</span>
-                            </label>
-                        @endforeach
-                    @endif
-                </div>
-            </div>
-
+            {{-- Branch chuyển ra dropdown ở header rồi. Chỉ còn Mã thùng --}}
             <div>
                 <div class="text-[9px] font-black text-slate-500 tracking-widest uppercase mb-1">Mã thùng</div>
                 <input type="text" wire:model.live.debounce.300ms="boxCode" placeholder="Nhập mã thùng..." class="w-full bg-white border border-slate-200 rounded px-2 py-1.5 text-[11px] focus:outline-none focus:border-electric-blue text-slate-900">
             </div>
 
             <div class="flex items-center justify-between gap-2 pt-1">
-                <button wire:click="$set('selectedCategories', []); $set('boxCode', '')"
-                        class="text-[10px] font-black text-rose-500 hover:underline">Xóa tất cả</button>
+                <button wire:click="$set('boxCode', '')"
+                        class="text-[10px] font-black text-rose-500 hover:underline">Xóa lọc</button>
                 <button @click="mobileFilterOpen = false"
                         class="px-3 py-1 bg-electric-blue text-white rounded text-[10px] font-bold uppercase tracking-wider">Xong</button>
             </div>
@@ -101,29 +114,7 @@
                 <input type="text" wire:model.live="search" placeholder="Tìm tên, mã SKU..." class="w-full bg-slate-50 border border-slate-200 rounded-xl py-2.5 pl-12 pr-6 text-[11px] focus:outline-none focus:border-electric-blue transition-all text-slate-900 shadow-sm">
             </div>
 
-            <!-- Category Filter -->
-            <div class="relative w-full md:w-56" x-data="{ catSearch: '' }">
-                <div class="relative group">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-300 group-focus-within:text-electric-blue transition-colors"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>
-                    <input type="text" x-model="catSearch" placeholder="Lọc danh mục..." class="w-full bg-white border border-slate-200 rounded-xl py-2.5 pl-10 pr-4 text-xs focus:outline-none focus:border-electric-blue transition-all text-slate-900 shadow-sm">
-                </div>
-                <div x-show="catSearch.length > 0"
-                     x-transition:enter="transition ease-out duration-100"
-                     x-transition:enter-start="opacity-0 scale-95"
-                     x-transition:enter-end="opacity-100 scale-100"
-                     class="absolute z-[100] top-full left-0 w-64 bg-white border border-slate-200 rounded-xl shadow-2xl mt-2 p-2"
-                     x-cloak
-                     @click.away="catSearch = ''">
-                    <div class="max-h-48 overflow-y-auto custom-scrollbar">
-                        @foreach($categories_list as $cat)
-                            <label x-show="'{{ addslashes(strtolower($cat)) }}'.includes(catSearch.toLowerCase())" class="flex items-center gap-2 px-3 py-2 hover:bg-slate-50 rounded-lg cursor-pointer transition-colors group">
-                                <input type="checkbox" wire:model.live="selectedCategories" value="{{ $cat }}" class="w-4 h-4 rounded border-slate-300 text-electric-blue focus:ring-electric-blue/20 transition-all">
-                                <span class="text-[10px] font-medium text-slate-600 group-hover:text-slate-900 transition-colors">{{ $cat }}</span>
-                            </label>
-                        @endforeach
-                    </div>
-                </div>
-            </div>
+            {{-- Category filter REMOVED per request (2026-05-31) — keep only search + box code + branch toggle (in row 2) --}}
 
             <!-- Box Code Filter -->
             <div class="relative w-full md:w-48 group">
@@ -150,10 +141,12 @@
                             Sao chép sang SG
                         </button>
                         
+                        @if(auth()->user()?->hasPermission('product.delete'))
                         <button wire:click="bulkDelete" wire:confirm="Bạn có chắc chắn muốn xóa các mục đã chọn?" class="px-4 py-2 rounded-xl text-[9px] font-black bg-white text-rose-500 border border-rose-200 hover:bg-rose-50 transition-all flex items-center gap-2 uppercase tracking-wider">
                             <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/></svg>
                             Xóa hàng loạt
                         </button>
+                        @endif
                     </div>
                 @else
                     <div class="flex items-center gap-2 text-slate-300 italic animate-in fade-in duration-500">
@@ -251,7 +244,7 @@
 
 
         <!-- Active Filters Tags -->
-        @if(!empty($selectedCategories) || $boxCode || $search || $branch !== 'all')
+        @if($boxCode || $search || $branch !== 'all')
             <div class="flex flex-wrap items-center gap-2 animate-in fade-in slide-in-from-top-1 duration-200">
                 <span class="text-[8px] font-black text-slate-400 tracking-tighter mr-1">Đang áp dụng:</span>
                 
@@ -268,13 +261,6 @@
                         <button wire:click="clearFilter('search')" class="text-slate-300 hover:text-rose-500 transition-colors"><svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg></button>
                     </div>
                 @endif
-
-                @foreach($selectedCategories as $cat)
-                    <div class="flex items-center gap-1.5 px-2.5 py-1 bg-electric-blue/5 border border-electric-blue/10 rounded-lg text-[9px] font-bold text-electric-blue group shadow-sm">
-                        <span class="opacity-60 font-medium">DM:</span> {{ $cat }}
-                        <button wire:click="clearFilter('selectedCategories', '{{ $cat }}')" class="opacity-40 hover:opacity-100 hover:text-rose-500 transition-all"><svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg></button>
-                    </div>
-                @endforeach
 
                 @if($boxCode)
                     <div class="flex items-center gap-1.5 px-2.5 py-1 bg-emerald-50 border border-emerald-100 rounded-lg text-[10px] font-bold text-emerald-600 group shadow-sm">
@@ -352,11 +338,13 @@
                                         title="Sửa">
                                     <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
                                 </button>
+                                @if(auth()->user()?->hasPermission('product.delete'))
                                 <button wire:click="confirmDelete({{ $product->id }})"
                                         class="w-7 h-7 flex items-center justify-center rounded border border-slate-200 text-slate-500 hover:text-rose-500 hover:border-rose-300 transition-colors"
                                         title="Xóa">
                                     <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/></svg>
                                 </button>
+                                @endif
                             </div>
 
                             {{-- Inline expanded stock history (mobile-friendly) --}}
@@ -364,13 +352,36 @@
                                 <div class="mt-2 pt-2 border-t border-slate-100 bg-slate-50/50 -mx-2 -mb-2 px-2 pb-2 rounded-b-lg">
                                     <div class="text-[9px] font-black text-slate-500 uppercase tracking-widest mb-1">Thẻ kho (10 gần nhất)</div>
                                     <div class="space-y-1 max-h-48 overflow-y-auto">
+                                        @php
+                                            $mTypeColors = [
+                                                'Sale' => 'text-emerald-400',
+                                                'Purchase' => 'text-electric-blue',
+                                                'Adjustment' => 'text-amber-400',
+                                                'Cancel' => 'text-rose-400',
+                                                'Import' => 'text-purple-400',
+                                            ];
+                                            $mTypeShortLabels = [
+                                                'Sale' => 'Bán',
+                                                'Purchase' => 'Nhập',
+                                                'Adjustment' => 'ĐC',
+                                                'Cancel' => 'Hủy',
+                                                'Import' => 'IE',
+                                            ];
+                                        @endphp
                                         @foreach($product->stockHistories()->with('user')->take(10)->get() as $h)
                                             <div class="flex items-center justify-between gap-2 text-[10px] py-0.5">
                                                 <span class="text-slate-500">{{ $h->created_at->format('d/m H:i') }}</span>
+                                                <span class="font-bold {{ $mTypeColors[$h->type] ?? 'text-slate-400' }}">
+                                                    {{ $mTypeShortLabels[$h->type] ?? $h->type }}
+                                                </span>
                                                 <span class="font-bold {{ in_array($h->type, ['Sale','Cancel']) ? 'text-rose-600' : 'text-emerald-600' }}">
                                                     {{ $h->quantity_change > 0 ? '+' : '' }}{{ $h->quantity_change }}
                                                 </span>
-                                                <span class="text-slate-400 text-[9px] truncate">{{ $h->reference_code ?: $h->type }}</span>
+                                                @if(in_array($h->type, ['Sale','Cancel']) && $h->reference_id && $h->reference_code)
+                                                    <a href="{{ route('invoices.detail', $h->reference_id) }}" target="_blank" rel="noopener" class="text-slate-400 text-[9px] truncate hover:text-electric-blue hover:underline">{{ $h->reference_code }}</a>
+                                                @else
+                                                    <span class="text-slate-400 text-[9px] truncate">{{ $h->reference_code ?: $h->type }}</span>
+                                                @endif
                                                 <span class="font-bold text-slate-900">→{{ $h->quantity_after }}</span>
                                             </div>
                                         @endforeach
@@ -612,9 +623,11 @@
                                     <button wire:click="edit({{ $product->id }})" class="p-1.5 text-slate-400 hover:text-electric-blue transition-colors">
                                         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
                                     </button>
+                                    @if(auth()->user()?->hasPermission('product.delete'))
                                     <button wire:click="confirmDelete({{ $product->id }})" class="p-1.5 text-slate-400 hover:text-rose-500 transition-colors">
                                         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/><line x1="10" x2="10" y1="11" y2="17"/><line x1="14" x2="14" y1="11" y2="17"/></svg>
                                     </button>
+                                    @endif
                                 </div>
                             </td>
                             @endif
@@ -674,7 +687,13 @@
                                                                         {{ $typeLabels[$history->type] ?? $history->type }}
                                                                     </span>
                                                                 </td>
-                                                                <td class="px-4 py-3 font-mono text-[10px]">{{ $history->reference_code ?: '-' }}</td>
+                                                                <td class="px-4 py-3 font-mono text-[10px]">
+                                                                    @if(in_array($history->type, ['Sale','Cancel']) && $history->reference_id && $history->reference_code)
+                                                                        <a href="{{ route('invoices.detail', $history->reference_id) }}" target="_blank" rel="noopener" class="hover:text-electric-blue hover:underline">{{ $history->reference_code }}</a>
+                                                                    @else
+                                                                        {{ $history->reference_code ?: '-' }}
+                                                                    @endif
+                                                                </td>
                                                                 <td class="px-4 py-3 text-right font-black {{ $history->quantity_change > 0 ? 'text-emerald-400' : 'text-rose-400' }}">
                                                                     {{ $history->quantity_change > 0 ? '+' : '' }}{{ $history->quantity_change }}
                                                                 </td>

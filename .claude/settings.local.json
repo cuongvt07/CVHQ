@@ -15,7 +15,12 @@
       "Bash(git -C \"d:/CVHQ\" grep -n \"sales_channel\\\\|SalesChannel\" app/Livewire/Pos/PosTerminal.php)",
       "Bash(awk '/@if\\\\\\(|@else|@endif|@foreach|@endforeach|@php|@endphp/ {print NR\": \"$0}' \"d:/CVHQ/resources/views/components/pos/pos-terminal.blade.php\")",
       "Bash(Get-ChildItem -Path \"d:\\\\CVHQ\" -Recurse -Include \"*product-modal*\", \"*ProductIndex*\" -ErrorAction SilentlyContinue)",
-      "Bash(Select-Object FullName)"
+      "Bash(Select-Object FullName)",
+      "Bash(grep -n 'selectedCategories\\\\|category\\\\|public $search\\\\|public $boxCode\\\\|getProducts' d:/CVHQ/app/Livewire/Pos/PosTerminal.php)",
+      "Bash(php -l \"d:/CVHQ/app/Livewire/Product/ProductIndex.php\")",
+      "Bash(php artisan *)",
+      "Bash(php -l app/Livewire/Invoice/InvoiceIndex.php)",
+      "Bash(php -v)"
     ]
   }
 }

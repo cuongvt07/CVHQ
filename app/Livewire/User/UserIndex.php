@@ -157,7 +157,8 @@ class UserIndex extends Component
             'products' => [
                 'label' => 'Sản phẩm',
                 'actions' => [
-                    'product.edit_commission' => 'Sửa hoa hồng sản phẩm'
+                    'product.edit_commission' => 'Sửa hoa hồng sản phẩm',
+                    'product.delete' => 'Xóa sản phẩm'
                 ]
             ],
             'categories' => ['label' => 'Danh mục', 'actions' => []],
@@ -167,7 +168,8 @@ class UserIndex extends Component
             'invoices' => [
                 'label' => 'Hóa đơn',
                 'actions' => [
-                    'invoice.edit' => 'Sửa & Trả hàng',
+                    'invoice.edit' => 'Sửa hóa đơn',
+                    'invoice.return' => 'Trả hàng',
                     'invoice.cancel' => 'Hủy hóa đơn',
                     'invoice.view_commission' => 'Xem hoa hồng'
                 ]

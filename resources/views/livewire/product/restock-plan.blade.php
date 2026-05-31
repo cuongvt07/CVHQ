@@ -18,67 +18,75 @@
     </header>
 
     <!-- Search & Filter Bar -->
-    <div class="px-4 md:px-6 py-4 bg-white border-b border-slate-100 flex flex-col gap-4">
-        <div class="flex flex-col md:flex-row items-center justify-between gap-4">
-            <div class="flex flex-wrap items-center gap-3 w-full md:w-auto flex-1">
-                <!-- Main Search -->
-                <div class="relative w-full md:w-72 group">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="absolute left-4 top-1/2 -translate-y-1/2 text-slate-300 group-focus-within:text-electric-blue transition-colors"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
-                    <input type="text" wire:model.live="search" placeholder="Tìm tên, mã SKU..." class="w-full bg-slate-50 border border-slate-200 rounded-xl py-2 pl-12 pr-6 text-[11px] focus:outline-none focus:border-electric-blue transition-all text-slate-900 shadow-sm">
-                </div>
-
-                <!-- Category Filter (Absolute Popup) -->
-                <div class="relative w-full md:w-48" x-data="{ catSearch: '' }">
-                    <div class="relative group">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-300 group-focus-within:text-electric-blue transition-colors"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>
-                        <input type="text" x-model="catSearch" placeholder="Lọc danh mục..." class="w-full bg-white border border-slate-200 rounded-xl py-2 pl-10 pr-4 text-xs focus:outline-none focus:border-electric-blue transition-all text-slate-900 shadow-sm">
-                    </div>
-                    
-                    <!-- Absolute Dropdown -->
-                    <div x-show="catSearch.length > 0" 
-                         x-transition:enter="transition ease-out duration-100"
-                         x-transition:enter-start="opacity-0 scale-95"
-                         x-transition:enter-end="opacity-100 scale-100"
-                         class="absolute z-[100] top-full left-0 w-64 bg-white border border-slate-200 rounded-xl shadow-2xl mt-2 p-2"
-                         x-cloak
-                         @click.away="catSearch = ''">
-                        <div class="max-h-48 overflow-y-auto custom-scrollbar">
-                            @foreach($categories_list as $cat)
-                                <label x-show="'{{ strtolower($cat) }}'.includes(catSearch.toLowerCase())" class="flex items-center gap-2 px-3 py-2 hover:bg-slate-50 rounded-lg cursor-pointer transition-colors group">
-                                    <input type="checkbox" wire:model.live="selectedCategories" value="{{ $cat }}" class="w-4 h-4 rounded border-slate-300 text-electric-blue focus:ring-electric-blue/20 transition-all">
-                                    <span class="text-[10px] font-medium text-slate-600 group-hover:text-slate-900 transition-colors">{{ $cat }}</span>
-                                </label>
-                            @endforeach
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Box Code Filter -->
-                <div class="relative w-full md:w-40 group">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-300 group-focus-within:text-electric-blue transition-colors"><path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"/><path d="m3.3 7 8.7 5 8.7-5"/><path d="M12 22V12"/></svg>
-                    <input type="text" wire:model.live.debounce.300ms="boxCode" placeholder="Mã thùng..." class="w-full bg-white border border-slate-200 rounded-xl py-2 pl-10 pr-4 text-[11px] focus:outline-none focus:border-electric-blue transition-all text-slate-900 shadow-sm">
-                </div>
+    <div x-data="{ mobileFilterOpen: false, catSearch: '' }" @keydown.escape.window="mobileFilterOpen = false" class="px-4 md:px-6 py-2 md:py-4 bg-white border-b border-slate-100 flex flex-col gap-2">
+        <div class="flex items-center gap-2">
+            <!-- Main Search (inline) -->
+            <div class="relative flex-1 group">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="absolute left-4 top-1/2 -translate-y-1/2 text-slate-300 group-focus-within:text-electric-blue transition-colors"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+                <input type="text" wire:model.live="search" placeholder="Tìm tên, mã SKU..." class="w-full bg-slate-50 border border-slate-200 rounded-xl py-2 pl-12 pr-6 text-[11px] focus:outline-none focus:border-electric-blue transition-all text-slate-900 shadow-sm">
             </div>
 
-            <div class="flex items-center gap-4">
-                <div class="flex items-center gap-2">
-                    <span class="text-[9px] text-slate-400 font-bold tracking-widest">Hiển thị:</span>
-                    <select wire:model.live="perPage" class="bg-slate-50 border border-slate-200 rounded-lg py-1.5 px-3 text-[9px] font-bold text-slate-600 focus:outline-none focus:border-electric-blue/40 transition-all cursor-pointer">
-                        <option value="25">25</option>
-                        <option value="50">50</option>
-                        <option value="100">100</option>
-                    </select>
-                </div>
-            </div>
+            {{-- Filter button (bánh răng / phễu) --}}
+            @php $__activeFilterCount = (!empty($selectedCategories) ? count($selectedCategories) : 0) + ($boxCode ? 1 : 0); @endphp
+            <button @click="mobileFilterOpen = !mobileFilterOpen"
+                    class="shrink-0 relative w-10 h-10 flex items-center justify-center rounded-lg border transition-colors
+                           {{ $__activeFilterCount > 0
+                              ? 'border-electric-blue bg-electric-blue/10 text-electric-blue'
+                              : 'border-slate-200 text-slate-500' }}"
+                    title="Bộ lọc">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg>
+                @if($__activeFilterCount > 0)
+                    <span class="absolute -top-1 -right-1 w-4 h-4 bg-electric-blue text-white text-[9px] font-black rounded-full flex items-center justify-center">{{ $__activeFilterCount }}</span>
+                @endif
+            </button>
         </div>
 
+        {{-- Filter panel (slide-down) --}}
+        <div x-show="mobileFilterOpen" x-cloak
+             x-transition:enter="transition ease-out duration-200"
+             x-transition:enter-start="opacity-0 -translate-y-1"
+             x-transition:enter-end="opacity-100 translate-y-0"
+             @click.outside="mobileFilterOpen = false"
+             class="bg-slate-50 border border-slate-200 rounded-lg p-3 space-y-3">
 
+            <div>
+                <div class="text-[9px] font-black text-slate-500 tracking-widest uppercase mb-1">Danh mục</div>
+                <input type="text" x-model="catSearch" placeholder="Lọc danh mục..." class="w-full bg-white border border-slate-200 rounded px-2 py-1.5 text-[11px] mb-1 focus:outline-none focus:border-electric-blue text-slate-900">
+                <div class="max-h-40 overflow-y-auto custom-scrollbar bg-white border border-slate-100 rounded p-1">
+                    @foreach($categories_list as $cat)
+                        <label x-show="'{{ strtolower($cat) }}'.includes(catSearch.toLowerCase())" class="flex items-center gap-2 px-2 py-1 hover:bg-slate-50 rounded cursor-pointer">
+                            <input type="checkbox" wire:model.live="selectedCategories" value="{{ $cat }}" class="w-4 h-4 rounded border-slate-300 text-electric-blue focus:ring-electric-blue/20 transition-all">
+                            <span class="text-[10px] font-medium text-slate-600">{{ $cat }}</span>
+                        </label>
+                    @endforeach
+                </div>
+            </div>
+
+            <div>
+                <div class="text-[9px] font-black text-slate-500 tracking-widest uppercase mb-1">Mã thùng</div>
+                <input type="text" wire:model.live.debounce.300ms="boxCode" placeholder="Nhập mã thùng..." class="w-full bg-white border border-slate-200 rounded px-2 py-1.5 text-[11px] focus:outline-none focus:border-electric-blue text-slate-900">
+            </div>
+
+            <div>
+                <div class="text-[9px] font-black text-slate-500 tracking-widest uppercase mb-1">Hiển thị mỗi trang</div>
+                <select wire:model.live="perPage" class="w-full bg-white border border-slate-200 rounded px-2 py-1.5 text-[11px] focus:outline-none focus:border-electric-blue text-slate-900">
+                    <option value="25">25</option>
+                    <option value="50">50</option>
+                    <option value="100">100</option>
+                </select>
+            </div>
+
+            <div class="flex items-center justify-between pt-1">
+                <button wire:click="clearFilter('all')" class="text-[10px] font-black text-rose-500 hover:underline">Xóa lọc</button>
+                <button @click="mobileFilterOpen = false" class="px-3 py-1 bg-electric-blue text-white rounded text-[10px] font-bold uppercase tracking-wider">Xong</button>
+            </div>
+        </div>
 
         <!-- Active Filters Tags -->
         @if(!empty($selectedCategories) || $boxCode || $search)
             <div class="flex flex-wrap items-center gap-2 animate-in fade-in slide-in-from-top-1 duration-200">
                 <span class="text-[8px] font-black text-slate-400 tracking-tighter mr-1">Đang áp dụng:</span>
-                
+
                 @if($search)
                     <div class="flex items-center gap-1.5 px-2.5 py-1 bg-slate-100 border border-slate-200 rounded-lg text-[10px] font-bold text-slate-600 group shadow-sm">
                         <span class="text-slate-400 font-medium">Tìm:</span> {{ $search }}
@@ -111,7 +119,7 @@
     <div class="flex-1 overflow-y-auto custom-scrollbar p-4 md:p-6">
         <div class="glass-card overflow-hidden border border-slate-200">
             <table class="w-full text-left border-collapse">
-                <thead>
+                <thead class="sticky top-0 z-10 bg-slate-50">
                     <tr class="bg-slate-50 border-b border-slate-200">
                         <th class="px-4 py-2 text-[9px] font-bold text-slate-500 tracking-[0.2em]">Sản phẩm</th>
                         <th class="px-4 py-2 text-[9px] font-bold text-slate-400 tracking-[0.2em]">SKU</th>

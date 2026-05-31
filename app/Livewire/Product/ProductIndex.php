@@ -291,15 +291,52 @@ class ProductIndex extends Component
         $this->resetForm();
         $this->loadAttributeSuggestions();
 
-        // Auto-generate SKU (e.g. SP000001 → SP000002 → ...)
-        $this->sku = $this->generateNewSku();
-
-        // Auto commission logic
+        // SKU starts blank — user types a prefix (e.g. "GTS") and tabs to auto-fill.
         if (\App\Models\SystemSetting::get('auto_commission_enabled') === 'true') {
             $this->updatedSalePrice();
         }
 
         $this->dispatch('open-product-modal');
+    }
+
+    /**
+     * Livewire hook: on SKU blur, if user typed a pure prefix
+     * (no trailing digits) in CREATE mode, auto-complete to next available SKU.
+     */
+    public function updatedSku($value): void
+    {
+        if ($this->productId) return; // edit mode — never rewrite
+
+        $value = trim((string) $value);
+        if ($value === '') return;
+        if (preg_match('/\d+$/', $value)) return; // already full SKU
+        if (!preg_match('/^[A-Za-z0-9_\-]+$/', $value)) return; // invalid char
+
+        $this->sku = $this->nextSkuForPrefix($value);
+    }
+
+    /**
+     * Wire:click handler for the "Tạo mã" button — explicit re-suggest.
+     */
+    public function suggestSku(): void
+    {
+        if ($this->productId) return;
+        $value = trim((string) $this->sku);
+        if ($value === '') {
+            $this->sku = $this->generateNewSku();
+            return;
+        }
+        $prefix = preg_replace('/\d+$/', '', $value);
+        if ($prefix === '') $prefix = $value;
+        $this->sku = $this->nextSkuForPrefix($prefix);
+    }
+
+    /**
+     * Alias used by the product modal's "Tạo mã tự động" button (wire:click="generateSku").
+     */
+    public function generateSku(): void
+    {
+        $this->suggestSku();
     }
 
     /**
@@ -311,24 +348,45 @@ class ProductIndex extends Component
     {
         $prefix = \App\Models\SystemSetting::get('sku_prefix', 'SP');
         $padding = (int) \App\Models\SystemSetting::get('sku_padding', 6);
+        return $this->nextSkuForPrefix($prefix, $padding);
+    }
 
-        // Find highest existing SKU matching prefix + digits
-        $latest = Product::where('sku', 'like', $prefix . '%')
-            ->orderByRaw('CAST(SUBSTRING(sku, ?) AS UNSIGNED) DESC', [strlen($prefix) + 1])
-            ->value('sku');
+    /**
+     * Compute the next non-conflicting SKU for a given non-digit prefix.
+     * EXACT match: prefix must be followed ONLY by digits to end-of-string.
+     * "GT" matches "GT1", "GT0099" — NOT "GTN1" or "GTS5".
+     */
+    private function nextSkuForPrefix(string $prefix, ?int $padding = null): string
+    {
+        $prefix = trim($prefix);
+        if ($prefix === '') return '';
 
-        $nextNumber = 1;
-        if ($latest && preg_match('/^' . preg_quote($prefix, '/') . '(\d+)$/', $latest, $m)) {
-            $nextNumber = (int) $m[1] + 1;
+        $defaultPadding = (int) \App\Models\SystemSetting::get('sku_padding', 6);
+        $padding = $padding ?? $defaultPadding;
+
+        // EXACT match via SQL REGEXP: ^<prefix><digits>$
+        $pattern = '^' . preg_quote($prefix, '/') . '[0-9]+$';
+
+        $existing = Product::whereRaw('sku REGEXP ?', [$pattern])
+            ->pluck('sku');
+
+        $maxNumber = 0;
+        $maxPadding = $padding;
+        $rx = '/^' . preg_quote($prefix, '/') . '(\d+)$/';
+        foreach ($existing as $sku) {
+            if (preg_match($rx, $sku, $m)) {
+                $num = (int) $m[1];
+                if ($num > $maxNumber) $maxNumber = $num;
+                $maxPadding = max($maxPadding, strlen($m[1]));
+            }
         }
 
-        // Find next non-conflicting (in case of concurrent inserts)
-        $candidate = $prefix . str_pad((string) $nextNumber, $padding, '0', STR_PAD_LEFT);
+        $nextNumber = $maxNumber + 1;
+        $candidate = $prefix . str_pad((string) $nextNumber, $maxPadding, '0', STR_PAD_LEFT);
         while (Product::where('sku', $candidate)->exists()) {
             $nextNumber++;
-            $candidate = $prefix . str_pad((string) $nextNumber, $padding, '0', STR_PAD_LEFT);
+            $candidate = $prefix . str_pad((string) $nextNumber, $maxPadding, '0', STR_PAD_LEFT);
         }
-
         return $candidate;
     }
 
@@ -576,16 +634,43 @@ class ProductIndex extends Component
 
     public function confirmDelete($id)
     {
+        if (!auth()->user()?->hasPermission('product.delete')) {
+            $this->dispatch('notify', message: 'Bạn không có quyền xóa sản phẩm.', type: 'error');
+            return;
+        }
+
         $this->productId = $id;
         $this->dispatch('open-delete-modal');
     }
 
     public function delete()
     {
+        if (!auth()->user()?->hasPermission('product.delete')) {
+            $this->dispatch('notify', message: 'Bạn không có quyền xóa sản phẩm.', type: 'error');
+            return;
+        }
+
         Product::find($this->productId)->delete();
         $this->dispatch('notify', message: 'Đã xóa sản phẩm!', type: 'success');
         $this->dispatch('close-delete-modal');
         $this->productId = null;
+    }
+
+    public function bulkDelete()
+    {
+        if (!auth()->user()?->hasPermission('product.delete')) {
+            $this->dispatch('notify', message: 'Bạn không có quyền xóa sản phẩm.', type: 'error');
+            return;
+        }
+
+        if (empty($this->selectedRows)) return;
+
+        $this->getModelForBulk()::whereIn('id', $this->selectedRows)->delete();
+
+        $this->selectedRows = [];
+        $this->selectAll = false;
+
+        $this->dispatch('notify', message: 'Đã xóa các mục đã chọn!', type: 'success');
     }
 
     public function toggleStatus($id)

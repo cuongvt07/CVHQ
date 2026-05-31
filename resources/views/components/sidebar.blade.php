@@ -1,24 +1,35 @@
-<aside 
-    :class="{ 
+<aside
+    :class="{
         'translate-x-0': sidebarOpen,
-        '-translate-x-full lg:translate-x-0': !sidebarOpen,
+        '-translate-x-full lg:translate-x-0': !sidebarOpen && !sidebarCollapsed,
+        'translate-x-0 lg:translate-x-0': sidebarCollapsed,
         'w-64': !sidebarCollapsed,
-        'w-20': sidebarCollapsed
+        'w-16 lg:w-20': sidebarCollapsed
     }"
-    class="fixed inset-y-0 left-0 z-[60] lg:static lg:translate-x-0 flex flex-col border-r border-slate-200 bg-slate-50/80 backdrop-blur-2xl shrink-0 h-screen transition-all duration-300 overflow-y-auto custom-scrollbar overflow-x-hidden">
-    
-    <!-- Brand Context -->
-    <div class="h-16 flex items-center px-6 border-b border-slate-200 mb-6 shrink-0">
-        <div class="flex items-center gap-3 overflow-hidden">
+    class="fixed inset-y-0 left-0 z-[60] lg:static flex flex-col border-r border-slate-200 bg-slate-50/80 backdrop-blur-2xl shrink-0 h-screen transition-all duration-300 overflow-y-auto custom-scrollbar overflow-x-hidden">
+
+    <!-- Brand Context + Collapse Toggle (top) -->
+    <div class="h-14 flex items-center justify-between gap-2 px-3 border-b border-slate-200 mb-3 shrink-0">
+        <div class="flex items-center gap-2 overflow-hidden min-w-0">
             <div class="w-8 h-8 rounded-lg bg-electric-blue flex items-center justify-center shadow-[0_4px_15px_rgba(0,136,204,0.3)] shrink-0">
                 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="text-white"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
             </div>
-            <span x-show="!sidebarCollapsed || sidebarOpen" 
+            <span x-show="!sidebarCollapsed || sidebarOpen"
                   x-transition:enter="transition ease-out duration-200"
                   x-transition:enter-start="opacity-0 -translate-x-2"
                   x-transition:enter-end="opacity-100 translate-x-0"
-                  class="text-lg font-bold tracking-tight text-slate-900 letter-spacing-widest whitespace-nowrap">CVHA POS</span>
+                  class="text-base font-bold tracking-tight text-slate-900 whitespace-nowrap truncate">CVHA POS</span>
         </div>
+
+        {{-- Collapse / Expand button (always visible, big arrow) --}}
+        <button @click="sidebarCollapsed = !sidebarCollapsed"
+                class="shrink-0 w-8 h-8 flex items-center justify-center rounded-lg bg-white border border-slate-200 text-slate-500 hover:text-electric-blue hover:border-electric-blue/40 transition-all shadow-sm"
+                :title="sidebarCollapsed ? 'Mở rộng menu' : 'Thu gọn menu'">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"
+                 :class="sidebarCollapsed ? 'rotate-180' : ''" class="transition-transform duration-300">
+                <path d="m15 18-6-6 6-6"/>
+            </svg>
+        </button>
     </div>
     
     <!-- Navigation Groups -->
@@ -170,21 +181,25 @@
             </div>
         </div>
         @endif
+
+        {{-- Cấu hình group --}}
+        @if(auth()->user()?->hasPermission('commissions') || auth()->user()?->hasPermission('users'))
+        <div>
+            <h3 x-show="!sidebarCollapsed || sidebarOpen" class="px-4 text-[9px] font-bold tracking-[0.3em] text-slate-500 mb-3 whitespace-nowrap">Cấu hình</h3>
+            <div class="flex flex-col gap-1">
+                @if(auth()->user()?->hasPermission('commissions'))
+                <div class="relative group/nav">
+                    <a href="{{ route('commissions') }}" class="flex items-center gap-3 px-4 py-2.5 rounded-xl transition-all {{ request()->routeIs('commissions') ? 'bg-electric-blue/10 text-electric-blue border border-electric-blue/20' : 'text-slate-500 hover:text-slate-900 hover:bg-slate-200/50 border border-transparent' }}">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="shrink-0"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+                        <span x-show="!sidebarCollapsed || sidebarOpen" class="text-sm font-medium whitespace-nowrap">Cấu hình hoa hồng</span>
+                    </a>
+                    <div x-show="sidebarCollapsed && !sidebarOpen" class="fixed left-20 px-3 py-1.5 bg-slate-900 text-white text-[10px] rounded-lg opacity-0 group-hover/nav:opacity-100 translate-x-2 group-hover/nav:translate-x-4 transition-all pointer-events-none z-[100] whitespace-nowrap shadow-xl">Cấu hình hoa hồng</div>
+                </div>
+                @endif
+            </div>
+        </div>
+        @endif
         @endauth
     </div>
-    
-    <!-- Bottom Context & Collapse Toggle -->
-    <div class="p-4 border-t border-slate-200 flex flex-col gap-2 shrink-0">
-        <button @click="sidebarCollapsed = !sidebarCollapsed" 
-                class="hidden lg:flex items-center gap-3 px-4 py-2.5 rounded-xl text-slate-500 hover:text-slate-900 hover:bg-slate-200/50 transition-all border border-transparent">
-            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" 
-                 :class="sidebarCollapsed ? 'rotate-180' : ''" class="transition-transform duration-500"><path d="m15 18-6-6 6-6"/></svg>
-            <span x-show="!sidebarCollapsed" class="text-[11px] font-bold tracking-widest whitespace-nowrap">Thu gọn</span>
-        </button>
 
-        <div class="flex items-center gap-3 px-4 py-2 rounded-lg bg-slate-100 border border-slate-200 opacity-80 overflow-hidden">
-            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-slate-500 shrink-0"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
-            <span x-show="!sidebarCollapsed || sidebarOpen" class="text-[9px] font-bold tracking-widest leading-none text-slate-500 whitespace-nowrap">Thiết lập</span>
-        </div>
-    </div>
 </aside>

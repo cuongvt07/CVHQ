@@ -1,11 +1,6 @@
 <div class="h-full flex flex-col">
     <!-- Header -->
-    <header class="px-4 md:px-6 py-4 flex flex-col md:flex-row md:items-center justify-between gap-6 border-b border-slate-200 bg-slate-50/50">
-        <div class="relative w-full md:w-96 group">
-            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="absolute left-4 top-1/2 -translate-y-1/2 text-slate-300 group-focus-within:text-electric-blue transition-colors"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
-            <input type="text" wire:model.live="search" placeholder="Thêm hàng hóa vào bảng hoa hồng..." class="w-full bg-white border border-slate-200 rounded-xl py-3 pl-12 pr-6 text-[13px] focus:outline-none focus:border-electric-blue transition-all text-slate-900 shadow-sm">
-        </div>
-        
+    <header class="px-4 md:px-6 py-4 flex flex-col md:flex-row md:items-center justify-end gap-6 border-b border-slate-200 bg-slate-50/50">
         <div class="flex items-center gap-3">
             <button wire:click="syncCommissions" wire:loading.attr="disabled" class="flex items-center gap-2 px-4 py-2 bg-rose-500 text-white rounded-xl text-[13px] font-bold hover:bg-rose-600 transition-all shadow-sm shadow-rose-500/20">
                 <span wire:loading.remove wire:target="syncCommissions">
@@ -29,44 +24,72 @@
 
             <div class="h-8 w-px bg-slate-200 mx-1"></div>
 
-            <div class="flex items-center gap-3">
-                <span class="text-[11px] text-slate-400 font-bold tracking-widest">Hiển thị:</span>
-                <select wire:model.live="perPage" class="bg-white border border-slate-200 rounded-xl py-1.5 px-3 text-[10px] font-black text-slate-600 focus:outline-none focus:border-electric-blue transition-all cursor-pointer shadow-sm">
-                    <option value="15">15</option>
-                    <option value="25">25</option>
-                    <option value="50">50</option>
-                    <option value="100">100</option>
-                </select>
-            </div>
-
-            <div class="h-8 w-px bg-slate-200 mx-1"></div>
-
-            <x-column-toggle 
-                :visibleColumns="$visibleColumns" 
-                :cols="[
-                    'sku' => 'Mã hàng',
-                    'name' => 'Tên hàng',
-                    'unit' => 'ĐVT',
-                    'sale_price' => 'Giá bán',
-                    'cost_price' => 'Giá vốn',
-                    'profit' => 'Lợi nhuận',
-                    'commission' => 'Hoa hồng'
-                ]" 
-            />
-
             <button class="p-2 bg-white border border-slate-200 text-slate-400 rounded-xl hover:text-slate-600 shadow-sm">
                 <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="7" height="7" x="3" y="3" rx="1"/><rect width="7" height="7" x="14" y="3" rx="1"/><rect width="7" height="7" x="14" y="14" rx="1"/><rect width="7" height="7" x="3" y="14" rx="1"/></svg>
             </button>
         </div>
     </header>
 
+    {{-- Filter bar (search inline + filter trigger + slide-down panel) --}}
+    @php $__activeFilterCount = 0; @endphp
+    <div x-data="{ mobileFilterOpen: false }" @keydown.escape.window="mobileFilterOpen = false" class="px-3 md:px-6 py-2 md:py-4 bg-white border-b border-slate-100 flex flex-col gap-2">
+        <div class="flex items-center gap-2">
+            <div class="relative flex-1 md:max-w-md group">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-300 group-focus-within:text-electric-blue transition-colors"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+                <input type="text" wire:model.live="search" placeholder="Thêm hàng hóa vào bảng hoa hồng..." class="w-full bg-white border border-slate-200 rounded-lg py-2 pl-9 pr-3 text-[12px] focus:outline-none focus:border-electric-blue transition-all text-slate-900">
+            </div>
+            <button @click="mobileFilterOpen = !mobileFilterOpen"
+                    class="shrink-0 relative w-10 h-10 flex items-center justify-center rounded-lg border transition-colors {{ $__activeFilterCount > 0 ? 'border-electric-blue bg-electric-blue/10 text-electric-blue' : 'border-slate-200 text-slate-500' }}"
+                    title="Bộ lọc">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg>
+                @if($__activeFilterCount > 0)
+                    <span class="absolute -top-1 -right-1 w-4 h-4 bg-electric-blue text-white text-[9px] font-black rounded-full flex items-center justify-center">{{ $__activeFilterCount }}</span>
+                @endif
+            </button>
+        </div>
+        <div x-show="mobileFilterOpen" x-cloak
+             x-transition:enter="transition ease-out duration-200"
+             x-transition:enter-start="opacity-0 -translate-y-1"
+             x-transition:enter-end="opacity-100 translate-y-0"
+             @click.outside="mobileFilterOpen = false"
+             class="bg-slate-50 border border-slate-200 rounded-lg p-3 space-y-3">
+            <div>
+                <div class="text-[9px] font-black text-slate-500 tracking-widest uppercase mb-1">Hiển thị mỗi trang</div>
+                <select wire:model.live="perPage" class="w-full bg-white border border-slate-200 rounded px-2 py-1.5 text-[11px] focus:outline-none focus:border-electric-blue text-slate-900">
+                    <option value="15">15</option>
+                    <option value="25">25</option>
+                    <option value="50">50</option>
+                    <option value="100">100</option>
+                </select>
+            </div>
+            <div>
+                <div class="text-[9px] font-black text-slate-500 tracking-widest uppercase mb-1">Cột hiển thị</div>
+                <x-column-toggle
+                    :visibleColumns="$visibleColumns"
+                    :cols="[
+                        'sku' => 'Mã hàng',
+                        'name' => 'Tên hàng',
+                        'unit' => 'ĐVT',
+                        'sale_price' => 'Giá bán',
+                        'cost_price' => 'Giá vốn',
+                        'profit' => 'Lợi nhuận',
+                        'commission' => 'Hoa hồng'
+                    ]"
+                />
+            </div>
+            <div class="flex items-center justify-end pt-1">
+                <button @click="mobileFilterOpen = false" class="px-3 py-1 bg-electric-blue text-white rounded text-[10px] font-bold uppercase tracking-wider">Xong</button>
+            </div>
+        </div>
+    </div>
+
     <x-import-modal id="commissions" title="Import Bảng Hoa Hồng" model="importFile" />
 
     <!-- Table Content -->
     <div class="flex-1 overflow-y-auto custom-scrollbar p-4">
-        <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+        <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-visible">
             <table class="w-full text-left border-collapse">
-                <thead>
+                <thead class="sticky top-0 z-10 bg-slate-50/50">
                     <tr class="bg-slate-50/50 border-b border-slate-100">
                         <th class="px-4 py-2 w-10">
                             <input type="checkbox" class="w-4 h-4 rounded border-slate-300 text-electric-blue focus:ring-electric-blue transition-all cursor-pointer">

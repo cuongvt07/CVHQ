@@ -8,42 +8,66 @@
     </header>
 
     <!-- Filters -->
-    <div class="px-4 md:px-6 py-4 bg-white border-b border-slate-100 flex flex-wrap items-center gap-4">
-        <div class="flex items-center gap-3 flex-1 min-w-[300px]">
+    @php $__activeFilterCount = ($user_id ? 1 : 0) + ($action ? 1 : 0) + (($date_from || $date_to) ? 1 : 0); @endphp
+    <div x-data="{ mobileFilterOpen: false }" @keydown.escape.window="mobileFilterOpen = false" class="px-3 md:px-6 py-2 md:py-4 bg-white border-b border-slate-100 flex flex-col gap-2">
+        <div class="flex items-center gap-2">
             <div class="relative flex-1 group">
                 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="absolute left-4 top-1/2 -translate-y-1/2 text-slate-300 group-focus-within:text-electric-blue transition-colors"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
                 <input type="text" wire:model.live.debounce.300ms="search" placeholder="Tìm theo nhân viên, ID hoặc loại đối tượng..." class="w-full bg-slate-50 border border-slate-200 rounded-xl py-2 pl-12 pr-6 text-xs focus:outline-none focus:border-electric-blue transition-all text-slate-900 shadow-sm">
             </div>
-            
-            <select wire:model.live="user_id" class="bg-white border border-slate-200 rounded-xl px-4 py-2 text-xs font-bold text-slate-600 focus:outline-none focus:border-electric-blue transition-all shadow-sm">
-                <option value="">Tất cả nhân viên</option>
-                @foreach($users as $user)
-                    <option value="{{ $user->id }}">{{ $user->name }}</option>
-                @endforeach
-            </select>
 
-            <select wire:model.live="action" class="bg-white border border-slate-200 rounded-xl px-4 py-2 text-xs font-bold text-slate-600 focus:outline-none focus:border-electric-blue transition-all shadow-sm">
-                <option value="">Tất cả hành động</option>
-                @foreach($actions as $act)
-                    <option value="{{ $act }}">{{ ucfirst($act) }}</option>
-                @endforeach
-            </select>
+            <button @click="mobileFilterOpen = !mobileFilterOpen"
+                    class="shrink-0 relative w-10 h-10 flex items-center justify-center rounded-lg border transition-colors
+                           {{ $__activeFilterCount > 0
+                              ? 'border-electric-blue bg-electric-blue/10 text-electric-blue'
+                              : 'border-slate-200 text-slate-500' }}"
+                    title="Bộ lọc">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg>
+                @if($__activeFilterCount > 0)
+                    <span class="absolute -top-1 -right-1 w-4 h-4 bg-electric-blue text-white text-[9px] font-black rounded-full flex items-center justify-center">{{ $__activeFilterCount }}</span>
+                @endif
+            </button>
         </div>
 
-        <div class="flex items-center gap-3">
-            <input type="date" wire:model.live="date_from" class="bg-white border border-slate-200 rounded-xl px-4 py-2 text-xs font-bold text-slate-600 focus:outline-none focus:border-electric-blue transition-all shadow-sm">
-            <span class="text-slate-300">→</span>
-            <input type="date" wire:model.live="date_to" class="bg-white border border-slate-200 rounded-xl px-4 py-2 text-xs font-bold text-slate-600 focus:outline-none focus:border-electric-blue transition-all shadow-sm">
-            
-            <button wire:click="clearFilters" class="p-2 text-slate-400 hover:text-rose-500 transition-colors">
-                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/></svg>
-            </button>
+        <div x-show="mobileFilterOpen" x-cloak
+             x-transition:enter="transition ease-out duration-200"
+             x-transition:enter-start="opacity-0 -translate-y-1"
+             x-transition:enter-end="opacity-100 translate-y-0"
+             @click.outside="mobileFilterOpen = false"
+             class="bg-slate-50 border border-slate-200 rounded-lg p-3 space-y-3 max-h-[80vh] overflow-y-auto custom-scrollbar">
 
-            <div class="h-8 w-px bg-slate-100 mx-2"></div>
+            <div>
+                <div class="text-[9px] font-black text-slate-500 tracking-widest uppercase mb-1">Nhân viên</div>
+                <select wire:model.live="user_id" class="w-full bg-white border border-slate-200 rounded px-2 py-1.5 text-[11px] focus:outline-none focus:border-electric-blue text-slate-900">
+                    <option value="">Tất cả nhân viên</option>
+                    @foreach($users as $user)
+                        <option value="{{ $user->id }}">{{ $user->name }}</option>
+                    @endforeach
+                </select>
+            </div>
 
-            <div class="flex items-center gap-3">
-                <span class="text-[11px] text-slate-400 font-bold tracking-widest">Hiển thị:</span>
-                <select wire:model.live="perPage" class="bg-white border border-slate-200 rounded-xl py-1.5 px-3 text-[10px] font-black text-slate-600 focus:outline-none focus:border-electric-blue transition-all cursor-pointer shadow-sm">
+            <div>
+                <div class="text-[9px] font-black text-slate-500 tracking-widest uppercase mb-1">Hành động</div>
+                <select wire:model.live="action" class="w-full bg-white border border-slate-200 rounded px-2 py-1.5 text-[11px] focus:outline-none focus:border-electric-blue text-slate-900">
+                    <option value="">Tất cả hành động</option>
+                    @foreach($actions as $act)
+                        <option value="{{ $act }}">{{ ucfirst($act) }}</option>
+                    @endforeach
+                </select>
+            </div>
+
+            <div>
+                <div class="text-[9px] font-black text-slate-500 tracking-widest uppercase mb-1">Khoảng thời gian</div>
+                <div class="flex items-center gap-2">
+                    <input type="date" wire:model.live="date_from" class="flex-1 bg-white border border-slate-200 rounded px-2 py-1.5 text-[11px] focus:outline-none focus:border-electric-blue text-slate-900">
+                    <span class="text-[10px] text-slate-400">→</span>
+                    <input type="date" wire:model.live="date_to" class="flex-1 bg-white border border-slate-200 rounded px-2 py-1.5 text-[11px] focus:outline-none focus:border-electric-blue text-slate-900">
+                </div>
+            </div>
+
+            <div>
+                <div class="text-[9px] font-black text-slate-500 tracking-widest uppercase mb-1">Hiển thị mỗi trang</div>
+                <select wire:model.live="perPage" class="w-full bg-white border border-slate-200 rounded px-2 py-1.5 text-[11px] focus:outline-none focus:border-electric-blue text-slate-900">
                     <option value="10">10</option>
                     <option value="25">25</option>
                     <option value="50">50</option>
@@ -51,18 +75,24 @@
                 </select>
             </div>
 
-            <div class="h-8 w-px bg-slate-100 mx-2"></div>
+            <div>
+                <div class="text-[9px] font-black text-slate-500 tracking-widest uppercase mb-1">Cột hiển thị</div>
+                <x-column-toggle
+                    :visibleColumns="$visibleColumns"
+                    :cols="[
+                        'time' => 'Thời gian',
+                        'user' => 'Nhân viên',
+                        'action' => 'Hành động',
+                        'object' => 'Đối tượng',
+                        'details' => 'Chi tiết'
+                    ]"
+                />
+            </div>
 
-            <x-column-toggle 
-                :visibleColumns="$visibleColumns" 
-                :cols="[
-                    'time' => 'Thời gian',
-                    'user' => 'Nhân viên',
-                    'action' => 'Hành động',
-                    'object' => 'Đối tượng',
-                    'details' => 'Chi tiết'
-                ]" 
-            />
+            <div class="flex items-center justify-between pt-1">
+                <button wire:click="clearFilters" class="text-[10px] font-black text-rose-500 hover:underline">Xóa lọc</button>
+                <button @click="mobileFilterOpen = false" class="px-3 py-1 bg-electric-blue text-white rounded text-[10px] font-bold uppercase tracking-wider">Xong</button>
+            </div>
         </div>
     </div>
 
@@ -70,7 +100,7 @@
     <div class="flex-1 overflow-y-auto custom-scrollbar p-4 md:p-6">
         <div class="glass-card overflow-hidden border border-slate-200">
             <table class="w-full text-left border-collapse">
-                <thead>
+                <thead class="sticky top-0 z-10 bg-slate-50">
                     <tr class="bg-slate-50 border-b border-slate-200">
                         @if(in_array('time', $visibleColumns))
                         <th class="px-4 py-3 text-[9px] font-bold text-slate-500 tracking-[0.2em] uppercase">Thời gian</th>

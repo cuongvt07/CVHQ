@@ -54,18 +54,54 @@ class InvoiceIndex extends Component
     public $startDate = '';
     public $endDate = '';
     public $sellerFilter = '';
+    public $statusFilter = 'all';
 
     protected $queryString = [
         'search' => ['except' => ''],
         'startDate' => ['except' => ''],
         'endDate' => ['except' => ''],
         'sellerFilter' => ['except' => ''],
+        'statusFilter' => ['except' => 'all'],
         'perPage' => ['except' => 10],
         'visibleColumns' => ['except' => ['code', 'customer', 'amount', 'method', 'status', 'date']],
     ];
 
     public function updatingSearch()
     {
+        $this->resetPage();
+    }
+
+    public function updatingStatusFilter()
+    {
+        $this->resetPage();
+    }
+
+    public function clearFilter($key)
+    {
+        switch ($key) {
+            case 'search':
+                $this->search = '';
+                break;
+            case 'startDate':
+                $this->startDate = '';
+                break;
+            case 'endDate':
+                $this->endDate = '';
+                break;
+            case 'sellerFilter':
+                $this->sellerFilter = '';
+                break;
+            case 'statusFilter':
+                $this->statusFilter = 'all';
+                break;
+            case 'all':
+                $this->search = '';
+                $this->startDate = '';
+                $this->endDate = '';
+                $this->sellerFilter = '';
+                $this->statusFilter = 'all';
+                break;
+        }
         $this->resetPage();
     }
 
@@ -139,11 +175,20 @@ class InvoiceIndex extends Component
     public function getInvoices()
     {
         return Invoice::query()
-            ->where(function($q) {
-                $q->whereNull('status')
-                  ->orWhere('status', '!=', 'Cancelled');
+            ->when($this->statusFilter !== 'all', function ($q) {
+                if ($this->statusFilter === 'active') {
+                    // "Đang hoạt động" = Completed/null, i.e. NOT Cancelled and NOT Returned.
+                    // NULL must remain visible (legacy/imported invoices).
+                    $q->where(function ($sub) {
+                        $sub->whereNull('status')
+                            ->orWhereNotIn('status', ['Cancelled', 'Returned']);
+                    });
+                } elseif ($this->statusFilter === 'cancelled') {
+                    $q->where('status', 'Cancelled');
+                } elseif ($this->statusFilter === 'returned') {
+                    $q->where('status', 'Returned');
+                }
             })
-            ->where('status', '!=', 'Returned')
             ->when($this->search, fn($q) => $q->where(function($sub) {
                 $sub->where('invoice_code', 'like', "%{$this->search}%")
                     ->orWhere('seller_name', 'like', "%{$this->search}%");
@@ -173,6 +218,11 @@ class InvoiceIndex extends Component
 
     public function confirmCancel($id)
     {
+        if (!auth()->user()->hasPermission('invoice.cancel')) {
+            $this->dispatch('notify', message: 'Bạn không có quyền hủy hóa đơn!', type: 'error');
+            return;
+        }
+
         $this->selectedInvoiceIdForCancel = $id;
         $this->cancelReason = '';
         $this->showCancelModal = true;
@@ -204,7 +254,7 @@ class InvoiceIndex extends Component
 
     public function returnItems($id)
     {
-        if (!auth()->user()->hasPermission('invoice.edit')) {
+        if (!auth()->user()->hasPermission('invoice.return')) {
             $this->dispatch('notify', message: 'Bạn không có quyền thực hiện trả hàng!', type: 'error');
             return;
         }
@@ -309,6 +359,11 @@ class InvoiceIndex extends Component
 
     public function editInvoice($id)
     {
+        if (!auth()->user()->hasPermission('invoice.edit')) {
+            $this->dispatch('notify', message: 'Bạn không có quyền sửa hóa đơn!', type: 'error');
+            return;
+        }
+
         $this->editingInvoiceId = $id;
         $invoice = Invoice::with('items')->find($id);
         $this->editCustomerId = $invoice->customer_id;

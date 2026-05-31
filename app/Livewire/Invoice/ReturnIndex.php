@@ -48,6 +48,14 @@ class ReturnIndex extends Component
         $this->resetPage();
     }
 
+    public function clearFilters()
+    {
+        $this->startDate = '';
+        $this->endDate = '';
+        $this->sellerFilter = '';
+        $this->resetPage();
+    }
+
     public function getReturnedInvoices()
     {
         return Invoice::query()

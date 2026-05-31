@@ -63,19 +63,19 @@
                         </button>
                     </div>
 
-                    {{-- Unit price (click to edit, highlight when changed from original) --}}
+                    {{-- Unit price — INSET / "lõm" style: nền slate-50 + viền inner shadow gợi ý có thể click sửa --}}
                     <div class="flex items-center gap-1 text-[10px]">
                         <span x-show="!editPrice" @click="editPrice = true; $nextTick(() => $refs.priceInput.focus())"
-                              class="font-bold cursor-pointer hover:underline whitespace-nowrap {{ $__priceEdited ? 'text-amber-700' : 'text-electric-blue' }}"
-                              title="{{ $__priceEdited ? 'Đã sửa từ ' . number_format($__orig, 0, ',', '.') . 'đ' : 'Click để sửa giá' }}">
+                              class="font-bold cursor-pointer whitespace-nowrap px-1.5 py-0.5 rounded
+                                     bg-slate-50 border border-slate-200 shadow-[inset_0_1px_2px_rgba(0,0,0,0.06)]
+                                     hover:bg-white hover:border-electric-blue/40 transition-all
+                                     {{ $__priceEdited ? 'text-amber-700 bg-amber-50 border-amber-300' : 'text-electric-blue' }}"
+                              title="{{ $__priceEdited ? 'Đã sửa từ ' . number_format($__orig, 0, ',', '.') . 'đ — click để sửa lại' : 'Click để sửa giá bán' }}">
                             {{ number_format($item['sale_price'], 0, ',', '.') }}
                         </span>
                         @if($__priceEdited)
-                            {{-- Mũi tên báo tăng/giảm --}}
                             <span class="text-[9px] font-black {{ $__priceHigher ? 'text-rose-500' : 'text-emerald-500' }}" title="{{ $__priceHigher ? 'Tăng giá' : 'Giảm giá' }}">{{ $__priceHigher ? '▲' : '▼' }}</span>
-                            {{-- Giá gốc strikethrough --}}
                             <span class="text-[9px] text-slate-400 line-through whitespace-nowrap">{{ number_format($__orig, 0, ',', '.') }}</span>
-                            {{-- Nút reset về giá gốc --}}
                             <button type="button" wire:click="resetUnitPrice({{ $item['id'] }})"
                                     class="text-[9px] text-slate-400 hover:text-amber-600 transition-colors"
                                     title="Khôi phục giá gốc">
@@ -88,16 +88,8 @@
                                @blur="$wire.updateUnitPrice({{ $item['id'] }}, $event.target.value); editPrice = false"
                                @keydown.enter="$event.target.blur()"
                                @keydown.escape="editPrice = false"
-                               class="w-20 bg-amber-50 border border-amber-300 rounded px-1 py-0 text-[10px] font-bold text-slate-900 focus:outline-none focus:border-amber-500">
+                               class="w-24 bg-amber-50 border border-amber-300 rounded px-1.5 py-0.5 text-[10px] font-bold text-slate-900 focus:outline-none focus:border-amber-500 shadow-[inset_0_1px_2px_rgba(0,0,0,0.06)]">
                     </div>
-
-                    {{-- Discount input --}}
-                    <input type="number"
-                           placeholder="Giảm"
-                           value="{{ $item['discount'] ?? '' }}"
-                           class="w-14 bg-slate-50 border border-slate-200 rounded px-1.5 py-0.5 text-[10px] font-bold text-slate-700 focus:outline-none focus:border-electric-blue"
-                           x-on:keydown.enter="$wire.applyItemDiscount({{ $item['id'] }}, $event.target.value)"
-                           x-on:blur="$wire.applyItemDiscount({{ $item['id'] }}, $event.target.value)">
 
                     {{-- Line total --}}
                     <div class="flex-1 text-right">

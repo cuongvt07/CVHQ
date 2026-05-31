@@ -17,36 +17,65 @@
             @endif
         </div>
         
-        <div class="flex items-center gap-3">
-            <select wire:model.live="dateRange" class="bg-slate-50 border border-slate-200 rounded-lg px-3 py-1.5 text-xs font-bold text-slate-600 focus:outline-none">
-                <option value="today">Hôm nay</option>
-                <option value="this_week">Tuần này</option>
-                <option value="this_month">Tháng này</option>
-                <option value="last_month">Tháng trước</option>
-            </select>
+        <div x-data="{ mobileFilterOpen: false }" @keydown.escape.window="mobileFilterOpen = false" class="relative flex items-center gap-3">
+            @php $__activeFilterCount = ($dateRange && $dateRange !== 'this_month' ? 1 : 0); @endphp
+            <button @click="mobileFilterOpen = !mobileFilterOpen"
+                    class="shrink-0 relative w-10 h-10 flex items-center justify-center rounded-lg border transition-colors
+                           {{ $__activeFilterCount > 0
+                              ? 'border-electric-blue bg-electric-blue/10 text-electric-blue'
+                              : 'border-slate-200 text-slate-500' }}"
+                    title="Bộ lọc">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg>
+                @if($__activeFilterCount > 0)
+                    <span class="absolute -top-1 -right-1 w-4 h-4 bg-electric-blue text-white text-[9px] font-black rounded-full flex items-center justify-center">{{ $__activeFilterCount }}</span>
+                @endif
+            </button>
 
-            @if($view === 'summary')
-                <div class="h-8 w-px bg-slate-100 mx-1"></div>
-                <x-column-toggle 
-                    :visibleColumns="$visibleColumns" 
-                    :cols="[
-                        'employee' => 'Nhân viên',
-                        'orders' => 'Số đơn hàng',
-                        'sales' => 'Tổng doanh số',
-                        'commission' => 'Tổng hoa hồng',
-                        'actions' => 'Thao tác'
-                    ]" 
-                />
-            @endif
+            <div x-show="mobileFilterOpen" x-cloak
+                 x-transition:enter="transition ease-out duration-200"
+                 x-transition:enter-start="opacity-0 -translate-y-1"
+                 x-transition:enter-end="opacity-100 translate-y-0"
+                 @click.outside="mobileFilterOpen = false"
+                 class="absolute right-0 top-full mt-1 z-50 w-72 bg-white border border-slate-200 rounded-lg shadow-xl p-3 space-y-3">
+                <div>
+                    <div class="text-[9px] font-black text-slate-500 tracking-widest uppercase mb-1">Khoảng thời gian</div>
+                    <select wire:model.live="dateRange" class="w-full bg-white border border-slate-200 rounded px-2 py-1.5 text-[11px] focus:outline-none focus:border-electric-blue text-slate-900">
+                        <option value="today">Hôm nay</option>
+                        <option value="this_week">Tuần này</option>
+                        <option value="this_month">Tháng này</option>
+                        <option value="last_month">Tháng trước</option>
+                    </select>
+                </div>
+
+                @if($view === 'summary')
+                    <div>
+                        <div class="text-[9px] font-black text-slate-500 tracking-widest uppercase mb-1">Cột hiển thị</div>
+                        <x-column-toggle
+                            :visibleColumns="$visibleColumns"
+                            :cols="[
+                                'employee' => 'Nhân viên',
+                                'orders' => 'Số đơn hàng',
+                                'sales' => 'Tổng doanh số',
+                                'commission' => 'Tổng hoa hồng',
+                                'actions' => 'Thao tác'
+                            ]"
+                        />
+                    </div>
+                @endif
+
+                <div class="flex items-center justify-end pt-1">
+                    <button @click="mobileFilterOpen = false" class="px-3 py-1 bg-electric-blue text-white rounded text-[10px] font-bold uppercase tracking-wider">Xong</button>
+                </div>
+            </div>
         </div>
     </header>
 
     <div class="flex-1 overflow-y-auto custom-scrollbar p-4 md:p-6">
         @if($view === 'summary')
             <!-- Employee List Summary -->
-            <div class="glass-card overflow-hidden border border-slate-200">
+            <div class="glass-card border border-slate-200">
                 <table class="w-full text-left border-collapse">
-                    <thead>
+                    <thead class="sticky top-0 z-10 bg-slate-50">
                         <tr class="bg-slate-50 border-b border-slate-200">
                             @if(in_array('employee', $visibleColumns))
                             <th class="px-4 py-2 text-[10px] font-bold text-slate-500 uppercase tracking-widest">Nhân viên</th>

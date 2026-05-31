@@ -21,6 +21,7 @@ class PosTerminal extends Component
     public $category = 'All';
     public $selectedCategories = [];
     public $boxCode = '';
+    public $branch = 'all'; // 'all' | 'sg' | 'hn' — same convention as ProductIndex
     public $brandFilter = '';
     public $stockStatus = 'all';
 
@@ -66,12 +67,10 @@ class PosTerminal extends Component
         ['name' => 'Email',     'color' => '#94A3B8'],
     ];
 
-    // Hardcoded payment methods — keys map to invoices.{cash,transfer,card,wallet}_amount columns
+    // Hardcoded payment methods — keys map to invoices.{cash,transfer}_amount columns
     public const PAYMENT_METHODS = [
-        ['key' => 'cash',     'name' => 'Tiền mặt',    'icon' => 'wallet'],
-        ['key' => 'transfer', 'name' => 'Chuyển khoản','icon' => 'send'],
-        ['key' => 'card',     'name' => 'Thẻ',         'icon' => 'credit-card'],
-        ['key' => 'wallet',   'name' => 'Ví điện tử',  'icon' => 'smartphone'],
+        ['key' => 'cash',     'name' => 'Tiền mặt',     'icon' => 'wallet'],
+        ['key' => 'transfer', 'name' => 'Chuyển khoản', 'icon' => 'send'],
     ];
 
     protected function makeNewTab(?string $label = null): array
@@ -226,7 +225,13 @@ class PosTerminal extends Component
                     ELSE 4
                 END', [$this->search, $this->search . '%', $this->search . '%']);
             })
-            ->when($this->selectedCategories, fn($q) => $q->whereIn('category_path', $this->selectedCategories))
+            ->when($this->branch !== 'all', function ($query) {
+                if ($this->branch === 'sg') {
+                    $query->where('sku', 'LIKE', 'Z%');
+                } else {
+                    $query->where('sku', 'NOT LIKE', 'Z%');
+                }
+            })
             ->when($this->boxCode,            fn($q) => $q->where('location', 'like', "%{$this->boxCode}%"))
             ->when($this->brandFilter,        fn($q) => $q->where('brand', $this->brandFilter))
             ->when($this->stockStatus !== 'all', function ($query) {

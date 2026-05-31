@@ -19,49 +19,97 @@
 
     <x-import-modal id="invoices" title="Nhập danh sách hóa đơn" model="importFile" />
 
-    <div class="px-4 md:px-6 py-4 bg-white border-b border-slate-100 flex flex-col gap-4">
-        <div class="flex flex-col md:flex-row items-center justify-between gap-4">
-            <div class="flex flex-wrap items-center gap-3 w-full md:w-auto flex-1">
-                <!-- Search -->
-                <div class="relative w-full md:w-80 group text-left">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="absolute left-4 top-1/2 -translate-y-1/2 text-slate-300 group-focus-within:text-electric-blue transition-colors"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
-                    <input type="text" wire:model.live="search" placeholder="Tìm kiếm mã hóa đơn, người bán..." class="w-full bg-slate-50 border border-slate-200 rounded-xl py-2.5 pl-12 pr-6 text-[11px] focus:outline-none focus:border-electric-blue transition-all text-slate-900 shadow-sm">
-                </div>
-
-                <!-- Date Filter Row -->
-                <div class="flex items-center gap-2">
-                    <div class="relative group">
-                        <input type="date" wire:model.live="startDate" class="bg-white border border-slate-200 rounded-xl px-3 py-2 text-[11px] focus:outline-none focus:border-electric-blue transition-all text-slate-600 shadow-sm">
-                    </div>
-                    <span class="text-[10px] font-bold text-slate-300 uppercase tracking-tighter">đến</span>
-                    <div class="relative group">
-                        <input type="date" wire:model.live="endDate" class="bg-white border border-slate-200 rounded-xl px-3 py-2 text-[11px] focus:outline-none focus:border-electric-blue transition-all text-slate-600 shadow-sm">
-                    </div>
-                </div>
-
-                <!-- Seller Filter -->
-                <div class="relative w-full md:w-48 group">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-300 group-focus-within:text-electric-blue transition-colors"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
-                    <input type="text" wire:model.live="sellerFilter" placeholder="Lọc nhân viên..." class="w-full bg-white border border-slate-200 rounded-xl py-2 pl-9 pr-4 text-[11px] focus:outline-none focus:border-electric-blue transition-all text-slate-900 shadow-sm">
-                </div>
-
-                @if(count($selectedRows) > 0)
-                    <div class="flex items-center gap-3 animate-in fade-in slide-in-from-left-4 duration-300 ml-2">
-                        <span class="text-[9px] font-black text-slate-400 tracking-widest whitespace-nowrap">Đã chọn {{ count($selectedRows) }}:</span>
-                        <button wire:click="bulkDelete" wire:confirm="Bạn có chắc chắn muốn xóa?" class="px-3 py-1.5 rounded-lg text-[9px] font-bold bg-rose-50 text-rose-600 border border-rose-100 hover:bg-rose-100 transition-all flex items-center gap-2">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/></svg>
-                            Xóa
-                        </button>
-                    </div>
-                @endif
+    @php $__activeFilterCount = ($startDate ? 1 : 0) + ($endDate ? 1 : 0) + ($sellerFilter ? 1 : 0); @endphp
+    <div x-data="{ mobileFilterOpen: false }" @keydown.escape.window="mobileFilterOpen = false" class="px-3 md:px-6 py-2 md:py-4 bg-white border-b border-slate-100 flex flex-col gap-2">
+        <div class="flex flex-wrap items-center gap-2 md:gap-3">
+            <!-- Search (flex-1) -->
+            <div class="relative flex-1 min-w-0 group text-left">
+                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="absolute left-4 top-1/2 -translate-y-1/2 text-slate-300 group-focus-within:text-electric-blue transition-colors"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+                <input type="text" wire:model.live="search" placeholder="Tìm kiếm mã hóa đơn, người bán..." class="w-full bg-slate-50 border border-slate-200 rounded-xl py-2.5 pl-12 pr-6 text-[11px] focus:outline-none focus:border-electric-blue transition-all text-slate-900 shadow-sm">
             </div>
 
-            <div class="flex items-center gap-3">
-                <span class="text-[10px] text-slate-400 font-bold tracking-widest">Hiển thị:</span>
+            <!-- Status Filter (always inline — high-frequency, like POS branch filter) -->
+            <div class="flex items-center gap-0.5 bg-slate-100 border border-slate-200 p-0.5 rounded-lg shrink-0" role="tablist" aria-label="Lọc theo trạng thái">
+                <button type="button" wire:click="$set('statusFilter', 'all')"
+                        class="px-2.5 py-1.5 rounded-md text-[10px] font-black uppercase tracking-wider transition-all
+                               {{ $statusFilter === 'all' ? 'bg-slate-800 text-white shadow-sm' : 'text-slate-500 hover:text-slate-700' }}">
+                    Tất cả
+                </button>
+                <button type="button" wire:click="$set('statusFilter', 'active')"
+                        class="px-2.5 py-1.5 rounded-md text-[10px] font-black uppercase tracking-wider transition-all
+                               {{ $statusFilter === 'active' ? 'bg-emerald-500 text-white shadow-sm' : 'text-slate-500 hover:text-emerald-600' }}">
+                    Đang hoạt động
+                </button>
+                <button type="button" wire:click="$set('statusFilter', 'cancelled')"
+                        class="px-2.5 py-1.5 rounded-md text-[10px] font-black uppercase tracking-wider transition-all
+                               {{ $statusFilter === 'cancelled' ? 'bg-rose-500 text-white shadow-sm' : 'text-slate-500 hover:text-rose-600' }}">
+                    Đã hủy
+                </button>
+                <button type="button" wire:click="$set('statusFilter', 'returned')"
+                        class="px-2.5 py-1.5 rounded-md text-[10px] font-black uppercase tracking-wider transition-all
+                               {{ $statusFilter === 'returned' ? 'bg-amber-500 text-white shadow-sm' : 'text-slate-500 hover:text-amber-600' }}">
+                    Trả hàng
+                </button>
+            </div>
+
+            <!-- Funnel trigger -->
+            <button @click="mobileFilterOpen = !mobileFilterOpen" class="shrink-0 relative w-10 h-10 flex items-center justify-center rounded-lg border transition-colors {{ $__activeFilterCount > 0 ? 'border-electric-blue bg-electric-blue/10 text-electric-blue' : 'border-slate-200 text-slate-500' }}" title="Bộ lọc">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg>
+                @if($__activeFilterCount > 0)
+                    <span class="absolute -top-1 -right-1 w-4 h-4 bg-electric-blue text-white text-[9px] font-black rounded-full flex items-center justify-center">{{ $__activeFilterCount }}</span>
+                @endif
+            </button>
+
+            @if(count($selectedRows) > 0)
+                <div class="flex items-center gap-3 animate-in fade-in slide-in-from-left-4 duration-300 ml-2">
+                    <span class="text-[9px] font-black text-slate-400 tracking-widest whitespace-nowrap">Đã chọn {{ count($selectedRows) }}:</span>
+                    <button wire:click="bulkDelete" wire:confirm="Bạn có chắc chắn muốn xóa?" class="px-3 py-1.5 rounded-lg text-[9px] font-bold bg-rose-50 text-rose-600 border border-rose-100 hover:bg-rose-100 transition-all flex items-center gap-2">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/></svg>
+                        Xóa
+                    </button>
+                </div>
+            @endif
+        </div>
+
+        <!-- Slide-down filter panel -->
+        <div x-show="mobileFilterOpen" x-cloak
+             x-transition:enter="transition ease-out duration-200"
+             x-transition:enter-start="opacity-0 -translate-y-1"
+             x-transition:enter-end="opacity-100 translate-y-0"
+             @click.outside="mobileFilterOpen = false"
+             class="bg-slate-50 border border-slate-200 rounded-lg p-3 space-y-3">
+
+            <!-- Date range -->
+            <div>
+                <div class="text-[9px] font-black text-slate-500 tracking-widest uppercase mb-1">KHOẢNG NGÀY</div>
+                <div class="grid grid-cols-2 gap-2">
+                    <input type="date" wire:model.live="startDate" class="w-full bg-white border border-slate-200 rounded px-2 py-1.5 text-[11px] focus:outline-none focus:border-electric-blue text-slate-900">
+                    <input type="date" wire:model.live="endDate" class="w-full bg-white border border-slate-200 rounded px-2 py-1.5 text-[11px] focus:outline-none focus:border-electric-blue text-slate-900">
+                </div>
+            </div>
+
+            <!-- Seller filter -->
+            <div>
+                <div class="text-[9px] font-black text-slate-500 tracking-widest uppercase mb-1">NHÂN VIÊN</div>
+                <input type="text" wire:model.live="sellerFilter" placeholder="Lọc nhân viên..." class="w-full bg-white border border-slate-200 rounded px-2 py-1.5 text-[11px] focus:outline-none focus:border-electric-blue text-slate-900">
+            </div>
+
+            <!-- Per page -->
+            <div>
+                <div class="text-[9px] font-black text-slate-500 tracking-widest uppercase mb-1">HIỂN THỊ MỖI TRANG</div>
+                <select wire:model.live="perPage" class="w-full bg-white border border-slate-200 rounded px-2 py-1.5 text-[11px] focus:outline-none focus:border-electric-blue text-slate-900">
+                    <option value="10">10</option>
+                    <option value="25">25</option>
+                    <option value="50">50</option>
+                    <option value="100">100</option>
                 </select>
-                
-                <x-column-toggle 
-                    :visibleColumns="$visibleColumns" 
+            </div>
+
+            <!-- Column toggle -->
+            <div>
+                <div class="text-[9px] font-black text-slate-500 tracking-widest uppercase mb-1">CỘT HIỂN THỊ</div>
+                <x-column-toggle
+                    :visibleColumns="$visibleColumns"
                     :cols="[
                         'code' => 'Mã hóa đơn',
                         'customer' => 'Khách hàng',
@@ -69,20 +117,47 @@
                         'method' => 'Phương thức',
                         'status' => 'Trạng thái',
                         'date' => 'Ngày tạo'
-                    ]" 
+                    ]"
                 />
+            </div>
+
+            <!-- Footer -->
+            <div class="flex items-center justify-between pt-2 border-t border-slate-200">
+                <button type="button" wire:click="clearFilter('all')" class="text-[10px] font-black text-rose-500 tracking-wider uppercase hover:underline">Xóa lọc</button>
+                <button type="button" @click="mobileFilterOpen = false" class="px-4 py-1.5 rounded-lg bg-electric-blue text-white text-[10px] font-black tracking-wider uppercase hover:bg-electric-blue/90 transition-colors">Xong</button>
             </div>
         </div>
 
         <!-- Active Filters Tags -->
-        @if($startDate || $endDate || $sellerFilter || $search)
+        @if($startDate || $endDate || $sellerFilter || $search || $statusFilter !== 'all')
             <div class="flex flex-wrap items-center gap-2 animate-in fade-in slide-in-from-top-1 duration-200">
                 <span class="text-[8px] font-black text-slate-400 tracking-tighter mr-1">Đang áp dụng:</span>
-                
+
                 @if($search)
                     <div class="flex items-center gap-1.5 px-2.5 py-1 bg-slate-100 border border-slate-200 rounded-lg text-[10px] font-bold text-slate-600 group shadow-sm">
                         <span class="text-slate-400 font-medium">Tìm:</span> {{ $search }}
                         <button wire:click="clearFilter('search')" class="text-slate-300 hover:text-rose-500 transition-colors"><svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg></button>
+                    </div>
+                @endif
+
+                @if($statusFilter !== 'all')
+                    @php
+                        $statusChipClasses = match($statusFilter) {
+                            'active' => 'bg-emerald-50 border-emerald-100 text-emerald-600',
+                            'cancelled' => 'bg-rose-50 border-rose-100 text-rose-600',
+                            'returned' => 'bg-amber-50 border-amber-100 text-amber-700',
+                            default => 'bg-slate-100 border-slate-200 text-slate-600',
+                        };
+                        $statusChipLabel = match($statusFilter) {
+                            'active' => 'Đang hoạt động',
+                            'cancelled' => 'Đã hủy',
+                            'returned' => 'Trả hàng',
+                            default => $statusFilter,
+                        };
+                    @endphp
+                    <div class="flex items-center gap-1.5 px-2.5 py-1 border rounded-lg text-[10px] font-bold group shadow-sm {{ $statusChipClasses }}">
+                        <span class="opacity-60">Trạng thái:</span> {{ $statusChipLabel }}
+                        <button wire:click="clearFilter('statusFilter')" class="opacity-30 hover:opacity-100 hover:text-rose-500 transition-all"><svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg></button>
                     </div>
                 @endif
 
@@ -113,9 +188,72 @@
     </div>
 
     <div class="flex-1 overflow-y-auto custom-scrollbar p-4 md:p-6">
-        <div class="glass-card overflow-hidden border border-slate-200">
+        {{-- Mobile card list (visible <768px) --}}
+        <div class="md:hidden space-y-2">
+            @if($invoices->isEmpty())
+                <div class="bg-white border border-slate-200 rounded-xl p-6 text-center text-slate-400 text-[11px] font-bold tracking-widest shadow-sm">
+                    Không có hóa đơn nào phù hợp với bộ lọc hiện tại.
+                </div>
+            @else
+                @foreach($invoices as $invoice)
+                    @php
+                        $s = $invoice->status;
+                        $isCancelled = $s === 'Cancelled';
+                        $isReturned  = $s === 'Returned';
+                        $badgeClasses = $isCancelled
+                            ? 'bg-rose-50 text-rose-600 border-rose-200'
+                            : ($isReturned
+                                ? 'bg-amber-50 text-amber-700 border-amber-200'
+                                : 'bg-emerald-50 text-emerald-600 border-emerald-100');
+                        $badgeLabel = $isCancelled ? 'Đã hủy' : ($isReturned ? 'Trả hàng' : 'Hoàn thành');
+                        $amountClasses = $isCancelled
+                            ? 'text-rose-500 line-through'
+                            : ($isReturned ? 'text-amber-600' : 'text-electric-blue');
+                    @endphp
+                    <div wire:key="m-inv-{{ $invoice->id }}"
+                         wire:click="toggleDetails({{ $invoice->id }})"
+                         class="bg-white border border-slate-200 rounded-xl p-3 shadow-sm flex flex-col gap-2 active:scale-[0.99] transition-transform cursor-pointer">
+                        {{-- Row 1: Số HĐ + status badge --}}
+                        <div class="flex items-center justify-between gap-2">
+                            <div class="font-mono font-bold text-[12px] text-electric-blue tracking-wider truncate">
+                                {{ $invoice->invoice_code }}
+                            </div>
+                            <span class="shrink-0 inline-flex items-center px-2 py-0.5 rounded-full text-[8px] font-bold uppercase tracking-wider border shadow-sm {{ $badgeClasses }}">
+                                {{ $badgeLabel }}
+                            </span>
+                        </div>
+
+                        {{-- Row 2: ngày tạo + tên khách --}}
+                        <div class="flex items-center justify-between gap-2 text-[11px]">
+                            <span class="text-slate-500 tracking-wide shrink-0">
+                                {{ $invoice->created_at->format('d/m/Y H:i') }}
+                            </span>
+                            <span class="text-slate-900 font-bold truncate text-right">
+                                {{ $invoice->customer->full_name ?? 'Khách lẻ' }}
+                            </span>
+                        </div>
+
+                        {{-- Row 3: số tiền --}}
+                        <div class="flex items-center justify-between gap-2 pt-1.5 border-t border-slate-100">
+                            <span class="text-[9px] font-bold uppercase tracking-widest text-slate-400">Tổng tiền</span>
+                            <span class="font-extrabold text-[14px] tracking-tight {{ $amountClasses }}">
+                                {{ number_format($invoice->final_amount, 0, ',', '.') }} đ
+                            </span>
+                        </div>
+                    </div>
+                @endforeach
+
+                {{-- Mobile pagination --}}
+                <div class="pt-2">
+                    {{ $invoices->links() }}
+                </div>
+            @endif
+        </div>
+
+        {{-- Desktop table (visible >=768px) --}}
+        <div class="hidden md:block glass-card overflow-hidden border border-slate-200">
             <table class="w-full text-left border-collapse">
-                <thead>
+                <thead class="sticky top-0 z-10 bg-slate-50">
                     <tr class="bg-slate-50 border-b border-slate-200">
                         <th class="px-6 py-4 w-10">
                             <input type="checkbox" wire:model.live="selectAll" class="w-4 h-4 rounded border-slate-300 text-electric-blue focus:ring-electric-blue transition-all cursor-pointer">
@@ -141,6 +279,14 @@
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-slate-100 bg-white/50">
+                    @if($invoices->isEmpty())
+                        <tr>
+                            <td colspan="7" class="px-6 py-10 text-center text-slate-400 text-[11px] font-bold tracking-widest">
+                                Không có hóa đơn nào phù hợp với bộ lọc hiện tại.
+                                <button wire:click="$set('statusFilter','all');$set('startDate',null);$set('endDate',null);$set('sellerFilter','');$set('search','')" class="ml-2 text-electric-blue underline">Xóa tất cả bộ lọc</button>
+                            </td>
+                        </tr>
+                    @endif
                     @foreach($invoices as $invoice)
                         <tr wire:key="invoice-row-{{ $invoice->id }}" class="hover:bg-slate-50 transition-all group/row {{ in_array((string)$invoice->id, $selectedRows) ? 'bg-electric-blue/5' : '' }} {{ $expandedInvoiceId === $invoice->id ? 'bg-slate-50/80 shadow-inner' : '' }}">
                             <td class="px-6 py-4">
@@ -179,7 +325,27 @@
                             @endif
                             @if(in_array('status', $visibleColumns))
                             <td class="px-6 py-4">
-                                <span class="px-3 py-1 rounded-full bg-emerald-50 text-emerald-600 text-[9px] font-bold tracking-wider border border-emerald-100 shadow-sm">{{ $invoice->status === 'Completed' || !$invoice->status ? 'Hoàn thành' : $invoice->status }}</span>
+                                @php
+                                    $s = $invoice->status;
+                                    $isCancelled = $s === 'Cancelled';
+                                    $isReturned  = $s === 'Returned';
+                                    $badgeClasses = $isCancelled
+                                        ? 'bg-rose-50 text-rose-600 border-rose-200'
+                                        : ($isReturned
+                                            ? 'bg-amber-50 text-amber-700 border-amber-200'
+                                            : 'bg-emerald-50 text-emerald-600 border-emerald-100');
+                                    $badgeLabel = $isCancelled ? 'Đã hủy' : ($isReturned ? 'Trả hàng' : 'Hoàn thành');
+                                @endphp
+                                <span class="inline-flex items-center gap-1 px-3 py-1 rounded-full text-[9px] font-bold tracking-wider border shadow-sm {{ $badgeClasses }}">
+                                    @if($isCancelled)
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="m4.9 4.9 14.2 14.2"/></svg>
+                                    @elseif($isReturned)
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M9 14 4 9l5-5"/><path d="M4 9h10.5a5.5 5.5 0 0 1 5.5 5.5v0a5.5 5.5 0 0 1-5.5 5.5H11"/></svg>
+                                    @else
+                                        <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+                                    @endif
+                                    {{ $badgeLabel }}
+                                </span>
                             </td>
                             @endif
                             @if(in_array('date', $visibleColumns))
@@ -188,9 +354,11 @@
                                     <div class="text-xs text-slate-400 font-mono">{{ $invoice->created_at->format('Y-m-d H:i') }}</div>
                                     
                                     <div class="flex items-center gap-2 opacity-0 group-hover/row:opacity-100 transition-opacity">
-                                        <button wire:click="confirmCancel({{ $invoice->id }})" class="p-2 rounded-lg bg-rose-50 text-rose-600 hover:bg-rose-100 transition-colors" title="Hủy hóa đơn">
-                                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
-                                        </button>
+                                        @if(auth()->user()->hasPermission('invoice.cancel'))
+                                            <button wire:click="confirmCancel({{ $invoice->id }})" class="p-2 rounded-lg bg-rose-50 text-rose-600 hover:bg-rose-100 transition-colors" title="Hủy hóa đơn">
+                                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+                                            </button>
+                                        @endif
                                     </div>
                                 </div>
                             </td>
@@ -227,6 +395,8 @@
                                                             <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/><path d="m15 5 4 4"/></svg>
                                                             Sửa
                                                         </button>
+                                                    @endif
+                                                    @if(auth()->user()->hasPermission('invoice.return'))
                                                         <button wire:click="returnItems({{ $invoice->id }})" class="flex items-center gap-2 px-3 py-1.5 bg-slate-900 text-white rounded-lg text-[10px] font-bold uppercase tracking-widest hover:bg-slate-800 transition-all {{ $invoice->status === 'Returned' ? 'opacity-50 cursor-not-allowed' : '' }}" {{ $invoice->status === 'Returned' ? 'disabled' : '' }}>
                                                             <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7v6h6"/><path d="M21 17a9 9 0 0 0-9-9 9 9 0 0 0-6 2.3L3 13"/></svg>
                                                             Trả hàng
@@ -430,8 +600,19 @@
                                                 
                                                 <div class="pt-2 mt-2 border-t border-slate-100 flex justify-between items-center">
                                                     <span class="text-[8px] text-slate-400 font-bold">Trạng thái</span>
-                                                    <span class="text-[9px] font-bold uppercase {{ $invoice->status === 'Returned' ? 'text-rose-500' : 'text-emerald-500' }}">
-                                                        {{ $invoice->status === 'Returned' ? 'Đã trả hàng' : 'Hoàn tất' }}
+                                                    @php
+                                                        $expStatus = $invoice->status;
+                                                        $expClass = $expStatus === 'Cancelled'
+                                                            ? 'text-rose-500'
+                                                            : ($expStatus === 'Returned'
+                                                                ? 'text-amber-600'
+                                                                : 'text-emerald-500');
+                                                        $expLabel = $expStatus === 'Cancelled'
+                                                            ? 'Đã hủy'
+                                                            : ($expStatus === 'Returned' ? 'Đã trả hàng' : 'Hoàn tất');
+                                                    @endphp
+                                                    <span class="text-[9px] font-bold uppercase {{ $expClass }}">
+                                                        {{ $expLabel }}
                                                     </span>
                                                 </div>
                                             </div>
