@@ -28,6 +28,7 @@ class Invoice extends Model
         'final_amount' => 'integer',
         'paid_amount' => 'integer',
         'total_commission' => 'integer',
+        'cancelled_at' => 'datetime',
     ];
 
     public function customer(): BelongsTo

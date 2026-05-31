@@ -69,7 +69,13 @@
                                 </div>
                             </td>
                             <td class="px-6 py-4 text-xs font-bold text-slate-600">{{ $invoice->seller_name }}</td>
-                            <td class="px-6 py-4 text-xs text-slate-500">{{ $invoice->cancelled_at ? $invoice->cancelled_at->format('d/m/Y H:i') : $invoice->updated_at->format('d/m/Y H:i') }}</td>
+                            <td class="px-6 py-4 text-xs text-slate-500">
+                                @php
+                                    $__dt = $invoice->cancelled_at ?: $invoice->updated_at;
+                                    if (is_string($__dt)) $__dt = \Carbon\Carbon::parse($__dt);
+                                @endphp
+                                {{ $__dt ? $__dt->format('d/m/Y H:i') : '—' }}
+                            </td>
                             <td class="px-6 py-4 text-right">
                                 <span class="text-sm font-black text-slate-900">{{ number_format($invoice->final_amount) }}đ</span>
                             </td>
