@@ -1,5 +1,5 @@
 <header
-    class="h-16 border-b border-slate-200 bg-white/80 backdrop-blur-xl flex items-center justify-between px-8 z-40 sticky top-0">
+    class="h-16 border-b border-slate-200 bg-white/80 backdrop-blur-xl flex items-center justify-between px-4 md:px-8 z-40 sticky top-0">
     <div class="flex items-center gap-4">
         <!-- Mobile Menu Toggle -->
         <button @click="sidebarOpen = true"
@@ -13,7 +13,7 @@
         </button>
     </div>
 
-    <div class="flex items-center gap-6">
+    <div class="flex items-center gap-3 md:gap-6">
         <!-- Global Actions -->
         <div class="flex items-center gap-2">
             @php
@@ -113,7 +113,7 @@
                 <div x-show="open" x-transition:enter="transition ease-out duration-200"
                     x-transition:enter-start="opacity-0 scale-95 translate-y-2"
                     x-transition:enter-end="opacity-100 scale-100 translate-y-0" x-cloak
-                    class="absolute right-0 mt-3 w-80 bg-white/95 backdrop-blur-xl border border-slate-200 rounded-3xl shadow-2xl z-50 overflow-hidden">
+                    class="absolute right-0 mt-3 w-[calc(100vw-2rem)] max-w-[20rem] sm:w-80 bg-white/95 backdrop-blur-xl border border-slate-200 rounded-3xl shadow-2xl z-50 overflow-hidden">
                     <div class="px-6 py-4 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
                         <h3 class="text-[13px] font-bold text-slate-900 tracking-widest">Thông báo</h3>
                         <span class="px-2 py-0.5 rounded-full bg-electric-blue/10 text-electric-blue text-[9px] font-bold">
@@ -169,7 +169,7 @@
                 </div>
             </div>
             <button
-                class="w-9 h-9 rounded-full flex items-center justify-center text-slate-400 hover:text-slate-900 hover:bg-slate-100 transition-all">
+                class="hidden sm:flex w-9 h-9 rounded-full items-center justify-center text-slate-400 hover:text-slate-900 hover:bg-slate-100 transition-all">
                 <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none"
                     stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                     <circle cx="12" cy="12" r="10" />
@@ -179,11 +179,11 @@
             </button>
         </div>
 
-        <div class="h-6 w-px bg-slate-200"></div>
+        <div class="hidden sm:block h-6 w-px bg-slate-200"></div>
 
         <!-- User Profile & Logout -->
         <div class="flex items-center gap-3 pl-2 group relative" x-data="{ open: false }" @click.away="open = false">
-            <div class="flex flex-col items-end cursor-pointer" @click="open = !open">
+            <div class="hidden sm:flex flex-col items-end cursor-pointer" @click="open = !open">
                 <span
                     class="text-xs font-bold text-slate-900 group-hover:text-electric-blue transition-colors">{{ auth()->user()->name ?? 'Guest' }}</span>
                 <span

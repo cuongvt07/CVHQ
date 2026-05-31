@@ -28,10 +28,10 @@
                  x-transition:leave-end="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95" 
                  class="relative transform overflow-hidden rounded-[2.5rem] bg-white text-left shadow-2xl transition-all sm:my-8 sm:w-full sm:max-w-3xl border border-slate-200">
                 
-                <div class="px-8 pt-8 pb-6">
-                    <div class="flex items-center justify-between mb-6">
+                <div class="px-4 pt-6 pb-5 sm:px-6 md:px-8 md:pt-8 md:pb-6">
+                    <div class="flex items-center justify-between mb-4 sm:mb-6">
                         <div>
-                            <h3 class="text-2xl font-bold text-slate-900">{{ $this->userId ? 'Cập nhật nhân viên' : 'Thêm nhân viên mới' }}</h3>
+                            <h3 class="text-lg sm:text-xl md:text-2xl font-bold text-slate-900">{{ $this->userId ? 'Cập nhật nhân viên' : 'Thêm nhân viên mới' }}</h3>
                             <p class="text-xs text-slate-400 mt-1 uppercase tracking-widest font-bold">Thông tin tài khoản hệ thống</p>
                         </div>
                         <button @click="open = false" class="w-10 h-10 rounded-full bg-slate-50 flex items-center justify-center text-slate-400 hover:text-slate-600 transition-colors">
@@ -43,29 +43,29 @@
                         <!-- Name -->
                         <div class="space-y-2">
                             <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Họ và tên</label>
-                            <input type="text" wire:model="name" class="w-full bg-slate-50 border border-slate-200 rounded-2xl py-3 px-5 text-sm focus:outline-none focus:border-electric-blue/40 focus:ring-4 focus:ring-electric-blue/5 transition-all" placeholder="Ví dụ: Nguyễn Văn A">
+                            <input type="text" wire:model="name" class="w-full bg-slate-50 border border-slate-200 rounded-2xl py-2.5 px-4 md:py-3 md:px-5 text-sm focus:outline-none focus:border-electric-blue/40 focus:ring-4 focus:ring-electric-blue/5 transition-all" placeholder="Ví dụ: Nguyễn Văn A">
                             @error('name') <span class="text-[10px] text-rose-500 font-bold ml-1">{{ $message }}</span> @enderror
                         </div>
 
                         <!-- Email -->
                         <div class="space-y-2">
                             <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Địa chỉ Email</label>
-                            <input type="email" wire:model="email" class="w-full bg-slate-50 border border-slate-200 rounded-2xl py-3 px-5 text-sm focus:outline-none focus:border-electric-blue/40 focus:ring-4 focus:ring-electric-blue/5 transition-all" placeholder="email@example.com">
+                            <input type="email" wire:model="email" class="w-full bg-slate-50 border border-slate-200 rounded-2xl py-2.5 px-4 md:py-3 md:px-5 text-sm focus:outline-none focus:border-electric-blue/40 focus:ring-4 focus:ring-electric-blue/5 transition-all" placeholder="email@example.com">
                             @error('email') <span class="text-[10px] text-rose-500 font-bold ml-1">{{ $message }}</span> @enderror
                         </div>
 
-                        <div class="grid grid-cols-2 gap-6">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
                             <!-- Password -->
                             <div class="space-y-2">
                                 <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Mật khẩu {{ $this->userId ? '(Để trống nếu không đổi)' : '' }}</label>
-                                <input type="password" wire:model="password" class="w-full bg-slate-50 border border-slate-200 rounded-2xl py-3 px-5 text-sm focus:outline-none focus:border-electric-blue/40 focus:ring-4 focus:ring-electric-blue/5 transition-all">
+                                <input type="password" wire:model="password" class="w-full bg-slate-50 border border-slate-200 rounded-2xl py-2.5 px-4 md:py-3 md:px-5 text-sm focus:outline-none focus:border-electric-blue/40 focus:ring-4 focus:ring-electric-blue/5 transition-all">
                                 @error('password') <span class="text-[10px] text-rose-500 font-bold ml-1">{{ $message }}</span> @enderror
                             </div>
 
                             <!-- Role -->
                             <div class="space-y-2">
                                 <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Vai trò</label>
-                                <select wire:model="role" class="w-full bg-slate-50 border border-slate-200 rounded-2xl py-3 px-5 text-sm focus:outline-none focus:border-electric-blue/40 focus:ring-4 focus:ring-electric-blue/5 transition-all cursor-pointer">
+                                <select wire:model="role" class="w-full bg-slate-50 border border-slate-200 rounded-2xl py-2.5 px-4 md:py-3 md:px-5 text-sm focus:outline-none focus:border-electric-blue/40 focus:ring-4 focus:ring-electric-blue/5 transition-all cursor-pointer">
                                     <option value="staff">Nhân viên</option>
                                     <option value="admin">Quản trị viên</option>
                                 </select>
@@ -74,19 +74,19 @@
                         </div>
 
                         <!-- Commission Eligibility Toggle -->
-                        <div class="flex items-center justify-between p-4 bg-rose-50/30 rounded-2xl border border-rose-100/50" x-show="$wire.role === 'staff'">
-                            <div class="flex items-center gap-3">
+                        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 p-3 sm:p-4 bg-rose-50/30 rounded-2xl border border-rose-100/50" x-show="$wire.role === 'staff'">
+                            <div class="flex items-start sm:items-center gap-3 min-w-0">
                                 <div class="w-10 h-10 rounded-xl bg-rose-500/10 flex items-center justify-center text-rose-500">
                                     <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v20"/><path d="m17 5-5-3-5 3"/><path d="m17 19-5 3-5-3"/><path d="M2 12h20"/><path d="m5 7-3 5 3 5"/><path d="m19 7 3 5-3 5"/></svg>
                                 </div>
-                                <div>
+                                <div class="min-w-0 flex-1">
                                     <span class="text-sm font-bold text-slate-900 italic">Áp dụng hoa hồng cho nhân viên này?</span>
                                     <p class="text-[10px] text-slate-400">Nếu tắt, nhân viên sẽ chỉ nhận lương cứng/giờ.</p>
                                 </div>
                             </div>
-                            <button type="button" 
+                            <button type="button"
                                     wire:click="$set('can_receive_commission', {{ !$this->can_receive_commission ? 'true' : 'false' }})"
-                                    class="relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none {{ $this->can_receive_commission ? 'bg-rose-500' : 'bg-slate-200' }}">
+                                    class="relative inline-flex h-6 w-11 shrink-0 self-end sm:self-auto cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none {{ $this->can_receive_commission ? 'bg-rose-500' : 'bg-slate-200' }}">
                                 <span class="pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out {{ $this->can_receive_commission ? 'translate-x-5' : 'translate-x-0' }}"></span>
                             </button>
                         </div>
@@ -123,17 +123,17 @@
                     </form>
                 </div>
 
-                <div class="bg-slate-50/50 px-8 py-5 flex flex-row-reverse gap-3">
-                    <button wire:click="save" 
+                <div class="bg-slate-50/50 px-4 py-4 sm:px-6 md:px-8 md:py-5 flex flex-row-reverse flex-wrap gap-3">
+                    <button wire:click="save"
                             wire:loading.attr="disabled"
-                            class="btn-electric px-10 py-3 shadow-[0_10px_20px_rgba(0,209,255,0.2)]">
+                            class="btn-electric px-6 py-2.5 sm:px-10 sm:py-3 shadow-[0_10px_20px_rgba(0,209,255,0.2)]">
                         <span wire:loading.remove wire:target="save">Lưu tài khoản</span>
                         <span wire:loading wire:target="save" class="flex items-center gap-2">
                             <svg class="animate-spin" xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg>
                             Đang xử lý...
                         </span>
                     </button>
-                    <button @click="open = false" class="px-8 py-3 text-sm font-bold text-slate-500 hover:text-slate-900 transition-colors">
+                    <button @click="open = false" class="px-4 py-2.5 sm:px-8 sm:py-3 text-sm font-bold text-slate-500 hover:text-slate-900 transition-colors">
                         Hủy bỏ
                     </button>
                 </div>

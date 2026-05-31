@@ -31,7 +31,7 @@
                     <h3 class="text-[10px] md:text-[14px] font-bold text-slate-900 uppercase tracking-widest">Danh sách sản phẩm</h3>
                     <span class="text-[9px] md:text-[13px] font-bold text-slate-500 uppercase tracking-widest">{{ $invoice->items->count() }} mặt hàng</span>
                 </div>
-                <div class="overflow-x-auto">
+                <div class="overflow-x-auto hidden md:block">
                     <table class="w-full">
                         <thead>
                             <tr class="bg-slate-50/50">
@@ -68,6 +68,25 @@
                             @endforeach
                         </tbody>
                     </table>
+                </div>
+                <div class="md:hidden divide-y divide-slate-50">
+                    @foreach($invoice->items as $item)
+                        <div class="px-4 py-3 flex flex-col gap-2">
+                            <div class="flex items-center gap-2 min-w-0">
+                                <div class="w-9 h-9 rounded-lg bg-slate-50 flex items-center justify-center text-slate-200 shrink-0">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="3" rx="2" ry="2"/></svg>
+                                </div>
+                                <div class="min-w-0 flex-1">
+                                    <p class="text-[12px] font-bold text-slate-800 truncate">{{ $item->product_name }}</p>
+                                    <p class="text-[9px] text-slate-500 uppercase tracking-widest">{{ $item->sku }}</p>
+                                </div>
+                            </div>
+                            <div class="flex items-center justify-between text-[11px]">
+                                <span class="text-slate-500">SL: <span class="font-bold text-slate-700">{{ number_format($item->quantity, 0) }}</span> × {{ number_format($item->unit_price, 0, ',', '.') }}</span>
+                                <span class="font-bold text-slate-900">{{ number_format($item->final_price, 0, ',', '.') }}đ</span>
+                            </div>
+                        </div>
+                    @endforeach
                 </div>
             </div>
 

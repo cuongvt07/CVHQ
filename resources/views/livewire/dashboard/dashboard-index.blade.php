@@ -192,9 +192,9 @@
                                 <span class="text-[9px] md:text-[13px] text-slate-400 uppercase tracking-widest font-mono">{{ $activity->invoice_code }}</span>
                                 <span class="text-[8px] md:text-[12px] text-slate-300">{{ $activity->created_at->diffForHumans() }}</span>
                             </div>
-                            <div class="flex items-center gap-1.5 mt-1 text-[9px] md:text-[12px] text-slate-500">
+                            <div class="flex items-center gap-1.5 mt-1 text-[9px] md:text-[12px] text-slate-500 min-w-0">
                                 <svg xmlns="http://www.w3.org/2000/svg" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-slate-300 shrink-0"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
-                                <span class="truncate">Người tạo: <span class="font-bold text-slate-700">{{ $activity->user->name ?? $activity->seller_name ?? '—' }}</span></span>
+                                <span class="truncate min-w-0 flex-1">Người tạo: <span class="font-bold text-slate-700">{{ $activity->user->name ?? $activity->seller_name ?? '—' }}</span></span>
                             </div>
                         </div>
                     </div>
@@ -231,7 +231,12 @@
             </div>
 
             {{-- Range selector --}}
-            <div class="flex flex-wrap items-center gap-1 bg-slate-50 border border-slate-200 rounded-xl p-1 shrink-0">
+            <select wire:change="setTopProductsRange($event.target.value)" class="md:hidden bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-[12px] font-bold text-slate-700 focus:outline-none">
+                @foreach($rangeLabels as $key => $label)
+                    <option value="{{ $key }}" @selected($topProductsRange === $key)>{{ $label }}</option>
+                @endforeach
+            </select>
+            <div class="hidden md:flex flex-wrap items-center gap-1 bg-slate-50 border border-slate-200 rounded-xl p-1 shrink-0">
                 @foreach($rangeLabels as $key => $label)
                     <button wire:click="setTopProductsRange('{{ $key }}')"
                             class="px-3 py-1.5 rounded-lg text-[10px] md:text-[12px] font-bold uppercase tracking-wider transition-all
