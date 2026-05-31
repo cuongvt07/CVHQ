@@ -36,23 +36,49 @@
         <div class="flex items-center gap-2">
             <div class="relative flex-1 md:max-w-md group">
                 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-300 group-focus-within:text-electric-blue transition-colors"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
-                <input type="text" wire:model.live="search" placeholder="Thêm hàng hóa vào bảng hoa hồng..." class="w-full bg-white border border-slate-200 rounded-lg py-2 pl-9 pr-3 text-[12px] focus:outline-none focus:border-electric-blue transition-all text-slate-900">
+                <input type="text" wire:model.live.debounce.500ms="search" placeholder="Thêm hàng hóa vào bảng hoa hồng..." class="w-full bg-white border border-slate-200 rounded-lg py-2 pl-9 pr-3 text-[12px] focus:outline-none focus:border-electric-blue transition-all text-slate-900">
             </div>
             <button @click="mobileFilterOpen = !mobileFilterOpen"
-                    class="shrink-0 relative w-10 h-10 flex items-center justify-center rounded-lg border transition-colors {{ $__activeFilterCount > 0 ? 'border-electric-blue bg-electric-blue/10 text-electric-blue' : 'border-slate-200 text-slate-500' }}"
+                    class="md:hidden shrink-0 relative w-10 h-10 flex items-center justify-center rounded-lg border transition-colors {{ $__activeFilterCount > 0 ? 'border-electric-blue bg-electric-blue/10 text-electric-blue' : 'border-slate-200 text-slate-500' }}"
                     title="Bộ lọc">
                 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg>
                 @if($__activeFilterCount > 0)
                     <span class="absolute -top-1 -right-1 w-4 h-4 bg-electric-blue text-white text-[9px] font-black rounded-full flex items-center justify-center">{{ $__activeFilterCount }}</span>
                 @endif
             </button>
+            <div class="hidden md:flex items-center gap-3 ml-auto">
+                <div class="flex items-center gap-3">
+                    <span class="text-[11px] text-slate-400 font-bold tracking-widest">Hiển thị:</span>
+                    <select wire:model.live="perPage" class="bg-white border border-slate-200 rounded-xl py-1.5 px-3 text-[10px] font-black text-slate-600 focus:outline-none focus:border-electric-blue transition-all cursor-pointer shadow-sm">
+                        <option value="15">15</option>
+                        <option value="25">25</option>
+                        <option value="50">50</option>
+                        <option value="100">100</option>
+                    </select>
+                </div>
+
+                <div class="h-8 w-px bg-slate-200 mx-1"></div>
+
+                <x-column-toggle
+                    :visibleColumns="$visibleColumns"
+                    :cols="[
+                        'sku' => 'Mã hàng',
+                        'name' => 'Tên hàng',
+                        'unit' => 'ĐVT',
+                        'sale_price' => 'Giá bán',
+                        'cost_price' => 'Giá vốn',
+                        'profit' => 'Lợi nhuận',
+                        'commission' => 'Hoa hồng'
+                    ]"
+                />
+            </div>
         </div>
         <div x-show="mobileFilterOpen" x-cloak
              x-transition:enter="transition ease-out duration-200"
              x-transition:enter-start="opacity-0 -translate-y-1"
              x-transition:enter-end="opacity-100 translate-y-0"
              @click.outside="mobileFilterOpen = false"
-             class="bg-slate-50 border border-slate-200 rounded-lg p-3 space-y-3">
+             class="md:hidden bg-slate-50 border border-slate-200 rounded-lg p-3 space-y-3">
             <div>
                 <div class="text-[9px] font-black text-slate-500 tracking-widest uppercase mb-1">Hiển thị mỗi trang</div>
                 <select wire:model.live="perPage" class="w-full bg-white border border-slate-200 rounded px-2 py-1.5 text-[11px] focus:outline-none focus:border-electric-blue text-slate-900">

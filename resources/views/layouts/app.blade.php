@@ -118,6 +118,20 @@
                     fail(finishRequest);
                 });
             });
+
+            // Silence Livewire null-shape rejections from aborted/superseded requests
+            // (typing fires N requests, prior N-1 get aborted → noisy unhandledrejection)
+            window.addEventListener('unhandledrejection', (e) => {
+                const r = e.reason;
+                if (r && typeof r === 'object'
+                    && r.status === null
+                    && r.body === null
+                    && r.json === null
+                    && r.errors === null) {
+                    e.preventDefault();
+                    if (window.__DEBUG_LIVEWIRE) console.debug('[livewire] aborted request swallowed', r);
+                }
+            });
         </script>
 
         <!-- Global Motion Blur Overlay -->

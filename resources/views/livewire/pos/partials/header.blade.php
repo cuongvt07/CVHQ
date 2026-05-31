@@ -11,7 +11,7 @@
             {{-- Main Search --}}
             <div class="relative w-full md:w-72 group">
                 <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-300 group-focus-within:text-electric-blue transition-colors"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
-                <input type="text" wire:model.live="search" placeholder="Tìm tên, mã SKU..." class="w-full bg-slate-50 border border-slate-200 rounded py-1 pl-8 pr-2 text-[11px] focus:outline-none focus:border-electric-blue text-slate-900">
+                <input type="text" wire:model.live.debounce.400ms="search" placeholder="Tìm tên, mã SKU..." class="w-full bg-slate-50 border border-slate-200 rounded py-1 pl-8 pr-2 text-[11px] focus:outline-none focus:border-electric-blue text-slate-900">
             </div>
 
             {{-- Branch Filter (Tất cả / Sài Gòn / Hà Nội) — segmented control --}}

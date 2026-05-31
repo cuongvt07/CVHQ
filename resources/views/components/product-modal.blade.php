@@ -195,7 +195,7 @@
                                 <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">
                                     Giá bán (VNĐ)<span class="text-rose-500 ml-0.5">*</span>
                                 </label>
-                                <input type="number" wire:model.live="sale_price" class="w-full bg-slate-50 border border-slate-200 rounded-xl sm:rounded-2xl py-2 sm:py-3 px-3 sm:px-5 text-[13px] sm:text-sm focus:outline-none focus:border-electric-blue/40 focus:ring-2 sm:focus:ring-4 focus:ring-electric-blue/5 transition-all">
+                                <input type="number" wire:model.blur="sale_price" class="w-full bg-slate-50 border border-slate-200 rounded-xl sm:rounded-2xl py-2 sm:py-3 px-3 sm:px-5 text-[13px] sm:text-sm focus:outline-none focus:border-electric-blue/40 focus:ring-2 sm:focus:ring-4 focus:ring-electric-blue/5 transition-all">
                                 @error('sale_price') <span class="text-[10px] text-rose-500 font-bold ml-1">{{ $message }}</span> @enderror
                             </div>
 
@@ -233,7 +233,7 @@
                                     <div class="flex items-center gap-3 animate-in fade-in slide-in-from-top-2 duration-200" wire:key="attr-{{ $index }}">
                                         <div class="flex-1 relative group">
                                             <input type="text"
-                                                   wire:model.live="productAttributes.{{ $index }}.key"
+                                                   wire:model.blur="productAttributes.{{ $index }}.key"
                                                    list="existing-keys-list"
                                                    placeholder="Key (VD: MÀU SẮC)"
                                                    class="w-full bg-slate-50 border border-slate-200 rounded-xl py-2.5 px-4 text-xs focus:outline-none focus:border-electric-blue/40 focus:ring-4 focus:ring-electric-blue/5 transition-all">

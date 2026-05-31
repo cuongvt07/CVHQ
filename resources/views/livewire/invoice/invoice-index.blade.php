@@ -25,7 +25,7 @@
             <!-- Search (flex-1) -->
             <div class="relative flex-1 min-w-0 group text-left">
                 <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="absolute left-4 top-1/2 -translate-y-1/2 text-slate-300 group-focus-within:text-electric-blue transition-colors"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
-                <input type="text" wire:model.live="search" placeholder="Tìm kiếm mã hóa đơn, người bán..." class="w-full bg-slate-50 border border-slate-200 rounded-xl py-2.5 pl-12 pr-6 text-[11px] focus:outline-none focus:border-electric-blue transition-all text-slate-900 shadow-sm">
+                <input type="text" wire:model.live.debounce.500ms="search" placeholder="Tìm kiếm mã hóa đơn, người bán..." class="w-full bg-slate-50 border border-slate-200 rounded-xl py-2.5 pl-12 pr-6 text-[11px] focus:outline-none focus:border-electric-blue transition-all text-slate-900 shadow-sm">
             </div>
 
             <!-- Status Filter (always inline — high-frequency, like POS branch filter) -->
@@ -52,8 +52,8 @@
                 </button>
             </div>
 
-            <!-- Funnel trigger -->
-            <button @click="mobileFilterOpen = !mobileFilterOpen" class="shrink-0 relative w-10 h-10 flex items-center justify-center rounded-lg border transition-colors {{ $__activeFilterCount > 0 ? 'border-electric-blue bg-electric-blue/10 text-electric-blue' : 'border-slate-200 text-slate-500' }}" title="Bộ lọc">
+            <!-- Funnel trigger (mobile only) -->
+            <button @click="mobileFilterOpen = !mobileFilterOpen" class="md:hidden shrink-0 relative w-10 h-10 flex items-center justify-center rounded-lg border transition-colors {{ $__activeFilterCount > 0 ? 'border-electric-blue bg-electric-blue/10 text-electric-blue' : 'border-slate-200 text-slate-500' }}" title="Bộ lọc">
                 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg>
                 @if($__activeFilterCount > 0)
                     <span class="absolute -top-1 -right-1 w-4 h-4 bg-electric-blue text-white text-[9px] font-black rounded-full flex items-center justify-center">{{ $__activeFilterCount }}</span>
@@ -71,13 +71,57 @@
             @endif
         </div>
 
-        <!-- Slide-down filter panel -->
+        <!-- Desktop inline filter row -->
+        <div class="hidden md:flex flex-wrap items-center justify-between gap-3 w-full">
+            <div class="flex flex-wrap items-center gap-3 flex-1">
+                <!-- Date Filter Row -->
+                <div class="flex items-center gap-2">
+                    <div class="relative group">
+                        <input type="date" wire:model.live="startDate" class="bg-white border border-slate-200 rounded-xl px-3 py-2 text-[11px] focus:outline-none focus:border-electric-blue transition-all text-slate-600 shadow-sm">
+                    </div>
+                    <span class="text-[10px] font-bold text-slate-300 uppercase tracking-tighter">đến</span>
+                    <div class="relative group">
+                        <input type="date" wire:model.live="endDate" class="bg-white border border-slate-200 rounded-xl px-3 py-2 text-[11px] focus:outline-none focus:border-electric-blue transition-all text-slate-600 shadow-sm">
+                    </div>
+                </div>
+
+                <!-- Seller Filter -->
+                <div class="relative w-48 group">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-300 group-focus-within:text-electric-blue transition-colors"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                    <input type="text" wire:model.live.debounce.500ms="sellerFilter" placeholder="Lọc nhân viên..." class="w-full bg-white border border-slate-200 rounded-xl py-2 pl-9 pr-4 text-[11px] focus:outline-none focus:border-electric-blue transition-all text-slate-900 shadow-sm">
+                </div>
+            </div>
+
+            <div class="flex items-center gap-3">
+                <span class="text-[10px] text-slate-400 font-bold tracking-widest">Hiển thị:</span>
+                <select wire:model.live="perPage" class="bg-white border border-slate-200 rounded-lg py-1.5 px-3 text-[10px] font-bold text-slate-600 focus:outline-none cursor-pointer shadow-sm">
+                    <option value="10">10</option>
+                    <option value="25">25</option>
+                    <option value="50">50</option>
+                    <option value="100">100</option>
+                </select>
+
+                <x-column-toggle
+                    :visibleColumns="$visibleColumns"
+                    :cols="[
+                        'code' => 'Mã hóa đơn',
+                        'customer' => 'Khách hàng',
+                        'amount' => 'Tổng tiền',
+                        'method' => 'Phương thức',
+                        'status' => 'Trạng thái',
+                        'date' => 'Ngày tạo'
+                    ]"
+                />
+            </div>
+        </div>
+
+        <!-- Slide-down filter panel (mobile only) -->
         <div x-show="mobileFilterOpen" x-cloak
              x-transition:enter="transition ease-out duration-200"
              x-transition:enter-start="opacity-0 -translate-y-1"
              x-transition:enter-end="opacity-100 translate-y-0"
              @click.outside="mobileFilterOpen = false"
-             class="bg-slate-50 border border-slate-200 rounded-lg p-3 space-y-3">
+             class="md:hidden bg-slate-50 border border-slate-200 rounded-lg p-3 space-y-3">
 
             <!-- Date range -->
             <div>
@@ -91,7 +135,7 @@
             <!-- Seller filter -->
             <div>
                 <div class="text-[9px] font-black text-slate-500 tracking-widest uppercase mb-1">NHÂN VIÊN</div>
-                <input type="text" wire:model.live="sellerFilter" placeholder="Lọc nhân viên..." class="w-full bg-white border border-slate-200 rounded px-2 py-1.5 text-[11px] focus:outline-none focus:border-electric-blue text-slate-900">
+                <input type="text" wire:model.live.debounce.500ms="sellerFilter" placeholder="Lọc nhân viên..." class="w-full bg-white border border-slate-200 rounded px-2 py-1.5 text-[11px] focus:outline-none focus:border-electric-blue text-slate-900">
             </div>
 
             <!-- Per page -->
@@ -425,7 +469,7 @@
                                                         <!-- Customer Search -->
                                                         <div class="bg-slate-50 p-3 rounded-xl border border-slate-100 relative">
                                                             <label class="text-[8px] font-bold text-slate-400 tracking-widest mb-1.5 block">Khách hàng</label>
-                                                            <input type="text" wire:model.live="editCustomerSearch" placeholder="Tìm tên/SĐT..." class="w-full bg-white border border-slate-200 rounded-lg py-2 px-3 text-xs focus:outline-none focus:border-electric-blue/40 transition-all">
+                                                            <input type="text" wire:model.live.debounce.400ms="editCustomerSearch" placeholder="Tìm tên/SĐT..." class="w-full bg-white border border-slate-200 rounded-lg py-2 px-3 text-xs focus:outline-none focus:border-electric-blue/40 transition-all">
                                                             @if(!empty($this->customers))
                                                                 <div class="absolute z-20 w-full left-0 mt-1 bg-white border border-slate-100 rounded-xl shadow-xl overflow-hidden max-h-48 overflow-y-auto">
                                                                     @foreach($this->customers as $customer)
@@ -442,7 +486,7 @@
                                                         <div class="bg-slate-50 p-3 rounded-xl border border-slate-100 relative">
                                                             <label class="text-[8px] font-bold text-slate-400 tracking-widest mb-1.5 block">Thêm sản phẩm</label>
                                                             <div class="relative">
-                                                                <input type="text" wire:model.live="editProductSearch" placeholder="Nhập tên/SKU..." class="w-full bg-white border border-slate-200 rounded-lg py-2 px-3 text-xs focus:outline-none focus:border-electric-blue/40 transition-all">
+                                                                <input type="text" wire:model.live.debounce.400ms="editProductSearch" placeholder="Nhập tên/SKU..." class="w-full bg-white border border-slate-200 rounded-lg py-2 px-3 text-xs focus:outline-none focus:border-electric-blue/40 transition-all">
                                                                 <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-300"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
                                                             </div>
                                                             @if(!empty($this->products))

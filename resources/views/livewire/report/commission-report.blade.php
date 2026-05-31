@@ -20,7 +20,7 @@
         <div x-data="{ mobileFilterOpen: false }" @keydown.escape.window="mobileFilterOpen = false" class="relative flex items-center gap-3">
             @php $__activeFilterCount = ($dateRange && $dateRange !== 'this_month' ? 1 : 0); @endphp
             <button @click="mobileFilterOpen = !mobileFilterOpen"
-                    class="shrink-0 relative w-10 h-10 flex items-center justify-center rounded-lg border transition-colors
+                    class="md:hidden shrink-0 relative w-10 h-10 flex items-center justify-center rounded-lg border transition-colors
                            {{ $__activeFilterCount > 0
                               ? 'border-electric-blue bg-electric-blue/10 text-electric-blue'
                               : 'border-slate-200 text-slate-500' }}"
@@ -36,7 +36,7 @@
                  x-transition:enter-start="opacity-0 -translate-y-1"
                  x-transition:enter-end="opacity-100 translate-y-0"
                  @click.outside="mobileFilterOpen = false"
-                 class="absolute right-0 top-full mt-1 z-50 w-72 bg-white border border-slate-200 rounded-lg shadow-xl p-3 space-y-3">
+                 class="md:hidden absolute right-0 top-full mt-1 z-50 w-72 bg-white border border-slate-200 rounded-lg shadow-xl p-3 space-y-3">
                 <div>
                     <div class="text-[9px] font-black text-slate-500 tracking-widest uppercase mb-1">Khoảng thời gian</div>
                     <select wire:model.live="dateRange" class="w-full bg-white border border-slate-200 rounded px-2 py-1.5 text-[11px] focus:outline-none focus:border-electric-blue text-slate-900">
@@ -66,6 +66,29 @@
                 <div class="flex items-center justify-end pt-1">
                     <button @click="mobileFilterOpen = false" class="px-3 py-1 bg-electric-blue text-white rounded text-[10px] font-bold uppercase tracking-wider">Xong</button>
                 </div>
+            </div>
+
+            <div class="hidden md:flex flex-wrap items-center gap-3 w-full">
+                <select wire:model.live="dateRange" class="bg-slate-50 border border-slate-200 rounded-lg px-3 py-1.5 text-xs font-bold text-slate-600 focus:outline-none">
+                    <option value="today">Hôm nay</option>
+                    <option value="this_week">Tuần này</option>
+                    <option value="this_month">Tháng này</option>
+                    <option value="last_month">Tháng trước</option>
+                </select>
+
+                @if($view === 'summary')
+                    <div class="h-8 w-px bg-slate-100 mx-1"></div>
+                    <x-column-toggle
+                        :visibleColumns="$visibleColumns"
+                        :cols="[
+                            'employee' => 'Nhân viên',
+                            'orders' => 'Số đơn hàng',
+                            'sales' => 'Tổng doanh số',
+                            'commission' => 'Tổng hoa hồng',
+                            'actions' => 'Thao tác'
+                        ]"
+                    />
+                @endif
             </div>
         </div>
     </header>

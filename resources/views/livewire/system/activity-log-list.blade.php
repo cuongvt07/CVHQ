@@ -17,7 +17,7 @@
             </div>
 
             <button @click="mobileFilterOpen = !mobileFilterOpen"
-                    class="shrink-0 relative w-10 h-10 flex items-center justify-center rounded-lg border transition-colors
+                    class="md:hidden shrink-0 relative w-10 h-10 flex items-center justify-center rounded-lg border transition-colors
                            {{ $__activeFilterCount > 0
                               ? 'border-electric-blue bg-electric-blue/10 text-electric-blue'
                               : 'border-slate-200 text-slate-500' }}"
@@ -27,6 +27,55 @@
                     <span class="absolute -top-1 -right-1 w-4 h-4 bg-electric-blue text-white text-[9px] font-black rounded-full flex items-center justify-center">{{ $__activeFilterCount }}</span>
                 @endif
             </button>
+
+            <div class="hidden md:flex flex-wrap items-center gap-3">
+                <select wire:model.live="user_id" class="bg-white border border-slate-200 rounded-xl px-4 py-2 text-xs font-bold text-slate-600 focus:outline-none focus:border-electric-blue transition-all shadow-sm">
+                    <option value="">Tất cả nhân viên</option>
+                    @foreach($users as $user)
+                        <option value="{{ $user->id }}">{{ $user->name }}</option>
+                    @endforeach
+                </select>
+
+                <select wire:model.live="action" class="bg-white border border-slate-200 rounded-xl px-4 py-2 text-xs font-bold text-slate-600 focus:outline-none focus:border-electric-blue transition-all shadow-sm">
+                    <option value="">Tất cả hành động</option>
+                    @foreach($actions as $act)
+                        <option value="{{ $act }}">{{ ucfirst($act) }}</option>
+                    @endforeach
+                </select>
+
+                <input type="date" wire:model.live="date_from" class="bg-white border border-slate-200 rounded-xl px-4 py-2 text-xs font-bold text-slate-600 focus:outline-none focus:border-electric-blue transition-all shadow-sm">
+                <span class="text-slate-300">→</span>
+                <input type="date" wire:model.live="date_to" class="bg-white border border-slate-200 rounded-xl px-4 py-2 text-xs font-bold text-slate-600 focus:outline-none focus:border-electric-blue transition-all shadow-sm">
+
+                <button wire:click="clearFilters" class="p-2 text-slate-400 hover:text-rose-500 transition-colors" title="Xóa lọc">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/></svg>
+                </button>
+
+                <div class="h-8 w-px bg-slate-100 mx-2"></div>
+
+                <div class="flex items-center gap-3">
+                    <span class="text-[11px] text-slate-400 font-bold tracking-widest">Hiển thị:</span>
+                    <select wire:model.live="perPage" class="bg-white border border-slate-200 rounded-xl py-1.5 px-3 text-[10px] font-black text-slate-600 focus:outline-none focus:border-electric-blue transition-all cursor-pointer shadow-sm">
+                        <option value="10">10</option>
+                        <option value="25">25</option>
+                        <option value="50">50</option>
+                        <option value="100">100</option>
+                    </select>
+                </div>
+
+                <div class="h-8 w-px bg-slate-100 mx-2"></div>
+
+                <x-column-toggle
+                    :visibleColumns="$visibleColumns"
+                    :cols="[
+                        'time' => 'Thời gian',
+                        'user' => 'Nhân viên',
+                        'action' => 'Hành động',
+                        'object' => 'Đối tượng',
+                        'details' => 'Chi tiết'
+                    ]"
+                />
+            </div>
         </div>
 
         <div x-show="mobileFilterOpen" x-cloak
@@ -34,7 +83,7 @@
              x-transition:enter-start="opacity-0 -translate-y-1"
              x-transition:enter-end="opacity-100 translate-y-0"
              @click.outside="mobileFilterOpen = false"
-             class="bg-slate-50 border border-slate-200 rounded-lg p-3 space-y-3 max-h-[80vh] overflow-y-auto custom-scrollbar">
+             class="md:hidden bg-slate-50 border border-slate-200 rounded-lg p-3 space-y-3 max-h-[80vh] overflow-y-auto custom-scrollbar">
 
             <div>
                 <div class="text-[9px] font-black text-slate-500 tracking-widest uppercase mb-1">Nhân viên</div>

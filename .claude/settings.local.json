@@ -20,7 +20,11 @@
       "Bash(php -l \"d:/CVHQ/app/Livewire/Product/ProductIndex.php\")",
       "Bash(php artisan *)",
       "Bash(php -l app/Livewire/Invoice/InvoiceIndex.php)",
-      "Bash(php -v)"
+      "Bash(php -v)",
+      "Bash(git show *)"
+    ],
+    "additionalDirectories": [
+      "\\tmp"
     ]
   }
 }
