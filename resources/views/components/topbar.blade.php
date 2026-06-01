@@ -1,11 +1,11 @@
 <header
-    class="h-16 border-b border-slate-200 bg-white/80 backdrop-blur-xl flex items-center justify-between px-4 md:px-8 z-40 sticky top-0">
+    class="h-8 md:h-16 border-b border-slate-200 bg-white/80 backdrop-blur-xl flex items-center justify-between px-4 md:px-8 z-40 sticky top-0">
     <div class="flex items-center gap-4">
         <!-- Mobile Menu Toggle (state 3 → state 1: hiện sidebar icon-only) -->
         <button @click="sidebarHidden = false; sidebarCollapsed = true"
-            class="lg:hidden p-2 -ml-2 text-slate-500 hover:text-slate-900 transition-colors">
-            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
-                stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            class="lg:hidden p-1 md:p-2 -ml-1 md:-ml-2 text-slate-500 hover:text-slate-900 transition-colors">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none"
+                stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="md:w-6 md:h-6">
                 <line x1="3" y1="12" x2="21" y2="12" />
                 <line x1="3" y1="6" x2="21" y2="6" />
                 <line x1="3" y1="18" x2="21" y2="18" />
@@ -98,14 +98,14 @@
             @endphp
             <div class="relative" x-data="{ open: false }" @click.away="open = false">
                 <button @click="open = !open"
-                    class="w-9 h-9 rounded-full flex items-center justify-center text-slate-400 hover:text-slate-900 hover:bg-slate-100 transition-all relative">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none"
-                        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    class="w-7 h-7 md:w-9 md:h-9 rounded-full flex items-center justify-center text-slate-400 hover:text-slate-900 hover:bg-slate-100 transition-all relative">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none"
+                        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="md:w-[18px] md:h-[18px]">
                         <path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9" />
                         <path d="M13.73 21a2 2 0 0 1-3.46 0" />
                     </svg>
                     @if($__notifCount > 0)
-                        <span class="absolute top-1.5 right-1.5 min-w-[16px] h-4 px-1 bg-electric-blue text-white text-[9px] font-black rounded-full flex items-center justify-center shadow-[0_0_8px_rgba(0,136,204,0.6)]">{{ $__notifCount > 9 ? '9+' : $__notifCount }}</span>
+                        <span class="absolute -top-0.5 -right-0.5 md:top-1.5 md:right-1.5 min-w-[14px] md:min-w-[16px] h-3.5 md:h-4 px-1 bg-electric-blue text-white text-[8px] md:text-[9px] font-black rounded-full flex items-center justify-center shadow-[0_0_8px_rgba(0,136,204,0.6)]">{{ $__notifCount > 9 ? '9+' : $__notifCount }}</span>
                     @endif
                 </button>
 
@@ -189,7 +189,7 @@
                 <span
                     class="text-[9px] text-slate-400 tracking-widest font-mono">{{ auth()->user()->role ?? 'User' }}</span>
             </div>
-            <div class="w-10 h-10 rounded-full border-2 border-slate-100 overflow-hidden group-hover:border-electric-blue/30 transition-all cursor-pointer"
+            <div class="w-7 h-7 md:w-10 md:h-10 rounded-full border-2 border-slate-100 overflow-hidden group-hover:border-electric-blue/30 transition-all cursor-pointer"
                 @click="open = !open">
                 <img src="https://ui-avatars.com/api/?name={{ urlencode(auth()->user()->name ?? 'U') }}&background=E0F2FE&color=0088CC"
                     class="w-full h-full object-cover">

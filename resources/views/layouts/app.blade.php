@@ -42,7 +42,7 @@
                 <x-topbar />
 
                 <!-- Scrollable Main Content -->
-                <main class="flex-1 overflow-y-auto custom-scrollbar relative bg-white">
+                <main class="flex-1 overflow-y-auto custom-scrollbar relative bg-white px-1.5 md:px-0">
                     {{ $slot }}
                 </main>
             </div>
