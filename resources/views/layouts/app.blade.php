@@ -16,29 +16,28 @@
         @vite(['resources/css/app.css', 'resources/js/app.js'])
         @livewireStyles
     </head>
-    <body class="antialiased bg-white text-slate-900 selection:bg-electric-blue selection:text-white overflow-hidden h-screen"
+    <body class="antialiased bg-white text-slate-900 selection:bg-electric-blue selection:text-white overflow-hidden h-dvh"
           x-data="{
-            sidebarOpen: false,
+            sidebarHidden: true,
             sidebarCollapsed: @json(request()->routeIs('pos'))
           }">
-        
+
         <div class="flex h-full w-full">
-            <!-- Mobile Sidebar Overlay -->
-            <div x-show="sidebarOpen" 
+            <!-- Mobile Sidebar Overlay (chỉ hiện khi sidebar mở trên mobile) -->
+            <div x-show="!sidebarHidden"
                  x-transition:enter="transition-opacity ease-linear duration-300"
                  x-transition:enter-start="opacity-0"
                  x-transition:enter-end="opacity-100"
                  x-transition:leave="transition-opacity ease-linear duration-300"
                  x-transition:leave-start="opacity-100"
                  x-transition:leave-end="opacity-0"
-                 @click="sidebarOpen = false"
+                 @click="sidebarHidden = true"
                  class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[50] lg:hidden"></div>
 
             <!-- Persistent Sidebar -->
             <x-sidebar />
 
-            <div class="flex-1 flex flex-col min-w-0 h-full overflow-hidden transition-[padding] duration-300"
-                 :class="{ 'pl-16 lg:pl-0': sidebarCollapsed }">
+            <div class="flex-1 flex flex-col min-w-0 h-full overflow-hidden">
                 <!-- Persistent Header -->
                 <x-topbar />
 

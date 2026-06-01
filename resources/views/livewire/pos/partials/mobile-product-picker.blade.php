@@ -21,7 +21,7 @@
                    class="w-full bg-slate-50 border border-slate-200 rounded py-1.5 pl-8 pr-3 text-[12px] focus:outline-none focus:border-electric-blue text-slate-900">
         </div>
 
-        @php $__activeFilterCount = (is_array($selectedCategories ?? null) ? count($selectedCategories) : 0) + ($boxCode ? 1 : 0); @endphp
+        @php $__activeFilterCount = ($branch !== 'all' ? 1 : 0) + ($boxCode ? 1 : 0); @endphp
         <button @click="filterOpen = !filterOpen"
                 class="shrink-0 relative w-9 h-9 flex items-center justify-center rounded border transition-colors
                        {{ $__activeFilterCount > 0
@@ -42,20 +42,25 @@
          x-transition:enter-end="opacity-100 translate-y-0"
          class="shrink-0 bg-slate-50 border-b border-slate-200 px-2 py-2 space-y-2">
 
-        {{-- Category multi-select --}}
+        {{-- Branch filter (segmented control: Tất cả / Sài Gòn / Hà Nội) --}}
         <div>
-            <div class="text-[9px] font-black text-slate-500 tracking-widest uppercase mb-1">Danh mục</div>
-            <div class="max-h-32 overflow-y-auto bg-white border border-slate-200 rounded p-1 custom-scrollbar">
-                @if(count($categories_list) === 0)
-                    <div class="text-[10px] text-slate-300 text-center py-2">Không có danh mục</div>
-                @else
-                    @foreach($categories_list as $cat)
-                        <label class="flex items-center gap-2 px-2 py-1 hover:bg-slate-50 rounded cursor-pointer">
-                            <input type="checkbox" wire:model.live="selectedCategories" value="{{ $cat }}" class="w-3.5 h-3.5 rounded border-slate-300 text-electric-blue focus:ring-electric-blue/20">
-                            <span class="text-[11px] font-medium text-slate-700">{{ $cat }}</span>
-                        </label>
-                    @endforeach
-                @endif
+            <div class="text-[9px] font-black text-slate-500 tracking-widest uppercase mb-1">Chi nhánh</div>
+            <div class="flex items-center gap-0.5 bg-slate-100 border border-slate-200 p-0.5 rounded">
+                <button wire:click="$set('branch', 'all')" type="button"
+                        class="flex-1 px-2 py-1 rounded text-[10px] font-black uppercase tracking-wider transition-all
+                               {{ $branch === 'all' ? 'bg-white text-electric-blue shadow-sm' : 'text-slate-500 hover:text-slate-700' }}">
+                    Tất cả
+                </button>
+                <button wire:click="$set('branch', 'sg')" type="button"
+                        class="flex-1 px-2 py-1 rounded text-[10px] font-black uppercase tracking-wider transition-all
+                               {{ $branch === 'sg' ? 'bg-emerald-500 text-white shadow-sm' : 'text-slate-500 hover:text-slate-700' }}">
+                    Sài Gòn
+                </button>
+                <button wire:click="$set('branch', 'hn')" type="button"
+                        class="flex-1 px-2 py-1 rounded text-[10px] font-black uppercase tracking-wider transition-all
+                               {{ $branch === 'hn' ? 'bg-rose-500 text-white shadow-sm' : 'text-slate-500 hover:text-slate-700' }}">
+                    Hà Nội
+                </button>
             </div>
         </div>
 
@@ -76,16 +81,16 @@
     </div>
 
     {{-- Active filters strip (with X to remove individually) --}}
-    @if(!empty($selectedCategories) || $boxCode)
+    @if($branch !== 'all' || $boxCode)
         <div class="shrink-0 flex flex-wrap items-center gap-1 px-2 py-1 bg-slate-50 border-b border-slate-100">
-            @foreach($selectedCategories as $cat)
-                <span class="inline-flex items-center gap-1 text-[9px] font-bold text-electric-blue bg-white border border-electric-blue/20 pl-1.5 pr-0.5 py-0.5 rounded">
-                    DM: {{ $cat }}
-                    <button wire:click="clearFilter('selectedCategories', '{{ $cat }}')" class="text-slate-300 hover:text-rose-500 w-3.5 h-3.5 flex items-center justify-center">
+            @if($branch !== 'all')
+                <span class="inline-flex items-center gap-1 text-[9px] font-bold {{ $branch === 'sg' ? 'text-emerald-700 border-emerald-200' : 'text-rose-700 border-rose-200' }} bg-white border pl-1.5 pr-0.5 py-0.5 rounded">
+                    CN: {{ $branch === 'sg' ? 'Sài Gòn' : 'Hà Nội' }}
+                    <button wire:click="$set('branch', 'all')" class="text-slate-300 hover:text-rose-500 w-3.5 h-3.5 flex items-center justify-center">
                         <svg xmlns="http://www.w3.org/2000/svg" width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
                     </button>
                 </span>
-            @endforeach
+            @endif
             @if($boxCode)
                 <span class="inline-flex items-center gap-1 text-[9px] font-bold text-emerald-600 bg-white border border-emerald-200 pl-1.5 pr-0.5 py-0.5 rounded">
                     Thùng: {{ $boxCode }}

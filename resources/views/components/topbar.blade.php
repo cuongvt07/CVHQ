@@ -1,8 +1,8 @@
 <header
     class="h-16 border-b border-slate-200 bg-white/80 backdrop-blur-xl flex items-center justify-between px-4 md:px-8 z-40 sticky top-0">
     <div class="flex items-center gap-4">
-        <!-- Mobile Menu Toggle -->
-        <button @click="sidebarOpen = true"
+        <!-- Mobile Menu Toggle (state 3 → state 1: hiện sidebar icon-only) -->
+        <button @click="sidebarHidden = false; sidebarCollapsed = true"
             class="lg:hidden p-2 -ml-2 text-slate-500 hover:text-slate-900 transition-colors">
             <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
                 stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">

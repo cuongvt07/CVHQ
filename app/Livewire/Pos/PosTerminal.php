@@ -582,6 +582,7 @@ class PosTerminal extends Component
             $this->selectedCategories = [];
             $this->category = 'All';
             $this->boxCode = '';
+            $this->branch = 'all';
             $this->resetPage();
             return;
         }

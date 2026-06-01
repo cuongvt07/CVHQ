@@ -10,23 +10,29 @@
     </main>
 
     {{-- SIDEBAR: Checkout Panel (default visible on mobile) --}}
-    <aside class="flex-1 md:flex-none md:w-80 lg:w-96 flex flex-col border-l border-slate-200 bg-white md:bg-slate-50/80 backdrop-blur-3xl overflow-hidden h-full">
+    <aside class="flex-1 md:flex-none md:w-80 lg:w-96 flex flex-col border-l border-slate-200 bg-white md:bg-slate-50/80 backdrop-blur-3xl overflow-hidden h-full min-h-0">
 
-        @include('livewire.pos.partials.tabs-bar')
+        {{-- TOP STICKY: tabs + (mobile only) add product button --}}
+        <div class="shrink-0">
+            @include('livewire.pos.partials.tabs-bar')
 
-        {{-- Mobile-only: "Add product" button to open picker overlay --}}
-        <div class="md:hidden px-1.5 py-1 border-b border-slate-100 shrink-0">
-            <button @click="mobileProductPicker = true"
-                    class="w-full flex items-center justify-center gap-2 px-3 py-2 bg-electric-blue/5 hover:bg-electric-blue/10 border border-dashed border-electric-blue/30 rounded text-electric-blue font-bold text-[12px] transition-colors">
-                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
-                Thêm sản phẩm vào đơn
-            </button>
+            {{-- Mobile-only: "Add product" button to open picker overlay --}}
+            <div class="md:hidden px-1.5 py-1 border-b border-slate-100">
+                <button @click="mobileProductPicker = true"
+                        class="w-full flex items-center justify-center gap-2 px-3 py-2 bg-electric-blue/5 hover:bg-electric-blue/10 border border-dashed border-electric-blue/30 rounded text-electric-blue font-bold text-[12px] transition-colors">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+                    Thêm sản phẩm vào đơn
+                </button>
+            </div>
         </div>
 
-        @include('livewire.pos.partials.customer-selector')
-        @include('livewire.pos.partials.channel-payment')
-        @include('livewire.pos.partials.cart-items')
-        @include('livewire.pos.partials.financials')
+        {{-- SCROLLABLE MIDDLE: customer, channel/payment, cart, financial details (everything except checkout button) --}}
+        <div class="flex-1 min-h-0 overflow-y-auto custom-scrollbar flex flex-col">
+            @include('livewire.pos.partials.customer-selector')
+            @include('livewire.pos.partials.channel-payment')
+            @include('livewire.pos.partials.cart-items')
+            @include('livewire.pos.partials.financials')
+        </div>
     </aside>
 
     {{-- Mobile-only product picker overlay --}}
