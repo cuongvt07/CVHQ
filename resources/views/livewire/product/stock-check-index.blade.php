@@ -14,6 +14,16 @@
                         <input type="radio" wire:model.live="dateFilter" value="all" class="text-electric-blue">
                         Tất cả
                     </label>
+                    <label class="flex items-center gap-2 text-xs font-bold text-slate-700">
+                        <input type="radio" wire:model.live="dateFilter" value="custom" class="text-electric-blue">
+                        Tuy chon
+                    </label>
+                    @if($dateFilter === 'custom')
+                        <div class="space-y-2">
+                            <input type="date" wire:model.live="dateFrom" class="w-full bg-white border border-slate-200 rounded-lg px-3 py-2 text-xs focus:outline-none focus:border-electric-blue">
+                            <input type="date" wire:model.live="dateTo" class="w-full bg-white border border-slate-200 rounded-lg px-3 py-2 text-xs focus:outline-none focus:border-electric-blue">
+                        </div>
+                    @endif
                 </div>
 
                 <div class="space-y-3">
@@ -34,7 +44,12 @@
 
                 <div class="space-y-2">
                     <div class="text-[10px] font-black text-slate-500 uppercase tracking-widest">Người tạo</div>
-                    <input type="text" wire:model.live.debounce.400ms="creatorFilter" placeholder="Chọn người tạo" class="w-full bg-white border border-slate-200 rounded-lg px-3 py-2 text-xs focus:outline-none focus:border-electric-blue">
+                    <select wire:model.live="creatorFilter" class="w-full bg-white border border-slate-200 rounded-lg px-3 py-2 text-xs focus:outline-none focus:border-electric-blue">
+                        <option value="">Tat ca nguoi tao</option>
+                        @foreach($creators as $creator)
+                            <option value="{{ $creator->id }}">{{ $creator->name }}</option>
+                        @endforeach
+                    </select>
                 </div>
             </aside>
 
@@ -44,6 +59,12 @@
                         <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
                         <input type="text" wire:model.live.debounce.400ms="search" placeholder="Theo mã phiếu kiểm" class="w-full h-8 bg-white border border-slate-200 rounded-lg pl-9 pr-3 text-xs focus:outline-none focus:border-electric-blue">
                     </div>
+                    @if(count($selectedChecks) > 0)
+                        <button wire:click="deleteSelected" wire:confirm="Xoa cac phieu kiem da chon?" class="inline-flex items-center gap-1.5 h-8 px-3 rounded-lg border border-rose-200 text-rose-600 text-xs font-bold hover:bg-rose-50">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M3 6h18"/><path d="M19 6v14H5V6"/><path d="M8 6V4h8v2"/></svg>
+                            Xoa ({{ count($selectedChecks) }})
+                        </button>
+                    @endif
                     <button wire:click="create" class="ml-auto inline-flex items-center gap-1.5 h-8 px-3 rounded-lg border border-electric-blue text-electric-blue text-xs font-bold hover:bg-electric-blue/5">
                         <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14"/><path d="M12 5v14"/></svg>
                         Kiểm kho
@@ -54,7 +75,7 @@
                     <table class="w-full text-left border-collapse">
                         <thead class="sticky top-0 z-10 bg-blue-50">
                             <tr class="border-b border-slate-200">
-                                <th class="px-3 py-2 w-8"><input type="checkbox" class="rounded border-slate-300"></th>
+                                <th class="px-3 py-2 w-8"></th>
                                 <th class="px-3 py-2 text-[11px] font-black text-slate-700">Mã kiểm kho</th>
                                 <th class="px-3 py-2 text-[11px] font-black text-slate-700">Thời gian</th>
                                 <th class="px-3 py-2 text-[11px] font-black text-slate-700">Ngày cân bằng</th>
@@ -68,9 +89,19 @@
                         <tbody class="divide-y divide-slate-100">
                             @forelse($checks as $check)
                                 <tr wire:key="check-{{ $check->id }}" wire:click="edit({{ $check->id }})" class="hover:bg-slate-50 cursor-pointer">
-                                    <td class="px-3 py-2"><input type="checkbox" class="rounded border-slate-300"></td>
-                                    <td class="px-3 py-2 text-xs font-bold text-electric-blue">{{ $check->code }}</td>
-                                    <td class="px-3 py-2 text-xs text-slate-600">{{ $check->created_at->format('d/m/Y H:i') }}</td>
+                                    <td class="px-3 py-2"><input type="checkbox" wire:click.stop wire:model.live="selectedChecks" value="{{ $check->id }}" class="rounded border-slate-300"></td>
+                                    <td class="px-3 py-2 text-xs">
+                                        <div class="font-bold text-electric-blue">{{ $check->code }}</div>
+                                        @if($check->status === 'completed')
+                                            <span class="mt-1 inline-flex items-center rounded-full bg-emerald-50 px-2 py-0.5 text-[10px] font-black text-emerald-700 border border-emerald-100">Hoan thanh</span>
+                                        @else
+                                            <span class="mt-1 inline-flex items-center rounded-full bg-amber-50 px-2 py-0.5 text-[10px] font-black text-amber-700 border border-amber-100">Phieu tam</span>
+                                        @endif
+                                    </td>
+                                    <td class="px-3 py-2 text-xs text-slate-600">
+                                        <div>{{ $check->created_at->format('d/m/Y H:i') }}</div>
+                                        <div class="mt-1 text-[10px] text-slate-400">{{ $check->user?->name ?: '-' }}</div>
+                                    </td>
                                     <td class="px-3 py-2 text-xs text-slate-500">{{ $check->balanced_at?->format('d/m/Y H:i') ?: '-' }}</td>
                                     <td class="px-3 py-2 text-xs text-right font-bold">{{ number_format($check->total_actual) }}</td>
                                     <td class="px-3 py-2 text-xs text-right font-bold {{ $check->total_difference === 0 ? 'text-slate-500' : 'text-rose-600' }}">{{ number_format($check->total_difference) }}</td>

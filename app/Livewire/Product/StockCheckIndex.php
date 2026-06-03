@@ -6,6 +6,7 @@ use App\Models\Product;
 use App\Models\StockCheck;
 use App\Models\StockCheckItem;
 use App\Models\StockCheckLog;
+use App\Models\User;
 use Livewire\Component;
 use Livewire\WithPagination;
 use App\Traits\HasPermissions;
@@ -18,8 +19,11 @@ class StockCheckIndex extends Component
     public string $mode = 'list';
     public string $search = '';
     public string $dateFilter = 'month';
+    public string $dateFrom = '';
+    public string $dateTo = '';
     public array $statusFilter = ['draft', 'completed'];
     public string $creatorFilter = '';
+    public array $selectedChecks = [];
 
     public ?int $stockCheckId = null;
     public string $code = '';
@@ -46,6 +50,31 @@ class StockCheckIndex extends Component
     }
 
     public function updatingSearch(): void
+    {
+        $this->resetPage();
+    }
+
+    public function updatedDateFilter(): void
+    {
+        $this->resetPage();
+    }
+
+    public function updatedDateFrom(): void
+    {
+        $this->resetPage();
+    }
+
+    public function updatedDateTo(): void
+    {
+        $this->resetPage();
+    }
+
+    public function updatedStatusFilter(): void
+    {
+        $this->resetPage();
+    }
+
+    public function updatedCreatorFilter(): void
     {
         $this->resetPage();
     }
@@ -95,6 +124,21 @@ class StockCheckIndex extends Component
     {
         $this->mode = 'list';
         $this->resetPage();
+    }
+
+    public function deleteSelected(): void
+    {
+        $ids = array_values(array_unique(array_map('intval', $this->selectedChecks)));
+        if (empty($ids)) {
+            $this->dispatch('notify', message: 'Vui lòng chọn phiếu kiểm cần xoá.', type: 'warning');
+            return;
+        }
+
+        StockCheckLog::whereIn('stock_check_id', $ids)->delete();
+        StockCheck::whereIn('id', $ids)->delete();
+        $this->selectedChecks = [];
+        $this->resetPage();
+        $this->dispatch('notify', message: 'Đã xoá phiếu kiểm đã chọn.', type: 'success');
     }
 
     public function updatedProductSearch($value): void
@@ -388,15 +432,23 @@ class StockCheckIndex extends Component
         return StockCheck::with('user')
             ->when($this->search, fn($q) => $q->where('code', 'like', "%{$this->search}%"))
             ->when($this->dateFilter === 'month', fn($q) => $q->where('created_at', '>=', now()->startOfMonth()))
+            ->when($this->dateFilter === 'custom' && $this->dateFrom, fn($q) => $q->whereDate('created_at', '>=', $this->dateFrom))
+            ->when($this->dateFilter === 'custom' && $this->dateTo, fn($q) => $q->whereDate('created_at', '<=', $this->dateTo))
             ->when(!empty($this->statusFilter), fn($q) => $q->whereIn('status', $this->statusFilter))
-            ->when($this->creatorFilter, fn($q) => $q->whereHas('user', fn($u) => $u->where('name', 'like', "%{$this->creatorFilter}%")))
+            ->when($this->creatorFilter, fn($q) => $q->where('user_id', $this->creatorFilter))
             ->latest();
     }
 
     public function render()
     {
+        $checks = $this->checksQuery()->paginate(15);
+
         return view('livewire.product.stock-check-index', [
-            'checks' => $this->checksQuery()->paginate(15),
+            'checks' => $checks,
+            'creators' => User::query()
+                ->whereIn('id', StockCheck::query()->select('user_id')->whereNotNull('user_id'))
+                ->orderBy('name')
+                ->get(['id', 'name']),
             'totals' => $this->totals(),
         ])->layout('layouts.app');
     }
