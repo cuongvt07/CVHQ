@@ -719,10 +719,8 @@ class PosTerminal extends Component
             $validPaymentKeys = array_column(self::PAYMENT_METHODS, 'key');
             if (!in_array($paymentKey, $validPaymentKeys, true)) $paymentKey = 'cash';
 
-            $invoiceBranch = $this->branch;
-            if ($invoiceBranch === 'all') {
-                $invoiceBranch = auth()->user()?->work_branch ?: 'hn';
-            }
+            $invoiceBranch = auth()->user()?->work_branch ?: $this->branch;
+            if ($invoiceBranch === 'all') $invoiceBranch = 'hn';
             if (!in_array($invoiceBranch, ['sg', 'hn'], true)) {
                 $invoiceBranch = 'hn';
             }

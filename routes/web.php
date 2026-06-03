@@ -24,6 +24,7 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/pos', PosTerminal::class)->name('pos');
     Route::get('/products', ProductIndex::class)->name('products');
     Route::get('/products/restock', \App\Livewire\Product\RestockPlan::class)->name('products.restock');
+    Route::get('/products/stock-checks', \App\Livewire\Product\StockCheckIndex::class)->name('products.stock-checks');
     Route::get('/categories', \App\Livewire\Category\CategoryIndex::class)->name('categories');
     Route::get('/customers', CustomerIndex::class)->name('customers');
     Route::get('/users', \App\Livewire\User\UserIndex::class)->name('users');

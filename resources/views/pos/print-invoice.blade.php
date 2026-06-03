@@ -11,17 +11,18 @@
             background: #fff;
             font-family: Arial, "Helvetica Neue", sans-serif;
             color: #000;
-            min-height: 100vh;
+            min-height: 210mm;
             display: flex;
             align-items: flex-start;
             justify-content: center;
-            padding: 40px 20px;
+            padding: 0;
         }
 
         .invoice-wrapper {
             background: #fff;
-            width: 780px;
-            padding: 44px 48px 40px;
+            width: 148mm;
+            min-height: 210mm;
+            padding: 12mm;
         }
 
         .header {
@@ -118,22 +119,30 @@
             font-weight: 600;
         }
 
-        .payment-note {
-            margin-top: 8px;
-            font-size: 12px;
-            line-height: 1.6;
-        }
-
         .signatures {
             display: flex;
             justify-content: space-between;
-            margin-top: 36px;
+            margin-top: 32px;
             align-items: flex-start;
+            gap: 22mm;
         }
 
         .sig-block {
             text-align: center;
             flex: 1;
+        }
+
+        .sig-block.buyer {
+            text-align: left;
+        }
+
+        .sig-block.buyer .sig-label {
+            text-align: center;
+        }
+
+        .sig-block.buyer .sig-line {
+            margin-left: auto;
+            margin-right: auto;
         }
 
         .sig-date {
@@ -157,11 +166,18 @@
             margin: 44px auto 10px;
         }
 
-        @page { margin: 12mm; }
+        @page {
+            size: A5 portrait;
+            margin: 0;
+        }
 
         @media print {
             body { padding: 0; }
-            .invoice-wrapper { width: 100%; padding: 0; }
+            .invoice-wrapper {
+                width: 148mm;
+                min-height: 210mm;
+                padding: 12mm;
+            }
         }
     </style>
 </head>
@@ -171,7 +187,7 @@
 
     $shopName = \App\Models\SystemSetting::get('shop_name', 'Cửa hàng Cà vạt Hàn Quốc');
 
-    $rawBranch = mb_strtolower((string) ($invoice->branch ?? ''));
+    $rawBranch = mb_strtolower((string) ($invoice->user?->work_branch ?: ($invoice->branch ?? '')));
     $branchKey = match (true) {
         str_contains($rawBranch, 'sg'),
         str_contains($rawBranch, 'sài'),
@@ -361,13 +377,8 @@
         <strong>Thành tiền (viết bằng chữ):</strong> {{ $numberToWords($payableTotal) }}.
     </div>
 
-    <div class="payment-note">
-        <p>Mã hóa đơn: <strong>{{ $invoice->invoice_code }}</strong></p>
-        <p>Ngày lập: {{ $invoice->created_at->format('d/m/Y H:i') }}</p>
-    </div>
-
     <div class="signatures">
-        <div class="sig-block">
+        <div class="sig-block buyer">
             <div class="sig-label">Người Mua Hàng</div>
             <div class="sig-line"></div>
         </div>
