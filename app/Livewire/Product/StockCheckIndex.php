@@ -363,19 +363,24 @@ class StockCheckIndex extends Component
                     $query->where(function ($q) use ($keyword) {
                         $pattern = '(^|[^0-9])' . $keyword . '([^0-9]|$)';
                         $q->whereRaw("sku REGEXP ?", [$pattern])
-                            ->orWhereRaw("location REGEXP ?", [$pattern])
                             ->orWhereRaw("name REGEXP ?", [$pattern])
+                            ->orWhereRaw("base_name REGEXP ?", [$pattern])
+                            ->orWhereRaw("location REGEXP ?", [$pattern])
                             ->orWhereRaw("brand REGEXP ?", [$pattern]);
                     });
                 }
             })
             ->orderByRaw("CASE
                 WHEN sku = ? THEN 1
-                WHEN location = ? THEN 2
-                WHEN sku LIKE ? THEN 3
-                WHEN name LIKE ? THEN 4
-                ELSE 5
-            END", [$search, $search, $search . '%', $search . '%'])
+                WHEN sku LIKE ? THEN 2
+                WHEN name = ? THEN 3
+                WHEN base_name = ? THEN 4
+                WHEN name LIKE ? THEN 5
+                WHEN base_name LIKE ? THEN 6
+                WHEN location = ? THEN 7
+                WHEN brand = ? THEN 8
+                ELSE 9
+            END", [$search, $search . '%', $search, $search, $search . '%', $search . '%', $search, $search])
             ->limit(12)
             ->get();
     }

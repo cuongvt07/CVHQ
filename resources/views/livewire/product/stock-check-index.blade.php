@@ -115,7 +115,7 @@
                         </button>
 
                         @if($this->productSuggestions->isNotEmpty())
-                            <div class="absolute z-50 left-0 right-0 top-full mt-1 bg-white border border-slate-200 rounded-xl shadow-xl overflow-hidden">
+                            <div class="absolute z-50 left-0 right-0 top-full mt-1 max-h-80 overflow-y-auto bg-white border border-slate-200 rounded-xl shadow-xl custom-scrollbar">
                                 @foreach($this->productSuggestions as $product)
                                     <button type="button" wire:click="addProduct({{ $product->id }})" class="w-full flex items-center justify-between gap-3 px-3 py-2 text-left hover:bg-blue-50">
                                         <div class="min-w-0">
