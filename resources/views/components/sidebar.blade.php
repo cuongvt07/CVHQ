@@ -71,7 +71,7 @@
                 </div>
 
                 <div class="relative group/nav">
-                    <a href="{{ route('products.restock') }}" class="flex items-center gap-3 px-4 py-2.5 rounded-xl transition-all {{ request()->routeIs('products.restock') ? 'bg-electric-blue/10 text-electric-blue border border-electric-blue/20' : 'text-slate-500 hover:text-slate-900 hover:bg-slate-200/50 border border-transparent' }}">
+                    <a href="{{ route('products.restock') }}" class="flex items-center gap-2 px-3 py-2.5 rounded-xl transition-all [&>span]:min-w-0 [&>span]:flex-1 [&>span]:whitespace-normal [&>span]:break-words [&>span]:text-[13px] [&>span]:leading-4 {{ request()->routeIs('products.restock') ? 'bg-electric-blue/10 text-electric-blue border border-electric-blue/20' : 'text-slate-500 hover:text-slate-900 hover:bg-slate-200/50 border border-transparent' }}">
                         <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="shrink-0"><path d="M12 20v-6a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2v6"/><path d="M6 18H21"/><path d="M18 18v-4a2 2 0 0 0-2-2h-4"/></svg>
                         <span x-show="!sidebarCollapsed" class="text-sm font-medium whitespace-nowrap">Dự toán nhập hàng</span>
                     </a>

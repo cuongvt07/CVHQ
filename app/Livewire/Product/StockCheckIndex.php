@@ -358,14 +358,25 @@ class StockCheckIndex extends Component
             ->when($this->branch === 'sg', fn($q) => $q->where('sku', 'LIKE', 'Z%'))
             ->when($this->branch === 'hn', fn($q) => $q->where('sku', 'NOT LIKE', 'Z%'))
             ->where(function ($query) use ($search) {
-                $query->where('sku', 'like', "%{$search}%")
-                    ->orWhere('name', 'like', "%{$search}%")
-                    ->orWhere('base_name', 'like', "%{$search}%")
-                    ->orWhere('location', 'like', "%{$search}%")
-                    ->orWhere('brand', 'like', "%{$search}%");
+                $keywords = array_filter(explode(' ', $search));
+                foreach ($keywords as $keyword) {
+                    $query->where(function ($q) use ($keyword) {
+                        $pattern = '(^|[^0-9])' . $keyword . '([^0-9]|$)';
+                        $q->whereRaw("sku REGEXP ?", [$pattern])
+                            ->orWhereRaw("location REGEXP ?", [$pattern])
+                            ->orWhereRaw("name REGEXP ?", [$pattern])
+                            ->orWhereRaw("brand REGEXP ?", [$pattern]);
+                    });
+                }
             })
-            ->orderByRaw("CASE WHEN sku = ? THEN 1 WHEN sku LIKE ? THEN 2 WHEN name LIKE ? THEN 3 ELSE 4 END", [$search, $search . '%', $search . '%'])
-            ->limit(8)
+            ->orderByRaw("CASE
+                WHEN sku = ? THEN 1
+                WHEN location = ? THEN 2
+                WHEN sku LIKE ? THEN 3
+                WHEN name LIKE ? THEN 4
+                ELSE 5
+            END", [$search, $search, $search . '%', $search . '%'])
+            ->limit(12)
             ->get();
     }
 
