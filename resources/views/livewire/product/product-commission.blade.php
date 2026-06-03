@@ -1,4 +1,4 @@
-<div class="h-full flex flex-col">
+<div class="h-full min-h-0 flex flex-col">
     <!-- Header -->
     <header class="px-4 md:px-6 py-4 flex flex-col md:flex-row md:items-center justify-end gap-6 border-b border-slate-200 bg-slate-50/50">
         <div class="flex items-center gap-3">
@@ -112,11 +112,11 @@
     <x-import-modal id="commissions" title="Import Bảng Hoa Hồng" model="importFile" />
 
     <!-- Table Content -->
-    <div class="flex-1 overflow-y-auto custom-scrollbar p-4">
+    <div class="flex-1 min-h-0 overflow-y-auto custom-scrollbar p-4">
         <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-visible">
             <table class="w-full text-left border-collapse">
-                <thead class="sticky top-0 z-10 bg-slate-50/50">
-                    <tr class="bg-slate-50/50 border-b border-slate-100">
+                <thead class="sticky top-0 z-30 bg-slate-50/95 backdrop-blur-md shadow-[0_1px_0_rgba(226,232,240,1)]">
+                    <tr class="border-b border-slate-100">
                         <th class="px-4 py-2 w-10">
                             <input type="checkbox" class="w-4 h-4 rounded border-slate-300 text-electric-blue focus:ring-electric-blue transition-all cursor-pointer">
                         </th>

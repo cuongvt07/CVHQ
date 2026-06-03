@@ -1,4 +1,4 @@
-<div class="h-full flex flex-col" wire:poll.3s>
+<div class="h-full min-h-0 flex flex-col" wire:poll.3s>
     <!-- Dashboard Header — compact mobile -->
     <header class="px-3 md:px-6 py-2 md:py-3 flex items-center justify-between gap-2 border-b border-slate-200 bg-slate-50/50">
         <h1 class="text-base md:text-xl font-black tracking-tight text-slate-900 shrink truncate">Kho hàng</h1>
@@ -276,7 +276,7 @@
         @endif
 
     <!-- Main Content -->
-    <div class="flex-1 overflow-y-auto custom-scrollbar p-2 md:p-6">
+    <div class="flex-1 min-h-0 overflow-y-auto custom-scrollbar p-2 md:p-6">
 
         {{-- Mobile card list (compact, tap-friendly) --}}
         <div class="md:hidden flex flex-col gap-1.5">
@@ -395,10 +395,10 @@
         </div>
 
         <!-- Desktop table (hidden on mobile) -->
-        <div class="hidden md:block glass-card overflow-hidden border border-slate-200">
+        <div class="hidden md:block glass-card overflow-visible border border-slate-200">
             <table class="w-full text-left border-collapse">
-                <thead>
-                    <tr class="bg-slate-50 border-b border-slate-200">
+                <thead class="sticky top-0 z-30 bg-slate-50/95 backdrop-blur-md shadow-[0_1px_0_rgba(226,232,240,1)]">
+                    <tr class="border-b border-slate-200">
                         <th class="px-4 py-2 w-10">
                             <input type="checkbox" wire:model.live="selectAll" class="w-4 h-4 rounded border-slate-300 text-electric-blue focus:ring-electric-blue transition-all cursor-pointer">
                         </th>

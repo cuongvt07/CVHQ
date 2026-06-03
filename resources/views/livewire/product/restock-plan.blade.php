@@ -1,4 +1,4 @@
-<div class="h-full flex flex-col" wire:poll.3s>
+<div class="h-full min-h-0 flex flex-col" wire:poll.3s>
     <!-- Header -->
     <header class="px-4 md:px-6 py-2 flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-200 bg-slate-50/50">
         <div>
@@ -160,11 +160,11 @@
     </div>
 
     <!-- Table Content -->
-    <div class="flex-1 overflow-y-auto custom-scrollbar p-4 md:p-6">
-        <div class="glass-card overflow-hidden border border-slate-200">
+    <div class="flex-1 min-h-0 overflow-y-auto custom-scrollbar p-4 md:p-6">
+        <div class="glass-card overflow-visible border border-slate-200">
             <table class="w-full text-left border-collapse">
-                <thead class="sticky top-0 z-10 bg-slate-50">
-                    <tr class="bg-slate-50 border-b border-slate-200">
+                <thead class="sticky top-0 z-30 bg-slate-50/95 backdrop-blur-md shadow-[0_1px_0_rgba(226,232,240,1)]">
+                    <tr class="border-b border-slate-200">
                         <th class="px-4 py-2 text-[9px] font-bold text-slate-500 tracking-[0.2em]">Sản phẩm</th>
                         <th class="px-4 py-2 text-[9px] font-bold text-slate-400 tracking-[0.2em]">SKU</th>
                         <th class="px-4 py-2 text-[9px] font-bold text-slate-400 tracking-[0.2em]">Vị trí</th>
