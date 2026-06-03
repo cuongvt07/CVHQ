@@ -56,7 +56,7 @@ class DashboardIndex extends Component
                 'invoice_items.sku',
                 'invoice_items.product_name',
                 DB::raw('SUM(invoice_items.quantity) AS total_qty'),
-                DB::raw('SUM(invoice_items.final_price) AS total_revenue')
+                DB::raw('SUM(invoice_items.final_price * invoice_items.quantity) AS total_revenue')
             )
             ->groupBy('invoice_items.product_id', 'invoice_items.sku', 'invoice_items.product_name')
             ->orderByDesc('total_qty')

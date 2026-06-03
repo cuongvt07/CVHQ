@@ -26,6 +26,7 @@ class User extends Authenticatable
         'password',
         'role',
         'can_receive_commission',
+        'work_branch',
         'permissions',
         'ui_settings',
     ];

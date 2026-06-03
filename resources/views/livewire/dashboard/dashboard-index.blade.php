@@ -85,11 +85,7 @@
                     'date' => $d['date'],
                 ];
             }
-            $linePath = 'M ' . collect($points)->map(fn($p) => $p['x'] . ' ' . $p['y'])->join(' L ');
             $bottomY  = $padT + $chartH;
-            $areaPath = $linePath
-                . ' L ' . end($points)['x'] . ' ' . $bottomY
-                . ' L ' . reset($points)['x'] . ' ' . $bottomY . ' Z';
 
             // 4 Y-axis ticks: 0, max/3, 2max/3, max
             $ticks = [];
@@ -106,11 +102,12 @@
                 ];
             }
             $avgY = round($padT + (1 - $avgVal / $maxVal) * $chartH, 2);
+            $barW = $count > 0 ? min(54, max(24, ($chartW / max($count, 1)) * 0.48)) : 32;
         @endphp
         <div class="lg:col-span-2 glass-card p-4 md:p-6 flex flex-col gap-4 min-h-[400px]">
             <div class="flex items-start justify-between gap-4">
                 <div>
-                    <h3 class="text-[14px] md:text-[18px] font-bold tracking-tight text-slate-900">Biểu đồ Doanh thu (7 ngày)</h3>
+                    <h3 class="text-[14px] md:text-[18px] font-bold tracking-tight text-slate-900">Doanh thu 7 ngày</h3>
                     <p class="text-[9px] md:text-[12px] text-slate-400 uppercase tracking-widest mt-0.5">Cập nhật theo dữ liệu hóa đơn thật</p>
                 </div>
                 <div class="text-right">
@@ -121,20 +118,15 @@
 
             <div class="flex-1 w-full">
                 <svg viewBox="0 0 {{ $vbW }} {{ $vbH }}" class="w-full h-auto" preserveAspectRatio="xMidYMid meet">
-                    <defs>
-                        <linearGradient id="revAreaFill" x1="0" y1="0" x2="0" y2="1">
-                            <stop offset="0%"   stop-color="#0088CC" stop-opacity="0.35"/>
-                            <stop offset="100%" stop-color="#0088CC" stop-opacity="0"/>
-                        </linearGradient>
-                    </defs>
-
                     {{-- Grid lines + Y-axis labels --}}
                     @foreach($ticks as $t)
                         <line x1="{{ $padL }}" y1="{{ $t['y'] }}" x2="{{ $vbW - $padR }}" y2="{{ $t['y'] }}"
-                              stroke="#e2e8f0" stroke-width="1" stroke-dasharray="3 5"/>
+                              stroke="#e2e8f0" stroke-width="1"/>
                         <text x="{{ $padL - 10 }}" y="{{ $t['y'] + 4 }}" font-size="12" font-weight="700"
                               text-anchor="end" fill="#94a3b8">{{ $t['label'] }}</text>
                     @endforeach
+
+                    <line x1="{{ $padL }}" y1="{{ $bottomY }}" x2="{{ $vbW - $padR }}" y2="{{ $bottomY }}" stroke="#cbd5e1" stroke-width="1.5"/>
 
                     {{-- Average line --}}
                     @if($avgVal > 0)
@@ -144,22 +136,24 @@
                               text-anchor="end" fill="#64748b">TB {{ $avgVal >= 1000 ? number_format($avgVal / 1000, 0) . 'k' : $avgVal }}</text>
                     @endif
 
-                    {{-- Area fill --}}
-                    <path d="{{ $areaPath }}" fill="url(#revAreaFill)"/>
-
-                    {{-- Line --}}
-                    <path d="{{ $linePath }}" fill="none" stroke="#0088CC" stroke-width="2.5"
-                          stroke-linejoin="round" stroke-linecap="round"/>
-
-                    {{-- Points + tooltips --}}
+                    {{-- Revenue bars --}}
                     @foreach($points as $p)
-                        <g>
-                            <circle cx="{{ $p['x'] }}" cy="{{ $p['y'] }}" r="4.5"
-                                    fill="#fff" stroke="#0088CC" stroke-width="2.5"/>
-                            {{-- larger transparent hit target for hover/title tooltip --}}
-                            <circle cx="{{ $p['x'] }}" cy="{{ $p['y'] }}" r="16" fill="transparent" class="cursor-pointer">
-                                <title>{{ $p['day'] }} {{ $p['date'] }} — {{ number_format($p['val'], 0, ',', '.') }}đ</title>
-                            </circle>
+                        @php
+                            $barH = max(2, $bottomY - $p['y']);
+                            $barX = $p['x'] - ($barW / 2);
+                        @endphp
+                        <g class="cursor-pointer">
+                            <rect x="{{ $barX }}" y="{{ $p['y'] }}" width="{{ $barW }}" height="{{ $barH }}" rx="8"
+                                  fill="{{ $p['val'] > 0 ? '#0088CC' : '#cbd5e1' }}"/>
+                            <rect x="{{ $barX }}" y="{{ $p['y'] }}" width="{{ $barW }}" height="{{ min(10, $barH) }}" rx="8"
+                                  fill="#38bdf8" opacity="{{ $p['val'] > 0 ? '0.55' : '0' }}"/>
+                            @if($p['val'] > 0)
+                                <text x="{{ $p['x'] }}" y="{{ max(12, $p['y'] - 8) }}" font-size="11" font-weight="800"
+                                      text-anchor="middle" fill="#0f172a">
+                                    {{ $p['val'] >= 1000000 ? number_format($p['val'] / 1000000, 1) . 'M' : number_format($p['val'] / 1000, 0) . 'k' }}
+                                </text>
+                            @endif
+                            <title>{{ $p['day'] }} {{ $p['date'] }} — {{ number_format($p['val'], 0, ',', '.') }}đ</title>
                         </g>
                     @endforeach
 

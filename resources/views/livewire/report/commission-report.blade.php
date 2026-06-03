@@ -163,6 +163,7 @@
                     <thead>
                         <tr class="bg-slate-50 border-b border-slate-200">
                             <th class="px-4 py-2 text-[10px] font-bold text-slate-500 uppercase tracking-widest">Mã hóa đơn</th>
+                            <th class="px-4 py-2 text-[10px] font-bold text-slate-400 uppercase tracking-widest">Khách hàng</th>
                             <th class="px-4 py-2 text-[10px] font-bold text-slate-400 uppercase tracking-widest">Ngày tạo</th>
                             <th class="px-4 py-2 text-[10px] font-bold text-slate-400 uppercase tracking-widest text-right">Thành tiền</th>
                             <th class="px-4 py-2 text-[10px] font-bold text-slate-400 uppercase tracking-widest text-right">Hoa hồng đơn</th>
@@ -173,6 +174,12 @@
                         @foreach($invoices as $inv)
                             <tr class="hover:bg-slate-50 transition-colors">
                                 <td class="px-4 py-2 text-sm font-bold text-slate-900">{{ $inv->invoice_code }}</td>
+                                <td class="px-4 py-2">
+                                    <div class="text-sm font-bold text-slate-700">{{ $inv->customer->full_name ?? 'Khách lẻ' }}</div>
+                                    @if($inv->customer?->phone)
+                                        <div class="text-[10px] text-slate-400">{{ $inv->customer->phone }}</div>
+                                    @endif
+                                </td>
                                 <td class="px-4 py-2 text-xs text-slate-500">{{ $inv->created_at->format('d/m/Y H:i') }}</td>
                                 <td class="px-4 py-2 text-right text-sm font-bold text-slate-900">{{ number_format($inv->final_amount, 0, ',', '.') }}</td>
                                 <td class="px-4 py-2 text-right text-sm font-bold text-emerald-600">{{ number_format($inv->total_commission, 0, ',', '.') }}</td>

@@ -78,7 +78,8 @@ class CommissionReport extends Component
                 ->paginate(15);
         } elseif ($this->view === 'employee_detail') {
             $data['employee'] = User::findOrFail($this->selectedUserId);
-            $data['invoices'] = Invoice::where('user_id', $this->selectedUserId)
+            $data['invoices'] = Invoice::with('customer')
+                ->where('user_id', $this->selectedUserId)
                 ->where('status', '!=', 'Cancelled')
                 ->whereBetween('created_at', [$range['start'], $range['end']])
                 ->latest()

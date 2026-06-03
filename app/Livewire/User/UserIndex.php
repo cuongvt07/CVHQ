@@ -26,7 +26,7 @@ class UserIndex extends Component
 
     protected function getDefaultVisibleColumns(): array
     {
-        return ['info', 'role', 'created_at', 'actions'];
+        return ['info', 'role', 'work_branch', 'created_at', 'actions'];
     }
 
     protected $queryString = [
@@ -42,7 +42,7 @@ class UserIndex extends Component
 
     // Form properties
     public $userId;
-    public $name, $email, $password, $role = 'staff', $can_receive_commission = true, $permissions = [];
+    public $name, $email, $password, $role = 'staff', $can_receive_commission = true, $work_branch = '', $permissions = [];
 
     protected function rules()
     {
@@ -52,6 +52,7 @@ class UserIndex extends Component
             'password' => $this->userId ? 'nullable|min:6' : 'required|min:6',
             'role' => 'required|in:admin,staff',
             'can_receive_commission' => 'boolean',
+            'work_branch' => 'nullable|in:sg,hn',
             'permissions' => 'nullable|array',
         ];
     }
@@ -64,6 +65,7 @@ class UserIndex extends Component
         $this->password = '';
         $this->role = 'staff';
         $this->can_receive_commission = true;
+        $this->work_branch = '';
         $this->permissions = [];
         $this->resetErrorBag();
     }
@@ -83,6 +85,7 @@ class UserIndex extends Component
         $this->email = $user->email;
         $this->role = $user->role;
         $this->can_receive_commission = $user->can_receive_commission;
+        $this->work_branch = $user->work_branch ?? '';
         $this->permissions = $user->permissions ?? [];
         
         $this->dispatch('open-user-modal');
@@ -97,6 +100,7 @@ class UserIndex extends Component
             'email' => $this->email,
             'role' => $this->role,
             'can_receive_commission' => $this->can_receive_commission,
+            'work_branch' => $this->work_branch ?: null,
             'permissions' => $this->role === 'admin' ? null : $this->permissions,
         ];
 

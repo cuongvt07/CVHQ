@@ -73,6 +73,7 @@
                 :cols="[
                     'info' => 'Họ tên & Email',
                     'role' => 'Vai trò',
+                    'work_branch' => 'Chi nhánh',
                     'created_at' => 'Ngày tạo',
                     'actions' => 'Thao tác'
                 ]"
@@ -102,6 +103,7 @@
                     :cols="[
                         'info' => 'Họ tên & Email',
                         'role' => 'Vai trò',
+                        'work_branch' => 'Chi nhánh',
                         'created_at' => 'Ngày tạo',
                         'actions' => 'Thao tác'
                     ]"
@@ -130,6 +132,9 @@
                         @if(in_array('role', $visibleColumns))
                         <th class="px-4 py-2 text-[9px] font-bold text-slate-400 tracking-[0.2em]">Vai trò</th>
                         @endif
+                        @if(in_array('work_branch', $visibleColumns))
+                        <th class="px-4 py-2 text-[9px] font-bold text-slate-400 tracking-[0.2em]">Chi nhánh</th>
+                        @endif
                         @if(in_array('created_at', $visibleColumns))
                         <th class="px-4 py-2 text-[9px] font-bold text-slate-400 tracking-[0.2em]">Ngày tạo</th>
                         @endif
@@ -157,6 +162,23 @@
                                 <span class="px-3 py-1 rounded-full text-[9px] font-bold tracking-widest {{ $user->role === 'admin' ? 'bg-amber-50 text-amber-600 border border-amber-100' : 'bg-slate-50 text-slate-500 border border-slate-100' }}">
                                     {{ $user->role === 'admin' ? 'Quản trị viên' : 'Nhân viên' }}
                                 </span>
+                            </td>
+                            @endif
+                            @if(in_array('work_branch', $visibleColumns))
+                            <td class="px-4 py-2">
+                                @if($user->work_branch === 'sg')
+                                    <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-100 text-[9px] font-bold tracking-widest">
+                                        <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+                                        Sài Gòn
+                                    </span>
+                                @elseif($user->work_branch === 'hn')
+                                    <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-rose-50 text-rose-700 border border-rose-100 text-[9px] font-bold tracking-widest">
+                                        <span class="w-1.5 h-1.5 rounded-full bg-rose-500"></span>
+                                        Hà Nội
+                                    </span>
+                                @else
+                                    <span class="text-[10px] font-bold text-slate-300">Chưa gán</span>
+                                @endif
                             </td>
                             @endif
                             @if(in_array('created_at', $visibleColumns))

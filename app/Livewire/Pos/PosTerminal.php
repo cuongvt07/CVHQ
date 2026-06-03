@@ -719,6 +719,14 @@ class PosTerminal extends Component
             $validPaymentKeys = array_column(self::PAYMENT_METHODS, 'key');
             if (!in_array($paymentKey, $validPaymentKeys, true)) $paymentKey = 'cash';
 
+            $invoiceBranch = $this->branch;
+            if ($invoiceBranch === 'all') {
+                $invoiceBranch = auth()->user()?->work_branch ?: 'hn';
+            }
+            if (!in_array($invoiceBranch, ['sg', 'hn'], true)) {
+                $invoiceBranch = 'hn';
+            }
+
             // Allocate final amount into the matching payment column
             $paymentColumns = [
                 'cash_amount'     => 0,
@@ -730,7 +738,7 @@ class PosTerminal extends Component
 
             $invoice = \App\Models\Invoice::create(array_merge([
                 'invoice_code'   => 'HD' . time(),
-                'branch'         => 'Antigravity HQ',
+                'branch'         => $invoiceBranch,
                 'customer_id'    => $tab['customer_id'],
                 'user_id'        => auth()->id(),
                 'seller_name'    => auth()->user()?->name ?? 'Admin POS',

@@ -54,7 +54,7 @@
                             @error('email') <span class="text-[10px] text-rose-500 font-bold ml-1">{{ $message }}</span> @enderror
                         </div>
 
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6">
                             <!-- Password -->
                             <div class="space-y-2">
                                 <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Mật khẩu {{ $this->userId ? '(Để trống nếu không đổi)' : '' }}</label>
@@ -70,6 +70,17 @@
                                     <option value="admin">Quản trị viên</option>
                                 </select>
                                 @error('role') <span class="text-[10px] text-rose-500 font-bold ml-1">{{ $message }}</span> @enderror
+                            </div>
+
+                            <!-- Work Branch -->
+                            <div class="space-y-2">
+                                <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Chi nhánh làm việc</label>
+                                <select wire:model="work_branch" class="w-full bg-slate-50 border border-slate-200 rounded-2xl py-2.5 px-4 md:py-3 md:px-5 text-sm focus:outline-none focus:border-electric-blue/40 focus:ring-4 focus:ring-electric-blue/5 transition-all cursor-pointer">
+                                    <option value="">Chưa gán</option>
+                                    <option value="sg">Sài Gòn</option>
+                                    <option value="hn">Hà Nội</option>
+                                </select>
+                                @error('work_branch') <span class="text-[10px] text-rose-500 font-bold ml-1">{{ $message }}</span> @enderror
                             </div>
                         </div>
 
