@@ -355,8 +355,6 @@ class StockCheckIndex extends Component
         }
 
         return Product::query()
-            ->when($this->branch === 'sg', fn($q) => $q->where('sku', 'LIKE', 'Z%'))
-            ->when($this->branch === 'hn', fn($q) => $q->where('sku', 'NOT LIKE', 'Z%'))
             ->where(function ($query) use ($search) {
                 $keywords = array_filter(explode(' ', $search));
                 foreach ($keywords as $keyword) {
