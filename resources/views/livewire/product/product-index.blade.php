@@ -276,7 +276,7 @@
         @endif
 
     <!-- Main Content -->
-    <div class="flex-1 min-h-0 overflow-y-auto custom-scrollbar p-2 md:p-6">
+    <div class="flex-1 min-h-0 overflow-y-auto custom-scrollbar px-2 pb-2 pt-0 md:px-6 md:pb-6 md:pt-0">
 
         {{-- Mobile card list (compact, tap-friendly) --}}
         <div class="md:hidden flex flex-col gap-1.5">
