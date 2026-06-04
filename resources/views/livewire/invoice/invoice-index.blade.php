@@ -1,19 +1,38 @@
 <div class="h-full flex flex-col">
-    <header class="px-4 md:px-6 py-4 flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-200 bg-slate-50/50">
-        <div>
-            <h1 class="text-lg md:text-xl font-black tracking-tight text-slate-900">Kiểm tra hóa đơn</h1>
-        </div>
-        
-        <div class="flex items-center gap-4">
+    <header class="px-3 md:px-6 py-2 md:py-4 flex items-center justify-between gap-2 border-b border-slate-200 bg-slate-50/50">
+        <h1 class="text-base md:text-xl font-black tracking-tight text-slate-900">Kiểm tra hóa đơn</h1>
+
+        {{-- Desktop: cả 2 nút inline --}}
+        <div class="hidden md:flex items-center gap-4">
             <button @click="$dispatch('open-import-invoices')" class="flex items-center gap-2 px-6 py-2.5 bg-white border border-slate-200 text-slate-600 rounded-xl text-[13px] font-bold hover:bg-slate-50 hover:border-slate-300 transition-all cursor-pointer">
                 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" x2="12" y1="3" y2="15"/></svg>
                 Nhập file Excel
             </button>
-
             <button class="btn-ghost flex items-center gap-2 px-6 py-2.5">
                 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
                 Xuất nhật ký
             </button>
+        </div>
+
+        {{-- Mobile: kebab menu (3 chấm) gộp Import + Export --}}
+        <div class="md:hidden relative" x-data="{ kebabOpen: false }" @click.outside="kebabOpen = false">
+            <button @click="kebabOpen = !kebabOpen" class="w-9 h-9 flex items-center justify-center rounded-lg bg-white border border-slate-200 text-slate-500 hover:text-electric-blue hover:border-electric-blue/40 transition-all shadow-sm">
+                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="5" r="1.5"/><circle cx="12" cy="12" r="1.5"/><circle cx="12" cy="19" r="1.5"/></svg>
+            </button>
+            <div x-show="kebabOpen" x-cloak
+                 x-transition:enter="transition ease-out duration-150"
+                 x-transition:enter-start="opacity-0 scale-95"
+                 x-transition:enter-end="opacity-100 scale-100"
+                 class="absolute right-0 top-full mt-1 w-44 bg-white border border-slate-200 rounded-lg shadow-xl z-30 overflow-hidden">
+                <button @click="$dispatch('open-import-invoices'); kebabOpen = false" class="w-full flex items-center gap-2 px-3 py-2 text-[12px] font-bold text-slate-600 hover:bg-slate-50 transition-colors">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" x2="12" y1="3" y2="15"/></svg>
+                    Nhập Excel
+                </button>
+                <button @click="kebabOpen = false" class="w-full flex items-center gap-2 px-3 py-2 text-[12px] font-bold text-slate-600 hover:bg-slate-50 transition-colors border-t border-slate-100">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                    Xuất nhật ký
+                </button>
+            </div>
         </div>
     </header>
 
@@ -21,44 +40,52 @@
 
     @php $__activeFilterCount = ($startDate ? 1 : 0) + ($endDate ? 1 : 0) + ($sellerFilter ? 1 : 0); @endphp
     <div x-data="{ mobileFilterOpen: false }" @keydown.escape.window="mobileFilterOpen = false" class="px-3 md:px-6 py-2 md:py-4 bg-white border-b border-slate-100 flex flex-col gap-2">
-        <div class="flex flex-wrap items-center gap-2 md:gap-3">
-            <!-- Search (flex-1) -->
+
+        {{-- Mobile: search dòng riêng (full width), không đè status tabs --}}
+        <div class="md:hidden flex items-center gap-2">
             <div class="relative flex-1 min-w-0 group text-left">
-                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="absolute left-4 top-1/2 -translate-y-1/2 text-slate-300 group-focus-within:text-electric-blue transition-colors"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
-                <input type="text" wire:model.live.debounce.500ms="search" placeholder="Tìm kiếm mã hóa đơn, người bán..." class="w-full bg-slate-50 border border-slate-200 rounded-xl py-2.5 pl-12 pr-6 text-[11px] focus:outline-none focus:border-electric-blue transition-all text-slate-900 shadow-sm">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-300 group-focus-within:text-electric-blue transition-colors"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+                <input type="text" wire:model.live.debounce.500ms="search" placeholder="Tìm HĐ, KH, NV, SĐT..." class="w-full bg-slate-50 border border-slate-200 rounded-lg py-2 pl-9 pr-3 text-[12px] focus:outline-none focus:border-electric-blue transition-all text-slate-900 shadow-sm">
             </div>
-
-            <!-- Status Filter (always inline — high-frequency, like POS branch filter) -->
-            <div class="flex items-center gap-0.5 bg-slate-100 border border-slate-200 p-0.5 rounded-lg shrink-0" role="tablist" aria-label="Lọc theo trạng thái">
-                <button type="button" wire:click="$set('statusFilter', 'all')"
-                        class="px-2.5 py-1.5 rounded-md text-[10px] font-black uppercase tracking-wider transition-all
-                               {{ $statusFilter === 'all' ? 'bg-slate-800 text-white shadow-sm' : 'text-slate-500 hover:text-slate-700' }}">
-                    Tất cả
-                </button>
-                <button type="button" wire:click="$set('statusFilter', 'active')"
-                        class="px-2.5 py-1.5 rounded-md text-[10px] font-black uppercase tracking-wider transition-all
-                               {{ $statusFilter === 'active' ? 'bg-emerald-500 text-white shadow-sm' : 'text-slate-500 hover:text-emerald-600' }}">
-                    Đang hoạt động
-                </button>
-                <button type="button" wire:click="$set('statusFilter', 'cancelled')"
-                        class="px-2.5 py-1.5 rounded-md text-[10px] font-black uppercase tracking-wider transition-all
-                               {{ $statusFilter === 'cancelled' ? 'bg-rose-500 text-white shadow-sm' : 'text-slate-500 hover:text-rose-600' }}">
-                    Đã hủy
-                </button>
-                <button type="button" wire:click="$set('statusFilter', 'returned')"
-                        class="px-2.5 py-1.5 rounded-md text-[10px] font-black uppercase tracking-wider transition-all
-                               {{ $statusFilter === 'returned' ? 'bg-amber-500 text-white shadow-sm' : 'text-slate-500 hover:text-amber-600' }}">
-                    Trả hàng
-                </button>
-            </div>
-
-            <!-- Funnel trigger (mobile only) -->
-            <button @click="mobileFilterOpen = !mobileFilterOpen" class="md:hidden shrink-0 relative w-10 h-10 flex items-center justify-center rounded-lg border transition-colors {{ $__activeFilterCount > 0 ? 'border-electric-blue bg-electric-blue/10 text-electric-blue' : 'border-slate-200 text-slate-500' }}" title="Bộ lọc">
+            {{-- Funnel trigger --}}
+            <button @click="mobileFilterOpen = !mobileFilterOpen" class="shrink-0 relative w-9 h-9 flex items-center justify-center rounded-lg border transition-colors {{ $__activeFilterCount > 0 ? 'border-electric-blue bg-electric-blue/10 text-electric-blue' : 'border-slate-200 text-slate-500' }}" title="Bộ lọc">
                 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg>
                 @if($__activeFilterCount > 0)
                     <span class="absolute -top-1 -right-1 w-4 h-4 bg-electric-blue text-white text-[9px] font-black rounded-full flex items-center justify-center">{{ $__activeFilterCount }}</span>
                 @endif
             </button>
+        </div>
+
+        {{-- Status tabs: mobile dòng riêng (cuộn ngang nếu cần) --}}
+        <div class="flex items-center gap-0.5 bg-slate-100 border border-slate-200 p-0.5 rounded-lg w-full md:w-auto md:self-start overflow-x-auto no-scrollbar" role="tablist" aria-label="Lọc theo trạng thái">
+            <button type="button" wire:click="$set('statusFilter', 'all')"
+                    class="flex-1 md:flex-none whitespace-nowrap px-2.5 py-1.5 rounded-md text-[10px] font-black uppercase tracking-wider transition-all
+                           {{ $statusFilter === 'all' ? 'bg-slate-800 text-white shadow-sm' : 'text-slate-500 hover:text-slate-700' }}">
+                Tất cả
+            </button>
+            <button type="button" wire:click="$set('statusFilter', 'active')"
+                    class="flex-1 md:flex-none whitespace-nowrap px-2.5 py-1.5 rounded-md text-[10px] font-black uppercase tracking-wider transition-all
+                           {{ $statusFilter === 'active' ? 'bg-emerald-500 text-white shadow-sm' : 'text-slate-500 hover:text-emerald-600' }}">
+                Đang HĐ
+            </button>
+            <button type="button" wire:click="$set('statusFilter', 'cancelled')"
+                    class="flex-1 md:flex-none whitespace-nowrap px-2.5 py-1.5 rounded-md text-[10px] font-black uppercase tracking-wider transition-all
+                           {{ $statusFilter === 'cancelled' ? 'bg-rose-500 text-white shadow-sm' : 'text-slate-500 hover:text-rose-600' }}">
+                Đã hủy
+            </button>
+            <button type="button" wire:click="$set('statusFilter', 'returned')"
+                    class="flex-1 md:flex-none whitespace-nowrap px-2.5 py-1.5 rounded-md text-[10px] font-black uppercase tracking-wider transition-all
+                           {{ $statusFilter === 'returned' ? 'bg-amber-500 text-white shadow-sm' : 'text-slate-500 hover:text-amber-600' }}">
+                Trả hàng
+            </button>
+        </div>
+
+        {{-- Desktop: search inline với status tabs --}}
+        <div class="hidden md:flex flex-wrap items-center gap-3">
+            <div class="relative flex-1 min-w-0 group text-left">
+                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="absolute left-4 top-1/2 -translate-y-1/2 text-slate-300 group-focus-within:text-electric-blue transition-colors"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+                <input type="text" wire:model.live.debounce.500ms="search" placeholder="Tìm mã HĐ, tên khách, SĐT, mã KH, nhân viên..." class="w-full bg-slate-50 border border-slate-200 rounded-xl py-2.5 pl-12 pr-6 text-[11px] focus:outline-none focus:border-electric-blue transition-all text-slate-900 shadow-sm">
+            </div>
 
             @if(count($selectedRows) > 0)
                 <div class="flex items-center gap-3 animate-in fade-in slide-in-from-left-4 duration-300 ml-2">
@@ -83,6 +110,22 @@
                     <div class="relative group">
                         <input type="date" wire:model.live="endDate" class="bg-white border border-slate-200 rounded-xl px-3 py-2 text-[11px] focus:outline-none focus:border-electric-blue transition-all text-slate-600 shadow-sm">
                     </div>
+                </div>
+
+                {{-- Date presets (quick select): Hôm nay / Hôm qua / Tuần này / Tháng này / Tháng trước --}}
+                <div class="flex flex-wrap items-center gap-1">
+                    @foreach([
+                        'today' => 'Hôm nay',
+                        'yesterday' => 'Hôm qua',
+                        'this_week' => 'Tuần này',
+                        'this_month' => 'Tháng này',
+                        'last_month' => 'Tháng trước',
+                    ] as $__k => $__lbl)
+                        <button type="button" wire:click="setDatePreset('{{ $__k }}')"
+                                class="px-2 py-1 rounded-md text-[10px] font-bold uppercase tracking-wider bg-white border border-slate-200 text-slate-600 hover:bg-electric-blue/5 hover:border-electric-blue/40 hover:text-electric-blue transition-all">
+                            {{ $__lbl }}
+                        </button>
+                    @endforeach
                 </div>
 
                 <!-- Seller Filter -->
@@ -126,6 +169,22 @@
             <!-- Date range -->
             <div>
                 <div class="text-[9px] font-black text-slate-500 tracking-widest uppercase mb-1">KHOẢNG NGÀY</div>
+                {{-- Preset buttons --}}
+                <div class="grid grid-cols-3 gap-1 mb-2">
+                    @foreach([
+                        'today' => 'Hôm nay',
+                        'yesterday' => 'Hôm qua',
+                        'this_week' => 'Tuần này',
+                        'this_month' => 'Tháng này',
+                        'last_month' => 'Tháng trước',
+                        'all' => 'Tất cả',
+                    ] as $__k => $__lbl)
+                        <button type="button" wire:click="setDatePreset('{{ $__k }}')"
+                                class="px-2 py-1 rounded text-[10px] font-bold uppercase tracking-wider bg-white border border-slate-200 text-slate-600 hover:bg-electric-blue/5 hover:border-electric-blue/40 hover:text-electric-blue transition-all">
+                            {{ $__lbl }}
+                        </button>
+                    @endforeach
+                </div>
                 <div class="grid grid-cols-2 gap-2">
                     <input type="date" wire:model.live="startDate" class="w-full bg-white border border-slate-200 rounded px-2 py-1.5 text-[11px] focus:outline-none focus:border-electric-blue text-slate-900">
                     <input type="date" wire:model.live="endDate" class="w-full bg-white border border-slate-200 rounded px-2 py-1.5 text-[11px] focus:outline-none focus:border-electric-blue text-slate-900">
@@ -254,9 +313,9 @@
                             ? 'text-rose-500 line-through'
                             : ($isReturned ? 'text-amber-600' : 'text-electric-blue');
                     @endphp
-                    <div wire:key="m-inv-{{ $invoice->id }}"
-                         wire:click="toggleDetails({{ $invoice->id }})"
-                         class="bg-white border border-slate-200 rounded-xl p-3 shadow-sm flex flex-col gap-2 active:scale-[0.99] transition-transform cursor-pointer">
+                    <a wire:key="m-inv-{{ $invoice->id }}"
+                       href="{{ route('invoices.detail', $invoice->id) }}"
+                       class="block bg-white border border-slate-200 rounded-xl p-3 shadow-sm flex flex-col gap-2 active:scale-[0.99] transition-transform cursor-pointer no-underline">
                         {{-- Row 1: Số HĐ + status badge --}}
                         <div class="flex items-center justify-between gap-2">
                             <div class="font-mono font-bold text-[12px] text-electric-blue tracking-wider truncate">
@@ -277,14 +336,22 @@
                             </span>
                         </div>
 
-                        {{-- Row 3: số tiền --}}
+                        {{-- Row 3: Người tạo --}}
+                        <div class="flex items-center justify-between gap-2 text-[10px]">
+                            <span class="text-[9px] font-bold uppercase tracking-widest text-slate-400">Người tạo</span>
+                            <span class="text-slate-600 font-bold truncate text-right">
+                                {{ $invoice->seller_name ?: '—' }}
+                            </span>
+                        </div>
+
+                        {{-- Row 4: số tiền --}}
                         <div class="flex items-center justify-between gap-2 pt-1.5 border-t border-slate-100">
                             <span class="text-[9px] font-bold uppercase tracking-widest text-slate-400">Tổng tiền</span>
                             <span class="font-extrabold text-[14px] tracking-tight {{ $amountClasses }}">
                                 {{ number_format($invoice->final_amount, 0, ',', '.') }} đ
                             </span>
                         </div>
-                    </div>
+                    </a>
                 @endforeach
 
                 {{-- Mobile pagination --}}

@@ -86,9 +86,78 @@
         </div>
     </div>
 
-    <!-- Table -->
-    <div class="flex-1 overflow-y-auto custom-scrollbar p-4 md:p-6">
-        <div class="glass-card overflow-hidden border border-slate-200">
+    <!-- Content -->
+    <div class="flex-1 overflow-y-auto custom-scrollbar p-3 md:p-6">
+
+        {{-- Mobile card list (visible <768px) --}}
+        <div class="md:hidden space-y-2">
+            @if(count($invoices) > 0)
+                @foreach($invoices as $invoice)
+                    @php
+                        $__dt = $invoice->cancelled_at ?: $invoice->updated_at;
+                        if (is_string($__dt)) $__dt = \Carbon\Carbon::parse($__dt);
+                    @endphp
+                    <a wire:key="m-ret-{{ $invoice->id }}"
+                       href="{{ route('invoices.detail', $invoice->id) }}"
+                       class="block bg-white border border-slate-200 rounded-xl p-3 shadow-sm flex flex-col gap-2 active:scale-[0.99] transition-transform cursor-pointer no-underline">
+                        {{-- Row 1: Mã TH + badge "Trả hàng" --}}
+                        <div class="flex items-center justify-between gap-2">
+                            <div class="font-mono font-black text-[12px] text-rose-600 tracking-wider truncate">
+                                {{ $invoice->invoice_code }}
+                            </div>
+                            <span class="shrink-0 inline-flex items-center px-2 py-0.5 rounded-full text-[8px] font-bold uppercase tracking-wider border shadow-sm bg-amber-50 text-amber-700 border-amber-200">
+                                Trả hàng
+                            </span>
+                        </div>
+
+                        {{-- Row 2: Tên khách --}}
+                        <div class="flex items-center justify-between gap-2 text-[11px]">
+                            <span class="text-[9px] font-bold uppercase tracking-widest text-slate-400">Khách</span>
+                            <span class="text-slate-900 font-bold truncate text-right">
+                                {{ $invoice->customer->full_name ?? 'Khách lẻ' }}
+                            </span>
+                        </div>
+
+                        {{-- Row 3: Người bán --}}
+                        <div class="flex items-center justify-between gap-2 text-[11px]">
+                            <span class="text-[9px] font-bold uppercase tracking-widest text-slate-400">Người bán</span>
+                            <span class="text-slate-600 font-bold truncate text-right">
+                                {{ $invoice->seller_name ?: '—' }}
+                            </span>
+                        </div>
+
+                        {{-- Row 4: Ngày trả --}}
+                        <div class="flex items-center justify-between gap-2 text-[11px]">
+                            <span class="text-[9px] font-bold uppercase tracking-widest text-slate-400">Ngày trả</span>
+                            <span class="text-slate-600 tracking-wide">
+                                {{ $__dt ? $__dt->format('d/m/Y H:i') : '—' }}
+                            </span>
+                        </div>
+
+                        {{-- Row 5: Hoàn tiền --}}
+                        <div class="flex items-center justify-between gap-2 pt-1.5 border-t border-slate-100">
+                            <span class="text-[9px] font-bold uppercase tracking-widest text-slate-400">Hoàn tiền</span>
+                            <span class="font-extrabold text-[14px] tracking-tight text-rose-600">
+                                {{ number_format($invoice->final_amount, 0, ',', '.') }} đ
+                            </span>
+                        </div>
+                    </a>
+                @endforeach
+
+                {{-- Mobile pagination --}}
+                <div class="pt-2 antigravity-pagination">
+                    {{ $invoices->links() }}
+                </div>
+            @else
+                <div class="bg-white border border-slate-200 rounded-xl p-8 text-center text-slate-400 shadow-sm">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="mx-auto mb-2 text-slate-300"><path d="M3 7V5a2 2 0 0 1 2-2h2"/><path d="M17 3h2a2 2 0 0 1 2 2v2"/><path d="M21 17v2a2 2 0 0 1-2 2h-2"/><path d="M7 21H5a2 2 0 0 1-2-2v-2"/><circle cx="12" cy="12" r="3"/></svg>
+                    <p class="text-[10px] font-black uppercase tracking-widest">Chưa có đơn trả hàng nào</p>
+                </div>
+            @endif
+        </div>
+
+        {{-- Desktop table (visible >=768px) --}}
+        <div class="hidden md:block glass-card overflow-hidden border border-slate-200">
             <table class="w-full text-left border-collapse">
                 <thead class="sticky top-0 z-10 bg-slate-50">
                     <tr class="bg-slate-50 border-b border-slate-200">
@@ -103,13 +172,14 @@
                 <tbody class="divide-y divide-slate-100 bg-white/50">
                     @if(count($invoices) > 0)
                     @foreach($invoices as $invoice)
-                        <tr class="hover:bg-slate-50 transition-colors group">
+                        <tr class="hover:bg-slate-50 transition-colors group cursor-pointer"
+                            onclick="window.location='{{ route('invoices.detail', $invoice->id) }}'">
                             <td class="px-6 py-4">
                                 <span class="text-sm font-black text-rose-600 tracking-tight">{{ $invoice->invoice_code }}</span>
                             </td>
                             <td class="px-6 py-4">
                                 <div class="flex flex-col">
-                                    <span class="text-sm font-semibold text-slate-900">{{ $invoice->customer->name ?? 'Khách lẻ' }}</span>
+                                    <span class="text-sm font-semibold text-slate-900">{{ $invoice->customer->full_name ?? 'Khách lẻ' }}</span>
                                     <span class="text-[10px] text-slate-400">{{ $invoice->customer->phone ?? '' }}</span>
                                 </div>
                             </td>
@@ -148,7 +218,7 @@
             </table>
         </div>
 
-        <div class="mt-6 antigravity-pagination">
+        <div class="hidden md:block mt-6 antigravity-pagination">
             {{ $invoices->links() }}
         </div>
     </div>

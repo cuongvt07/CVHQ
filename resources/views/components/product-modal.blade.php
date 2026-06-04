@@ -185,8 +185,13 @@
                             </div>
                         </div>
 
-                        <!-- Location / Price / Stock row (required + commission if permitted) -->
-                        <div class="grid {{ auth()->user()->hasPermission('product.edit_commission') ? 'grid-cols-1 sm:grid-cols-4' : 'grid-cols-1 sm:grid-cols-3' }} gap-3 sm:gap-6">
+                        @php
+                            // Nhân viên không có quyền sửa hoa hồng vẫn được nhập khi TẠO MỚI sản phẩm (productId chưa có)
+                            $__canEditCommission = auth()->user()->hasPermission('product.edit_commission') || !$this->productId;
+                        @endphp
+
+                        <!-- Location / Price / Stock row (required + commission if permitted or creating new) -->
+                        <div class="grid {{ $__canEditCommission ? 'grid-cols-1 sm:grid-cols-4' : 'grid-cols-1 sm:grid-cols-3' }} gap-3 sm:gap-6">
                             <!-- Location -->
                             <div class="space-y-2">
                                 <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">
@@ -205,7 +210,7 @@
                                 @error('sale_price') <span class="text-[10px] text-rose-500 font-bold ml-1">{{ $message }}</span> @enderror
                             </div>
 
-                            @if(auth()->user()->hasPermission('product.edit_commission'))
+                            @if($__canEditCommission)
                                 <!-- Commission -->
                                 <div class="space-y-2">
                                     <label class="text-[10px] font-bold text-rose-400 uppercase tracking-widest ml-1">Hoa hồng (VNĐ)</label>

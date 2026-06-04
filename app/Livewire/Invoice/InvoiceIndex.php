@@ -76,6 +76,42 @@ class InvoiceIndex extends Component
         $this->resetPage();
     }
 
+    /**
+     * Quick-select date range presets for the date filter.
+     * Keys: today, yesterday, this_week, this_month, last_month.
+     */
+    public function setDatePreset(string $key): void
+    {
+        $now = \Carbon\Carbon::now();
+        switch ($key) {
+            case 'today':
+                $this->startDate = $now->copy()->startOfDay()->toDateString();
+                $this->endDate   = $now->copy()->endOfDay()->toDateString();
+                break;
+            case 'yesterday':
+                $this->startDate = $now->copy()->subDay()->startOfDay()->toDateString();
+                $this->endDate   = $now->copy()->subDay()->endOfDay()->toDateString();
+                break;
+            case 'this_week':
+                $this->startDate = $now->copy()->startOfWeek()->toDateString();
+                $this->endDate   = $now->copy()->endOfWeek()->toDateString();
+                break;
+            case 'this_month':
+                $this->startDate = $now->copy()->startOfMonth()->toDateString();
+                $this->endDate   = $now->copy()->endOfMonth()->toDateString();
+                break;
+            case 'last_month':
+                $this->startDate = $now->copy()->subMonth()->startOfMonth()->toDateString();
+                $this->endDate   = $now->copy()->subMonth()->endOfMonth()->toDateString();
+                break;
+            case 'all':
+                $this->startDate = '';
+                $this->endDate = '';
+                break;
+        }
+        $this->resetPage();
+    }
+
     public function clearFilter($key)
     {
         switch ($key) {
@@ -191,7 +227,12 @@ class InvoiceIndex extends Component
             })
             ->when($this->search, fn($q) => $q->where(function($sub) {
                 $sub->where('invoice_code', 'like', "%{$this->search}%")
-                    ->orWhere('seller_name', 'like', "%{$this->search}%");
+                    ->orWhere('seller_name', 'like', "%{$this->search}%")
+                    ->orWhereHas('customer', function ($cq) {
+                        $cq->where('full_name', 'like', "%{$this->search}%")
+                           ->orWhere('phone', 'like', "%{$this->search}%")
+                           ->orWhere('customer_code', 'like', "%{$this->search}%");
+                    });
             }))
             ->when($this->startDate, fn($q) => $q->whereDate('created_at', '>=', $this->startDate))
             ->when($this->endDate, fn($q) => $q->whereDate('created_at', '<=', $this->endDate))

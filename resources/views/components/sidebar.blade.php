@@ -20,24 +20,15 @@
                   class="text-base font-bold tracking-tight text-slate-900 whitespace-nowrap truncate">CVHA POS</span>
         </div>
 
-        <div class="flex items-center gap-1 shrink-0">
-            {{-- Collapse / Expand button (toggle full ↔ icon) --}}
-            <button @click="sidebarCollapsed = !sidebarCollapsed"
-                    class="w-8 h-8 flex items-center justify-center rounded-lg bg-white border border-slate-200 text-slate-500 hover:text-electric-blue hover:border-electric-blue/40 transition-all shadow-sm"
-                    :title="sidebarCollapsed ? 'Mở rộng menu' : 'Thu gọn menu'">
-                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"
-                     :class="sidebarCollapsed ? 'rotate-180' : ''" class="transition-transform duration-300">
-                    <path d="m15 18-6-6 6-6"/>
-                </svg>
-            </button>
-
-            {{-- Close button (mobile only — hide sidebar entirely → state 3) --}}
-            <button @click="sidebarHidden = true"
-                    class="lg:hidden w-8 h-8 flex items-center justify-center rounded-lg bg-white border border-slate-200 text-slate-500 hover:text-rose-500 hover:border-rose-300 transition-all shadow-sm"
-                    title="Ẩn menu">
-                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
-            </button>
-        </div>
+        {{-- Arrow button: mobile = ẩn sidebar; desktop = toggle collapsed (icon ↔ full) --}}
+        <button @click="window.matchMedia('(min-width: 1024px)').matches ? (sidebarCollapsed = !sidebarCollapsed) : (sidebarHidden = true)"
+                class="shrink-0 w-8 h-8 flex items-center justify-center rounded-lg bg-white border border-slate-200 text-slate-500 hover:text-electric-blue hover:border-electric-blue/40 transition-all shadow-sm"
+                :title="sidebarCollapsed ? 'Mở rộng menu' : 'Thu gọn menu'">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"
+                 :class="sidebarCollapsed ? 'rotate-180' : ''" class="transition-transform duration-300">
+                <path d="m15 18-6-6 6-6"/>
+            </svg>
+        </button>
     </div>
     
     <!-- Navigation Groups -->
