@@ -1,22 +1,20 @@
 <div class="h-full min-h-0 flex flex-col" wire:poll.3s>
-    <!-- Dashboard Header — compact mobile -->
-    <header class="px-3 md:px-6 py-2 md:py-3 flex items-center justify-between gap-2 border-b border-slate-200 bg-slate-50/50">
-        <h1 class="text-base md:text-xl font-black tracking-tight text-slate-900 shrink truncate">Kho hàng</h1>
+    <!-- Dashboard Header — compact (dày 36px desktop) -->
+    <header class="px-3 md:px-6 py-1.5 md:py-2 flex items-center justify-between gap-2 border-b border-slate-200 bg-slate-50/50">
+        <h1 class="text-base md:text-lg font-black tracking-tight text-slate-900 shrink truncate">Kho hàng</h1>
 
         <div class="flex items-center gap-1.5 md:gap-2 shrink-0">
-            {{-- Cấu hình hoa hồng MOVED to sidebar Cấu hình group --}}
-
             {{-- Nhập Excel (mobile: icon only) --}}
             <button @click="$dispatch('open-import-products')"
-                    class="flex items-center gap-1.5 px-2 md:px-4 py-2 md:py-2.5 bg-white border border-slate-200 text-slate-600 rounded-lg md:rounded-xl text-[11px] md:text-[13px] font-bold hover:bg-slate-50 hover:border-slate-300 transition-all"
+                    class="flex items-center gap-1.5 px-2 md:px-3 py-1.5 md:py-1.5 bg-white border border-slate-200 text-slate-600 rounded-lg text-[11px] md:text-[12px] font-bold hover:bg-slate-50 hover:border-slate-300 transition-all"
                     title="Nhập file Excel">
-                <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" x2="12" y1="3" y2="15"/></svg>
+                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" x2="12" y1="3" y2="15"/></svg>
                 <span class="hidden md:inline">Nhập Excel</span>
             </button>
 
-            {{-- Thêm sản phẩm (always shows label, key action) --}}
-            <button wire:click="create" class="btn-electric flex items-center gap-1.5 px-3 md:px-6 py-2 md:py-2.5 text-[11px] md:text-[13px] font-bold tracking-wider rounded-lg md:rounded-xl">
-                <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="M12 5v14"/></svg>
+            {{-- Thêm sản phẩm --}}
+            <button wire:click="create" class="btn-electric flex items-center gap-1.5 px-3 md:px-4 py-1.5 md:py-1.5 text-[11px] md:text-[12px] font-bold tracking-wider rounded-lg">
+                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="M12 5v14"/></svg>
                 <span class="hidden sm:inline">Thêm sản phẩm</span>
                 <span class="sm:hidden">Thêm</span>
             </button>
@@ -27,8 +25,8 @@
     <x-product-modal id="product-form" />
     <x-delete-modal />
 
-    <!-- Search & Filter Bar -->
-    <div x-data="{ mobileFilterOpen: false, branchOpen: false }" class="px-3 md:px-6 py-2 md:py-4 bg-white border-b border-slate-100 flex flex-col gap-2 md:gap-5">
+    <!-- Search & Filter Bar (compact) -->
+    <div x-data="{ mobileFilterOpen: false, branchOpen: false }" class="px-3 md:px-6 py-2 md:py-2 bg-white border-b border-slate-100 flex flex-col gap-2">
 
         {{-- Mobile: search + branch dropdown + filter button in 1 row --}}
         <div class="md:hidden flex items-center gap-2">
@@ -106,127 +104,78 @@
             </div>
         </div>
 
-        {{-- Desktop filter row (unchanged, hidden on mobile) --}}
-        <div class="hidden md:flex flex-wrap items-center gap-4">
-            <!-- Main Search -->
-            <div class="relative w-full md:w-80 group">
-                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="absolute left-4 top-1/2 -translate-y-1/2 text-slate-300 group-focus-within:text-electric-blue transition-colors"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
-                <input type="text" wire:model.live.debounce.500ms="search" placeholder="Tìm tên, mã SKU..." class="w-full bg-slate-50 border border-slate-200 rounded-xl py-2.5 pl-12 pr-6 text-[11px] focus:outline-none focus:border-electric-blue transition-all text-slate-900 shadow-sm">
+        {{-- Desktop: SINGLE compact row — search + box + branch + quickEdit + bulkActions + perPage + paginator + columnToggle --}}
+        <div class="hidden md:flex flex-wrap items-center gap-2">
+            <!-- Search -->
+            <div class="relative w-72 group">
+                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-300 group-focus-within:text-electric-blue transition-colors"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+                <input type="text" wire:model.live.debounce.500ms="search" placeholder="Tìm tên, mã SKU..." class="w-full bg-slate-50 border border-slate-200 rounded-lg py-1.5 pl-9 pr-3 text-[12px] focus:outline-none focus:border-electric-blue text-slate-900">
             </div>
 
-            {{-- Category filter REMOVED per request (2026-05-31) — keep only search + box code + branch toggle (in row 2) --}}
-
-            <!-- Box Code Filter -->
-            <div class="relative w-full md:w-48 group">
-                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-300 group-focus-within:text-electric-blue transition-colors"><path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"/><path d="m3.3 7 8.7 5 8.7-5"/><path d="M12 22V12"/></svg>
-                <input type="text" wire:model.live.debounce.300ms="boxCode" placeholder="Mã thùng..." class="w-full bg-white border border-slate-200 rounded-xl py-2.5 pl-10 pr-4 text-[11px] focus:outline-none focus:border-electric-blue transition-all text-slate-900 shadow-sm">
-            </div>
-        </div>
-
-        <!-- Row 2: Bulk Actions & Configuration (desktop only, mobile uses simplified filter) -->
-        <div class="hidden md:flex flex-col md:flex-row items-center justify-between gap-4 pt-4 border-t border-slate-50">
-            <!-- Left Side: Selection Actions -->
-            <div class="flex items-center gap-3 min-h-[40px]">
-                @if(count($selectedRows) > 0)
-                    <div class="flex items-center gap-3 animate-in fade-in slide-in-from-left-4 duration-300">
-                        <div class="px-3 py-1.5 bg-electric-blue/10 rounded-lg border border-electric-blue/20 flex items-center gap-2">
-                            <span class="w-2 h-2 bg-electric-blue rounded-full animate-pulse"></span>
-                            <span class="text-[10px] font-black text-electric-blue uppercase tracking-widest">Đã chọn {{ count($selectedRows) }} mục</span>
-                        </div>
-                        
-                        <div class="h-6 w-px bg-slate-200 mx-1"></div>
-
-                        <button wire:click="bulkCopyToSG" class="px-4 py-2 rounded-xl text-[9px] font-black bg-emerald-500 text-white hover:bg-emerald-600 transition-all flex items-center gap-2 shadow-[0_4px_12px_rgba(16,185,129,0.2)] uppercase tracking-wider">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="M12 5v14"/><path d="M12 13V7l-3 3"/><path d="m15 10-3-3"/></svg>
-                            Sao chép sang SG
-                        </button>
-                        
-                        @if(auth()->user()?->hasPermission('product.delete'))
-                        <button wire:click="bulkDelete" wire:confirm="Bạn có chắc chắn muốn xóa các mục đã chọn?" class="px-4 py-2 rounded-xl text-[9px] font-black bg-white text-rose-500 border border-rose-200 hover:bg-rose-50 transition-all flex items-center gap-2 uppercase tracking-wider">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/></svg>
-                            Xóa hàng loạt
-                        </button>
-                        @endif
-                    </div>
-                @else
-                    <div class="flex items-center gap-2 text-slate-300 italic animate-in fade-in duration-500">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg>
-                        <span class="text-[10px] font-medium uppercase tracking-widest">Chọn sản phẩm để thực hiện thao tác hàng loạt</span>
-                    </div>
-                @endif
+            <!-- Box Code -->
+            <div class="relative w-40 group">
+                <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-300 group-focus-within:text-electric-blue transition-colors"><path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"/><path d="m3.3 7 8.7 5 8.7-5"/><path d="M12 22V12"/></svg>
+                <input type="text" wire:model.live.debounce.300ms="boxCode" placeholder="Mã thùng..." class="w-full bg-white border border-slate-200 rounded-lg py-1.5 pl-8 pr-2 text-[11px] focus:outline-none focus:border-electric-blue text-slate-900">
             </div>
 
-            <!-- Right Side: Display Controls -->
-            <div class="flex items-center gap-6">
-                <!-- Branch Filter -->
-                <div class="flex items-center gap-3">
-                    <span class="text-[10px] text-slate-400 font-bold uppercase tracking-widest">Chi nhánh</span>
-                    <div class="flex bg-slate-100 p-1 rounded-xl border border-slate-200/50">
-                        <button wire:click="$set('branch', 'all')" class="px-4 py-1.5 rounded-lg text-[10px] font-black transition-all {{ $branch === 'all' ? 'bg-white text-electric-blue shadow-sm' : 'text-slate-400 hover:text-slate-600' }}">TẤT CẢ</button>
-                        <button wire:click="$set('branch', 'sg')" class="px-4 py-1.5 rounded-lg text-[10px] font-black transition-all {{ $branch === 'sg' ? 'bg-white text-emerald-500 shadow-sm' : 'text-slate-400 hover:text-slate-600' }}">SÀI GÒN</button>
-                        <button wire:click="$set('branch', 'hn')" class="px-4 py-1.5 rounded-lg text-[10px] font-black transition-all {{ $branch === 'hn' ? 'bg-white text-rose-500 shadow-sm' : 'text-slate-400 hover:text-slate-600' }}">HÀ NỘI</button>
-                    </div>
+            <!-- Branch segmented (compact) -->
+            <div class="flex bg-slate-100 p-0.5 rounded-md border border-slate-200">
+                <button wire:click="$set('branch', 'all')" class="px-2.5 py-1 rounded text-[10px] font-black uppercase tracking-wider transition-all {{ $branch === 'all' ? 'bg-white text-electric-blue shadow-sm' : 'text-slate-500 hover:text-slate-700' }}">Tất cả</button>
+                <button wire:click="$set('branch', 'sg')" class="px-2.5 py-1 rounded text-[10px] font-black uppercase tracking-wider transition-all {{ $branch === 'sg' ? 'bg-emerald-500 text-white shadow-sm' : 'text-slate-500 hover:text-slate-700' }}">SG</button>
+                <button wire:click="$set('branch', 'hn')" class="px-2.5 py-1 rounded text-[10px] font-black uppercase tracking-wider transition-all {{ $branch === 'hn' ? 'bg-rose-500 text-white shadow-sm' : 'text-slate-500 hover:text-slate-700' }}">HN</button>
+            </div>
+
+            <!-- Quick Edit toggle (icon only, tooltip) -->
+            <button wire:click="$toggle('quickEditMode')"
+                    title="Sửa nhanh"
+                    class="w-8 h-8 flex items-center justify-center rounded-md border transition-colors {{ $quickEditMode ? 'bg-electric-blue/10 border-electric-blue text-electric-blue' : 'bg-white border-slate-200 text-slate-500 hover:text-electric-blue hover:border-electric-blue/40' }}">
+                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+            </button>
+
+            <!-- Bulk actions chip (when selected) -->
+            @if(count($selectedRows) > 0)
+                <div class="flex items-center gap-1.5 ml-1">
+                    <span class="text-[10px] font-black text-electric-blue tracking-wider whitespace-nowrap">[{{ count($selectedRows) }}]</span>
+                    <button wire:click="bulkCopyToSG" class="px-2 py-1 rounded-md text-[10px] font-black bg-emerald-500 text-white hover:bg-emerald-600 transition-all uppercase">→ SG</button>
+                    @if(auth()->user()?->hasPermission('product.delete'))
+                    <button wire:click="bulkDelete" wire:confirm="Bạn có chắc chắn muốn xóa?" class="px-2 py-1 rounded-md text-[10px] font-black bg-rose-50 text-rose-600 border border-rose-200 hover:bg-rose-100 transition-all uppercase">Xóa</button>
+                    @endif
                 </div>
+            @endif
 
-                <div class="h-8 w-px bg-slate-100"></div>
+            <!-- Right cluster: perPage + paginator + column toggle (pushed right) -->
+            <div class="flex items-center gap-2 ml-auto">
+                <select wire:model.live="perPage" class="bg-white border border-slate-200 rounded-md py-1 px-2 text-[10px] font-bold text-slate-600 focus:outline-none focus:border-electric-blue cursor-pointer">
+                    <option value="10">10</option>
+                    <option value="25">25</option>
+                    <option value="50">50</option>
+                    <option value="100">100</option>
+                </select>
 
-                <!-- Quick Edit Mode -->
-                <div class="flex items-center">
-                    <button wire:click="$toggle('quickEditMode')" 
-                            class="flex items-center gap-2 px-4 py-2 border rounded-xl text-[10px] font-black transition-all cursor-pointer {{ $quickEditMode ? 'bg-electric-blue/10 border-electric-blue text-electric-blue shadow-sm' : 'bg-white border-slate-200 text-slate-500 hover:text-slate-700' }}">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="{{ $quickEditMode ? 'text-electric-blue' : 'text-slate-400' }}"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
-                        SỬA NHANH
-                    </button>
-                </div>
-
-                <div class="h-8 w-px bg-slate-100"></div>
-
-                <!-- Per Page -->
-                <div class="flex items-center gap-3">
-                    <span class="text-[10px] text-slate-400 font-bold uppercase tracking-widest">Hiển thị</span>
-                    <select wire:model.live="perPage" class="bg-white border border-slate-200 rounded-xl py-1.5 px-4 text-[10px] font-black text-slate-600 focus:outline-none focus:border-electric-blue transition-all cursor-pointer shadow-sm">
-                        <option value="10">10</option>
-                        <option value="25">25</option>
-                        <option value="50">50</option>
-                        <option value="100">100</option>
-                    </select>
-                </div>
-
-                <div class="h-8 w-px bg-slate-100"></div>
-
-                {{-- Inline paginator: prev arrow + "current / last" + next arrow --}}
                 @php
                     $curPage  = $products->currentPage();
                     $lastPage = max(1, $products->lastPage());
                     $onFirst  = $curPage <= 1;
                     $onLast   = $curPage >= $lastPage;
                 @endphp
-                <div class="flex items-center gap-0.5 bg-white border border-slate-200 rounded-md shadow-sm px-0.5 py-0.5" title="Trang {{ $curPage }} / {{ $lastPage }} ({{ number_format($products->total()) }} sản phẩm)">
+                <div class="flex items-center gap-0.5 bg-white border border-slate-200 rounded-md px-0.5 py-0.5" title="Trang {{ $curPage }} / {{ $lastPage }} ({{ number_format($products->total()) }} SP)">
                     <button wire:click="previousPage" @disabled($onFirst)
-                            class="w-6 h-6 flex items-center justify-center rounded transition-colors
-                                   {{ $onFirst ? 'text-slate-200 cursor-not-allowed' : 'text-slate-500 hover:text-electric-blue hover:bg-electric-blue/5' }}"
-                            aria-label="Trang trước">
+                            class="w-6 h-6 flex items-center justify-center rounded transition-colors {{ $onFirst ? 'text-slate-200 cursor-not-allowed' : 'text-slate-500 hover:text-electric-blue hover:bg-electric-blue/5' }}">
                         <svg xmlns="http://www.w3.org/2000/svg" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>
                     </button>
-
                     <div class="flex items-baseline gap-0.5 px-1 select-none">
-                        <span class="text-[10px] font-black text-electric-blue tracking-tight tabular-nums">{{ $curPage }}</span>
+                        <span class="text-[10px] font-black text-electric-blue tabular-nums">{{ $curPage }}</span>
                         <span class="text-[9px] font-bold text-slate-300">/</span>
                         <span class="text-[10px] font-bold text-slate-500 tabular-nums">{{ $lastPage }}</span>
                     </div>
-
                     <button wire:click="nextPage" @disabled($onLast)
-                            class="w-6 h-6 flex items-center justify-center rounded transition-colors
-                                   {{ $onLast ? 'text-slate-200 cursor-not-allowed' : 'text-slate-500 hover:text-electric-blue hover:bg-electric-blue/5' }}"
-                            aria-label="Trang sau">
+                            class="w-6 h-6 flex items-center justify-center rounded transition-colors {{ $onLast ? 'text-slate-200 cursor-not-allowed' : 'text-slate-500 hover:text-electric-blue hover:bg-electric-blue/5' }}">
                         <svg xmlns="http://www.w3.org/2000/svg" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"/></svg>
                     </button>
                 </div>
 
-                <div class="h-8 w-px bg-slate-100"></div>
-
                 <x-column-toggle
-                    :visibleColumns="$visibleColumns" 
+                    :visibleColumns="$visibleColumns"
                     :cols="[
                         'sku' => 'Mã & Thông tin',
                         'brand' => 'Thương hiệu',
@@ -235,7 +184,7 @@
                         'stock' => 'Tồn kho',
                         'price' => 'Giá bán',
                         'actions' => 'Thao tác'
-                    ]" 
+                    ]"
                 />
             </div>
         </div>
@@ -243,40 +192,33 @@
 
 
 
-        <!-- Active Filters Tags -->
+        <!-- Active Filters Tags (compact, inline, single thin line) -->
         @if($boxCode || $search || $branch !== 'all')
-            <div class="flex flex-wrap items-center gap-2 animate-in fade-in slide-in-from-top-1 duration-200">
-                <span class="text-[8px] font-black text-slate-400 tracking-tighter mr-1">Đang áp dụng:</span>
-                
+            <div class="hidden md:flex flex-wrap items-center gap-1.5 px-3 md:px-6 py-1 bg-slate-50/50 border-b border-slate-100 text-[9px]">
                 @if($branch !== 'all')
-                    <div class="flex items-center gap-1.5 px-2.5 py-1 {{ $branch === 'sg' ? 'bg-emerald-50 border-emerald-100 text-emerald-600' : 'bg-rose-50 border-rose-100 text-rose-600' }} border rounded-lg text-[9px] font-bold shadow-sm">
-                        <span class="opacity-60 font-medium">Chi nhánh:</span> {{ $branch === 'sg' ? 'Sài Gòn' : 'Hà Nội' }}
-                        <button wire:click="$set('branch', 'all')" class="opacity-40 hover:opacity-100 transition-all ml-1"><svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg></button>
-                    </div>
+                    <span class="inline-flex items-center gap-1 px-1.5 py-0.5 {{ $branch === 'sg' ? 'bg-emerald-50 text-emerald-600 border-emerald-100' : 'bg-rose-50 text-rose-600 border-rose-100' }} border rounded font-bold">
+                        CN: {{ $branch === 'sg' ? 'SG' : 'HN' }}
+                        <button wire:click="$set('branch', 'all')" class="opacity-40 hover:opacity-100"><svg xmlns="http://www.w3.org/2000/svg" width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg></button>
+                    </span>
                 @endif
-                
                 @if($search)
-                    <div class="flex items-center gap-1.5 px-2.5 py-1 bg-slate-100 border border-slate-200 rounded-lg text-[10px] font-bold text-slate-600 group shadow-sm">
-                        <span class="text-slate-400 font-medium">Tìm:</span> {{ $search }}
-                        <button wire:click="clearFilter('search')" class="text-slate-300 hover:text-rose-500 transition-colors"><svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg></button>
-                    </div>
+                    <span class="inline-flex items-center gap-1 px-1.5 py-0.5 bg-slate-100 text-slate-600 border border-slate-200 rounded font-bold">
+                        Tìm: {{ $search }}
+                        <button wire:click="clearFilter('search')" class="opacity-40 hover:opacity-100 hover:text-rose-500"><svg xmlns="http://www.w3.org/2000/svg" width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg></button>
+                    </span>
                 @endif
-
                 @if($boxCode)
-                    <div class="flex items-center gap-1.5 px-2.5 py-1 bg-emerald-50 border border-emerald-100 rounded-lg text-[10px] font-bold text-emerald-600 group shadow-sm">
-                        <span class="opacity-60 font-medium">Thùng:</span> {{ $boxCode }}
-                        <button wire:click="clearFilter('boxCode')" class="opacity-40 hover:opacity-100 hover:text-rose-500 transition-all"><svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg></button>
-                    </div>
+                    <span class="inline-flex items-center gap-1 px-1.5 py-0.5 bg-emerald-50 text-emerald-600 border border-emerald-100 rounded font-bold">
+                        Thùng: {{ $boxCode }}
+                        <button wire:click="clearFilter('boxCode')" class="opacity-40 hover:opacity-100 hover:text-rose-500"><svg xmlns="http://www.w3.org/2000/svg" width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg></button>
+                    </span>
                 @endif
-
-
-
-                <button wire:click="clearFilter('all')" class="text-[8px] font-black text-rose-500 tracking-tighter hover:underline ml-2">Xóa tất cả bộ lọc</button>
+                <button wire:click="clearFilter('all')" class="text-rose-500 font-black hover:underline ml-1">Xóa lọc</button>
             </div>
         @endif
 
     <!-- Main Content -->
-    <div class="flex-1 min-h-0 overflow-y-auto custom-scrollbar px-2 pb-2 pt-0 md:px-6 md:pb-6 md:pt-0">
+    <div class="flex-1 min-h-0 overflow-y-auto custom-scrollbar px-2 pb-2 pt-1 md:px-4 md:pb-4 md:pt-2">
 
         {{-- Mobile card list (compact, tap-friendly) --}}
         <div class="md:hidden flex flex-col gap-1.5">
