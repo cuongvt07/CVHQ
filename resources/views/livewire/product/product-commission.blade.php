@@ -1,31 +1,25 @@
 <div class="h-full min-h-0 flex flex-col">
     <!-- Header -->
-    <header class="px-4 md:px-6 py-4 flex flex-col md:flex-row md:items-center justify-end gap-6 border-b border-slate-200 bg-slate-50/50">
-        <div class="flex items-center gap-3">
-            <button wire:click="syncCommissions" wire:loading.attr="disabled" class="flex items-center gap-2 px-4 py-2 bg-rose-500 text-white rounded-xl text-[13px] font-bold hover:bg-rose-600 transition-all shadow-sm shadow-rose-500/20">
+    <header class="px-3 md:px-6 py-2 md:py-4 flex items-center justify-between gap-2 md:justify-end border-b border-slate-200 bg-slate-50/50">
+        <h1 class="text-base font-black tracking-tight text-slate-900 md:hidden">Bảng hoa hồng</h1>
+        <div class="flex items-center gap-2">
+            <button wire:click="syncCommissions" wire:loading.attr="disabled" class="flex items-center gap-1.5 px-3 py-2 bg-rose-500 text-white rounded-lg text-[12px] font-bold hover:bg-rose-600 transition-all shadow-sm shadow-rose-500/20">
                 <span wire:loading.remove wire:target="syncCommissions">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="inline-block"><path d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/><path d="M3 12a9 9 0 0 0 9 9 9.75 9.75 0 0 0 6.74-2.74L21 16"/><path d="M16 16h5v5"/></svg>
-                    Đồng bộ hóa đơn
+                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="inline-block"><path d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/><path d="M3 12a9 9 0 0 0 9 9 9.75 9.75 0 0 0 6.74-2.74L21 16"/><path d="M16 16h5v5"/></svg>
+                    <span class="hidden sm:inline">Đồng bộ hóa đơn</span>
                 </span>
-                <span wire:loading wire:target="syncCommissions" class="flex items-center gap-2">
-                    <svg class="animate-spin" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg>
-                    Đang xử lý...
+                <span wire:loading wire:target="syncCommissions" class="flex items-center gap-1.5">
+                    <svg class="animate-spin" xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg>
+                    <span class="hidden sm:inline">Đang xử lý...</span>
                 </span>
             </button>
-            <div class="h-8 w-px bg-slate-200 mx-1"></div>
-            <button @click="$dispatch('open-import-commissions')" class="flex items-center gap-2 px-4 py-2 bg-white border border-slate-200 text-slate-600 rounded-xl text-[13px] font-bold hover:bg-slate-50 transition-all shadow-sm">
-                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" x2="12" y1="3" y2="15"/></svg>
+            <button @click="$dispatch('open-import-commissions')" class="flex items-center gap-1.5 px-3 py-2 bg-white border border-slate-200 text-slate-600 rounded-lg text-[12px] font-bold hover:bg-slate-50 transition-all shadow-sm">
+                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" x2="12" y1="3" y2="15"/></svg>
                 Import
             </button>
-            <button wire:click="export" class="flex items-center gap-2 px-4 py-2 bg-white border border-slate-200 text-slate-600 rounded-xl text-[13px] font-bold hover:bg-slate-50 transition-all shadow-sm">
-                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" x2="12" y1="15" y2="3"/></svg>
-                Xuất file
-            </button>
-
-            <div class="h-8 w-px bg-slate-200 mx-1"></div>
-
-            <button class="p-2 bg-white border border-slate-200 text-slate-400 rounded-xl hover:text-slate-600 shadow-sm">
-                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="7" height="7" x="3" y="3" rx="1"/><rect width="7" height="7" x="14" y="3" rx="1"/><rect width="7" height="7" x="14" y="14" rx="1"/><rect width="7" height="7" x="3" y="14" rx="1"/></svg>
+            <button wire:click="export" class="flex items-center gap-1.5 px-3 py-2 bg-white border border-slate-200 text-slate-600 rounded-lg text-[12px] font-bold hover:bg-slate-50 transition-all shadow-sm">
+                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" x2="12" y1="15" y2="3"/></svg>
+                <span class="hidden sm:inline">Xuất file</span>
             </button>
         </div>
     </header>
@@ -111,8 +105,49 @@
 
     <x-import-modal id="commissions" title="Import Bảng Hoa Hồng" model="importFile" />
 
-    <!-- Table Content -->
-    <div class="flex-1 min-h-0 overflow-y-auto custom-scrollbar p-4">
+    <!-- Mobile card list -->
+    <div class="md:hidden flex-1 min-h-0 overflow-y-auto custom-scrollbar p-3 space-y-2">
+        @foreach($products as $product)
+        <div wire:key="commission-card-{{ $product->id }}" class="bg-white border border-slate-200 rounded-xl p-3 shadow-sm">
+            <div class="flex items-center gap-3 mb-2">
+                <div class="w-10 h-10 rounded-lg overflow-hidden bg-slate-100 border border-slate-200 shrink-0">
+                    @if(!empty($product->images) && isset($product->images[0]))
+                        <img src="{{ $product->images[0] }}" class="w-full h-full object-cover">
+                    @else
+                        <div class="w-full h-full flex items-center justify-center text-slate-300">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect width="18" height="18" x="3" y="3" rx="2" ry="2"/></svg>
+                        </div>
+                    @endif
+                </div>
+                <div class="min-w-0 flex-1">
+                    <div class="text-sm font-bold text-slate-900 truncate">{{ $product->name }}</div>
+                    <div class="text-[10px] font-mono text-slate-400 tracking-wider">{{ $product->sku }}</div>
+                </div>
+            </div>
+            <div class="grid grid-cols-3 gap-2 text-center mb-2">
+                <div class="bg-slate-50 rounded-lg py-1.5">
+                    <div class="text-[9px] text-slate-400 font-bold uppercase">Giá bán</div>
+                    <div class="text-xs font-bold text-slate-900">{{ number_format($product->sale_price, 0, ',', '.') }}</div>
+                </div>
+                <div class="bg-slate-50 rounded-lg py-1.5">
+                    <div class="text-[9px] text-slate-400 font-bold uppercase">Giá vốn</div>
+                    <div class="text-xs font-bold text-slate-900">{{ number_format($product->cost_price, 0, ',', '.') }}</div>
+                </div>
+                <div class="bg-emerald-50 rounded-lg py-1.5">
+                    <div class="text-[9px] text-emerald-500 font-bold uppercase">Hoa hồng</div>
+                    <input type="number"
+                           wire:blur="updateCommission({{ $product->id }}, $event.target.value)"
+                           value="{{ (int)$product->commission_amount }}"
+                           class="w-full bg-transparent text-center text-xs font-black text-emerald-700 focus:outline-none focus:ring-0 border-0 p-0">
+                </div>
+            </div>
+        </div>
+        @endforeach
+        <div class="pt-2">{{ $products->links() }}</div>
+    </div>
+
+    <!-- Desktop Table Content -->
+    <div class="hidden md:flex flex-1 min-h-0 overflow-y-auto custom-scrollbar flex-col p-4">
         <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-visible">
             <table class="w-full text-left border-collapse">
                 <thead class="sticky top-0 z-30 bg-slate-50/95 backdrop-blur-md shadow-[0_1px_0_rgba(226,232,240,1)]">

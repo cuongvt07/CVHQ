@@ -1,7 +1,8 @@
 <div class="h-full min-h-0 flex flex-col bg-slate-50">
     @if($mode === 'list')
-        <div class="h-full min-h-0 grid grid-cols-[200px_1fr]">
-            <aside class="bg-white border-r border-slate-200 p-4 space-y-6">
+        <div class="h-full min-h-0 flex flex-col md:grid md:grid-cols-[200px_1fr]" x-data="{ mobileFilterOpen: false }">
+            {{-- Filter aside — desktop always visible, mobile collapsible --}}
+            <aside class="hidden md:block bg-white border-r border-slate-200 p-4 space-y-6">
                 <h1 class="text-lg font-black text-slate-900">Phiếu kiểm kho</h1>
 
                 <div class="space-y-3">
@@ -16,7 +17,7 @@
                     </label>
                     <label class="flex items-center gap-2 text-xs font-bold text-slate-700">
                         <input type="radio" wire:model.live="dateFilter" value="custom" class="text-electric-blue">
-                        Tuy chon
+                        Tùy chọn
                     </label>
                     @if($dateFilter === 'custom')
                         <div class="space-y-2">
@@ -45,7 +46,7 @@
                 <div class="space-y-2">
                     <div class="text-[10px] font-black text-slate-500 uppercase tracking-widest">Người tạo</div>
                     <select wire:model.live="creatorFilter" class="w-full bg-white border border-slate-200 rounded-lg px-3 py-2 text-xs focus:outline-none focus:border-electric-blue">
-                        <option value="">Tat ca nguoi tao</option>
+                        <option value="">Tất cả người tạo</option>
                         @foreach($creators as $creator)
                             <option value="{{ $creator->id }}">{{ $creator->name }}</option>
                         @endforeach
@@ -53,16 +54,24 @@
                 </div>
             </aside>
 
-            <main class="min-w-0 flex flex-col">
-                <div class="h-12 bg-white border-b border-slate-200 flex items-center gap-3 px-4">
+            <main class="min-w-0 flex flex-col flex-1">
+                <div class="h-12 bg-white border-b border-slate-200 flex items-center gap-2 px-3">
                     <div class="relative flex-1 max-w-md">
                         <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
                         <input type="text" wire:model.live.debounce.400ms="search" placeholder="Theo mã phiếu kiểm" class="w-full h-8 bg-white border border-slate-200 rounded-lg pl-9 pr-3 text-xs focus:outline-none focus:border-electric-blue">
                     </div>
+
+                    {{-- Mobile filter button --}}
+                    <button @click="mobileFilterOpen = !mobileFilterOpen"
+                            class="md:hidden shrink-0 relative w-8 h-8 flex items-center justify-center rounded-lg border border-slate-200 text-slate-500 transition-colors"
+                            :class="mobileFilterOpen ? 'border-electric-blue bg-electric-blue/10 text-electric-blue' : ''">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg>
+                    </button>
+
                     @if(count($selectedChecks) > 0)
-                        <button wire:click="deleteSelected" wire:confirm="Xoa cac phieu kiem da chon?" class="inline-flex items-center gap-1.5 h-8 px-3 rounded-lg border border-rose-200 text-rose-600 text-xs font-bold hover:bg-rose-50">
+                        <button wire:click="deleteSelected" wire:confirm="Xóa các phiếu kiểm đã chọn?" class="inline-flex items-center gap-1.5 h-8 px-3 rounded-lg border border-rose-200 text-rose-600 text-xs font-bold hover:bg-rose-50">
                             <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M3 6h18"/><path d="M19 6v14H5V6"/><path d="M8 6V4h8v2"/></svg>
-                            Xoa ({{ count($selectedChecks) }})
+                            <span class="hidden sm:inline">Xóa</span> ({{ count($selectedChecks) }})
                         </button>
                     @endif
                     <button wire:click="create" class="ml-auto inline-flex items-center gap-1.5 h-8 px-3 rounded-lg border border-electric-blue text-electric-blue text-xs font-bold hover:bg-electric-blue/5">
@@ -71,7 +80,101 @@
                     </button>
                 </div>
 
-                <div class="flex-1 min-h-0 overflow-auto bg-white">
+                {{-- Mobile filter panel --}}
+                <div x-show="mobileFilterOpen" x-cloak
+                     x-transition:enter="transition ease-out duration-200"
+                     x-transition:enter-start="opacity-0 -translate-y-1"
+                     x-transition:enter-end="opacity-100 translate-y-0"
+                     @click.outside="mobileFilterOpen = false"
+                     class="md:hidden bg-white border-b border-slate-200 px-3 py-3 space-y-3">
+                    <div class="grid grid-cols-2 gap-3">
+                        <div>
+                            <div class="text-[9px] font-black text-slate-500 uppercase tracking-widest mb-1">Ngày tạo</div>
+                            <div class="space-y-1">
+                                @foreach(['month' => 'Tháng này', 'all' => 'Tất cả', 'custom' => 'Tùy chọn'] as $val => $label)
+                                    <label class="flex items-center gap-2 text-xs font-bold text-slate-700">
+                                        <input type="radio" wire:model.live="dateFilter" value="{{ $val }}" class="text-electric-blue">
+                                        {{ $label }}
+                                    </label>
+                                @endforeach
+                                @if($dateFilter === 'custom')
+                                    <input type="date" wire:model.live="dateFrom" class="w-full bg-white border border-slate-200 rounded px-2 py-1 text-xs focus:outline-none focus:border-electric-blue mt-1">
+                                    <input type="date" wire:model.live="dateTo" class="w-full bg-white border border-slate-200 rounded px-2 py-1 text-xs focus:outline-none focus:border-electric-blue">
+                                @endif
+                            </div>
+                        </div>
+                        <div>
+                            <div class="text-[9px] font-black text-slate-500 uppercase tracking-widest mb-1">Trạng thái</div>
+                            <div class="space-y-1">
+                                <label class="flex items-center gap-2 text-xs font-bold text-slate-700">
+                                    <input type="checkbox" wire:model.live="statusFilter" value="draft" class="rounded text-electric-blue">
+                                    Phiếu tạm
+                                </label>
+                                <label class="flex items-center gap-2 text-xs font-bold text-slate-700">
+                                    <input type="checkbox" wire:model.live="statusFilter" value="completed" class="rounded text-electric-blue">
+                                    Đã hoàn thành
+                                </label>
+                                <label class="flex items-center gap-2 text-xs font-bold text-slate-700">
+                                    <input type="checkbox" wire:model.live="statusFilter" value="cancelled" class="rounded text-electric-blue">
+                                    Đã hủy
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="flex items-center justify-between">
+                        <select wire:model.live="creatorFilter" class="flex-1 bg-white border border-slate-200 rounded px-2 py-1.5 text-xs focus:outline-none focus:border-electric-blue">
+                            <option value="">Tất cả người tạo</option>
+                            @foreach($creators as $creator)
+                                <option value="{{ $creator->id }}">{{ $creator->name }}</option>
+                            @endforeach
+                        </select>
+                        <button @click="mobileFilterOpen = false" class="ml-2 px-3 py-1.5 bg-electric-blue text-white rounded text-[10px] font-bold uppercase tracking-wider">Xong</button>
+                    </div>
+                </div>
+
+                {{-- Mobile cards --}}
+                <div class="md:hidden flex-1 min-h-0 overflow-auto bg-white p-3 space-y-2">
+                    @forelse($checks as $check)
+                        <div wire:key="check-card-{{ $check->id }}" wire:click="edit({{ $check->id }})" class="bg-white border border-slate-200 rounded-xl p-3 shadow-sm cursor-pointer hover:border-electric-blue/40 transition-colors">
+                            <div class="flex items-start justify-between gap-2 mb-1.5">
+                                <div>
+                                    <div class="text-sm font-bold text-electric-blue">{{ $check->code }}</div>
+                                    <div class="text-[10px] text-slate-400 mt-0.5">{{ $check->created_at->format('d/m/Y H:i') }} · {{ $check->user?->name ?: '-' }}</div>
+                                </div>
+                                @if($check->status === 'completed')
+                                    <span class="shrink-0 inline-flex items-center rounded-full bg-emerald-50 px-2 py-0.5 text-[9px] font-black text-emerald-700 border border-emerald-100">Hoàn thành</span>
+                                @else
+                                    <span class="shrink-0 inline-flex items-center rounded-full bg-amber-50 px-2 py-0.5 text-[9px] font-black text-amber-700 border border-amber-100">Phiếu tạm</span>
+                                @endif
+                            </div>
+                            <div class="grid grid-cols-3 gap-2 text-center">
+                                <div class="bg-slate-50 rounded-lg py-1.5">
+                                    <div class="text-[9px] text-slate-400 font-bold uppercase tracking-wider">Thực tế</div>
+                                    <div class="text-sm font-black text-slate-900">{{ number_format($check->total_actual) }}</div>
+                                </div>
+                                <div class="bg-slate-50 rounded-lg py-1.5">
+                                    <div class="text-[9px] text-slate-400 font-bold uppercase tracking-wider">Lệch tăng</div>
+                                    <div class="text-sm font-black text-emerald-600">+{{ number_format($check->total_increase) }}</div>
+                                </div>
+                                <div class="bg-slate-50 rounded-lg py-1.5">
+                                    <div class="text-[9px] text-slate-400 font-bold uppercase tracking-wider">Lệch giảm</div>
+                                    <div class="text-sm font-black text-rose-600">-{{ number_format($check->total_decrease) }}</div>
+                                </div>
+                            </div>
+                        </div>
+                    @empty
+                        <div class="py-20 text-center">
+                            <div class="mx-auto w-16 h-16 rounded-full bg-blue-50 flex items-center justify-center mb-3">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" class="text-electric-blue"><path d="M4 4h16v16H4z"/><path d="M8 8h8"/><path d="M8 12h8"/><path d="M8 16h5"/></svg>
+                            </div>
+                            <div class="text-sm font-black text-slate-900">Không tìm thấy kết quả</div>
+                        </div>
+                    @endforelse
+                    <div class="pt-2">{{ $checks->links() }}</div>
+                </div>
+
+                {{-- Desktop table --}}
+                <div class="hidden md:flex flex-1 min-h-0 flex-col overflow-auto bg-white">
                     <table class="w-full text-left border-collapse">
                         <thead class="sticky top-0 z-10 bg-blue-50">
                             <tr class="border-b border-slate-200">
@@ -93,9 +196,9 @@
                                     <td class="px-3 py-2 text-xs">
                                         <div class="font-bold text-electric-blue">{{ $check->code }}</div>
                                         @if($check->status === 'completed')
-                                            <span class="mt-1 inline-flex items-center rounded-full bg-emerald-50 px-2 py-0.5 text-[10px] font-black text-emerald-700 border border-emerald-100">Hoan thanh</span>
+                                            <span class="mt-1 inline-flex items-center rounded-full bg-emerald-50 px-2 py-0.5 text-[10px] font-black text-emerald-700 border border-emerald-100">Hoàn thành</span>
                                         @else
-                                            <span class="mt-1 inline-flex items-center rounded-full bg-amber-50 px-2 py-0.5 text-[10px] font-black text-amber-700 border border-amber-100">Phieu tam</span>
+                                            <span class="mt-1 inline-flex items-center rounded-full bg-amber-50 px-2 py-0.5 text-[10px] font-black text-amber-700 border border-amber-100">Phiếu tạm</span>
                                         @endif
                                     </td>
                                     <td class="px-3 py-2 text-xs text-slate-600">
@@ -122,25 +225,24 @@
                             @endforelse
                         </tbody>
                     </table>
-                </div>
-
-                <div class="bg-white border-t border-slate-100 px-4 py-2">
-                    {{ $checks->links() }}
+                    <div class="bg-white border-t border-slate-100 px-4 py-2 mt-auto">
+                        {{ $checks->links() }}
+                    </div>
                 </div>
             </main>
         </div>
     @else
-        <div class="h-full min-h-0 flex bg-slate-50">
-            <main class="flex-1 min-w-0 flex flex-col">
-                <div class="h-14 bg-white border-b border-slate-200 flex items-center gap-3 px-4">
-                    <button wire:click="cancelEdit" class="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-slate-100 text-slate-600">
+        <div class="h-full min-h-0 flex flex-col md:flex-row bg-slate-50">
+            <main class="flex-1 min-w-0 flex flex-col min-h-0">
+                <div class="h-14 bg-white border-b border-slate-200 flex items-center gap-2 px-3 md:px-4">
+                    <button wire:click="cancelEdit" class="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-slate-100 text-slate-600 shrink-0">
                         <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="m15 18-6-6 6-6"/></svg>
                     </button>
-                    <h1 class="text-lg font-black text-slate-900">Kiểm kho</h1>
+                    <h1 class="text-base md:text-lg font-black text-slate-900 shrink-0">Kiểm kho</h1>
 
-                    <div class="relative w-[360px]">
+                    <div class="relative flex-1 max-w-[360px]">
                         <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
-                        <input type="text" wire:model.live.debounce.300ms="productSearch" placeholder="Tìm hàng hóa theo mã hoặc tên (F3)" class="w-full h-9 bg-white border border-slate-300 rounded-lg pl-9 pr-9 text-xs focus:outline-none focus:border-electric-blue focus:ring-1 focus:ring-electric-blue">
+                        <input type="text" wire:model.live.debounce.300ms="productSearch" placeholder="Tìm hàng hóa theo mã hoặc tên" class="w-full h-9 bg-white border border-slate-300 rounded-lg pl-9 pr-9 text-xs focus:outline-none focus:border-electric-blue focus:ring-1 focus:ring-electric-blue">
                         <button type="button" class="absolute right-2 top-1/2 -translate-y-1/2 w-6 h-6 rounded hover:bg-slate-100 text-slate-500">
                             <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M5 12h14"/><path d="M12 5v14"/></svg>
                         </button>
@@ -158,12 +260,6 @@
                                 @endforeach
                             </div>
                         @endif
-                    </div>
-
-                    <div class="ml-auto flex items-center gap-2">
-                        <button class="w-9 h-9 border border-slate-200 rounded-lg flex items-center justify-center text-slate-500 hover:text-electric-blue hover:border-electric-blue/40">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3v18h18"/><path d="M7 16h2"/><path d="M11 12h2"/><path d="M15 8h2"/></svg>
-                        </button>
                     </div>
                 </div>
 
@@ -223,7 +319,7 @@
                 </div>
             </main>
 
-            <aside class="w-[300px] bg-white border-l border-slate-200 flex flex-col">
+            <aside class="w-full md:w-[300px] shrink-0 bg-white border-t md:border-t-0 md:border-l border-slate-200 flex flex-col">
                 <div class="p-4 space-y-4 flex-1">
                     <div class="flex items-center gap-2 text-xs font-bold text-slate-700">
                         <span class="w-2 h-2 rounded-full bg-slate-500"></span>

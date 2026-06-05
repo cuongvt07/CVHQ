@@ -19,6 +19,22 @@
                 localStorage.setItem('cvha_pos_tabs', JSON.stringify(data));
             } catch (err) { /* ignore */ }
         });
+
+        // Restore saved branch filter
+        try {
+            const savedBranch = localStorage.getItem('cvha_pos_branch');
+            if (savedBranch && ['all', 'sg', 'hn'].includes(savedBranch)) {
+                Livewire.dispatch('restoreBranch', { branch: savedBranch });
+            }
+        } catch (e) { /* ignore */ }
+
+        // Persist branch when it changes
+        Livewire.on('posBranchUpdate', function (detail) {
+            try {
+                const data = Array.isArray(detail) ? detail[0] : detail;
+                localStorage.setItem('cvha_pos_branch', data.branch);
+            } catch (err) { /* ignore */ }
+        });
     });
 
     // Keyboard shortcuts for quick tab operations

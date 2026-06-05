@@ -30,6 +30,7 @@ class PosTerminal extends Component
     public int $activeTab = 0;
     protected $listeners = [
         'restoreTabs',
+        'restoreBranch',
         'addTab',
         'closeActiveTab',
         'nextTab',
@@ -329,6 +330,19 @@ class PosTerminal extends Component
         $active = (int) ($payload['active'] ?? 0);
         $this->activeTab = min(max(0, $active), count($this->tabs) - 1);
         $this->recalculateTotalDiscount();
+    }
+
+    public function restoreBranch(string $branch): void
+    {
+        if (in_array($branch, ['all', 'sg', 'hn'], true)) {
+            $this->branch = $branch;
+        }
+    }
+
+    public function updatedBranch(): void
+    {
+        $this->dispatch('posBranchUpdate', branch: $this->branch);
+        $this->resetPage();
     }
 
     // ═══════════════════════════════════════════════════════════════════════

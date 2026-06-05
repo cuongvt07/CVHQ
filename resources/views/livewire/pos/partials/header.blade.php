@@ -6,37 +6,37 @@
 
     {{-- Search & Filter Bar --}}
     <div class="px-2 py-1 bg-white border-b border-slate-100 flex flex-col gap-1">
-        <div class="flex flex-wrap items-center gap-1 w-full">
+        <div class="flex items-center gap-1 w-full">
 
             {{-- Main Search --}}
-            <div class="relative w-full md:w-72 group">
+            <div class="relative flex-1 min-w-0 group">
                 <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-300 group-focus-within:text-electric-blue transition-colors"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
-                <input type="text" wire:model.live.debounce.400ms="search" placeholder="Tìm tên, mã SKU..." class="w-full bg-slate-50 border border-slate-200 rounded py-1 pl-8 pr-2 text-[11px] focus:outline-none focus:border-electric-blue text-slate-900">
+                <input type="text" wire:model.live.debounce.400ms="search" placeholder="Tìm tên, mã SKU..." class="w-full bg-slate-50 border border-slate-300 rounded py-1 pl-8 pr-2 text-[11px] focus:outline-none focus:border-electric-blue text-slate-900">
+            </div>
+
+            {{-- Box Code Filter — cạnh ô tìm kiếm --}}
+            <div class="relative w-24 shrink-0 group">
+                <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-300 group-focus-within:text-electric-blue transition-colors"><path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"/><path d="m3.3 7 8.7 5 8.7-5"/><path d="M12 22V12"/></svg>
+                <input type="text" wire:model.live.debounce.300ms="boxCode" placeholder="Mã thùng..." class="w-full bg-white border border-slate-300 rounded py-1 pl-7 pr-2 text-[11px] focus:outline-none focus:border-electric-blue text-slate-900">
             </div>
 
             {{-- Branch Filter (Tất cả / Sài Gòn / Hà Nội) — segmented control --}}
-            <div class="flex items-center gap-0.5 bg-slate-100 border border-slate-200 p-0.5 rounded">
+            <div class="flex items-center gap-0.5 bg-slate-100 border border-slate-200 p-0.5 rounded shrink-0">
                 <button wire:click="$set('branch', 'all')"
-                        class="px-2.5 py-1 rounded text-[10px] font-black uppercase tracking-wider transition-all
+                        class="px-2 py-1 rounded text-[10px] font-black uppercase tracking-wider transition-all
                                {{ $branch === 'all' ? 'bg-white text-electric-blue shadow-sm' : 'text-slate-500 hover:text-slate-700' }}">
                     Tất cả
                 </button>
                 <button wire:click="$set('branch', 'sg')"
-                        class="px-2.5 py-1 rounded text-[10px] font-black uppercase tracking-wider transition-all
+                        class="px-2 py-1 rounded text-[10px] font-black uppercase tracking-wider transition-all
                                {{ $branch === 'sg' ? 'bg-emerald-500 text-white shadow-sm' : 'text-slate-500 hover:text-slate-700' }}">
-                    Sài Gòn
+                    SG
                 </button>
                 <button wire:click="$set('branch', 'hn')"
-                        class="px-2.5 py-1 rounded text-[10px] font-black uppercase tracking-wider transition-all
+                        class="px-2 py-1 rounded text-[10px] font-black uppercase tracking-wider transition-all
                                {{ $branch === 'hn' ? 'bg-rose-500 text-white shadow-sm' : 'text-slate-500 hover:text-slate-700' }}">
-                    Hà Nội
+                    HN
                 </button>
-            </div>
-
-            {{-- Box Code Filter --}}
-            <div class="relative w-full md:w-32 group">
-                <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-300 group-focus-within:text-electric-blue transition-colors"><path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"/><path d="m3.3 7 8.7 5 8.7-5"/><path d="M12 22V12"/></svg>
-                <input type="text" wire:model.live.debounce.300ms="boxCode" placeholder="Mã thùng..." class="w-full bg-white border border-slate-200 rounded py-1 pl-8 pr-2 text-[11px] focus:outline-none focus:border-electric-blue text-slate-900">
             </div>
         </div>
 

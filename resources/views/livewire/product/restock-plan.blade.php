@@ -160,8 +160,67 @@
     </div>
 
     <!-- Table Content -->
-    <div class="flex-1 min-h-0 overflow-y-auto custom-scrollbar p-4 md:p-6">
-        <div class="glass-card overflow-visible border border-slate-200">
+    <div class="flex-1 min-h-0 overflow-y-auto custom-scrollbar p-3 md:p-6">
+
+        {{-- Mobile card list --}}
+        <div class="md:hidden space-y-2">
+            @if(count($products) > 0)
+                @foreach($products as $product)
+                <div wire:key="restock-card-{{ $product->id }}" class="bg-white border border-slate-200 rounded-xl p-3 shadow-sm">
+                    <div class="flex items-center gap-3 mb-2">
+                        @if(!empty($product->images))
+                            <img src="{{ $product->images[0] }}" class="w-10 h-10 rounded-lg object-cover border border-slate-100 shrink-0">
+                        @else
+                            <div class="w-10 h-10 rounded-lg bg-slate-100 flex items-center justify-center text-slate-300 shrink-0">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="3" rx="2" ry="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/></svg>
+                            </div>
+                        @endif
+                        <div class="min-w-0 flex-1">
+                            <div class="text-sm font-bold text-slate-900 truncate">{{ $product->base_name }}</div>
+                            <div class="text-[10px] font-mono text-slate-400 tracking-wider">{{ $product->sku }}</div>
+                        </div>
+                        @if($product->stock_quantity <= 0)
+                            <span class="shrink-0 flex items-center gap-1 text-rose-600 text-[9px] font-black uppercase tracking-wider">
+                                <div class="w-1.5 h-1.5 rounded-full bg-rose-600 animate-pulse"></div>Hết hàng
+                            </span>
+                        @else
+                            <span class="shrink-0 flex items-center gap-1 text-amber-600 text-[9px] font-black uppercase tracking-wider">
+                                <div class="w-1.5 h-1.5 rounded-full bg-amber-600"></div>Sắp hết
+                            </span>
+                        @endif
+                    </div>
+                    <div class="flex items-center gap-2 mt-1">
+                        <div class="flex items-center gap-1.5 flex-1">
+                            <span class="text-[9px] text-slate-400 font-bold tracking-widest">VỊ TRÍ</span>
+                            <input type="text"
+                                   value="{{ $product->location }}"
+                                   x-on:blur="$wire.updateField({{ $product->id }}, 'location', $event.target.value)"
+                                   x-on:keydown.enter="$event.target.blur()"
+                                   class="flex-1 bg-slate-50 border border-slate-200 rounded px-2 py-1 text-xs font-bold text-emerald-600 focus:outline-none focus:border-electric-blue">
+                        </div>
+                        <div class="flex items-center gap-1.5">
+                            <span class="text-[9px] text-slate-400 font-bold tracking-widest">TỒN</span>
+                            <input type="number"
+                                   value="{{ $product->stock_quantity }}"
+                                   x-on:blur="$wire.updateField({{ $product->id }}, 'stock_quantity', $event.target.value)"
+                                   x-on:keydown.enter="$event.target.blur()"
+                                   class="w-16 bg-slate-50 border border-slate-200 rounded px-2 py-1 text-sm font-black {{ $product->stock_quantity <= 0 ? 'text-rose-600' : 'text-amber-600' }} text-right focus:outline-none focus:border-electric-blue">
+                        </div>
+                    </div>
+                </div>
+                @endforeach
+            @else
+                <div class="py-20 text-center">
+                    <div class="flex flex-col items-center opacity-30">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" class="mb-3"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+                        <p class="text-xs font-black uppercase tracking-[0.2em]">Không có sản phẩm nào dưới định mức</p>
+                    </div>
+                </div>
+            @endif
+        </div>
+
+        {{-- Desktop table --}}
+        <div class="hidden md:block glass-card overflow-visible border border-slate-200">
             <table class="w-full text-left border-collapse">
                 <thead class="sticky top-0 z-30 bg-slate-50/95 backdrop-blur-md shadow-[0_1px_0_rgba(226,232,240,1)]">
                     <tr class="border-b border-slate-200">
@@ -190,15 +249,15 @@
                             </td>
                             <td class="px-4 py-2 font-mono text-xs text-slate-500 font-bold tracking-wider">{{ $product->sku }}</td>
                             <td class="px-4 py-2">
-                                <input type="text" 
-                                       value="{{ $product->location }}" 
+                                <input type="text"
+                                       value="{{ $product->location }}"
                                        x-on:blur="$wire.updateField({{ $product->id }}, 'location', $event.target.value)"
                                        x-on:keydown.enter="$event.target.blur()"
                                        class="w-24 bg-slate-50 border border-slate-100 rounded-lg px-2 py-1 text-xs font-bold text-emerald-600 transition-all focus:bg-white focus:border-electric-blue focus:ring-0 shadow-inner">
                             </td>
                             <td class="px-4 py-2">
-                                <input type="number" 
-                                       value="{{ $product->stock_quantity }}" 
+                                <input type="number"
+                                       value="{{ $product->stock_quantity }}"
                                        x-on:blur="$wire.updateField({{ $product->id }}, 'stock_quantity', $event.target.value)"
                                        x-on:keydown.enter="$event.target.blur()"
                                        class="w-16 bg-slate-50 border border-slate-100 rounded-lg px-2 py-1 text-sm font-black {{ $product->stock_quantity <= 0 ? 'text-rose-600' : 'text-amber-600' }} transition-all focus:bg-white focus:border-electric-blue focus:ring-0 shadow-inner">
@@ -232,7 +291,7 @@
             </table>
         </div>
 
-        <div class="mt-6 antigravity-pagination">
+        <div class="mt-4 md:mt-6 antigravity-pagination">
             {{ $products->links() }}
         </div>
     </div>
