@@ -192,12 +192,14 @@ class StockCheckIndex extends Component
         ]);
 
         $this->productSearch = '';
+        $this->persist($this->status);
     }
 
     public function removeLine(int $index): void
     {
         unset($this->lines[$index]);
         $this->lines = array_values($this->lines);
+        $this->persist($this->status);
     }
 
     public function updatedLines($value, string $key): void
@@ -209,6 +211,7 @@ class StockCheckIndex extends Component
         $index = (int) str($key)->before('.')->toString();
         $this->recalculateLine($index);
         $this->logLineAction('update_actual', $index);
+        $this->persist($this->status);
     }
 
     private function recalculateLine(int $index): void
