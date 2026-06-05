@@ -94,6 +94,7 @@ class StockCheckIndex extends Component
         $this->logSession = (string) Str::uuid();
         $this->lines = [];
         $this->mode = 'edit';
+        $this->persist('draft');
     }
 
     public function edit(int $id): void
@@ -122,6 +123,10 @@ class StockCheckIndex extends Component
 
     public function cancelEdit(): void
     {
+        if ($this->stockCheckId && empty($this->lines)) {
+            StockCheckLog::where('stock_check_id', $this->stockCheckId)->delete();
+            StockCheck::where('id', $this->stockCheckId)->delete();
+        }
         $this->mode = 'list';
         $this->resetPage();
     }
