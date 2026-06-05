@@ -131,8 +131,26 @@ class StockCheckIndex extends Component
         $this->resetPage();
     }
 
+    public function deleteCheck(int $id): void
+    {
+        if (!auth()->user()?->hasPermission('product.stock_check_delete')) {
+            $this->dispatch('notify', message: 'Bạn không có quyền xóa phiếu kiểm.', type: 'error');
+            return;
+        }
+
+        StockCheckLog::where('stock_check_id', $id)->delete();
+        StockCheck::where('id', $id)->delete();
+        $this->resetPage();
+        $this->dispatch('notify', message: 'Đã xóa phiếu kiểm.', type: 'success');
+    }
+
     public function deleteSelected(): void
     {
+        if (!auth()->user()?->hasPermission('product.stock_check_delete')) {
+            $this->dispatch('notify', message: 'Bạn không có quyền xóa phiếu kiểm.', type: 'error');
+            return;
+        }
+
         $ids = array_values(array_unique(array_map('intval', $this->selectedChecks)));
         if (empty($ids)) {
             $this->dispatch('notify', message: 'Vui lòng chọn phiếu kiểm cần xoá.', type: 'warning');

@@ -163,6 +163,7 @@ class UserIndex extends Component
                 'actions' => [
                     'product.edit_commission' => 'Sửa hoa hồng sản phẩm',
                     'product.stock_check' => 'Kiểm kho',
+                    'product.stock_check_delete' => 'Xóa phiếu kiểm kho',
                     'product.delete' => 'Xóa sản phẩm'
                 ]
             ],

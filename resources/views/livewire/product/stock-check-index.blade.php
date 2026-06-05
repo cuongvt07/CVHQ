@@ -137,15 +137,24 @@
                     @forelse($checks as $check)
                         <div wire:key="check-card-{{ $check->id }}" wire:click="edit({{ $check->id }})" class="bg-white border border-slate-200 rounded-xl p-3 shadow-sm cursor-pointer hover:border-electric-blue/40 transition-colors">
                             <div class="flex items-start justify-between gap-2 mb-1.5">
-                                <div>
+                                <div class="min-w-0">
                                     <div class="text-sm font-bold text-electric-blue">{{ $check->code }}</div>
                                     <div class="text-[10px] text-slate-400 mt-0.5">{{ $check->created_at->format('d/m/Y H:i') }} · {{ $check->user?->name ?: '-' }}</div>
                                 </div>
-                                @if($check->status === 'completed')
-                                    <span class="shrink-0 inline-flex items-center rounded-full bg-emerald-50 px-2 py-0.5 text-[9px] font-black text-emerald-700 border border-emerald-100">Hoàn thành</span>
-                                @else
-                                    <span class="shrink-0 inline-flex items-center rounded-full bg-amber-50 px-2 py-0.5 text-[9px] font-black text-amber-700 border border-amber-100">Phiếu tạm</span>
-                                @endif
+                                <div class="flex items-center gap-1.5 shrink-0">
+                                    @if($check->status === 'completed')
+                                        <span class="inline-flex items-center rounded-full bg-emerald-50 px-2 py-0.5 text-[9px] font-black text-emerald-700 border border-emerald-100">Hoàn thành</span>
+                                    @else
+                                        <span class="inline-flex items-center rounded-full bg-amber-50 px-2 py-0.5 text-[9px] font-black text-amber-700 border border-amber-100">Phiếu tạm</span>
+                                    @endif
+                                    @if(auth()->user()?->hasPermission('product.stock_check_delete'))
+                                        <button wire:click.stop="deleteCheck({{ $check->id }})"
+                                                wire:confirm="Xóa phiếu kiểm {{ $check->code }}?"
+                                                class="w-7 h-7 flex items-center justify-center rounded-lg text-slate-400 hover:text-rose-500 hover:bg-rose-50 transition-colors">
+                                            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M3 6h18"/><path d="M19 6v14H5V6"/><path d="M8 6V4h8v2"/></svg>
+                                        </button>
+                                    @endif
+                                </div>
                             </div>
                             <div class="grid grid-cols-3 gap-2 text-center">
                                 <div class="bg-slate-50 rounded-lg py-1.5">
@@ -187,6 +196,7 @@
                                 <th class="px-3 py-2 text-[11px] font-black text-slate-700 text-right">SL lệch tăng</th>
                                 <th class="px-3 py-2 text-[11px] font-black text-slate-700 text-right">SL lệch giảm</th>
                                 <th class="px-3 py-2 text-[11px] font-black text-slate-700">Ghi chú</th>
+                                <th class="px-3 py-2 w-10"></th>
                             </tr>
                         </thead>
                         <tbody class="divide-y divide-slate-100">
@@ -211,6 +221,15 @@
                                     <td class="px-3 py-2 text-xs text-right text-emerald-600 font-bold">{{ number_format($check->total_increase) }}</td>
                                     <td class="px-3 py-2 text-xs text-right text-rose-600 font-bold">{{ number_format($check->total_decrease) }}</td>
                                     <td class="px-3 py-2 text-xs text-slate-500 truncate max-w-[220px]">{{ $check->note }}</td>
+                                    <td class="px-3 py-2">
+                                        @if(auth()->user()?->hasPermission('product.stock_check_delete'))
+                                            <button wire:click.stop="deleteCheck({{ $check->id }})"
+                                                    wire:confirm="Xóa phiếu kiểm {{ $check->code }}?"
+                                                    class="w-7 h-7 flex items-center justify-center rounded-lg text-slate-400 hover:text-rose-500 hover:bg-rose-50 transition-colors">
+                                                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M3 6h18"/><path d="M19 6v14H5V6"/><path d="M8 6V4h8v2"/></svg>
+                                            </button>
+                                        @endif
+                                    </td>
                                 </tr>
                             @empty
                                 <tr>
