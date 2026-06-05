@@ -18,8 +18,7 @@
     </head>
     <body class="antialiased bg-white text-slate-900 selection:bg-electric-blue selection:text-white overflow-hidden h-dvh"
           x-data="{
-            sidebarHidden: true,
-            sidebarCollapsed: @json(request()->routeIs('pos'))
+            sidebarHidden: @json(request()->routeIs('pos'))
           }">
 
         <div class="flex h-full w-full">

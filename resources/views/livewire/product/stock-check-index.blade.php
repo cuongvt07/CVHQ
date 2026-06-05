@@ -232,21 +232,256 @@
             </main>
         </div>
     @else
-        <div class="h-full min-h-0 flex flex-col md:flex-row bg-slate-50">
-            <main class="flex-1 min-w-0 flex flex-col min-h-0">
-                <div class="h-14 bg-white border-b border-slate-200 flex items-center gap-2 px-3 md:px-4">
+    @php
+        $matched = collect($lines)->where('difference', 0)->whereNotNull('actual_quantity')->count();
+        $different = collect($lines)->filter(fn($l) => $l['actual_quantity'] !== null && $l['difference'] != 0)->count();
+        $unchecked = collect($lines)->whereNull('actual_quantity')->count();
+    @endphp
+    <div class="h-full min-h-0 flex flex-col bg-slate-50"
+         x-data="{
+             mobileDetail: null,
+             stepVal: 1,
+             filterTab: 'all',
+             open(idx) { this.mobileDetail = idx; this.stepVal = 1; },
+             close() { this.mobileDetail = null; },
+             async gheDe() {
+                 if (this.mobileDetail === null) return;
+                 const v = Math.max(0, parseInt(this.stepVal) || 0);
+                 await $wire.set('lines.' + this.mobileDetail + '.actual_quantity', v);
+                 this.close();
+             },
+             async congThem() {
+                 if (this.mobileDetail === null) return;
+                 const cur = parseInt($wire.lines[this.mobileDetail]?.actual_quantity) || 0;
+                 const v = Math.max(0, parseInt(this.stepVal) || 0);
+                 await $wire.set('lines.' + this.mobileDetail + '.actual_quantity', cur + v);
+                 this.close();
+             },
+             prevLine() {
+                 const len = $wire.lines?.length ?? 0;
+                 if (this.mobileDetail === null || len <= 1) return;
+                 this.mobileDetail = (this.mobileDetail - 1 + len) % len;
+                 this.stepVal = 1;
+             },
+             nextLine() {
+                 const len = $wire.lines?.length ?? 0;
+                 if (this.mobileDetail === null || len <= 1) return;
+                 this.mobileDetail = (this.mobileDetail + 1) % len;
+                 this.stepVal = 1;
+             }
+         }">
+
+        {{-- ═══════════════════════════════ MOBILE LAYOUT ═══════════════════════════════ --}}
+        <div class="md:hidden h-full flex flex-col">
+
+            {{-- Mobile header — toggles between list header and detail header --}}
+            <div class="bg-white border-b border-slate-200 flex items-center gap-2 px-3 h-14 shrink-0">
+                {{-- List header --}}
+                <div x-show="mobileDetail === null" class="flex items-center gap-2 w-full">
                     <button wire:click="cancelEdit" class="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-slate-100 text-slate-600 shrink-0">
                         <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="m15 18-6-6 6-6"/></svg>
                     </button>
-                    <h1 class="text-base md:text-lg font-black text-slate-900 shrink-0">Kiểm kho</h1>
+                    <h1 class="text-sm font-black text-slate-900 shrink-0">Tạo phiếu kiểm kho</h1>
+                    <div class="relative flex-1">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+                        <input type="text" wire:model.live.debounce.300ms="productSearch" placeholder="Chọn hàng hóa kiểm" class="w-full h-9 bg-white border border-slate-300 rounded-lg pl-9 pr-3 text-xs focus:outline-none focus:border-electric-blue">
+                        @if($this->productSuggestions->isNotEmpty())
+                            <div class="absolute z-50 left-0 right-0 top-full mt-1 max-h-64 overflow-y-auto bg-white border border-slate-200 rounded-xl shadow-xl custom-scrollbar">
+                                @foreach($this->productSuggestions as $product)
+                                    <button type="button" wire:click="addProduct({{ $product->id }})" class="w-full flex items-center justify-between gap-3 px-3 py-2.5 text-left hover:bg-blue-50 border-b border-slate-50 last:border-0">
+                                        <div class="min-w-0">
+                                            <div class="text-xs font-bold text-slate-900 truncate">{{ $product->name }}</div>
+                                            <div class="text-[10px] text-electric-blue font-mono">{{ $product->sku }}</div>
+                                        </div>
+                                        <div class="text-xs font-black text-slate-700 shrink-0">{{ number_format($product->stock_quantity) }}</div>
+                                    </button>
+                                @endforeach
+                            </div>
+                        @endif
+                    </div>
+                </div>
+                {{-- Detail header --}}
+                <div x-show="mobileDetail !== null" x-cloak class="flex items-center gap-3 w-full">
+                    <button @click="close()" class="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-slate-100 text-slate-600 shrink-0 text-xl font-light">×</button>
+                    <div class="min-w-0">
+                        <span class="text-sm font-black text-slate-900" x-text="$wire.lines[mobileDetail]?.sku ?? ''"></span>
+                        <span class="text-xs text-slate-400 ml-1.5 truncate" x-text="$wire.lines[mobileDetail]?.name ?? ''"></span>
+                    </div>
+                </div>
+            </div>
 
-                    <div class="relative flex-1 max-w-[360px]">
+            {{-- ─── MOBILE LIST VIEW ─────────────────────────────────────── --}}
+            <div x-show="mobileDetail === null" class="flex-1 flex flex-col min-h-0">
+                {{-- Filter tabs --}}
+                <div class="bg-white border-b border-slate-100 px-3 py-2 flex gap-2">
+                    <button @click="filterTab = 'all'"
+                            :class="filterTab === 'all' ? 'bg-electric-blue text-white' : 'bg-slate-100 text-slate-600'"
+                            class="flex-1 py-1.5 rounded-full text-[11px] font-black transition-colors">
+                        Tất cả {{ count($lines) > 0 ? '(' . count($lines) . ')' : '' }}
+                    </button>
+                    <button @click="filterTab = 'matched'"
+                            :class="filterTab === 'matched' ? 'bg-emerald-500 text-white' : 'bg-slate-100 text-slate-600'"
+                            class="flex-1 py-1.5 rounded-full text-[11px] font-black transition-colors">
+                        Khớp {{ $matched > 0 ? '(' . $matched . ')' : '' }}
+                    </button>
+                    <button @click="filterTab = 'different'"
+                            :class="filterTab === 'different' ? 'bg-rose-500 text-white' : 'bg-slate-100 text-slate-600'"
+                            class="flex-1 py-1.5 rounded-full text-[11px] font-black transition-colors">
+                        Lệch {{ $different > 0 ? '(' . $different . ')' : '' }}
+                    </button>
+                    <button @click="filterTab = 'unchecked'"
+                            :class="filterTab === 'unchecked' ? 'bg-amber-500 text-white' : 'bg-slate-100 text-slate-600'"
+                            class="flex-1 py-1.5 rounded-full text-[11px] font-black transition-colors">
+                        Chưa kiểm {{ $unchecked > 0 ? '(' . $unchecked . ')' : '' }}
+                    </button>
+                </div>
+
+                {{-- Column headers --}}
+                <div class="bg-slate-50 border-b border-slate-200 flex items-center px-3 py-1.5">
+                    <div class="flex-1 text-[9px] font-black text-slate-500 uppercase tracking-wider">Hàng kiểm</div>
+                    <div class="w-12 text-right text-[9px] font-black text-slate-500 uppercase tracking-wider">Tồn kho</div>
+                    <div class="w-14 text-right text-[9px] font-black text-electric-blue uppercase tracking-wider">Thực tế</div>
+                    <div class="w-10 text-right text-[9px] font-black text-slate-500 uppercase tracking-wider">Lệch</div>
+                </div>
+
+                {{-- Product rows --}}
+                <div class="flex-1 min-h-0 overflow-y-auto bg-white">
+                    @forelse($lines as $index => $line)
+                        <div wire:key="mline-{{ $line['product_id'] }}"
+                             @click="open({{ $index }})"
+                             x-show="filterTab === 'all'
+                                  || (filterTab === 'matched' && {{ $line['actual_quantity'] !== null && $line['difference'] == 0 ? 'true' : 'false' }})
+                                  || (filterTab === 'different' && {{ $line['actual_quantity'] !== null && $line['difference'] != 0 ? 'true' : 'false' }})
+                                  || (filterTab === 'unchecked' && {{ $line['actual_quantity'] === null ? 'true' : 'false' }})"
+                             class="flex items-center px-3 py-2.5 border-b border-slate-100 hover:bg-slate-50 active:bg-slate-100 cursor-pointer transition-colors">
+                            <div class="flex-1 min-w-0 pr-2">
+                                <div class="text-sm font-bold text-slate-900 truncate">{{ $line['name'] }}</div>
+                                <div class="text-[10px] text-slate-400 font-mono mt-0.5">{{ $line['sku'] }}</div>
+                            </div>
+                            <div class="w-12 text-right">
+                                <span class="text-sm font-bold text-slate-700">{{ number_format($line['system_quantity']) }}</span>
+                            </div>
+                            <div class="w-14 text-right">
+                                @if($line['actual_quantity'] !== null)
+                                    <span class="text-sm font-black text-electric-blue">{{ number_format($line['actual_quantity']) }}</span>
+                                @else
+                                    <span class="text-sm text-slate-300">—</span>
+                                @endif
+                            </div>
+                            <div class="w-10 text-right">
+                                @if($line['actual_quantity'] !== null)
+                                    <span class="text-sm font-black {{ $line['difference'] > 0 ? 'text-emerald-600' : ($line['difference'] < 0 ? 'text-rose-600' : 'text-slate-400') }}">
+                                        {{ $line['difference'] > 0 ? '+' : '' }}{{ $line['difference'] }}
+                                    </span>
+                                @else
+                                    <span class="text-sm text-slate-300">—</span>
+                                @endif
+                            </div>
+                        </div>
+                    @empty
+                        <div class="py-16 text-center">
+                            <div class="text-slate-300 text-sm">Tìm và thêm sản phẩm cần kiểm.</div>
+                        </div>
+                    @endforelse
+                </div>
+
+                {{-- Bottom save/complete --}}
+                <div class="shrink-0 grid grid-cols-2 gap-2 p-3 bg-white border-t border-slate-200">
+                    <button wire:click="saveDraft" class="h-12 rounded-xl bg-blue-600 text-white text-sm font-black flex items-center justify-center gap-2 active:scale-[0.98] transition-transform">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><path d="M17 21v-8H7v8"/><path d="M7 3v5h8"/></svg>
+                        Lưu tạm
+                    </button>
+                    <button wire:click="complete" class="h-12 rounded-xl bg-emerald-500 text-white text-sm font-black flex items-center justify-center gap-2 active:scale-[0.98] transition-transform">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M20 6 9 17l-5-5"/></svg>
+                        Hoàn thành
+                    </button>
+                </div>
+            </div>
+
+            {{-- ─── MOBILE DETAIL VIEW ───────────────────────────────────── --}}
+            <div x-show="mobileDetail !== null" x-cloak class="flex-1 flex flex-col min-h-0 bg-white">
+
+                {{-- Stats row --}}
+                <div class="grid grid-cols-3 border-b border-slate-200">
+                    <div class="py-4 text-center border-r border-slate-100">
+                        <div class="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1">Tồn Kho</div>
+                        <div class="text-3xl font-black text-slate-900" x-text="$wire.lines[mobileDetail]?.system_quantity ?? '—'"></div>
+                    </div>
+                    <div class="py-4 text-center border-r border-slate-100">
+                        <div class="text-[9px] font-black text-electric-blue uppercase tracking-widest mb-1">Đã kiểm</div>
+                        <div class="text-3xl font-black text-electric-blue"
+                             x-text="$wire.lines[mobileDetail]?.actual_quantity ?? '—'"></div>
+                    </div>
+                    <div class="py-4 text-center">
+                        <div class="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1">Lệch</div>
+                        <div class="text-3xl font-black"
+                             :class="(() => {
+                                 const aq = $wire.lines[mobileDetail]?.actual_quantity;
+                                 if (aq === null || aq === undefined) return 'text-slate-300';
+                                 const diff = parseInt(aq) - parseInt($wire.lines[mobileDetail]?.system_quantity ?? 0);
+                                 return diff > 0 ? 'text-emerald-600' : (diff < 0 ? 'text-rose-600' : 'text-slate-400');
+                             })()"
+                             x-text="(() => {
+                                 const aq = $wire.lines[mobileDetail]?.actual_quantity;
+                                 if (aq === null || aq === undefined) return '—';
+                                 const diff = parseInt(aq) - parseInt($wire.lines[mobileDetail]?.system_quantity ?? 0);
+                                 return (diff > 0 ? '+' : '') + diff;
+                             })()">
+                        </div>
+                    </div>
+                </div>
+
+                {{-- Stepper --}}
+                <div class="flex items-center justify-center gap-8 py-10">
+                    <button @click="if (stepVal > 0) stepVal--"
+                            class="w-14 h-14 rounded-full bg-slate-100 text-slate-700 text-3xl flex items-center justify-center font-light active:bg-slate-200 transition-colors select-none">−</button>
+                    <input type="number" x-model.number="stepVal" min="0"
+                           class="w-24 text-center text-4xl font-black text-slate-900 border-0 border-b-2 border-slate-300 focus:border-electric-blue outline-none bg-transparent py-1">
+                    <button @click="stepVal++"
+                            class="w-14 h-14 rounded-full bg-slate-100 text-slate-700 text-3xl flex items-center justify-center font-light active:bg-slate-200 transition-colors select-none">+</button>
+                </div>
+
+                {{-- Action buttons --}}
+                <div class="grid grid-cols-2 gap-3 px-4">
+                    <button @click="gheDe()"
+                            class="h-14 rounded-2xl bg-emerald-500 text-white text-base font-black active:scale-[0.97] transition-transform shadow-lg shadow-emerald-500/20">
+                        Ghi đè
+                    </button>
+                    <button @click="congThem()"
+                            class="h-14 rounded-2xl bg-electric-blue text-white text-base font-black active:scale-[0.97] transition-transform shadow-lg shadow-electric-blue/20">
+                        Cộng thêm
+                    </button>
+                </div>
+
+                {{-- Navigation --}}
+                <div class="flex items-center justify-between px-6 mt-6">
+                    <button @click="prevLine()" :disabled="snapshot.length <= 1"
+                            class="w-10 h-10 rounded-xl border border-slate-200 flex items-center justify-center text-slate-500 disabled:opacity-30 hover:bg-slate-50 transition-colors">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="m15 18-6-6 6-6"/></svg>
+                    </button>
+                    <button @click="close()" class="text-electric-blue font-black text-sm uppercase tracking-wider px-4 py-2 rounded-lg hover:bg-electric-blue/5 transition-colors">
+                        Done
+                    </button>
+                    <button @click="nextLine()" :disabled="snapshot.length <= 1"
+                            class="w-10 h-10 rounded-xl border border-slate-200 flex items-center justify-center text-slate-500 disabled:opacity-30 hover:bg-slate-50 transition-colors">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="m9 18 6-6-6-6"/></svg>
+                    </button>
+                </div>
+            </div>
+        </div>{{-- /md:hidden --}}
+
+        {{-- ═══════════════════════════════ DESKTOP LAYOUT ══════════════════════════════ --}}
+        <div class="hidden md:flex flex-1 min-h-0 flex-row">
+            <main class="flex-1 min-w-0 flex flex-col min-h-0">
+                <div class="h-14 bg-white border-b border-slate-200 flex items-center gap-2 px-4">
+                    <button wire:click="cancelEdit" class="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-slate-100 text-slate-600 shrink-0">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="m15 18-6-6 6-6"/></svg>
+                    </button>
+                    <h1 class="text-lg font-black text-slate-900 shrink-0">Kiểm kho</h1>
+
+                    <div class="relative w-[360px]">
                         <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
-                        <input type="text" wire:model.live.debounce.300ms="productSearch" placeholder="Tìm hàng hóa theo mã hoặc tên" class="w-full h-9 bg-white border border-slate-300 rounded-lg pl-9 pr-9 text-xs focus:outline-none focus:border-electric-blue focus:ring-1 focus:ring-electric-blue">
-                        <button type="button" class="absolute right-2 top-1/2 -translate-y-1/2 w-6 h-6 rounded hover:bg-slate-100 text-slate-500">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M5 12h14"/><path d="M12 5v14"/></svg>
-                        </button>
-
+                        <input type="text" wire:model.live.debounce.300ms="productSearch" placeholder="Tìm hàng hóa theo mã hoặc tên (F3)" class="w-full h-9 bg-white border border-slate-300 rounded-lg pl-9 pr-9 text-xs focus:outline-none focus:border-electric-blue focus:ring-1 focus:ring-electric-blue">
                         @if($this->productSuggestions->isNotEmpty())
                             <div class="absolute z-50 left-0 right-0 top-full mt-1 max-h-80 overflow-y-auto bg-white border border-slate-200 rounded-xl shadow-xl custom-scrollbar">
                                 @foreach($this->productSuggestions as $product)
@@ -261,13 +496,14 @@
                             </div>
                         @endif
                     </div>
+
+                    <div class="ml-auto flex items-center gap-2">
+                        <button class="w-9 h-9 border border-slate-200 rounded-lg flex items-center justify-center text-slate-500 hover:text-electric-blue hover:border-electric-blue/40">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3v18h18"/><path d="M7 16h2"/><path d="M11 12h2"/><path d="M15 8h2"/></svg>
+                        </button>
+                    </div>
                 </div>
 
-                @php
-                    $matched = collect($lines)->where('difference', 0)->count();
-                    $different = collect($lines)->where('difference', '!=', 0)->count();
-                    $unchecked = collect($lines)->where('actual_quantity', null)->count();
-                @endphp
                 <div class="bg-white px-6 border-b border-slate-200 flex items-center gap-6 h-9">
                     <span class="text-xs text-slate-700 border-b-2 border-electric-blue h-full flex items-center">Tất cả ({{ count($lines) }})</span>
                     <span class="text-xs text-slate-500 h-full flex items-center">Khớp ({{ $matched }})</span>
@@ -389,6 +625,7 @@
                     </button>
                 </div>
             </aside>
-        </div>
+        </div>{{-- /hidden md:flex desktop --}}
+    </div>{{-- /x-data alpine wrapper --}}
     @endif
 </div>
