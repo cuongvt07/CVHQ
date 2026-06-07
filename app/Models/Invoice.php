@@ -18,7 +18,8 @@ class Invoice extends Model
         'total_amount', 'discount_amount', 'extra_fee', 'extra_fee_name', 'final_amount', 'total_commission',
         'paid_amount', 'cash_amount', 'card_amount', 'wallet_amount',
         'transfer_amount', 'status', 'delivery_status', 'created_at',
-        'cancel_reason', 'cancelled_at', 'cancelled_by'
+        'cancel_reason', 'cancelled_at', 'cancelled_by',
+        'shared_commission_amount', 'shared_to_user_id'
     ];
 
     protected $casts = [
@@ -28,6 +29,7 @@ class Invoice extends Model
         'final_amount' => 'integer',
         'paid_amount' => 'integer',
         'total_commission' => 'integer',
+        'shared_commission_amount' => 'integer',
         'cancelled_at' => 'datetime',
     ];
 
@@ -44,6 +46,11 @@ class Invoice extends Model
     public function cancelledBy(): BelongsTo
     {
         return $this->belongsTo(User::class, 'cancelled_by');
+    }
+
+    public function sharedTo(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'shared_to_user_id');
     }
 
     public function cancel(string $reason, int $userId): void

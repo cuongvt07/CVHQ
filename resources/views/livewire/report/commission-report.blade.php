@@ -3,7 +3,7 @@
     <header class="px-4 md:px-6 py-4 flex items-center justify-between border-b border-slate-200 bg-white">
         <div class="flex items-center gap-4">
             <button wire:click="backToSummary" class="text-sm font-bold {{ $view === 'summary' ? 'text-slate-900' : 'text-slate-400 hover:text-slate-600' }}">Tổng quan hoa hồng</button>
-            
+
             @if($view !== 'summary')
                 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-slate-300"><path d="m9 18 6-6-6-6"/></svg>
                 <button wire:click="backToEmployee" class="text-sm font-bold {{ $view === 'employee_detail' ? 'text-slate-900' : 'text-slate-400 hover:text-slate-600' }}">
@@ -16,7 +16,7 @@
                 <span class="text-sm font-bold text-slate-900">Hóa đơn {{ $invoice->invoice_code }}</span>
             @endif
         </div>
-        
+
         <div x-data="{ mobileFilterOpen: false }" @keydown.escape.window="mobileFilterOpen = false" class="relative flex items-center gap-3">
             @php $__activeFilterCount = ($dateRange && $dateRange !== 'this_month' ? 1 : 0); @endphp
             <button @click="mobileFilterOpen = !mobileFilterOpen"
@@ -117,12 +117,14 @@
                         </div>
                         <div class="bg-emerald-50 rounded-lg py-1.5">
                             <div class="text-[9px] text-emerald-500 font-bold uppercase">Hoa hồng</div>
-                            <div class="text-xs font-black text-emerald-700">{{ number_format($emp->total_commission, 0, ',', '.') }}</div>
+                            <div class="text-xs font-black text-emerald-700">{{ number_format($emp->net_commission, 0, ',', '.') }}</div>
+                            @if($emp->received_commission > 0)
+                                <div class="text-[8px] text-sky-500 font-bold">+{{ number_format($emp->received_commission, 0, ',', '.') }} nhận</div>
+                            @endif
                         </div>
                     </div>
                 </div>
                 @endforeach
-                <div class="pt-2">{{ $employees->links() }}</div>
             </div>
 
             <!-- Desktop Employee List Summary -->
@@ -140,7 +142,9 @@
                             <th class="px-4 py-2 text-[10px] font-bold text-slate-400 uppercase tracking-widest text-right">Tổng doanh số</th>
                             @endif
                             @if(in_array('commission', $visibleColumns))
-                            <th class="px-4 py-2 text-[10px] font-bold text-slate-400 uppercase tracking-widest text-right">Tổng hoa hồng</th>
+                            <th class="px-4 py-2 text-[10px] font-bold text-slate-400 uppercase tracking-widest text-right">HH đã kiếm</th>
+                            <th class="px-4 py-2 text-[10px] font-bold text-sky-400 uppercase tracking-widest text-right">HH nhận được</th>
+                            <th class="px-4 py-2 text-[10px] font-bold text-emerald-500 uppercase tracking-widest text-right">Tổng HH thực</th>
                             @endif
                             @if(in_array('actions', $visibleColumns))
                             <th class="px-4 py-2 text-[10px] font-bold text-slate-400 uppercase tracking-widest text-center">Thao tác</th>
@@ -163,8 +167,13 @@
                                 <td class="px-4 py-2 text-right text-sm font-bold text-slate-900">{{ number_format($emp->total_sales, 0, ',', '.') }}</td>
                                 @endif
                                 @if(in_array('commission', $visibleColumns))
+                                @php $ownNet = (int)($emp->gross_commission ?? 0) - (int)($emp->shared_out ?? 0); @endphp
+                                <td class="px-4 py-2 text-right text-sm font-bold text-slate-600">{{ number_format($ownNet, 0, ',', '.') }}</td>
+                                <td class="px-4 py-2 text-right text-sm font-bold text-sky-500">
+                                    {{ $emp->received_commission > 0 ? '+' . number_format($emp->received_commission, 0, ',', '.') : '—' }}
+                                </td>
                                 <td class="px-4 py-2 text-right">
-                                    <span class="text-sm font-bold text-emerald-600">{{ number_format($emp->total_commission, 0, ',', '.') }}</span>
+                                    <span class="text-sm font-bold text-emerald-600">{{ number_format($emp->net_commission, 0, ',', '.') }}</span>
                                 </td>
                                 @endif
                                 @if(in_array('actions', $visibleColumns))
@@ -177,7 +186,6 @@
                     </tbody>
                 </table>
             </div>
-            <div class="hidden md:block mt-4">{{ $employees->links() }}</div>
 
         @elseif($view === 'employee_detail')
             <div class="mb-4 flex items-center justify-between">
@@ -190,6 +198,7 @@
             {{-- Mobile cards --}}
             <div class="md:hidden space-y-2 mb-4">
                 @foreach($invoices as $inv)
+                @php $netComm = (int)$inv->total_commission - (int)($inv->shared_commission_amount ?? 0); @endphp
                 <div wire:key="inv-card-{{ $inv->id }}" class="bg-white border border-slate-200 rounded-xl p-3 shadow-sm">
                     <div class="flex items-start justify-between mb-2">
                         <div>
@@ -201,7 +210,12 @@
                     <div class="text-xs text-slate-600 mb-1.5">{{ $inv->customer->full_name ?? 'Khách lẻ' }}</div>
                     <div class="flex items-center justify-between">
                         <span class="text-xs text-slate-500">Thành tiền: <span class="font-bold text-slate-900">{{ number_format($inv->final_amount, 0, ',', '.') }}</span></span>
-                        <span class="text-xs text-emerald-600">HH: <span class="font-black">{{ number_format($inv->total_commission, 0, ',', '.') }}</span></span>
+                        <div class="text-right">
+                            <span class="text-xs text-emerald-600">HH: <span class="font-black">{{ number_format($netComm, 0, ',', '.') }}</span></span>
+                            @if($inv->shared_commission_amount > 0)
+                                <div class="text-[9px] text-amber-500">Chia {{ number_format($inv->shared_commission_amount, 0, ',', '.') }} → {{ $inv->sharedTo?->name }}</div>
+                            @endif
+                        </div>
                     </div>
                 </div>
                 @endforeach
@@ -217,12 +231,13 @@
                             <th class="px-4 py-2 text-[10px] font-bold text-slate-400 uppercase tracking-widest">Khách hàng</th>
                             <th class="px-4 py-2 text-[10px] font-bold text-slate-400 uppercase tracking-widest">Ngày tạo</th>
                             <th class="px-4 py-2 text-[10px] font-bold text-slate-400 uppercase tracking-widest text-right">Thành tiền</th>
-                            <th class="px-4 py-2 text-[10px] font-bold text-slate-400 uppercase tracking-widest text-right">Hoa hồng đơn</th>
+                            <th class="px-4 py-2 text-[10px] font-bold text-slate-400 uppercase tracking-widest text-right">HH đơn (thực nhận)</th>
                             <th class="px-4 py-2 text-[10px] font-bold text-slate-400 uppercase tracking-widest text-center">Thao tác</th>
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-slate-100 bg-white/50">
                         @foreach($invoices as $inv)
+                        @php $netComm = (int)$inv->total_commission - (int)($inv->shared_commission_amount ?? 0); @endphp
                             <tr class="hover:bg-slate-50 transition-colors">
                                 <td class="px-4 py-2 text-sm font-bold text-slate-900">{{ $inv->invoice_code }}</td>
                                 <td class="px-4 py-2">
@@ -233,7 +248,12 @@
                                 </td>
                                 <td class="px-4 py-2 text-xs text-slate-500">{{ $inv->created_at->format('d/m/Y H:i') }}</td>
                                 <td class="px-4 py-2 text-right text-sm font-bold text-slate-900">{{ number_format($inv->final_amount, 0, ',', '.') }}</td>
-                                <td class="px-4 py-2 text-right text-sm font-bold text-emerald-600">{{ number_format($inv->total_commission, 0, ',', '.') }}</td>
+                                <td class="px-4 py-2 text-right">
+                                    <span class="text-sm font-bold text-emerald-600">{{ number_format($netComm, 0, ',', '.') }}</span>
+                                    @if($inv->shared_commission_amount > 0)
+                                        <div class="text-[9px] text-amber-500 mt-0.5">Chia {{ number_format($inv->shared_commission_amount, 0, ',', '.') }} → {{ $inv->sharedTo?->name }}</div>
+                                    @endif
+                                </td>
                                 <td class="px-4 py-2 text-center">
                                     <button wire:click="selectInvoice({{ $inv->id }})" class="text-xs font-bold text-electric-blue hover:underline uppercase tracking-widest">Chi tiết đơn</button>
                                 </td>
@@ -243,6 +263,44 @@
                 </table>
             </div>
             <div class="hidden md:block mt-4">{{ $invoices->links() }}</div>
+
+            {{-- Hoa hồng nhận được từ người khác --}}
+            @if($receivedInvoices->count() > 0)
+            <div class="mt-6">
+                <h3 class="text-sm font-bold text-sky-700 mb-3 flex items-center gap-2">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="text-sky-500"><path d="M12 5v14"/><path d="m19 12-7 7-7-7"/></svg>
+                    Hoa hồng nhận được từ đơn của người khác
+                </h3>
+                <div class="bg-sky-50 border border-sky-100 rounded-xl overflow-hidden">
+                    <table class="w-full text-left border-collapse">
+                        <thead>
+                            <tr class="bg-sky-100/60 border-b border-sky-100">
+                                <th class="px-4 py-2 text-[10px] font-bold text-sky-600 uppercase tracking-widest">Mã hóa đơn</th>
+                                <th class="px-4 py-2 text-[10px] font-bold text-sky-500 uppercase tracking-widest">Người tạo đơn</th>
+                                <th class="px-4 py-2 text-[10px] font-bold text-sky-500 uppercase tracking-widest">Ngày</th>
+                                <th class="px-4 py-2 text-[10px] font-bold text-sky-500 uppercase tracking-widest text-right">HH nhận được</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-sky-50">
+                            @foreach($receivedInvoices as $rinv)
+                            <tr class="hover:bg-sky-100/30 transition-colors">
+                                <td class="px-4 py-2 text-sm font-bold text-slate-800">{{ $rinv->invoice_code }}</td>
+                                <td class="px-4 py-2 text-sm text-slate-600">{{ $rinv->user?->name }}</td>
+                                <td class="px-4 py-2 text-xs text-slate-400">{{ $rinv->created_at->format('d/m/Y H:i') }}</td>
+                                <td class="px-4 py-2 text-right text-sm font-black text-sky-600">+{{ number_format($rinv->shared_commission_amount, 0, ',', '.') }}</td>
+                            </tr>
+                            @endforeach
+                        </tbody>
+                        <tfoot>
+                            <tr class="bg-sky-100/60 border-t border-sky-100">
+                                <td colspan="3" class="px-4 py-2 text-xs font-bold text-sky-700 text-right">Tổng nhận được:</td>
+                                <td class="px-4 py-2 text-right text-sm font-black text-sky-700">+{{ number_format($receivedInvoices->sum('shared_commission_amount'), 0, ',', '.') }}</td>
+                            </tr>
+                        </tfoot>
+                    </table>
+                </div>
+            </div>
+            @endif
 
         @elseif($view === 'invoice_detail')
             <!-- Detailed Invoice with Per-Item Commission -->
@@ -308,15 +366,27 @@
                     </div>
 
                     <div class="flex justify-end pt-4 border-t border-slate-100">
-                        <div class="w-full md:w-64 space-y-3">
+                        <div class="w-full md:w-72 space-y-3">
                             <div class="flex justify-between items-center">
                                 <span class="text-xs font-bold text-slate-400 uppercase tracking-widest">Tổng tiền hàng</span>
                                 <span class="text-sm font-bold text-slate-900">{{ number_format($invoice->final_amount, 0, ',', '.') }}</span>
                             </div>
-                            <div class="flex justify-between items-center p-3 bg-emerald-50 rounded-xl border border-emerald-100 shadow-sm">
-                                <span class="text-xs font-bold text-emerald-600 uppercase tracking-widest">Tổng hoa hồng đơn</span>
+                            <div class="flex justify-between items-center p-3 bg-emerald-50 rounded-xl border border-emerald-100">
+                                <span class="text-xs font-bold text-emerald-600 uppercase tracking-widest">Tổng HH đơn</span>
                                 <span class="text-lg font-black text-emerald-700 tracking-tight">{{ number_format($invoice->total_commission, 0, ',', '.') }}</span>
                             </div>
+                            @if($invoice->shared_commission_amount > 0)
+                            <div class="flex justify-between items-center p-3 bg-amber-50 rounded-xl border border-amber-100">
+                                <div>
+                                    <span class="text-xs font-bold text-amber-600 uppercase tracking-widest">Chia cho {{ $invoice->sharedTo?->name }}</span>
+                                </div>
+                                <span class="text-sm font-black text-amber-600">-{{ number_format($invoice->shared_commission_amount, 0, ',', '.') }}</span>
+                            </div>
+                            <div class="flex justify-between items-center p-3 bg-emerald-100 rounded-xl border border-emerald-200">
+                                <span class="text-xs font-bold text-emerald-700 uppercase tracking-widest">HH thực nhận</span>
+                                <span class="text-lg font-black text-emerald-800 tracking-tight">{{ number_format($invoice->total_commission - $invoice->shared_commission_amount, 0, ',', '.') }}</span>
+                            </div>
+                            @endif
                         </div>
                     </div>
                 </div>

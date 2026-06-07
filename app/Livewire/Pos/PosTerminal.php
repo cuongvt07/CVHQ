@@ -44,6 +44,10 @@ class PosTerminal extends Component
     public $is_creating_customer = false;
     public $new_customer = ['full_name' => '', 'phone' => ''];
 
+    // ── Commission sharing (per-checkout, reset after checkout) ─────────────
+    public $sharedToUserId = null;
+    public $sharedCommissionAmount = '';
+
     // ═══════════════════════════════════════════════════════════════════════
     // LIFECYCLE
     // ═══════════════════════════════════════════════════════════════════════
@@ -761,6 +765,12 @@ class PosTerminal extends Component
                 'extra_fee_name' => $extraFeeName ?: null,
                 'final_amount'   => $this->finalAmount,
                 'total_commission'=> $totalCommission,
+                'shared_commission_amount' => ($this->sharedToUserId && $this->sharedCommissionAmount !== '')
+                    ? max(0, min((int) $this->sharedCommissionAmount, $totalCommission))
+                    : null,
+                'shared_to_user_id' => ($this->sharedToUserId && $this->sharedCommissionAmount !== '')
+                    ? (int) $this->sharedToUserId
+                    : null,
                 'paid_amount'    => $this->finalAmount,
                 'status'         => 'Completed',
                 'delivery_status'=> 'Delivered',
@@ -794,6 +804,8 @@ class PosTerminal extends Component
             // Reset the current tab (keep label)
             $label = $tab['label'];
             $this->tabs[$this->activeTab] = $this->makeNewTab($label);
+            $this->sharedToUserId = null;
+            $this->sharedCommissionAmount = '';
 
             $this->dispatch('notify', message: 'Thanh toán thành công! 🎉', type: 'success');
 
@@ -806,9 +818,23 @@ class PosTerminal extends Component
     // RENDER
     // ═══════════════════════════════════════════════════════════════════════
 
+    public function getStaffList(): \Illuminate\Support\Collection
+    {
+        return \App\Models\User::where('id', '!=', auth()->id())
+            ->where('can_receive_commission', true)
+            ->orderBy('name')
+            ->get(['id', 'name']);
+    }
+
     public function render()
     {
         $tab = $this->getTab();
+        $cart = $tab['cart'] ?? [];
+        $canReceiveCommission = auth()->user()->can_receive_commission ?? false;
+        $totalCommission = $canReceiveCommission
+            ? (int) collect($cart)->sum(fn($item) => $item['commission_amount'] * $item['quantity'])
+            : 0;
+
         return view('livewire.pos.pos-terminal', [
             'products'           => $this->getProducts(),
             'cart'               => $tab['cart'] ?? [],
@@ -824,8 +850,11 @@ class PosTerminal extends Component
             'categories_list'    => Product::whereNotNull('category_path')->distinct()->pluck('category_path'),
             'brands_list'        => Product::whereNotNull('brand')->distinct()->pluck('brand'),
             'box_codes_list'     => Product::whereNotNull('location')->distinct()->pluck('location'),
-            'sales_channels'     => self::SALES_CHANNELS,
-            'payment_methods'    => self::PAYMENT_METHODS,
+            'sales_channels'        => self::SALES_CHANNELS,
+            'payment_methods'       => self::PAYMENT_METHODS,
+            'totalCommission'       => $totalCommission,
+            'canReceiveCommission'  => $canReceiveCommission,
+            'staffList'             => $canReceiveCommission ? $this->getStaffList() : collect(),
         ])->layout('layouts.app');
     }
 }

@@ -50,6 +50,7 @@
             font-weight: 700;
             letter-spacing: 1px;
             text-transform: uppercase;
+            white-space: nowrap;
         }
 
         .customer-section { margin: 18px 0 16px; }
@@ -377,13 +378,13 @@
         <strong>Thành tiền (viết bằng chữ):</strong> {{ $numberToWords($payableTotal) }}.
     </div>
 
+    <div class="sig-date">Ngày {{ $invoice->created_at->format('d') }} tháng {{ $invoice->created_at->format('m') }} năm {{ $invoice->created_at->format('Y') }}</div>
     <div class="signatures">
         <div class="sig-block buyer">
             <div class="sig-label">Người Mua Hàng</div>
             <div class="sig-line"></div>
         </div>
         <div class="sig-block" style="text-align:right">
-            <div class="sig-date">Ngày {{ $invoice->created_at->format('d') }} tháng {{ $invoice->created_at->format('m') }} năm {{ $invoice->created_at->format('Y') }}</div>
             <div class="sig-label">Người Bán Hàng</div>
             <div class="sig-line" style="margin-right:0; margin-left:auto"></div>
         </div>

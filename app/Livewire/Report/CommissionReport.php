@@ -62,30 +62,59 @@ class CommissionReport extends Component
         $range = $this->getDateRange();
 
         if ($this->view === 'summary') {
-            $data['employees'] = User::withCount(['invoices as total_invoices' => function($query) use ($range) {
+            $employees = User::withCount(['invoices as total_invoices' => function($query) use ($range) {
                     $query->where('status', '!=', 'Cancelled')
                           ->whereBetween('created_at', [$range['start'], $range['end']]);
                 }])
-                ->withSum(['invoices as total_commission' => function($query) use ($range) {
+                ->withSum(['invoices as gross_commission' => function($query) use ($range) {
                     $query->where('status', '!=', 'Cancelled')
                           ->whereBetween('created_at', [$range['start'], $range['end']]);
                 }], 'total_commission')
+                ->withSum(['invoices as shared_out' => function($query) use ($range) {
+                    $query->where('status', '!=', 'Cancelled')
+                          ->whereBetween('created_at', [$range['start'], $range['end']]);
+                }], 'shared_commission_amount')
                 ->withSum(['invoices as total_sales' => function($query) use ($range) {
                     $query->where('status', '!=', 'Cancelled')
                           ->whereBetween('created_at', [$range['start'], $range['end']]);
                 }], 'final_amount')
-                ->orderBy('total_commission', 'desc')
-                ->paginate(15);
+                ->get();
+
+            // Received shared commission from others
+            $receivedMap = Invoice::where('status', '!=', 'Cancelled')
+                ->whereBetween('created_at', [$range['start'], $range['end']])
+                ->whereNotNull('shared_to_user_id')
+                ->whereNotNull('shared_commission_amount')
+                ->groupBy('shared_to_user_id')
+                ->selectRaw('shared_to_user_id, SUM(shared_commission_amount) as received_commission')
+                ->pluck('received_commission', 'shared_to_user_id');
+
+            foreach ($employees as $employee) {
+                $employee->received_commission = (int) ($receivedMap[$employee->id] ?? 0);
+                $employee->net_commission = (int) ($employee->gross_commission ?? 0)
+                    - (int) ($employee->shared_out ?? 0)
+                    + $employee->received_commission;
+            }
+
+            $data['employees'] = $employees->sortByDesc('net_commission')->values();
+
         } elseif ($this->view === 'employee_detail') {
             $data['employee'] = User::findOrFail($this->selectedUserId);
-            $data['invoices'] = Invoice::with('customer')
+            $data['invoices'] = Invoice::with(['customer', 'sharedTo'])
                 ->where('user_id', $this->selectedUserId)
                 ->where('status', '!=', 'Cancelled')
                 ->whereBetween('created_at', [$range['start'], $range['end']])
                 ->latest()
                 ->paginate(15);
+            // Invoices where this user received shared commission
+            $data['receivedInvoices'] = Invoice::with(['user', 'customer'])
+                ->where('shared_to_user_id', $this->selectedUserId)
+                ->where('status', '!=', 'Cancelled')
+                ->whereBetween('created_at', [$range['start'], $range['end']])
+                ->latest()
+                ->get();
         } elseif ($this->view === 'invoice_detail') {
-            $data['invoice'] = Invoice::with(['items', 'customer', 'user'])->findOrFail($this->selectedInvoiceId);
+            $data['invoice'] = Invoice::with(['items', 'customer', 'user', 'sharedTo'])->findOrFail($this->selectedInvoiceId);
         }
 
         return view('livewire.report.commission-report', $data)->layout('layouts.app');
