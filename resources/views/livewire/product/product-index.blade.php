@@ -226,73 +226,83 @@
                 <div class="py-10 text-center text-slate-300 text-[11px] font-bold tracking-widest">Không có sản phẩm</div>
             @else
                 @foreach($products as $product)
-                    <div wire:key="m-prod-{{ $product->id }}" class="bg-white border border-slate-200 rounded-lg p-2 flex items-start gap-2 shadow-sm">
+                    <div wire:key="m-prod-{{ $product->id }}" class="bg-white border border-slate-200 rounded-xl shadow-sm overflow-hidden">
 
-                        {{-- Checkbox + Image --}}
-                        <div class="flex flex-col items-center gap-1.5 shrink-0">
-                            <input type="checkbox" wire:model.live="selectedRows" value="{{ $product->id }}"
-                                   class="w-4 h-4 rounded border-slate-300 text-electric-blue focus:ring-electric-blue/20">
-                            <div class="w-12 h-12 rounded bg-slate-50 overflow-hidden">
-                                @if(!empty($product->images))
-                                    <img src="{{ $product->images[0] }}" class="w-full h-full object-cover">
-                                @else
-                                    <div class="w-full h-full flex items-center justify-center text-slate-200">
-                                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="3" rx="2" ry="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/></svg>
-                                    </div>
-                                @endif
-                            </div>
-                        </div>
+                        {{-- 3-column card --}}
+                        <div class="flex items-stretch">
 
-                        {{-- Main info --}}
-                        <div class="flex-1 min-w-0 space-y-1">
-                            {{-- Name + SKU --}}
-                            <div class="min-w-0">
-                                <div class="text-[12px] font-bold text-slate-900 leading-tight line-clamp-2">{{ $product->name ?: $product->base_name }}</div>
-                                <div class="flex items-center gap-1.5 mt-0.5">
-                                    <span class="text-[9px] font-mono font-bold text-slate-500">{{ $product->sku }}</span>
-                                    @if($product->location)
-                                        <span class="text-[9px] font-bold text-emerald-600 bg-emerald-50 px-1 py-px rounded">{{ $product->location }}</span>
+                            {{-- Col 1: Image --}}
+                            <div class="relative w-[72px] shrink-0">
+                                <input type="checkbox" wire:model.live="selectedRows" value="{{ $product->id }}"
+                                       class="absolute top-1.5 left-1.5 z-10 w-3.5 h-3.5 rounded border-slate-300 text-electric-blue focus:ring-electric-blue/20">
+                                <div class="w-full aspect-square bg-slate-100">
+                                    @if(!empty($product->images))
+                                        <img src="{{ $product->images[0] }}" class="w-full h-full object-cover">
+                                    @else
+                                        <div class="w-full h-full flex items-center justify-center text-slate-300">
+                                            <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect width="18" height="18" x="3" y="3" rx="2" ry="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/></svg>
+                                        </div>
                                     @endif
                                 </div>
                             </div>
 
-                            {{-- Price + Stock --}}
-                            <div class="flex items-center gap-2 text-[11px]">
-                                <span class="font-extrabold text-electric-blue">{{ number_format($product->sale_price, 0, ',', '.') }}đ</span>
-                                <span class="font-bold {{ $product->stock_quantity <= 5 ? 'text-rose-600 bg-rose-50' : 'text-slate-600 bg-slate-50' }} px-1.5 py-0.5 rounded text-[10px]">Tồn: {{ $product->stock_quantity }}</span>
-                                @if($product->brand)
-                                    <span class="text-[10px] text-slate-400 truncate">{{ $product->brand }}</span>
-                                @endif
+                            {{-- Col 2: SKU / location / stock / price --}}
+                            <div class="w-[88px] shrink-0 flex flex-col justify-between px-2 py-2 border-x border-slate-100 bg-slate-50/60">
+                                <div class="space-y-0.5">
+                                    <div class="text-[11px] font-black text-electric-blue font-mono leading-tight truncate">{{ $product->sku }}</div>
+                                    @if($product->location)
+                                        <div class="text-[10px] font-bold text-emerald-700 bg-emerald-50 px-1 py-px rounded inline-block">{{ $product->location }}</div>
+                                    @elseif($product->brand)
+                                        <div class="text-[10px] text-slate-400 truncate">{{ $product->brand }}</div>
+                                    @else
+                                        <div class="text-[10px] text-slate-300">—</div>
+                                    @endif
+                                </div>
+                                <div class="space-y-0.5 mt-1">
+                                    <div class="text-[11px] font-black {{ $product->stock_quantity <= 5 ? 'text-rose-600' : 'text-slate-800' }}">
+                                        Tồn: {{ $product->stock_quantity }}
+                                    </div>
+                                    <div class="text-[11px] font-black text-slate-900 leading-tight">
+                                        {{ number_format($product->sale_price, 0, ',', '.') }}
+                                    </div>
+                                </div>
                             </div>
 
-                            {{-- Actions --}}
-                            <div class="flex items-center gap-1.5 pt-1">
-                                <button wire:click="toggleHistory({{ $product->id }})"
-                                        class="inline-flex items-center gap-1 px-2 py-1 rounded text-[10px] font-black uppercase tracking-wider border
-                                               {{ $expandedProductId === $product->id
-                                                  ? 'bg-electric-blue text-white border-electric-blue'
-                                                  : 'bg-electric-blue/5 text-electric-blue border-electric-blue/20' }}">
-                                    <svg xmlns="http://www.w3.org/2000/svg" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"/><path d="m3.3 7 8.7 5 8.7-5"/><path d="M12 22V12"/></svg>
-                                    Thẻ kho
-                                </button>
-                                <button wire:click="edit({{ $product->id }})"
-                                        class="w-7 h-7 flex items-center justify-center rounded border border-slate-200 text-slate-500 hover:text-electric-blue hover:border-electric-blue/40 transition-colors"
-                                        title="Sửa">
-                                    <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
-                                </button>
-                                @if(auth()->user()?->hasPermission('product.delete'))
-                                <button wire:click="confirmDelete({{ $product->id }})"
-                                        class="w-7 h-7 flex items-center justify-center rounded border border-slate-200 text-slate-500 hover:text-rose-500 hover:border-rose-300 transition-colors"
-                                        title="Xóa">
-                                    <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/></svg>
-                                </button>
-                                @endif
+                            {{-- Col 3: Name / category / actions --}}
+                            <div class="flex-1 min-w-0 flex flex-col px-2.5 py-2">
+                                <div class="flex-1 min-h-0">
+                                    <div class="text-[12px] font-bold text-slate-900 leading-snug line-clamp-2">{{ $product->name ?: $product->base_name }}</div>
+                                    @if($product->category)
+                                        <div class="text-[10px] text-slate-400 mt-0.5 truncate">{{ $product->category->name }}</div>
+                                    @endif
+                                </div>
+                                <div class="flex items-center gap-1.5 mt-2 justify-end">
+                                    <button wire:click="toggleHistory({{ $product->id }})"
+                                            class="inline-flex items-center gap-1 px-2 py-1 rounded-lg text-[10px] font-black border transition-colors
+                                                   {{ $expandedProductId === $product->id
+                                                      ? 'bg-electric-blue text-white border-electric-blue'
+                                                      : 'bg-electric-blue/5 text-electric-blue border-electric-blue/20' }}">
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"/><path d="m3.3 7 8.7 5 8.7-5"/><path d="M12 22V12"/></svg>
+                                        Thẻ kho
+                                    </button>
+                                    <button wire:click="edit({{ $product->id }})"
+                                            class="w-7 h-7 flex items-center justify-center rounded-lg border border-slate-200 text-slate-500 hover:text-electric-blue hover:border-electric-blue/40 transition-colors">
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+                                    </button>
+                                    @if(auth()->user()?->hasPermission('product.delete'))
+                                    <button wire:click="confirmDelete({{ $product->id }})"
+                                            class="w-7 h-7 flex items-center justify-center rounded-lg border border-slate-200 text-slate-500 hover:text-rose-500 hover:border-rose-300 transition-colors">
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/></svg>
+                                    </button>
+                                    @endif
+                                </div>
                             </div>
+                        </div>
 
-                            {{-- Inline expanded stock history (mobile-friendly) --}}
-                            @if($expandedProductId === $product->id)
-                                <div class="mt-2 pt-2 border-t border-slate-100 bg-slate-50/50 -mx-2 -mb-2 px-2 pb-2 rounded-b-lg">
-                                    <div class="text-[9px] font-black text-slate-500 uppercase tracking-widest mb-1">Thẻ kho (10 gần nhất)</div>
+                        {{-- Inline expanded stock history --}}
+                        @if($expandedProductId === $product->id)
+                            <div class="border-t border-slate-200 bg-slate-50/60 px-3 py-2.5">
+                                <div class="text-[9px] font-black text-slate-500 uppercase tracking-widest mb-1.5">Thẻ kho (10 gần nhất)</div>
                                     <div class="space-y-1 max-h-48 overflow-y-auto">
                                         @php
                                             $mTypeColors = [
@@ -327,10 +337,9 @@
                                                 <span class="font-bold text-slate-900">→{{ $h->quantity_after }}</span>
                                             </div>
                                         @endforeach
-                                    </div>
                                 </div>
-                            @endif
-                        </div>
+                            </div>
+                        @endif
                     </div>
                 @endforeach
             @endif
