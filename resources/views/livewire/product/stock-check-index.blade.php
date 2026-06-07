@@ -574,8 +574,8 @@
                 </div>
             </main>
 
-            <aside class="w-full md:w-[300px] shrink-0 bg-white border-t md:border-t-0 md:border-l border-slate-200 flex flex-col">
-                <div class="p-4 space-y-4 flex-1">
+            <aside class="w-full md:w-[300px] shrink-0 bg-white border-t md:border-t-0 md:border-l border-slate-200 flex flex-col min-h-0">
+                <div class="p-4 space-y-4 flex-1 min-h-0 overflow-y-auto">
                     <div class="flex items-center gap-2 text-xs font-bold text-slate-700">
                         <span class="w-2 h-2 rounded-full bg-slate-500"></span>
                         {{ auth()->user()?->name }}
@@ -633,7 +633,7 @@
                     </div>
                 </div>
 
-                <div class="grid grid-cols-2 gap-2 p-4">
+                <div class="grid grid-cols-2 gap-2 p-4 shrink-0 border-t border-slate-100">
                     <button wire:click="saveDraft" class="h-14 rounded-lg bg-blue-600 text-white text-sm font-black flex items-center justify-center gap-2">
                         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><path d="M17 21v-8H7v8"/><path d="M7 3v5h8"/></svg>
                         Lưu tạm
