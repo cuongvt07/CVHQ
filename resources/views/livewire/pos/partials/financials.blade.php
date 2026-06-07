@@ -62,46 +62,27 @@
 
     {{-- Chia sẻ hoa hồng --}}
     @if($canReceiveCommission && $totalCommission > 0)
-    <div x-data="{ open: {{ $sharedToUserId ? 'true' : 'false' }} }"
-         class="border border-emerald-100 rounded-xl overflow-hidden">
-        <button @click="open = !open" type="button"
-                class="w-full flex items-center justify-between px-2.5 py-1.5 bg-emerald-50 hover:bg-emerald-100 transition-colors">
-            <span class="text-[10px] font-bold text-emerald-700 tracking-wider">Chia sẻ hoa hồng</span>
-            <div class="flex items-center gap-1.5">
-                @if($totalCommission > 0)
-                <span class="text-[10px] font-black text-emerald-600">{{ number_format($totalCommission, 0, ',', '.') }}đ</span>
-                @endif
-                <svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="text-emerald-600 transition-transform" :class="open ? 'rotate-180' : ''"><path d="m6 9 6 6 6-6"/></svg>
-            </div>
-        </button>
-        <div x-show="open" x-transition class="p-2 bg-white space-y-1.5">
-            <div>
-                <label class="block text-[9px] font-bold text-slate-400 mb-1 uppercase tracking-wider">Chia cho nhân viên</label>
-                <select wire:model.live="sharedToUserId"
-                        class="w-full border border-slate-200 rounded-lg px-2 py-1 text-[11px] text-slate-800 font-medium focus:outline-none focus:border-electric-blue bg-white">
-                    <option value="">-- Không chia sẻ --</option>
-                    @foreach($staffList as $staff)
-                        <option value="{{ $staff->id }}">{{ $staff->name }}</option>
-                    @endforeach
-                </select>
-            </div>
-            @if($sharedToUserId)
-            <div>
-                <label class="block text-[9px] font-bold text-slate-400 mb-1 uppercase tracking-wider">Số tiền chia (đ)</label>
-                <input type="number" wire:model.live.debounce.400ms="sharedCommissionAmount"
-                       min="0" max="{{ $totalCommission }}"
-                       placeholder="0"
-                       class="w-full border border-emerald-200 rounded-lg px-2 py-1 text-[11px] font-black text-emerald-700 text-right focus:outline-none focus:border-emerald-400 bg-emerald-50">
-                @if((int)$sharedCommissionAmount > 0)
-                <div class="flex justify-between text-[9px] mt-1">
-                    <span class="text-slate-400">Bạn còn lại:</span>
-                    <span class="font-black text-slate-700">{{ number_format($totalCommission - min((int)$sharedCommissionAmount, $totalCommission), 0, ',', '.') }}đ</span>
-                </div>
-                @endif
-            </div>
-            @endif
-        </div>
+    <div class="flex items-center gap-1">
+        <span class="text-[10px] font-bold text-emerald-600 whitespace-nowrap shrink-0">Chia HH:</span>
+        <select wire:model.live="sharedToUserId"
+                class="flex-1 min-w-0 border border-slate-200 rounded-lg px-1.5 py-1 text-[10px] text-slate-700 font-medium focus:outline-none focus:border-emerald-400 bg-white">
+            <option value="">-- NV --</option>
+            @foreach($staffList as $staff)
+                <option value="{{ $staff->id }}">{{ $staff->name }}</option>
+            @endforeach
+        </select>
+        <input type="number" wire:model.live.debounce.400ms="sharedCommissionAmount"
+               min="0" max="{{ $totalCommission }}"
+               placeholder="0"
+               class="w-20 shrink-0 border border-emerald-200 rounded-lg px-1.5 py-1 text-[10px] font-black text-emerald-700 text-right focus:outline-none focus:border-emerald-400 bg-emerald-50">
+        <span class="text-[9px] text-slate-400 shrink-0">đ</span>
     </div>
+    @if($sharedToUserId && (int)$sharedCommissionAmount > 0)
+    <div class="flex justify-between text-[9px] text-slate-400 -mt-0.5 px-0.5">
+        <span>HH của bạn còn:</span>
+        <span class="font-black text-slate-600">{{ number_format($totalCommission - min((int)$sharedCommissionAmount, $totalCommission), 0, ',', '.') }}đ</span>
+    </div>
+    @endif
     @endif
 
     {{-- Divider + paid amount --}}

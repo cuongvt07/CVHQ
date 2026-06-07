@@ -46,17 +46,17 @@
         <div>
             <div class="text-[9px] font-black text-slate-500 tracking-widest uppercase mb-1">Chi nhánh</div>
             <div class="flex items-center gap-0.5 bg-slate-100 border border-slate-200 p-0.5 rounded">
-                <button wire:click="$set('branch', 'all')" type="button"
+                <button wire:click="setBranch('all')" type="button"
                         class="flex-1 px-2 py-1 rounded text-[10px] font-black uppercase tracking-wider transition-all
                                {{ $branch === 'all' ? 'bg-white text-electric-blue shadow-sm' : 'text-slate-500 hover:text-slate-700' }}">
                     Tất cả
                 </button>
-                <button wire:click="$set('branch', 'sg')" type="button"
+                <button wire:click="setBranch('sg')" type="button"
                         class="flex-1 px-2 py-1 rounded text-[10px] font-black uppercase tracking-wider transition-all
                                {{ $branch === 'sg' ? 'bg-emerald-500 text-white shadow-sm' : 'text-slate-500 hover:text-slate-700' }}">
                     Sài Gòn
                 </button>
-                <button wire:click="$set('branch', 'hn')" type="button"
+                <button wire:click="setBranch('hn')" type="button"
                         class="flex-1 px-2 py-1 rounded text-[10px] font-black uppercase tracking-wider transition-all
                                {{ $branch === 'hn' ? 'bg-rose-500 text-white shadow-sm' : 'text-slate-500 hover:text-slate-700' }}">
                     Hà Nội
@@ -86,7 +86,7 @@
             @if($branch !== 'all')
                 <span class="inline-flex items-center gap-1 text-[9px] font-bold {{ $branch === 'sg' ? 'text-emerald-700 border-emerald-200' : 'text-rose-700 border-rose-200' }} bg-white border pl-1.5 pr-0.5 py-0.5 rounded">
                     CN: {{ $branch === 'sg' ? 'Sài Gòn' : 'Hà Nội' }}
-                    <button wire:click="$set('branch', 'all')" class="text-slate-300 hover:text-rose-500 w-3.5 h-3.5 flex items-center justify-center">
+                    <button wire:click="setBranch('all')" class="text-slate-300 hover:text-rose-500 w-3.5 h-3.5 flex items-center justify-center">
                         <svg xmlns="http://www.w3.org/2000/svg" width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
                     </button>
                 </span>

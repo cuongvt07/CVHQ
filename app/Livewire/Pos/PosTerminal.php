@@ -288,17 +288,10 @@ class PosTerminal extends Component
     }
 
     // Hook: fires when wire:model updates nested tabs data
-    public function updated($name): void
+    public function updated($name, $value = null): void
     {
-        if (
-            str_starts_with($name, 'tabs') &&
-            str_contains($name, 'global_discount_value')
-        ) {
-            $this->recalculateTotalDiscount();
-        }
-
-        // Persist tabs to browser localStorage via a Livewire dispatch (heard by Livewire.on in the view)
         if (str_starts_with($name, 'tabs')) {
+            $this->recalculateTotalDiscount();
             $this->dispatch('posTabsUpdate', tabs: $this->tabs, active: $this->activeTab);
         }
     }
@@ -341,6 +334,16 @@ class PosTerminal extends Component
         if (in_array($branch, ['all', 'sg', 'hn'], true)) {
             $this->branch = $branch;
         }
+    }
+
+    public function setBranch(string $value): void
+    {
+        if (!in_array($value, ['all', 'sg', 'hn'], true)) {
+            $value = 'all';
+        }
+        $this->branch = $value;
+        $this->dispatch('posBranchUpdate', branch: $this->branch);
+        $this->resetPage();
     }
 
     public function updatedBranch(): void
@@ -601,6 +604,7 @@ class PosTerminal extends Component
             $this->category = 'All';
             $this->boxCode = '';
             $this->branch = 'all';
+            $this->dispatch('posBranchUpdate', branch: 'all');
             $this->resetPage();
             return;
         }

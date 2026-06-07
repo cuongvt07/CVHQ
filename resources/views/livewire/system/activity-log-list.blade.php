@@ -7,6 +7,27 @@
         </div>
     </header>
 
+    <!-- Tabs -->
+    <div class="px-4 md:px-6 py-2 border-b border-slate-200 bg-white flex overflow-x-auto custom-scrollbar gap-2 shrink-0">
+        @php
+            $__tabs = [
+                'all'         => 'Tất cả',
+                'invoice'     => 'Hóa đơn',
+                'stock'       => 'Tồn kho',
+                'product'     => 'Hàng hóa',
+                'stock_check' => 'Kiểm kho',
+                'import'      => 'Nhập hàng',
+            ];
+        @endphp
+        @foreach($__tabs as $key => $label)
+            <button wire:click="$set('tab', '{{ $key }}')"
+                    class="shrink-0 px-4 py-2 rounded-full text-[11px] font-bold transition-all
+                           {{ $tab === $key ? 'bg-electric-blue text-white shadow-md' : 'bg-slate-100 text-slate-500 hover:bg-slate-200' }}">
+                {{ $label }}
+            </button>
+        @endforeach
+    </div>
+
     <!-- Filters -->
     @php $__activeFilterCount = ($user_id ? 1 : 0) + ($action ? 1 : 0) + (($date_from || $date_to) ? 1 : 0); @endphp
     <div x-data="{ mobileFilterOpen: false }" @keydown.escape.window="mobileFilterOpen = false" class="px-3 md:px-6 py-2 md:py-4 bg-white border-b border-slate-100 flex flex-col gap-2">
@@ -200,13 +221,15 @@
                             @endif
                             @if(in_array('object', $visibleColumns))
                             <td class="px-4 py-3">
-                                <div class="text-xs font-bold text-slate-900">{{ $log->model_name }}</div>
+                                <div class="text-xs font-bold text-slate-900">{{ $log->model_name ?? class_basename($log->model_type) }}</div>
                                 <div class="text-[10px] text-slate-400 font-mono">ID: #{{ $log->model_id }}</div>
                             </td>
                             @endif
                             @if(in_array('details', $visibleColumns))
                             <td class="px-4 py-3">
-                                @if($log->changes)
+                                @if(isset($log->custom_details))
+                                    <div class="text-[10px] font-bold text-slate-600">{{ $log->custom_details }}</div>
+                                @elseif($log->changes)
                                     <div class="space-y-1">
                                         @foreach($log->changes['after'] as $field => $newValue)
                                             @php 
