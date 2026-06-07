@@ -206,7 +206,7 @@
                                 <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">
                                     Giá bán (VNĐ)<span class="text-rose-500 ml-0.5">*</span>
                                 </label>
-                                <input type="number" wire:model.blur="sale_price" class="w-full bg-slate-50 border border-slate-200 rounded-xl sm:rounded-2xl py-2 sm:py-3 px-3 sm:px-5 text-[13px] sm:text-sm focus:outline-none focus:border-electric-blue/40 focus:ring-2 sm:focus:ring-4 focus:ring-electric-blue/5 transition-all">
+                                <input type="number" wire:model.live.debounce.500ms="sale_price" class="w-full bg-slate-50 border border-slate-200 rounded-xl sm:rounded-2xl py-2 sm:py-3 px-3 sm:px-5 text-[13px] sm:text-sm focus:outline-none focus:border-electric-blue/40 focus:ring-2 sm:focus:ring-4 focus:ring-electric-blue/5 transition-all">
                                 @error('sale_price') <span class="text-[10px] text-rose-500 font-bold ml-1">{{ $message }}</span> @enderror
                             </div>
 

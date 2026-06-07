@@ -1,0 +1,156 @@
+<div x-data="{ open: false }" 
+     x-on:open-bulk-modal.window="open = true" 
+     x-on:close-bulk-modal.window="open = false" 
+     x-show="open" 
+     class="fixed inset-0 z-[100] overflow-y-auto" 
+     x-cloak>
+    
+    <div class="flex items-center justify-center min-h-screen px-4 pt-4 pb-20 text-center sm:p-0">
+        <!-- Overlay -->
+        <div x-show="open" 
+             x-transition:enter="ease-out duration-300" 
+             x-transition:enter-start="opacity-0" 
+             x-transition:enter-end="opacity-100" 
+             x-transition:leave="ease-in duration-200" 
+             x-transition:leave-start="opacity-100" 
+             x-transition:leave-end="opacity-0" 
+             class="fixed inset-0 transition-opacity bg-slate-900/60 backdrop-blur-sm" 
+             @click="open = false"></div>
+
+        <!-- Modal Content -->
+        <div x-show="open" 
+             x-transition:enter="ease-out duration-300" 
+             x-transition:enter-start="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95" 
+             x-transition:enter-end="opacity-100 translate-y-0 sm:scale-100" 
+             x-transition:leave="ease-in duration-200" 
+             x-transition:leave-start="opacity-100 translate-y-0 sm:scale-100" 
+             x-transition:leave-end="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95" 
+             class="relative inline-block w-full max-w-5xl overflow-hidden text-left align-bottom transition-all transform bg-white rounded-2xl shadow-2xl sm:my-8 sm:align-middle border border-slate-200 flex flex-col max-h-[90vh]">
+            
+            <!-- Header -->
+            <div class="px-6 py-4 border-b border-slate-100 bg-slate-50/50 flex justify-between items-center shrink-0">
+                <div>
+                    <h3 class="text-lg font-black text-slate-900 tracking-tight">Thêm nhanh hàng loạt</h3>
+                    <p class="text-[11px] text-slate-500 font-bold mt-0.5">Thêm nhiều biến thể (khác màu, vị trí) với cùng tên và giá</p>
+                </div>
+                <button @click="open = false" class="text-slate-400 hover:text-rose-500 hover:bg-rose-50 p-2 rounded-xl transition-colors">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+                </button>
+            </div>
+
+            <!-- Body -->
+            <div class="flex-1 overflow-y-auto custom-scrollbar p-6 bg-white flex flex-col gap-6">
+                <!-- Thông tin chung -->
+                <div>
+                    <h4 class="text-xs font-black text-electric-blue uppercase tracking-widest mb-3 flex items-center gap-2">
+                        <span class="w-1.5 h-4 bg-electric-blue rounded-full"></span>
+                        Thông tin chung (Áp dụng cho tất cả)
+                    </h4>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
+                        <div>
+                            <label class="block text-[11px] font-bold text-slate-600 mb-1">Tiền tố SKU <span class="text-rose-500">*</span></label>
+                            <input type="text" wire:model.blur="bulkPrefix" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:border-electric-blue focus:ring-2 focus:ring-electric-blue/10" placeholder="VD: GTS">
+                            @error('bulkPrefix') <span class="text-[10px] text-rose-500 font-bold">{{ $message }}</span> @enderror
+                        </div>
+                        <div class="sm:col-span-3">
+                            <label class="block text-[11px] font-bold text-slate-600 mb-1">Tên sản phẩm chung <span class="text-rose-500">*</span></label>
+                            <input type="text" wire:model="bulkBaseName" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:border-electric-blue focus:ring-2 focus:ring-electric-blue/10" placeholder="VD: CÀ VẠT GÂN TĂM 6 CM">
+                            @error('bulkBaseName') <span class="text-[10px] text-rose-500 font-bold">{{ $message }}</span> @enderror
+                        </div>
+                        <div>
+                            <label class="block text-[11px] font-bold text-slate-600 mb-1">Thương hiệu</label>
+                            <input type="text" wire:model="bulkBrand" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:border-electric-blue focus:ring-2 focus:ring-electric-blue/10">
+                        </div>
+                        <div>
+                            <label class="block text-[11px] font-bold text-slate-600 mb-1">Danh mục</label>
+                            <input type="text" wire:model="bulkCategory" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:border-electric-blue focus:ring-2 focus:ring-electric-blue/10">
+                        </div>
+                        <div>
+                            <label class="block text-[11px] font-bold text-slate-600 mb-1">Giá bán chung <span class="text-rose-500">*</span></label>
+                            <input type="number" wire:model.live.debounce.500ms="bulkSalePrice" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:border-electric-blue focus:ring-2 focus:ring-electric-blue/10">
+                            @error('bulkSalePrice') <span class="text-[10px] text-rose-500 font-bold">{{ $message }}</span> @enderror
+                        </div>
+                        @if(auth()->user()?->hasPermission('product.edit_commission'))
+                        <div>
+                            <label class="block text-[11px] font-bold text-slate-600 mb-1">Hoa hồng chung</label>
+                            <input type="number" wire:model="bulkCommission" class="w-full bg-amber-50/50 border border-amber-200 rounded-xl px-3 py-2 text-sm font-bold text-amber-600 focus:outline-none focus:border-amber-400 focus:ring-2 focus:ring-amber-400/20">
+                        </div>
+                        @endif
+                    </div>
+                </div>
+
+                <!-- Bảng biến thể -->
+                <div class="flex-1 flex flex-col min-h-[300px]">
+                    <div class="flex items-center justify-between mb-3">
+                        <h4 class="text-xs font-black text-electric-blue uppercase tracking-widest flex items-center gap-2">
+                            <span class="w-1.5 h-4 bg-electric-blue rounded-full"></span>
+                            Danh sách phân loại
+                        </h4>
+                        <div class="flex items-center gap-2">
+                            <button type="button" wire:click="addBulkRow(1)" class="btn-slate text-[10px] px-3 py-1.5 rounded-lg border border-slate-200 hover:bg-slate-50 font-bold">
+                                + 1 dòng
+                            </button>
+                            <button type="button" wire:click="addBulkRow(5)" class="btn-slate text-[10px] px-3 py-1.5 rounded-lg border border-slate-200 hover:bg-slate-50 font-bold">
+                                + 5 dòng
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="glass-card overflow-x-auto border border-slate-200 rounded-xl flex-1">
+                        <table class="w-full text-left border-collapse min-w-[600px]">
+                            <thead class="sticky top-0 bg-slate-50/95 backdrop-blur-md z-10">
+                                <tr class="border-b border-slate-200">
+                                    <th class="w-12 px-3 py-2 text-center text-[10px] font-bold text-slate-400">#</th>
+                                    <th class="px-3 py-2 text-[10px] font-bold text-slate-600 uppercase tracking-wider">Màu sắc / Phân loại</th>
+                                    <th class="w-40 px-3 py-2 text-[10px] font-bold text-slate-600 uppercase tracking-wider">Vị trí cất</th>
+                                    <th class="w-32 px-3 py-2 text-[10px] font-bold text-slate-600 uppercase tracking-wider">Tồn kho</th>
+                                    <th class="w-12 px-3 py-2 text-center"></th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-slate-100">
+                                @foreach($bulkProducts as $index => $row)
+                                <tr class="hover:bg-slate-50/50" wire:key="bulk-row-{{ $index }}">
+                                    <td class="px-3 py-1.5 text-center text-[10px] font-bold text-slate-400">{{ $index + 1 }}</td>
+                                    <td class="px-3 py-1.5">
+                                        <input type="text" wire:model="bulkProducts.{{ $index }}.attribute" class="w-full bg-transparent border border-transparent hover:border-slate-200 focus:border-electric-blue focus:bg-white rounded-lg px-2 py-1.5 text-xs focus:outline-none transition-all" placeholder="VD: Đỏ, Xanh, ...">
+                                    </td>
+                                    <td class="px-3 py-1.5">
+                                        <input type="text" wire:model="bulkProducts.{{ $index }}.location" class="w-full bg-transparent border border-transparent hover:border-slate-200 focus:border-electric-blue focus:bg-white rounded-lg px-2 py-1.5 text-xs font-bold text-electric-blue focus:outline-none transition-all" placeholder="Mã thùng">
+                                    </td>
+                                    <td class="px-3 py-1.5">
+                                        <input type="number" wire:model="bulkProducts.{{ $index }}.stock" class="w-full bg-transparent border border-transparent hover:border-slate-200 focus:border-electric-blue focus:bg-white rounded-lg px-2 py-1.5 text-xs font-bold text-slate-900 focus:outline-none transition-all">
+                                    </td>
+                                    <td class="px-3 py-1.5 text-center">
+                                        <button wire:click="removeBulkRow({{ $index }})" class="p-1.5 text-slate-300 hover:text-rose-500 rounded-md hover:bg-rose-50 transition-colors" tabindex="-1">
+                                            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+                                        </button>
+                                    </td>
+                                </tr>
+                                @endforeach
+                            </tbody>
+                        </table>
+                        @if(empty($bulkProducts))
+                            <div class="p-8 text-center text-slate-400 text-xs font-bold">Chưa có dòng nào. Vui lòng bấm thêm dòng.</div>
+                        @endif
+                    </div>
+                </div>
+            </div>
+
+            <!-- Footer -->
+            <div class="px-6 py-4 border-t border-slate-100 bg-slate-50/50 flex justify-end gap-3 shrink-0">
+                <button type="button" @click="open = false" class="px-4 py-2 text-xs font-bold text-slate-600 bg-white border border-slate-200 rounded-xl hover:bg-slate-50 transition-colors">
+                    Hủy bỏ
+                </button>
+                <button type="button" wire:click="saveBulkProducts" wire:loading.attr="disabled" class="px-6 py-2 text-xs font-bold text-white bg-electric-blue rounded-xl hover:bg-blue-600 transition-colors shadow-sm flex items-center gap-2">
+                    <span wire:loading.remove wire:target="saveBulkProducts">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="inline-block"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+                    </span>
+                    <span wire:loading wire:target="saveBulkProducts">
+                        <svg class="animate-spin h-4 w-4 text-white inline-block" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+                    </span>
+                    Lưu danh sách
+                </button>
+            </div>
+        </div>
+    </div>
+</div>

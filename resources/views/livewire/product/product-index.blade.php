@@ -12,6 +12,13 @@
                 <span class="hidden md:inline">Nhập Excel</span>
             </button>
 
+            {{-- Thêm hàng loạt --}}
+            <button wire:click="openBulkAddModal" class="btn-slate flex items-center gap-1.5 px-3 md:px-4 py-1.5 md:py-1.5 text-[11px] md:text-[12px] font-bold tracking-wider rounded-lg border border-slate-200">
+                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="3" rx="2" ry="2"/><line x1="12" x2="12" y1="8" y2="16"/><line x1="8" x2="16" y1="12" y2="12"/></svg>
+                <span class="hidden sm:inline">Thêm hàng loạt</span>
+                <span class="sm:hidden">Hàng loạt</span>
+            </button>
+
             {{-- Thêm sản phẩm --}}
             <button wire:click="create" class="btn-electric flex items-center gap-1.5 px-3 md:px-4 py-1.5 md:py-1.5 text-[11px] md:text-[12px] font-bold tracking-wider rounded-lg">
                 <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="M12 5v14"/></svg>
@@ -23,6 +30,7 @@
 
     <x-import-modal id="products" title="Nhập danh sách sản phẩm" model="importFile" />
     <x-product-modal id="product-form" />
+    <x-bulk-product-modal />
     <x-delete-modal />
 
     <!-- Search & Filter Bar (compact) -->

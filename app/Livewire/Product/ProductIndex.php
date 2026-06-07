@@ -55,10 +55,15 @@ class ProductIndex extends Component
     public $importErrors = [];
     public $importBatchId;
 
-    // Commission Settings
-    public $showCommissionSettings = false;
-    public $autoCommissionEnabled = false;
-    public $commissionRanges = [];
+    // Bulk Add Feature
+    public $bulkPrefix = '';
+    public $bulkBaseName = '';
+    public $bulkCategory = '';
+    public $bulkBrand = '';
+    public $bulkSalePrice = 0;
+    public $bulkCommission = 0;
+    public array $bulkProducts = [];
+    // public $commissionRanges = [];
 
     protected $queryString = [
         'perPage' => ['except' => 10],
@@ -557,34 +562,106 @@ class ProductIndex extends Component
         $this->save(true);
     }
 
-    // Commission Settings Methods
-    public function openCommissionSettings()
+    // Bulk Add Methods
+    public function openBulkAddModal()
     {
-        $this->autoCommissionEnabled = \App\Models\SystemSetting::get('auto_commission_enabled') === 'true';
-        $this->commissionRanges = \App\Models\SystemSetting::get('commission_ranges', []);
-        $this->showCommissionSettings = true;
-        $this->dispatch('open-commission-modal');
+        $this->bulkPrefix = \App\Models\SystemSetting::get('sku_prefix', 'SP');
+        $this->bulkBaseName = '';
+        $this->bulkCategory = '';
+        $this->bulkBrand = '';
+        $this->bulkSalePrice = 0;
+        $this->bulkCommission = 0;
+        $this->bulkProducts = [];
+        $this->addBulkRow(3); // Start with 3 empty rows
+        
+        $this->dispatch('open-bulk-modal');
     }
 
-    public function addCommissionRange()
+    public function updatedBulkSalePrice()
     {
-        $this->commissionRanges[] = ['min' => 0, 'max' => 0, 'amount' => 0];
+        if (\App\Models\SystemSetting::get('auto_commission_enabled') !== 'true') {
+            return;
+        }
+
+        $price = (int) $this->bulkSalePrice;
+        $ranges = \App\Models\SystemSetting::get('commission_ranges', []);
+
+        foreach ($ranges as $range) {
+            if ($price >= $range['min'] && $price < $range['max']) {
+                $this->bulkCommission = $range['amount'];
+                break;
+            }
+        }
     }
 
-    public function removeCommissionRange($index)
+    public function addBulkRow($count = 1)
     {
-        unset($this->commissionRanges[$index]);
-        $this->commissionRanges = array_values($this->commissionRanges);
+        for ($i = 0; $i < $count; $i++) {
+            $this->bulkProducts[] = [
+                'attribute' => '',
+                'location' => '',
+                'stock' => 999
+            ];
+        }
     }
 
-    public function saveCommissionSettings()
+    public function removeBulkRow($index)
     {
-        \App\Models\SystemSetting::set('auto_commission_enabled', $this->autoCommissionEnabled ? 'true' : 'false');
-        \App\Models\SystemSetting::set('commission_ranges', $this->commissionRanges);
+        unset($this->bulkProducts[$index]);
+        $this->bulkProducts = array_values($this->bulkProducts);
+    }
 
-        $this->showCommissionSettings = false;
-        $this->dispatch('close-commission-modal');
-        $this->dispatch('notify', message: 'Đã lưu cấu hình hoa hồng!', type: 'success');
+    public function saveBulkProducts()
+    {
+        $this->validate([
+            'bulkPrefix' => 'required|min:1',
+            'bulkBaseName' => 'required|min:2',
+            'bulkSalePrice' => 'required|numeric|min:0',
+        ]);
+
+        if (empty($this->bulkProducts)) {
+            $this->dispatch('notify', message: 'Vui lòng thêm ít nhất 1 dòng sản phẩm!', type: 'warning');
+            return;
+        }
+
+        $count = 0;
+        $canEditCommission = auth()->user()?->hasPermission('product.edit_commission');
+        
+        foreach ($this->bulkProducts as $row) {
+            // Generate SKU
+            $sku = $this->nextSkuForPrefix($this->bulkPrefix);
+            
+            // Build attributes array
+            $attributes = [];
+            $attrVal = trim($row['attribute'] ?? '');
+            if ($attrVal !== '') {
+                $attributes['Màu sắc/Phân loại'] = $attrVal;
+            }
+
+            $productData = [
+                'sku' => $sku,
+                'base_name' => $this->bulkBaseName,
+                'category_path' => $this->bulkCategory,
+                'brand' => $this->bulkBrand,
+                'sale_price' => $this->bulkSalePrice,
+                'stock_quantity' => $row['stock'] === '' || $row['stock'] === null ? 999 : (int)$row['stock'],
+                'location' => $row['location'] ?? '',
+                'is_active' => true,
+                'attributes' => $attributes,
+            ];
+
+            if ($canEditCommission) {
+                $productData['commission_amount'] = $this->bulkCommission;
+            } else {
+                $productData['commission_amount'] = 0;
+            }
+
+            Product::create($productData);
+            $count++;
+        }
+
+        $this->dispatch('notify', message: "Đã thêm thành công {$count} sản phẩm!", type: 'success');
+        $this->dispatch('close-bulk-modal');
     }
 
 
