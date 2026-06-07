@@ -53,6 +53,30 @@ class Invoice extends Model
         return $this->belongsTo(User::class, 'shared_to_user_id');
     }
 
+    /**
+     * Derive readable payment method label from amount columns
+     */
+    public function getPaymentMethodLabel(): string
+    {
+        $methods = [];
+        if ($this->cash_amount > 0) $methods[] = 'Tiền mặt';
+        if ($this->transfer_amount > 0) $methods[] = 'Chuyển khoản';
+        if ($this->card_amount > 0) $methods[] = 'Thẻ';
+        if ($this->wallet_amount > 0) $methods[] = 'Ví';
+        return implode(', ', $methods) ?: 'Tiền mặt';
+    }
+
+    /**
+     * Derive payment method key (cash/transfer/card/wallet)
+     */
+    public function getPaymentMethodKey(): string
+    {
+        if ($this->transfer_amount > 0) return 'transfer';
+        if ($this->card_amount > 0) return 'card';
+        if ($this->wallet_amount > 0) return 'wallet';
+        return 'cash';
+    }
+
     public function cancel(string $reason, int $userId): void
     {
         if ($this->status === 'Cancelled') {
@@ -60,17 +84,18 @@ class Invoice extends Model
         }
 
         \DB::transaction(function () use ($reason, $userId) {
-            // Restore stock for each item
+            // Restore stock for each item (withTrashed to handle soft-deleted products)
             foreach ($this->items as $item) {
-                if ($item->product) {
-                    $item->product->recordStockHistory(
+                $product = $item->product()->withTrashed()->first();
+                if ($product) {
+                    $product->recordStockHistory(
                         'Cancel', 
                         $item->quantity, 
                         $this->id, 
                         $this->invoice_code, 
                         'Hủy hóa đơn'
                     );
-                    $item->product->increment('stock_quantity', $item->quantity);
+                    $product->increment('stock_quantity', $item->quantity);
                 }
             }
 

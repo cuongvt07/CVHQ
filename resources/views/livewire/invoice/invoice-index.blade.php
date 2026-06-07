@@ -38,7 +38,7 @@
 
     <x-import-modal id="invoices" title="Nhập danh sách hóa đơn" model="importFile" />
 
-    @php $__activeFilterCount = ($startDate ? 1 : 0) + ($endDate ? 1 : 0) + ($sellerFilter ? 1 : 0); @endphp
+    @php $__activeFilterCount = ($startDate ? 1 : 0) + ($endDate ? 1 : 0) + ($sellerFilter ? 1 : 0) + ($paymentMethodFilter ? 1 : 0) + ($salesChannelFilter ? 1 : 0); @endphp
     <div x-data="{ mobileFilterOpen: false }" @keydown.escape.window="mobileFilterOpen = false" class="px-3 md:px-6 py-2 md:py-4 bg-white border-b border-slate-100 flex flex-col gap-2">
 
         {{-- Mobile: search dòng riêng (full width), không đè status tabs --}}
@@ -133,6 +133,30 @@
                     <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-300 group-focus-within:text-electric-blue transition-colors"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
                     <input type="text" wire:model.live.debounce.500ms="sellerFilter" placeholder="Lọc nhân viên..." class="w-full bg-white border border-slate-200 rounded-xl py-2 pl-9 pr-4 text-[11px] focus:outline-none focus:border-electric-blue transition-all text-slate-900 shadow-sm">
                 </div>
+
+                <!-- Payment Method Filter -->
+                <div class="relative w-40">
+                    <select wire:model.live="paymentMethodFilter" class="w-full bg-white border border-slate-200 rounded-xl py-2 px-3 text-[11px] focus:outline-none focus:border-electric-blue transition-all text-slate-600 shadow-sm cursor-pointer">
+                        <option value="">-- H.thức t.toán --</option>
+                        <option value="cash">Tiền mặt</option>
+                        <option value="transfer">Chuyển khoản</option>
+                        <option value="card">Thẻ</option>
+                        <option value="wallet">Ví</option>
+                    </select>
+                </div>
+
+                <!-- Sales Channel Filter -->
+                <div class="relative w-40">
+                    <select wire:model.live="salesChannelFilter" class="w-full bg-white border border-slate-200 rounded-xl py-2 px-3 text-[11px] focus:outline-none focus:border-electric-blue transition-all text-slate-600 shadow-sm cursor-pointer">
+                        <option value="">-- Kênh bán --</option>
+                        <option value="Trực tiếp">Trực tiếp</option>
+                        <option value="Shopee">Shopee</option>
+                        <option value="TikTok">TikTok</option>
+                        <option value="Facebook">Facebook</option>
+                        <option value="Zalo">Zalo</option>
+                        <option value="Email">Email</option>
+                    </select>
+                </div>
             </div>
 
             <div class="flex items-center gap-3">
@@ -150,6 +174,7 @@
                         'code' => 'Mã hóa đơn',
                         'customer' => 'Khách hàng',
                         'amount' => 'Tổng tiền',
+                        'channel' => 'Kênh bán',
                         'method' => 'Phương thức',
                         'status' => 'Trạng thái',
                         'date' => 'Ngày tạo'
@@ -197,6 +222,32 @@
                 <input type="text" wire:model.live.debounce.500ms="sellerFilter" placeholder="Lọc nhân viên..." class="w-full bg-white border border-slate-200 rounded px-2 py-1.5 text-[11px] focus:outline-none focus:border-electric-blue text-slate-900">
             </div>
 
+            <!-- Payment Method Filter -->
+            <div>
+                <div class="text-[9px] font-black text-slate-500 tracking-widest uppercase mb-1">HÌNH THỨC THANH TOÁN</div>
+                <select wire:model.live="paymentMethodFilter" class="w-full bg-white border border-slate-200 rounded px-2 py-1.5 text-[11px] focus:outline-none focus:border-electric-blue text-slate-900">
+                    <option value="">Tất cả</option>
+                    <option value="cash">Tiền mặt</option>
+                    <option value="transfer">Chuyển khoản</option>
+                    <option value="card">Thẻ</option>
+                    <option value="wallet">Ví</option>
+                </select>
+            </div>
+
+            <!-- Sales Channel Filter -->
+            <div>
+                <div class="text-[9px] font-black text-slate-500 tracking-widest uppercase mb-1">KÊNH BÁN</div>
+                <select wire:model.live="salesChannelFilter" class="w-full bg-white border border-slate-200 rounded px-2 py-1.5 text-[11px] focus:outline-none focus:border-electric-blue text-slate-900">
+                    <option value="">Tất cả</option>
+                    <option value="Trực tiếp">Trực tiếp</option>
+                    <option value="Shopee">Shopee</option>
+                    <option value="TikTok">TikTok</option>
+                    <option value="Facebook">Facebook</option>
+                    <option value="Zalo">Zalo</option>
+                    <option value="Email">Email</option>
+                </select>
+            </div>
+
             <!-- Per page -->
             <div>
                 <div class="text-[9px] font-black text-slate-500 tracking-widest uppercase mb-1">HIỂN THỊ MỖI TRANG</div>
@@ -217,6 +268,7 @@
                         'code' => 'Mã hóa đơn',
                         'customer' => 'Khách hàng',
                         'amount' => 'Tổng tiền',
+                        'channel' => 'Kênh bán',
                         'method' => 'Phương thức',
                         'status' => 'Trạng thái',
                         'date' => 'Ngày tạo'
@@ -285,6 +337,24 @@
                     </div>
                 @endif
 
+                @if($paymentMethodFilter)
+                    @php
+                        $paymentMethodLabels = ['cash' => 'Tiền mặt', 'transfer' => 'Chuyển khoản', 'card' => 'Thẻ', 'wallet' => 'Ví'];
+                        $pmLabel = $paymentMethodLabels[$paymentMethodFilter] ?? $paymentMethodFilter;
+                    @endphp
+                    <div class="flex items-center gap-1.5 px-2.5 py-1 bg-violet-50 border border-violet-100 rounded-lg text-[10px] font-bold text-violet-600 group shadow-sm">
+                        <span class="opacity-60">P.Thức:</span> {{ $pmLabel }}
+                        <button wire:click="clearFilter('paymentMethodFilter')" class="opacity-30 hover:opacity-100 hover:text-rose-500 transition-all"><svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg></button>
+                    </div>
+                @endif
+
+                @if($salesChannelFilter)
+                    <div class="flex items-center gap-1.5 px-2.5 py-1 bg-cyan-50 border border-cyan-100 rounded-lg text-[10px] font-bold text-cyan-600 group shadow-sm">
+                        <span class="opacity-60">Kênh:</span> {{ $salesChannelFilter }}
+                        <button wire:click="clearFilter('salesChannelFilter')" class="opacity-30 hover:opacity-100 hover:text-rose-500 transition-all"><svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg></button>
+                    </div>
+                @endif
+
                 <button wire:click="clearFilter('all')" class="text-[8px] font-black text-rose-500 tracking-tighter hover:underline ml-2 transition-all">Xóa tất cả</button>
             </div>
         @endif
@@ -313,45 +383,236 @@
                             ? 'text-rose-500 line-through'
                             : ($isReturned ? 'text-amber-600' : 'text-electric-blue');
                     @endphp
-                    <a wire:key="m-inv-{{ $invoice->id }}"
-                       href="{{ route('invoices.detail', $invoice->id) }}"
-                       class="block bg-white border border-slate-200 rounded-xl p-3 shadow-sm flex flex-col gap-2 active:scale-[0.99] transition-transform cursor-pointer no-underline">
-                        {{-- Row 1: Số HĐ + status badge --}}
-                        <div class="flex items-center justify-between gap-2">
-                            <div class="font-mono font-bold text-[12px] text-electric-blue tracking-wider truncate">
-                                {{ $invoice->invoice_code }}
+                    <div wire:key="m-inv-{{ $invoice->id }}"
+                         class="bg-white border border-slate-200 rounded-xl p-3 shadow-sm flex flex-col gap-2 transition-all {{ $expandedInvoiceId === $invoice->id ? 'border-electric-blue ring-1 ring-electric-blue/30' : '' }}">
+                        
+                        {{-- Header Row: Code, Status, and Toggle Icon --}}
+                        <div class="flex items-center justify-between gap-2 cursor-pointer" wire:click="toggleDetails({{ $invoice->id }})">
+                            <div class="flex items-center gap-2">
+                                <div class="transition-transform duration-300 {{ $expandedInvoiceId === $invoice->id ? 'rotate-90' : '' }}">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" class="text-slate-400"><path d="m9 18 6-6-6-6"/></svg>
+                                </div>
+                                <div class="font-mono font-bold text-[12px] text-electric-blue tracking-wider truncate">
+                                    {{ $invoice->invoice_code }}
+                                </div>
                             </div>
                             <span class="shrink-0 inline-flex items-center px-2 py-0.5 rounded-full text-[8px] font-bold uppercase tracking-wider border shadow-sm {{ $badgeClasses }}">
                                 {{ $badgeLabel }}
                             </span>
                         </div>
 
-                        {{-- Row 2: ngày tạo + tên khách --}}
-                        <div class="flex items-center justify-between gap-2 text-[11px]">
-                            <span class="text-slate-500 tracking-wide shrink-0">
-                                {{ $invoice->created_at->format('d/m/Y H:i') }}
-                            </span>
-                            <span class="text-slate-900 font-bold truncate text-right">
-                                {{ $invoice->customer->full_name ?? 'Khách lẻ' }}
-                            </span>
+                        {{-- Main Info --}}
+                        <div class="flex flex-col gap-1 text-[11px] cursor-pointer" wire:click="toggleDetails({{ $invoice->id }})">
+                            <div class="flex items-center justify-between gap-2">
+                                <span class="text-slate-500">Thời gian:</span>
+                                <span class="text-slate-900 font-medium">{{ $invoice->created_at->format('d/m/Y H:i') }}</span>
+                            </div>
+                            <div class="flex items-center justify-between gap-2">
+                                <span class="text-slate-500">Khách hàng:</span>
+                                <span class="text-slate-900 font-bold truncate">{{ $invoice->customer->full_name ?? 'Khách lẻ' }}</span>
+                            </div>
+                            <div class="flex items-center justify-between gap-2">
+                                <span class="text-slate-500">Người tạo:</span>
+                                <span class="text-slate-600 font-semibold truncate">{{ $invoice->seller_name ?: '—' }}</span>
+                            </div>
+                            <div class="flex items-center justify-between gap-2">
+                                <span class="text-slate-500">Kênh bán:</span>
+                                <span class="text-slate-600 font-semibold">{{ $invoice->sales_channel ?: 'Trực tiếp' }}</span>
+                            </div>
+                            <div class="flex items-center justify-between gap-2">
+                                <span class="text-slate-500">Thanh toán:</span>
+                                <span class="text-slate-600 font-semibold">{{ $invoice->getPaymentMethodLabel() }}</span>
+                            </div>
+                            <div class="flex items-center justify-between gap-2 pt-1.5 border-t border-slate-100">
+                                <span class="text-[9px] font-bold uppercase tracking-widest text-slate-400">Tổng tiền</span>
+                                <span class="font-extrabold text-[14px] tracking-tight {{ $amountClasses }}">
+                                    {{ number_format($invoice->final_amount, 0, ',', '.') }} đ
+                                </span>
+                            </div>
                         </div>
 
-                        {{-- Row 3: Người tạo --}}
-                        <div class="flex items-center justify-between gap-2 text-[10px]">
-                            <span class="text-[9px] font-bold uppercase tracking-widest text-slate-400">Người tạo</span>
-                            <span class="text-slate-600 font-bold truncate text-right">
-                                {{ $invoice->seller_name ?: '—' }}
-                            </span>
-                        </div>
+                        {{-- Expanded Accordion Detail View --}}
+                        @if($expandedInvoiceId === $invoice->id)
+                            <div class="mt-2 pt-3 border-t border-slate-200 animate-in slide-in-from-top-2 duration-300 space-y-3">
+                                {{-- Quick Info / Actions --}}
+                                <div class="flex flex-wrap items-center justify-end gap-1.5 pb-2 border-b border-slate-100">
+                                    @if($editingInvoiceId === $invoice->id)
+                                        <button wire:click="updateInvoice" class="flex items-center gap-1.5 px-2.5 py-1 bg-emerald-500 text-white rounded-lg text-[9px] font-bold uppercase tracking-wider hover:bg-emerald-600 transition-all shadow-sm">
+                                            <svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+                                            Lưu
+                                        </button>
+                                        <button wire:click="cancelEdit" class="flex items-center gap-1.5 px-2.5 py-1 bg-white border border-slate-200 text-slate-400 rounded-lg text-[9px] font-bold tracking-wider hover:bg-slate-50 transition-all">
+                                            Hủy
+                                        </button>
+                                    @else
+                                        @if(auth()->user()->hasPermission('invoice.edit'))
+                                            <button wire:click="editInvoice({{ $invoice->id }})" class="flex items-center gap-1.5 px-2.5 py-1 bg-white border border-slate-200 text-slate-600 rounded-lg text-[9px] font-bold hover:bg-slate-50 transition-all">
+                                                <svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/><path d="m15 5 4 4"/></svg>
+                                                Sửa
+                                            </button>
+                                        @endif
+                                        @if(auth()->user()->hasPermission('invoice.return'))
+                                            <button wire:click="returnItems({{ $invoice->id }})" class="flex items-center gap-1.5 px-2.5 py-1 bg-slate-900 text-white rounded-lg text-[9px] font-bold uppercase tracking-wider hover:bg-slate-800 transition-all {{ $invoice->status === 'Returned' ? 'opacity-50 cursor-not-allowed' : '' }}" {{ $invoice->status === 'Returned' ? 'disabled' : '' }}>
+                                                <svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7v6h6"/><path d="M21 17a9 9 0 0 0-9-9 9 9 0 0 0-6 2.3L3 13"/></svg>
+                                                Trả hàng
+                                            </button>
+                                        @endif
+                                        @if(auth()->user()->hasPermission('invoice.cancel'))
+                                            <button wire:click="confirmCancel({{ $invoice->id }})" class="flex items-center gap-1.5 px-2.5 py-1 bg-rose-50 border border-rose-100 text-rose-500 rounded-lg text-[9px] font-bold uppercase tracking-wider hover:bg-rose-100 transition-all">
+                                                <svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+                                                Hủy đơn
+                                            </button>
+                                        @endif
+                                        <button onclick="window.open('{{ route('pos.print', $invoice->id) }}', '_blank')" class="flex items-center gap-1.5 px-2.5 py-1 bg-white border border-slate-200 text-slate-600 rounded-lg text-[9px] font-bold hover:bg-slate-50 transition-all">
+                                            <svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9V2h12v7"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect width="12" height="8" x="6" y="14"/></svg>
+                                            In lại
+                                        </button>
+                                    @endif
+                                </div>
 
-                        {{-- Row 4: số tiền --}}
-                        <div class="flex items-center justify-between gap-2 pt-1.5 border-t border-slate-100">
-                            <span class="text-[9px] font-bold uppercase tracking-widest text-slate-400">Tổng tiền</span>
-                            <span class="font-extrabold text-[14px] tracking-tight {{ $amountClasses }}">
-                                {{ number_format($invoice->final_amount, 0, ',', '.') }} đ
-                            </span>
-                        </div>
-                    </a>
+                                {{-- Edit form: channel & payment method fields --}}
+                                @if($editingInvoiceId === $invoice->id)
+                                    <div class="space-y-3 bg-slate-50 p-3 rounded-xl border border-slate-100">
+                                        <div class="grid grid-cols-2 gap-2">
+                                            <div>
+                                                <label class="text-[8px] font-bold text-slate-400 tracking-widest mb-1.5 block uppercase">Kênh bán</label>
+                                                <select wire:model="editSalesChannel" class="w-full bg-white border border-slate-200 rounded-lg py-1.5 px-2.5 text-xs focus:outline-none focus:border-electric-blue">
+                                                    <option value="">Trực tiếp</option>
+                                                    <option value="Shopee">Shopee</option>
+                                                    <option value="TikTok">TikTok</option>
+                                                    <option value="Facebook">Facebook</option>
+                                                    <option value="Zalo">Zalo</option>
+                                                    <option value="Email">Email</option>
+                                                </select>
+                                            </div>
+                                            <div>
+                                                <label class="text-[8px] font-bold text-slate-400 tracking-widest mb-1.5 block uppercase">H.thức t.toán</label>
+                                                <select wire:model="editPaymentMethod" class="w-full bg-white border border-slate-200 rounded-lg py-1.5 px-2.5 text-xs focus:outline-none focus:border-electric-blue">
+                                                    <option value="cash">Tiền mặt</option>
+                                                    <option value="transfer">Chuyển khoản</option>
+                                                    <option value="card">Thẻ</option>
+                                                    <option value="wallet">Ví</option>
+                                                </select>
+                                            </div>
+                                        </div>
+                                    </div>
+                                @endif
+
+                                {{-- Customer and Product Search when editing --}}
+                                @if($editingInvoiceId === $invoice->id)
+                                    <div class="space-y-2">
+                                        <!-- Customer Search -->
+                                        <div class="bg-slate-50 p-2.5 rounded-xl border border-slate-100 relative">
+                                            <label class="text-[8px] font-bold text-slate-400 tracking-widest mb-1 block">Khách hàng</label>
+                                            <input type="text" wire:model.live.debounce.400ms="editCustomerSearch" placeholder="Tìm tên/SĐT..." class="w-full bg-white border border-slate-200 rounded-lg py-1.5 px-2 text-xs focus:outline-none focus:border-electric-blue">
+                                            @if(!empty($this->customers))
+                                                <div class="absolute z-20 w-full left-0 mt-1 bg-white border border-slate-100 rounded-xl shadow-xl overflow-hidden max-h-32 overflow-y-auto">
+                                                    @foreach($this->customers as $customer)
+                                                        <button wire:click="selectEditCustomer({{ $customer->id }}, '{{ $customer->full_name }}')" class="w-full text-left px-3 py-1.5 text-xs hover:bg-slate-50 flex justify-between">
+                                                            <span class="font-bold text-slate-700">{{ $customer->full_name }}</span>
+                                                            <span class="text-slate-400">{{ $customer->phone }}</span>
+                                                        </button>
+                                                    @endforeach
+                                                </div>
+                                            @endif
+                                        </div>
+
+                                        <!-- Product Search -->
+                                        <div class="bg-slate-50 p-2.5 rounded-xl border border-slate-100 relative">
+                                            <label class="text-[8px] font-bold text-slate-400 tracking-widest mb-1 block">Thêm sản phẩm</label>
+                                            <div class="relative">
+                                                <input type="text" wire:model.live.debounce.400ms="editProductSearch" placeholder="Nhập tên/SKU..." class="w-full bg-white border border-slate-200 rounded-lg py-1.5 px-2 text-xs focus:outline-none focus:border-electric-blue">
+                                            </div>
+                                            @if(!empty($this->products))
+                                                <div class="absolute z-20 w-full left-0 mt-1 bg-white border border-slate-100 rounded-xl shadow-xl overflow-hidden max-h-32 overflow-y-auto">
+                                                    @foreach($this->products as $product)
+                                                        <button wire:click="addProductToEditing({{ $product->id }})" class="w-full text-left px-3 py-1.5 text-xs hover:bg-slate-50 flex justify-between items-center">
+                                                            <div>
+                                                                <div class="font-bold text-slate-700 text-[11px]">{{ $product->name }}</div>
+                                                                <div class="text-[8px] text-slate-400 uppercase">{{ $product->sku }}</div>
+                                                            </div>
+                                                            <span class="font-bold text-electric-blue text-[11px]">{{ number_format($product->sale_price, 0, ',', '.') }}đ</span>
+                                                        </button>
+                                                    @endforeach
+                                                </div>
+                                            @endif
+                                        </div>
+                                    </div>
+                                @endif
+
+                                {{-- Items list --}}
+                                <div class="space-y-2">
+                                    <div class="text-[9px] font-bold text-slate-400 uppercase tracking-widest">Sản phẩm</div>
+                                    @if($editingInvoiceId === $invoice->id)
+                                        @foreach($editingItems as $index => $item)
+                                            <div wire:key="m-edit-item-{{ $index }}" class="flex justify-between items-center p-2 bg-slate-50 rounded-lg border border-slate-100 font-sans">
+                                                <div class="min-w-0 flex-1 pr-2">
+                                                    <div class="text-xs font-bold text-slate-800 truncate">{{ $item['product_name'] }}</div>
+                                                    <div class="text-[9px] text-slate-400 uppercase font-mono">{{ $item['sku'] }}</div>
+                                                    <div class="text-[10px] text-slate-600 mt-0.5">{{ number_format($item['unit_price'], 0, ',', '.') }}đ</div>
+                                                </div>
+                                                <div class="flex items-center gap-1.5 shrink-0">
+                                                    <button wire:click="updateEditingQuantity({{ $index }}, -1)" class="w-6 h-6 flex items-center justify-center rounded bg-white border border-slate-200 text-slate-400 text-xs font-semibold">-</button>
+                                                    <span class="text-xs font-bold w-4 text-center">{{ $item['quantity'] }}</span>
+                                                    <button wire:click="updateEditingQuantity({{ $index }}, 1)" class="w-6 h-6 flex items-center justify-center rounded bg-white border border-slate-200 text-slate-400 text-xs font-semibold">+</button>
+                                                    <button wire:click="removeItemFromEditing({{ $index }})" class="p-1 text-slate-300 hover:text-rose-500 ml-1">
+                                                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/></svg>
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        @endforeach
+                                    @else
+                                        @foreach($invoice->items as $item)
+                                            <div wire:key="m-item-{{ $item->id }}" class="flex justify-between items-center p-2 bg-slate-50 rounded-lg border border-slate-100">
+                                                <div class="min-w-0 flex-1">
+                                                    <div class="text-xs font-bold text-slate-800 truncate">{{ $item->product_name }}</div>
+                                                    <div class="text-[9px] text-slate-400 uppercase font-mono">{{ $item->sku }}</div>
+                                                    <div class="text-[10px] text-slate-500 mt-0.5">{{ number_format($item->unit_price, 0, ',', '.') }}đ x {{ number_format($item->quantity, 0) }}</div>
+                                                </div>
+                                                <div class="text-xs font-bold text-slate-900 shrink-0">
+                                                    {{ number_format($item->final_price, 0, ',', '.') }}đ
+                                                </div>
+                                            </div>
+                                        @endforeach
+                                    @endif
+                                </div>
+
+                                {{-- Payment Summary --}}
+                                <div class="bg-slate-50 p-3 rounded-xl border border-slate-100 space-y-1.5 text-xs">
+                                    <div class="flex justify-between text-slate-500">
+                                        <span>Tổng tiền hàng:</span>
+                                        @if($editingInvoiceId === $invoice->id)
+                                            <span class="font-bold text-slate-950">{{ number_format($this->editingTotal, 0, ',', '.') }}đ</span>
+                                        @else
+                                            <span class="font-bold text-slate-950">{{ number_format($invoice->total_amount, 0, ',', '.') }}đ</span>
+                                        @endif
+                                    </div>
+                                    <div class="flex justify-between text-rose-500">
+                                        <span>Giảm giá:</span>
+                                        <span>-{{ number_format($invoice->discount_amount, 0, ',', '.') }}đ</span>
+                                    </div>
+                                    <div class="flex justify-between text-emerald-500">
+                                        <span>Thu khác:</span>
+                                        <span>+{{ number_format($invoice->extra_fee, 0, ',', '.') }}đ</span>
+                                    </div>
+                                    @if(auth()->user()->hasPermission('invoice.view_commission'))
+                                        <div class="flex justify-between text-rose-500 pt-1 border-t border-rose-100/50">
+                                            <span>Tổng hoa hồng:</span>
+                                            <span>{{ number_format($invoice->total_commission, 0, ',', '.') }}đ</span>
+                                        </div>
+                                    @endif
+                                    <div class="flex justify-between font-bold text-slate-950 pt-1.5 border-t border-slate-200">
+                                        <span>Phải trả:</span>
+                                        @if($editingInvoiceId === $invoice->id)
+                                            <span class="text-electric-blue text-sm">{{ number_format($this->editingTotal - $invoice->discount_amount + $invoice->extra_fee, 0, ',', '.') }}đ</span>
+                                        @else
+                                            <span class="text-electric-blue text-sm">{{ number_format($invoice->final_amount, 0, ',', '.') }}đ</span>
+                                        @endif
+                                    </div>
+                                </div>
+                            </div>
+                        @endif
+                    </div>
                 @endforeach
 
                 {{-- Mobile pagination --}}
@@ -377,6 +638,9 @@
                         @endif
                         @if(in_array('amount', $visibleColumns))
                         <th class="px-6 py-4 text-[9px] font-bold text-slate-400 tracking-[0.2em]">Tổng tiền</th>
+                        @endif
+                        @if(in_array('channel', $visibleColumns))
+                        <th class="px-6 py-4 text-[9px] font-bold text-slate-400 tracking-[0.2em]">Kênh bán</th>
                         @endif
                         @if(in_array('method', $visibleColumns))
                         <th class="px-6 py-4 text-[9px] font-bold text-slate-400 tracking-[0.2em]">Phương thức</th>
@@ -426,11 +690,16 @@
                                 <div class="text-sm text-slate-900">{{ number_format($invoice->final_amount, 0, ',', '.') }} VNĐ</div>
                             </td>
                             @endif
+                            @if(in_array('channel', $visibleColumns))
+                            <td class="px-6 py-4">
+                                <span class="text-xs text-slate-600 font-medium">{{ $invoice->sales_channel ?: 'Trực tiếp' }}</span>
+                            </td>
+                            @endif
                             @if(in_array('method', $visibleColumns))
                             <td class="px-6 py-4">
                                 <div class="flex items-center gap-2">
                                     <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-slate-300"><rect width="20" height="14" x="2" y="5" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg>
-                                    <span class="text-[11px] text-slate-400 tracking-widest">Tiền mặt</span>
+                                    <span class="text-[11px] text-slate-600 font-semibold">{{ $invoice->getPaymentMethodLabel() }}</span>
                                 </div>
                             </td>
                             @endif
@@ -477,7 +746,7 @@
                         </tr>
                         @if($expandedInvoiceId === $invoice->id)
                             <tr class="bg-slate-50/40 animate-in slide-in-from-top-2 duration-300">
-                                <td colspan="7" class="px-8 py-6">
+                                <td colspan="10" class="px-8 py-6">
                                     <div class="glass-card p-6 border-l-4 border-l-electric-blue bg-white shadow-xl relative overflow-hidden">
                                         <div class="absolute top-0 right-0 p-4 opacity-5 pointer-events-none">
                                             <svg xmlns="http://www.w3.org/2000/svg" width="120" height="120" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="text-electric-blue"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
@@ -676,6 +945,32 @@
 
                                             <div class="bg-slate-50/50 rounded-xl p-4 border border-slate-100 h-fit space-y-3">
                                                 <h5 class="text-[8px] font-bold text-slate-400 tracking-[0.2em] mb-2">Thanh toán</h5>
+                                                
+                                                @if($editingInvoiceId === $invoice->id)
+                                                    <div class="grid grid-cols-2 gap-2 mb-2 pb-2 border-b border-slate-200">
+                                                        <div>
+                                                            <label class="text-[8px] font-bold text-slate-400 tracking-widest mb-1.5 block uppercase">Kênh bán</label>
+                                                            <select wire:model="editSalesChannel" class="w-full bg-white border border-slate-200 rounded-lg py-1 px-2 text-[11px] focus:outline-none focus:border-electric-blue cursor-pointer">
+                                                                <option value="">Trực tiếp</option>
+                                                                <option value="Shopee">Shopee</option>
+                                                                <option value="TikTok">TikTok</option>
+                                                                <option value="Facebook">Facebook</option>
+                                                                <option value="Zalo">Zalo</option>
+                                                                <option value="Email">Email</option>
+                                                            </select>
+                                                        </div>
+                                                        <div>
+                                                            <label class="text-[8px] font-bold text-slate-400 tracking-widest mb-1.5 block uppercase">H.thức t.toán</label>
+                                                            <select wire:model="editPaymentMethod" class="w-full bg-white border border-slate-200 rounded-lg py-1 px-2 text-[11px] focus:outline-none focus:border-electric-blue cursor-pointer">
+                                                                <option value="cash">Tiền mặt</option>
+                                                                <option value="transfer">Chuyển khoản</option>
+                                                                <option value="card">Thẻ</option>
+                                                                <option value="wallet">Ví</option>
+                                                            </select>
+                                                        </div>
+                                                    </div>
+                                                @endif
+
                                                 <div class="space-y-2">
                                                     <div class="flex justify-between text-[11px] text-slate-500">
                                                         <span>Tổng tiền</span>

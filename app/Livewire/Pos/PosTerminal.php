@@ -763,6 +763,7 @@ class PosTerminal extends Component
                 'user_id'        => auth()->id(),
                 'seller_name'    => auth()->user()?->name ?? 'Admin POS',
                 'sales_channel'  => $channelName,
+                'created_at'     => now(),
                 'total_amount'   => $this->total,
                 'discount_amount'=> $tab['discount'] ?? 0,
                 'extra_fee'      => $extraFeeTotal,

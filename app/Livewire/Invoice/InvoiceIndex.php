@@ -34,12 +34,15 @@ class InvoiceIndex extends Component
     public $editingInvoiceId = null;
     public $editCustomerId = null;
     public $editCustomerSearch = '';
+    public $editProductSearch = '';
     public $editingItems = [];
     public $itemsToDelete = [];
+    public $editSalesChannel = '';
+    public $editPaymentMethod = 'cash';
 
     protected function getDefaultVisibleColumns(): array
     {
-        return ['code', 'time', 'customer', 'amount', 'seller', 'status', 'actions'];
+        return ['code', 'time', 'customer', 'amount', 'channel', 'method', 'status', 'actions'];
     }
 
 
@@ -54,16 +57,20 @@ class InvoiceIndex extends Component
     public $startDate = '';
     public $endDate = '';
     public $sellerFilter = '';
-    public $statusFilter = 'all';
+    public $statusFilter = 'active';
+    public $paymentMethodFilter = '';
+    public $salesChannelFilter = '';
 
     protected $queryString = [
         'search' => ['except' => ''],
         'startDate' => ['except' => ''],
         'endDate' => ['except' => ''],
         'sellerFilter' => ['except' => ''],
-        'statusFilter' => ['except' => 'all'],
+        'statusFilter' => ['except' => 'active'],
+        'paymentMethodFilter' => ['except' => ''],
+        'salesChannelFilter' => ['except' => ''],
         'perPage' => ['except' => 10],
-        'visibleColumns' => ['except' => ['code', 'customer', 'amount', 'method', 'status', 'date']],
+        'visibleColumns' => ['except' => ['code', 'customer', 'amount', 'channel', 'method', 'status', 'date']],
     ];
 
     public function updatingSearch()
@@ -72,6 +79,16 @@ class InvoiceIndex extends Component
     }
 
     public function updatingStatusFilter()
+    {
+        $this->resetPage();
+    }
+
+    public function updatingPaymentMethodFilter()
+    {
+        $this->resetPage();
+    }
+
+    public function updatingSalesChannelFilter()
     {
         $this->resetPage();
     }
@@ -128,14 +145,22 @@ class InvoiceIndex extends Component
                 $this->sellerFilter = '';
                 break;
             case 'statusFilter':
-                $this->statusFilter = 'all';
+                $this->statusFilter = 'active';
+                break;
+            case 'paymentMethodFilter':
+                $this->paymentMethodFilter = '';
+                break;
+            case 'salesChannelFilter':
+                $this->salesChannelFilter = '';
                 break;
             case 'all':
                 $this->search = '';
                 $this->startDate = '';
                 $this->endDate = '';
                 $this->sellerFilter = '';
-                $this->statusFilter = 'all';
+                $this->statusFilter = 'active';
+                $this->paymentMethodFilter = '';
+                $this->salesChannelFilter = '';
                 break;
         }
         $this->resetPage();
@@ -237,6 +262,16 @@ class InvoiceIndex extends Component
             ->when($this->startDate, fn($q) => $q->whereDate('created_at', '>=', $this->startDate))
             ->when($this->endDate, fn($q) => $q->whereDate('created_at', '<=', $this->endDate))
             ->when($this->sellerFilter, fn($q) => $q->where('seller_name', 'like', "%{$this->sellerFilter}%"))
+            ->when($this->paymentMethodFilter, function ($q) {
+                match ($this->paymentMethodFilter) {
+                    'cash' => $q->where('cash_amount', '>', 0),
+                    'transfer' => $q->where('transfer_amount', '>', 0),
+                    'card' => $q->where('card_amount', '>', 0),
+                    'wallet' => $q->where('wallet_amount', '>', 0),
+                    default => null,
+                };
+            })
+            ->when($this->salesChannelFilter, fn($q) => $q->where('sales_channel', $this->salesChannelFilter))
             ->with(['customer'])
             ->latest()
             ->paginate($this->perPage)
@@ -409,6 +444,8 @@ class InvoiceIndex extends Component
         $invoice = Invoice::with('items')->find($id);
         $this->editCustomerId = $invoice->customer_id;
         $this->editCustomerSearch = $invoice->customer?->full_name ?? 'Khách lẻ';
+        $this->editSalesChannel = $invoice->sales_channel ?? '';
+        $this->editPaymentMethod = $invoice->getPaymentMethodKey();
         $this->itemsToDelete = [];
         
         $this->editingItems = $invoice->items->map(fn($item) => [
@@ -436,6 +473,8 @@ class InvoiceIndex extends Component
         $this->editingInvoiceId = null;
         $this->editingItems = [];
         $this->editCustomerSearch = '';
+        $this->editSalesChannel = '';
+        $this->editPaymentMethod = 'cash';
     }
 
     public function updateInvoice()
@@ -508,12 +547,23 @@ class InvoiceIndex extends Component
                 }
             }
 
-            $invoice->update([
+            // Allocate payment into the matching column
+            $finalAmount = max(0, $totalAmount - $invoice->discount_amount + $invoice->extra_fee);
+            $paymentColumns = [
+                'cash_amount' => 0,
+                'transfer_amount' => 0,
+                'card_amount' => 0,
+                'wallet_amount' => 0,
+            ];
+            $paymentColumns[$this->editPaymentMethod . '_amount'] = $finalAmount;
+
+            $invoice->update(array_merge([
                 'customer_id' => $this->editCustomerId,
+                'sales_channel' => $this->editSalesChannel ?: null,
                 'total_amount' => $totalAmount,
                 'total_commission' => $totalCommission,
-                'final_amount' => max(0, $totalAmount - $invoice->discount_amount + $invoice->extra_fee),
-            ]);
+                'final_amount' => $finalAmount,
+            ], $paymentColumns));
         });
 
         $this->editingInvoiceId = null;
@@ -521,6 +571,8 @@ class InvoiceIndex extends Component
         $this->itemsToDelete = [];
         $this->editCustomerSearch = '';
         $this->editProductSearch = '';
+        $this->editSalesChannel = '';
+        $this->editPaymentMethod = 'cash';
         
         $this->dispatch('notify', message: 'Hóa đơn đã được cập nhật thành công!', type: 'success');
     }
