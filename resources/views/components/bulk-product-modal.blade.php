@@ -108,7 +108,7 @@
                                 </tr>
                             </thead>
                             <tbody class="divide-y divide-slate-100">
-                                @foreach($bulkProducts as $index => $row)
+                                @foreach($this->bulkProducts as $index => $row)
                                 <tr class="hover:bg-slate-50/50" wire:key="bulk-row-{{ $index }}">
                                     <td class="px-3 py-1.5 text-center text-[10px] font-bold text-slate-400">{{ $index + 1 }}</td>
                                     <td class="px-3 py-1.5">
@@ -129,7 +129,7 @@
                                 @endforeach
                             </tbody>
                         </table>
-                        @if(empty($bulkProducts))
+                        @if(empty($this->bulkProducts))
                             <div class="p-8 text-center text-slate-400 text-xs font-bold">Chưa có dòng nào. Vui lòng bấm thêm dòng.</div>
                         @endif
                     </div>
