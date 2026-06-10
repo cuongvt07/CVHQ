@@ -21,7 +21,7 @@
                    class="w-full bg-slate-50 border border-slate-200 rounded py-1.5 pl-8 pr-3 text-[12px] focus:outline-none focus:border-electric-blue text-slate-900">
         </div>
 
-        @php $__activeFilterCount = ($branch !== 'all' ? 1 : 0) + ($boxCode ? 1 : 0); @endphp
+        @php $__activeFilterCount = (!$lockedWorkBranch && $branch !== 'all' ? 1 : 0) + ($boxCode ? 1 : 0); @endphp
         <button @click="filterOpen = !filterOpen"
                 class="shrink-0 relative w-9 h-9 flex items-center justify-center rounded border transition-colors
                        {{ $__activeFilterCount > 0
@@ -43,6 +43,15 @@
          class="shrink-0 bg-slate-50 border-b border-slate-200 px-2 py-2 space-y-2">
 
         {{-- Branch filter (segmented control: Tất cả / Sài Gòn / Hà Nội) --}}
+        @if($lockedWorkBranch)
+            <div>
+                <div class="text-[9px] font-black text-slate-500 tracking-widest uppercase mb-1">Chi nhánh</div>
+                <div class="px-2.5 py-1.5 rounded border text-[10px] font-black uppercase tracking-wider inline-flex
+                            {{ $lockedWorkBranch === 'sg' ? 'bg-emerald-50 border-emerald-200 text-emerald-700' : 'bg-rose-50 border-rose-200 text-rose-700' }}">
+                    {{ $lockedWorkBranch === 'sg' ? 'Sài Gòn' : 'Hà Nội' }}
+                </div>
+            </div>
+        @else
         <div>
             <div class="text-[9px] font-black text-slate-500 tracking-widest uppercase mb-1">Chi nhánh</div>
             <div class="flex items-center gap-0.5 bg-slate-100 border border-slate-200 p-0.5 rounded">
@@ -63,6 +72,7 @@
                 </button>
             </div>
         </div>
+        @endif
 
         {{-- Box code input --}}
         <div>
@@ -81,9 +91,9 @@
     </div>
 
     {{-- Active filters strip (with X to remove individually) --}}
-    @if($branch !== 'all' || $boxCode)
+    @if((!$lockedWorkBranch && $branch !== 'all') || $boxCode)
         <div class="shrink-0 flex flex-wrap items-center gap-1 px-2 py-1 bg-slate-50 border-b border-slate-100">
-            @if($branch !== 'all')
+            @if(!$lockedWorkBranch && $branch !== 'all')
                 <span class="inline-flex items-center gap-1 text-[9px] font-bold {{ $branch === 'sg' ? 'text-emerald-700 border-emerald-200' : 'text-rose-700 border-rose-200' }} bg-white border pl-1.5 pr-0.5 py-0.5 rounded">
                     CN: {{ $branch === 'sg' ? 'Sài Gòn' : 'Hà Nội' }}
                     <button wire:click="setBranch('all')" class="text-slate-300 hover:text-rose-500 w-3.5 h-3.5 flex items-center justify-center">

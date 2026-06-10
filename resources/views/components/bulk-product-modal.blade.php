@@ -25,7 +25,7 @@
              x-transition:leave="ease-in duration-200" 
              x-transition:leave-start="opacity-100 translate-y-0 sm:scale-100" 
              x-transition:leave-end="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95" 
-             class="relative inline-block w-full max-w-5xl overflow-hidden text-left align-bottom transition-all transform bg-white rounded-2xl shadow-2xl sm:my-8 sm:align-middle border border-slate-200 flex flex-col max-h-[90vh]">
+             class="relative inline-block w-full max-w-6xl overflow-hidden text-left align-bottom transition-all transform bg-white rounded-2xl shadow-2xl sm:my-6 sm:align-middle border border-slate-200 flex flex-col max-h-[94vh]">
             
             <!-- Header -->
             <div class="px-6 py-4 border-b border-slate-100 bg-slate-50/50 flex justify-between items-center shrink-0">
@@ -86,15 +86,27 @@
                             <span class="w-1.5 h-4 bg-electric-blue rounded-full"></span>
                             Danh sách phân loại
                         </h4>
-                        <div class="flex items-center gap-2">
+                        <div class="flex flex-wrap items-center justify-end gap-2">
+                            <div class="flex items-center gap-1.5 bg-white border border-slate-200 rounded-lg px-2 py-1">
+                                <span class="text-[10px] font-black text-slate-500 uppercase tracking-wider">Số dòng</span>
+                                <input type="number" min="1" max="200" wire:model="bulkRowCount"
+                                       class="w-16 bg-slate-50 border border-slate-200 rounded px-2 py-1 text-xs font-black text-slate-900 focus:outline-none focus:border-electric-blue">
+                                <button type="button" wire:click="applyBulkRowCount" class="px-2 py-1 rounded bg-electric-blue text-white text-[10px] font-black uppercase">
+                                    Tạo bảng
+                                </button>
+                            </div>
                             <button type="button" wire:click="addBulkRow(1)" class="btn-slate text-[10px] px-3 py-1.5 rounded-lg border border-slate-200 hover:bg-slate-50 font-bold">
                                 + 1 dòng
                             </button>
-                            <button type="button" wire:click="addBulkRow(5)" class="btn-slate text-[10px] px-3 py-1.5 rounded-lg border border-slate-200 hover:bg-slate-50 font-bold">
-                                + 5 dòng
+                            <button type="button" wire:click="addBulkRow(10)" class="btn-slate text-[10px] px-3 py-1.5 rounded-lg border border-slate-200 hover:bg-slate-50 font-bold">
+                                + 10 dòng
+                            </button>
+                            <button type="button" wire:click="addBulkRow(30)" class="btn-slate text-[10px] px-3 py-1.5 rounded-lg border border-slate-200 hover:bg-slate-50 font-bold">
+                                + 30 dòng
                             </button>
                         </div>
                     </div>
+                    <p class="mb-2 text-[10px] font-semibold text-slate-400">Nhập liên tiếp từng dòng trong bảng. Dòng không có màu/phân loại và không có vị trí sẽ tự bỏ qua khi lưu.</p>
 
                     <div class="glass-card overflow-x-auto border border-slate-200 rounded-xl flex-1">
                         <table class="w-full text-left border-collapse min-w-[600px]">

@@ -9,6 +9,7 @@ use Livewire\WithFileUploads;
 use App\Imports\ProductsImport;
 use Maatwebsite\Excel\Facades\Excel;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use App\Traits\WithBulkActions;
 use App\Traits\HasPermissions;
@@ -62,6 +63,7 @@ class ProductIndex extends Component
     public $bulkBrand = '';
     public $bulkSalePrice = 0;
     public $bulkCommission = 0;
+    public $bulkRowCount = 30;
     public array $bulkProducts = [];
     // public $commissionRanges = [];
 
@@ -113,21 +115,56 @@ class ProductIndex extends Component
         $this->resetPage();
     }
 
+    public function updatedSortField()
+    {
+        if (!array_key_exists($this->sortField, $this->sortableFields())) {
+            $this->sortField = 'created_at';
+        }
+
+        $this->resetPage();
+    }
+
+    public function updatedSortDirection()
+    {
+        if (!in_array($this->sortDirection, ['asc', 'desc'], true)) {
+            $this->sortDirection = 'desc';
+        }
+
+        $this->resetPage();
+    }
+
     public function updatedSalePrice()
     {
-        if (\App\Models\SystemSetting::get('auto_commission_enabled') !== 'true') {
+        if (!$this->isAutoCommissionEnabled()) {
             return;
         }
 
-        $price = (int) $this->sale_price;
+        $this->commission_amount = $this->commissionForPrice((int) $this->sale_price);
+    }
+
+    protected function isAutoCommissionEnabled(): bool
+    {
+        return filter_var(\App\Models\SystemSetting::get('auto_commission_enabled', false), FILTER_VALIDATE_BOOLEAN);
+    }
+
+    protected function commissionForPrice(int $price): int
+    {
         $ranges = \App\Models\SystemSetting::get('commission_ranges', []);
+        if (!is_array($ranges)) {
+            return 0;
+        }
 
         foreach ($ranges as $range) {
-            if ($price >= $range['min'] && $price < $range['max']) {
-                $this->commission_amount = $range['amount'];
-                break;
+            $min = (int) ($range['min'] ?? 0);
+            $max = (int) ($range['max'] ?? 0);
+            $amount = (int) ($range['amount'] ?? 0);
+
+            if ($price >= $min && ($max <= 0 || $price < $max)) {
+                return $amount;
             }
         }
+
+        return 0;
     }
 
     public function clearFilter($type, $value = null)
@@ -157,6 +194,12 @@ class ProductIndex extends Component
         }
 
         $this->resetPage();
+    }
+
+    public function clearSelection(): void
+    {
+        $this->selectedRows = [];
+        $this->selectAll = false;
     }
 
     public $expandedProductId = null;
@@ -299,7 +342,7 @@ class ProductIndex extends Component
         $this->loadAttributeSuggestions();
 
         // SKU starts blank — user types a prefix (e.g. "GTS") and tabs to auto-fill.
-        if (\App\Models\SystemSetting::get('auto_commission_enabled') === 'true') {
+        if ($this->isAutoCommissionEnabled()) {
             $this->updatedSalePrice();
         }
 
@@ -509,7 +552,10 @@ class ProductIndex extends Component
 
         // Hoa hồng: nhân viên có quyền edit_commission có thể sửa luôn; nhân viên không có quyền chỉ được nhập khi TẠO MỚI.
         $canEditCommission = auth()->user()?->hasPermission('product.edit_commission');
-        if ($canEditCommission || !$this->productId) {
+        if ($this->isAutoCommissionEnabled()) {
+            $this->commission_amount = $this->commissionForPrice((int) $this->sale_price);
+        }
+        if ($canEditCommission || !$this->productId || $this->isAutoCommissionEnabled()) {
             $productData['commission_amount'] = $this->commission_amount;
         }
 
@@ -571,26 +617,35 @@ class ProductIndex extends Component
         $this->bulkBrand = '';
         $this->bulkSalePrice = 0;
         $this->bulkCommission = 0;
+        $this->bulkRowCount = 30;
         $this->bulkProducts = [];
-        $this->addBulkRow(3); // Start with 3 empty rows
+        $this->addBulkRow($this->bulkRowCount);
         
         $this->dispatch('open-bulk-modal');
     }
 
     public function updatedBulkSalePrice()
     {
-        if (\App\Models\SystemSetting::get('auto_commission_enabled') !== 'true') {
+        if (!$this->isAutoCommissionEnabled()) {
             return;
         }
 
-        $price = (int) $this->bulkSalePrice;
-        $ranges = \App\Models\SystemSetting::get('commission_ranges', []);
+        $this->bulkCommission = $this->commissionForPrice((int) $this->bulkSalePrice);
+    }
 
-        foreach ($ranges as $range) {
-            if ($price >= $range['min'] && $price < $range['max']) {
-                $this->bulkCommission = $range['amount'];
-                break;
-            }
+    public function applyBulkRowCount()
+    {
+        $target = max(1, min(200, (int) $this->bulkRowCount));
+        $this->bulkRowCount = $target;
+        $current = count($this->bulkProducts);
+
+        if ($target > $current) {
+            $this->addBulkRow($target - $current);
+            return;
+        }
+
+        if ($target < $current) {
+            $this->bulkProducts = array_slice($this->bulkProducts, 0, $target);
         }
     }
 
@@ -626,14 +681,22 @@ class ProductIndex extends Component
 
         $count = 0;
         $canEditCommission = auth()->user()?->hasPermission('product.edit_commission');
+        if ($this->isAutoCommissionEnabled()) {
+            $this->bulkCommission = $this->commissionForPrice((int) $this->bulkSalePrice);
+        }
         
         foreach ($this->bulkProducts as $row) {
+            $attrVal = trim($row['attribute'] ?? '');
+            $location = trim($row['location'] ?? '');
+            if ($attrVal === '' && $location === '') {
+                continue;
+            }
+
             // Generate SKU
             $sku = $this->nextSkuForPrefix($this->bulkPrefix);
             
             // Build attributes array
             $attributes = [];
-            $attrVal = trim($row['attribute'] ?? '');
             if ($attrVal !== '') {
                 $attributes['Màu sắc/Phân loại'] = $attrVal;
             }
@@ -645,12 +708,12 @@ class ProductIndex extends Component
                 'brand' => $this->bulkBrand,
                 'sale_price' => $this->bulkSalePrice,
                 'stock_quantity' => $row['stock'] === '' || $row['stock'] === null ? 999 : (int)$row['stock'],
-                'location' => $row['location'] ?? '',
+                'location' => $location,
                 'is_active' => true,
                 'attributes' => $attributes,
             ];
 
-            if ($canEditCommission) {
+            if ($canEditCommission || $this->isAutoCommissionEnabled()) {
                 $productData['commission_amount'] = $this->bulkCommission;
             } else {
                 $productData['commission_amount'] = 0;
@@ -658,6 +721,11 @@ class ProductIndex extends Component
 
             Product::create($productData);
             $count++;
+        }
+
+        if ($count === 0) {
+            $this->dispatch('notify', message: 'Chưa có dòng nào có màu hoặc vị trí để lưu.', type: 'warning');
+            return;
         }
 
         $this->dispatch('notify', message: "Đã thêm thành công {$count} sản phẩm!", type: 'success');
@@ -784,7 +852,13 @@ class ProductIndex extends Component
             return;
         }
 
-        Product::find($this->productId)->delete();
+        $product = Product::find($this->productId);
+        if ($product) {
+            foreach ((array) $product->images as $path) {
+                if ($path) Storage::disk('public')->delete($path);
+            }
+            $product->delete();
+        }
         $this->dispatch('notify', message: 'Đã xóa sản phẩm!', type: 'success');
         $this->dispatch('close-delete-modal');
         $this->productId = null;
@@ -799,7 +873,13 @@ class ProductIndex extends Component
 
         if (empty($this->selectedRows)) return;
 
-        $this->getModelForBulk()::whereIn('id', $this->selectedRows)->delete();
+        $products = $this->getModelForBulk()::whereIn('id', $this->selectedRows)->get(['id', 'images']);
+        foreach ($products as $product) {
+            foreach ((array) $product->images as $path) {
+                if ($path) Storage::disk('public')->delete($path);
+            }
+        }
+        $products->each->delete();
 
         $this->selectedRows = [];
         $this->selectAll = false;
@@ -850,7 +930,12 @@ class ProductIndex extends Component
                 }
             }
 
-            $product->update([$field => $value]);
+            $updates = [$field => $value];
+            if ($field === 'sale_price' && $this->isAutoCommissionEnabled()) {
+                $updates['commission_amount'] = $this->commissionForPrice((int) $value);
+            }
+
+            $product->update($updates);
             $this->dispatch('notify', message: 'Cập nhật thành công!', type: 'success');
         } catch (\Exception $e) {
             $this->dispatch('notify', message: 'Lỗi: ' . $e->getMessage(), type: 'error');
@@ -861,16 +946,60 @@ class ProductIndex extends Component
 
     public function sortBy($field)
     {
+        if (!array_key_exists($field, $this->sortableFields())) {
+            return;
+        }
+
         if ($this->sortField === $field) {
             $this->sortDirection = $this->sortDirection === 'asc' ? 'desc' : 'asc';
         } else {
             $this->sortField = $field;
             $this->sortDirection = 'asc';
         }
+
+        $this->resetPage();
+    }
+
+    protected function sortableFields(): array
+    {
+        return [
+            'created_at' => 'created_at',
+            'sku' => 'sku',
+            'base_name' => 'base_name',
+            'name' => 'name',
+            'brand' => 'brand',
+            'category_path' => 'category_path',
+            'location' => 'location',
+            'stock_quantity' => 'stock_quantity',
+            'sale_price' => 'sale_price',
+        ];
+    }
+
+    protected function currentSortField(): string
+    {
+        return $this->sortableFields()[$this->sortField] ?? 'created_at';
+    }
+
+    protected function currentSortDirection(): string
+    {
+        return in_array($this->sortDirection, ['asc', 'desc'], true) ? $this->sortDirection : 'desc';
+    }
+
+    protected function hasManualSort(): bool
+    {
+        return $this->currentSortField() !== 'created_at' || $this->currentSortDirection() !== 'desc';
+    }
+
+    protected function applySort($query): void
+    {
+        $query->orderBy($this->currentSortField(), $this->currentSortDirection())
+            ->orderBy('id', 'desc');
     }
 
     public function getProducts()
     {
+        $hasManualSort = $this->hasManualSort();
+
         $query = Product::query()
             ->when($this->branch !== 'all', function ($query) {
                 if ($this->branch === 'sg') {
@@ -879,7 +1008,7 @@ class ProductIndex extends Component
                     $query->where('sku', 'NOT LIKE', 'Z%');
                 }
             })
-            ->when($this->search, function ($query) {
+            ->when($this->search, function ($query) use ($hasManualSort) {
                 $keywords = array_filter(explode(' ', $this->search));
                 foreach ($keywords as $keyword) {
                     $query->where(function ($q) use ($keyword) {
@@ -890,13 +1019,15 @@ class ProductIndex extends Component
                     });
                 }
 
-                $query->orderByRaw("CASE 
-                    WHEN sku = ? THEN 1 
-                    WHEN location = ? THEN 2
-                    WHEN sku LIKE ? THEN 3 
-                    WHEN name LIKE ? THEN 4 
-                    ELSE 5 
-                END", [$this->search, $this->search, $this->search . '%', $this->search . '%']);
+                if (!$hasManualSort) {
+                    $query->orderByRaw("CASE
+                        WHEN sku = ? THEN 1
+                        WHEN location = ? THEN 2
+                        WHEN sku LIKE ? THEN 3
+                        WHEN name LIKE ? THEN 4
+                        ELSE 5
+                    END", [$this->search, $this->search, $this->search . '%', $this->search . '%']);
+                }
             })
             ->when($this->selectedCategories, function ($query) {
                 $query->whereIn('category_path', $this->selectedCategories);
@@ -916,9 +1047,7 @@ class ProductIndex extends Component
                     $query->where('stock_quantity', '<', 10)->where('stock_quantity', '>', 0);
             });
 
-        if (!$this->search) {
-            $query->orderBy($this->sortField, $this->sortDirection);
-        }
+        $this->applySort($query);
 
         return $query->paginate($this->perPage)->onEachSide(1);
     }

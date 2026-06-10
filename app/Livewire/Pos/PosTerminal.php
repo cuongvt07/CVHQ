@@ -54,8 +54,62 @@ class PosTerminal extends Component
 
     public function mount(): void
     {
+        $this->branch = $this->getEffectiveBranch();
         $this->tabs = [$this->makeNewTab()];
         $this->activeTab = 0;
+    }
+
+    protected function getLockedWorkBranch(): ?string
+    {
+        $branch = auth()->user()?->work_branch;
+
+        return in_array($branch, ['sg', 'hn'], true) ? $branch : null;
+    }
+
+    protected function getEffectiveBranch(): string
+    {
+        if ($lockedBranch = $this->getLockedWorkBranch()) {
+            return $lockedBranch;
+        }
+
+        return in_array($this->branch, ['all', 'sg', 'hn'], true) ? $this->branch : 'all';
+    }
+
+    protected function syncEffectiveBranch(): string
+    {
+        $effectiveBranch = $this->getEffectiveBranch();
+        $this->branch = $effectiveBranch;
+
+        return $effectiveBranch;
+    }
+
+    protected function applyBranchScope($query, ?string $branch = null)
+    {
+        $branch ??= $this->getEffectiveBranch();
+
+        if ($branch === 'sg') {
+            return $query->where('sku', 'LIKE', 'Z%');
+        }
+
+        if ($branch === 'hn') {
+            return $query->where('sku', 'NOT LIKE', 'Z%');
+        }
+
+        return $query;
+    }
+
+    protected function cartItemMatchesBranch(array $item, ?string $branch = null): bool
+    {
+        $branch ??= $this->getEffectiveBranch();
+
+        if ($branch === 'all') {
+            return true;
+        }
+
+        $sku = (string) ($item['sku'] ?? '');
+        $isSgSku = str_starts_with($sku, 'Z');
+
+        return $branch === 'sg' ? $isSgSku : !$isSgSku;
     }
 
     // ═══════════════════════════════════════════════════════════════════════
@@ -211,6 +265,8 @@ class PosTerminal extends Component
 
     public function getProducts()
     {
+        $branch = $this->syncEffectiveBranch();
+
         return Product::query()
             ->when($this->search, function ($query) {
                 $keywords = array_filter(explode(' ', $this->search));
@@ -230,13 +286,7 @@ class PosTerminal extends Component
                     ELSE 4
                 END', [$this->search, $this->search . '%', $this->search . '%']);
             })
-            ->when($this->branch !== 'all', function ($query) {
-                if ($this->branch === 'sg') {
-                    $query->where('sku', 'LIKE', 'Z%');
-                } else {
-                    $query->where('sku', 'NOT LIKE', 'Z%');
-                }
-            })
+            ->when($branch !== 'all', fn($query) => $this->applyBranchScope($query, $branch))
             ->when($this->boxCode,            fn($q) => $q->where('location', 'like', "%{$this->boxCode}%"))
             ->when($this->brandFilter,        fn($q) => $q->where('brand', $this->brandFilter))
             ->when($this->stockStatus !== 'all', function ($query) {
@@ -323,6 +373,17 @@ class PosTerminal extends Component
             ];
         }
 
+        $branch = $this->getEffectiveBranch();
+        if ($branch !== 'all') {
+            foreach ($sanitized as &$tab) {
+                $tab['cart'] = array_values(array_filter(
+                    $tab['cart'],
+                    fn($item) => is_array($item) && $this->cartItemMatchesBranch($item, $branch)
+                ));
+            }
+            unset($tab);
+        }
+
         $this->tabs = array_values($sanitized);
         $active = (int) ($payload['active'] ?? 0);
         $this->activeTab = min(max(0, $active), count($this->tabs) - 1);
@@ -331,6 +392,11 @@ class PosTerminal extends Component
 
     public function restoreBranch(string $branch): void
     {
+        if ($this->getLockedWorkBranch()) {
+            $this->branch = $this->getEffectiveBranch();
+            return;
+        }
+
         if (in_array($branch, ['all', 'sg', 'hn'], true)) {
             $this->branch = $branch;
         }
@@ -338,6 +404,13 @@ class PosTerminal extends Component
 
     public function setBranch(string $value): void
     {
+        if ($lockedBranch = $this->getLockedWorkBranch()) {
+            $this->branch = $lockedBranch;
+            $this->dispatch('posBranchUpdate', branch: $this->branch);
+            $this->resetPage();
+            return;
+        }
+
         if (!in_array($value, ['all', 'sg', 'hn'], true)) {
             $value = 'all';
         }
@@ -348,6 +421,7 @@ class PosTerminal extends Component
 
     public function updatedBranch(): void
     {
+        $this->branch = $this->getEffectiveBranch();
         $this->dispatch('posBranchUpdate', branch: $this->branch);
         $this->resetPage();
     }
@@ -386,7 +460,9 @@ class PosTerminal extends Component
 
     public function addToCart(int $productId): void
     {
-        $product = Product::find($productId);
+        $product = $this->applyBranchScope(Product::query(), $this->getEffectiveBranch())
+            ->whereKey($productId)
+            ->first();
         if (!$product || !$product->is_active) {
             $this->dispatch('notify', message: 'Sản phẩm không tồn tại!', type: 'error');
             return;
@@ -603,8 +679,8 @@ class PosTerminal extends Component
             $this->selectedCategories = [];
             $this->category = 'All';
             $this->boxCode = '';
-            $this->branch = 'all';
-            $this->dispatch('posBranchUpdate', branch: 'all');
+            $this->branch = $this->getEffectiveBranch();
+            $this->dispatch('posBranchUpdate', branch: $this->branch);
             $this->resetPage();
             return;
         }
@@ -720,6 +796,25 @@ class PosTerminal extends Component
             return;
         }
 
+        $branch = $this->getEffectiveBranch();
+        if ($branch !== 'all') {
+            $invalidItems = array_filter(
+                $tab['cart'],
+                fn($item) => is_array($item) && !$this->cartItemMatchesBranch($item, $branch)
+            );
+
+            if (!empty($invalidItems)) {
+                $tab['cart'] = array_values(array_filter(
+                    $tab['cart'],
+                    fn($item) => is_array($item) && $this->cartItemMatchesBranch($item, $branch)
+                ));
+                $this->setTab($tab);
+                $this->recalculateTotalDiscount();
+                $this->dispatch('notify', message: 'Đã loại sản phẩm không thuộc chi nhánh làm việc.', type: 'warning');
+                return;
+            }
+        }
+
         \DB::beginTransaction();
         try {
             $canReceiveCommission = auth()->user()->can_receive_commission;
@@ -833,12 +928,17 @@ class PosTerminal extends Component
 
     public function render()
     {
+        $branch = $this->syncEffectiveBranch();
         $tab = $this->getTab();
         $cart = $tab['cart'] ?? [];
         $canReceiveCommission = auth()->user()->can_receive_commission ?? false;
         $totalCommission = $canReceiveCommission
             ? (int) collect($cart)->sum(fn($item) => $item['commission_amount'] * $item['quantity'])
             : 0;
+
+        $categoryQuery = $this->applyBranchScope(Product::query(), $branch);
+        $brandQuery = $this->applyBranchScope(Product::query(), $branch);
+        $boxCodeQuery = $this->applyBranchScope(Product::query(), $branch);
 
         return view('livewire.pos.pos-terminal', [
             'products'           => $this->getProducts(),
@@ -852,14 +952,15 @@ class PosTerminal extends Component
             'currentTab'         => $tab,
             'global_discount_type' => $tab['global_discount_type'] ?? 'vnd',
             'extra_fees'         => $tab['extra_fees'] ?? [],
-            'categories_list'    => Product::whereNotNull('category_path')->distinct()->pluck('category_path'),
-            'brands_list'        => Product::whereNotNull('brand')->distinct()->pluck('brand'),
-            'box_codes_list'     => Product::whereNotNull('location')->distinct()->pluck('location'),
+            'categories_list'    => $categoryQuery->whereNotNull('category_path')->distinct()->pluck('category_path'),
+            'brands_list'        => $brandQuery->whereNotNull('brand')->distinct()->pluck('brand'),
+            'box_codes_list'     => $boxCodeQuery->whereNotNull('location')->distinct()->pluck('location'),
             'sales_channels'        => self::SALES_CHANNELS,
             'payment_methods'       => self::PAYMENT_METHODS,
             'totalCommission'       => $totalCommission,
             'canReceiveCommission'  => $canReceiveCommission,
             'staffList'             => $canReceiveCommission ? $this->getStaffList() : collect(),
+            'lockedWorkBranch'      => $this->getLockedWorkBranch(),
         ])->layout('layouts.app');
     }
 }

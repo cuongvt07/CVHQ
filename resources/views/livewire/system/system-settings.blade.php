@@ -76,12 +76,11 @@
             </h2>
             <div class="space-y-4">
                 <label class="flex items-center gap-2 cursor-pointer mb-4">
-                    <input type="checkbox" wire:model="auto_commission_enabled" class="w-4 h-4 text-electric-blue rounded border-slate-300 focus:ring-electric-blue">
+                    <input type="checkbox" wire:model.live="auto_commission_enabled" class="w-4 h-4 text-electric-blue rounded border-slate-300 focus:ring-electric-blue">
                     <span class="text-sm font-semibold text-slate-700">Bật tính năng tự nhảy mức hoa hồng theo giá bán</span>
                 </label>
 
-                @if($auto_commission_enabled)
-                    <div class="bg-slate-50 border border-slate-200 rounded-xl p-4">
+                    <div class="bg-slate-50 border border-slate-200 rounded-xl p-4 {{ $auto_commission_enabled ? '' : 'opacity-70' }}">
                         <div class="flex items-center justify-between mb-3">
                             <h3 class="text-xs font-bold text-slate-600 uppercase tracking-widest">Các mốc giá & Hoa hồng</h3>
                             <button type="button" wire:click="addCommissionRange" class="text-[11px] font-bold text-electric-blue hover:underline flex items-center gap-1">
@@ -89,18 +88,21 @@
                                 Thêm mốc mới
                             </button>
                         </div>
+                        @unless($auto_commission_enabled)
+                            <p class="mb-3 text-[11px] font-semibold text-slate-400">Có thể thiết lập mốc hoa hồng trước; bật checkbox phía trên để áp dụng tự động khi nhập giá sản phẩm.</p>
+                        @endunless
                         <div class="space-y-2">
                             @foreach($commission_ranges as $index => $range)
-                                <div class="flex items-center gap-2" wire:key="range-{{ $index }}">
-                                    <div class="flex-1 flex items-center gap-2">
+                                <div class="grid grid-cols-1 sm:grid-cols-[1fr_1fr_1fr_auto] gap-2 sm:items-center" wire:key="range-{{ $index }}">
+                                    <div class="flex items-center gap-2">
                                         <span class="text-xs font-semibold text-slate-500 whitespace-nowrap w-8">Từ:</span>
                                         <input type="number" wire:model="commission_ranges.{{ $index }}.min" class="w-full bg-white border border-slate-200 rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:border-electric-blue" placeholder="Giá tối thiểu">
                                     </div>
-                                    <div class="flex-1 flex items-center gap-2">
+                                    <div class="flex items-center gap-2">
                                         <span class="text-xs font-semibold text-slate-500 whitespace-nowrap w-8">Đến:</span>
                                         <input type="number" wire:model="commission_ranges.{{ $index }}.max" class="w-full bg-white border border-slate-200 rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:border-electric-blue" placeholder="Giá tối đa">
                                     </div>
-                                    <div class="flex-1 flex items-center gap-2">
+                                    <div class="flex items-center gap-2">
                                         <span class="text-xs font-semibold text-slate-500 whitespace-nowrap w-16">Hoa hồng:</span>
                                         <input type="number" wire:model="commission_ranges.{{ $index }}.amount" class="w-full bg-white border border-slate-200 rounded-lg px-3 py-1.5 text-sm font-bold text-electric-blue focus:outline-none focus:border-electric-blue" placeholder="Số tiền">
                                     </div>
@@ -114,7 +116,6 @@
                             @endif
                         </div>
                     </div>
-                @endif
             </div>
         </div>
 

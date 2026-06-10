@@ -25,6 +25,10 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/products', ProductIndex::class)->name('products');
     Route::get('/products/restock', \App\Livewire\Product\RestockPlan::class)->name('products.restock');
     Route::get('/products/stock-checks', \App\Livewire\Product\StockCheckIndex::class)->name('products.stock-checks');
+    Route::get('/products/transfers', \App\Livewire\Product\StockTransferIndex::class)->name('products.transfers');
+    Route::get('/products/transfers/print/{transfer}', function (App\Models\StockTransfer $transfer) {
+        return view('pos.print-transfer', ['transfer' => $transfer]);
+    })->name('products.transfer.print');
     Route::get('/categories', \App\Livewire\Category\CategoryIndex::class)->name('categories');
     Route::get('/customers', CustomerIndex::class)->name('customers');
     Route::get('/users', \App\Livewire\User\UserIndex::class)->name('users');

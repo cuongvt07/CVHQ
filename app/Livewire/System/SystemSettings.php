@@ -50,15 +50,28 @@ class SystemSettings extends Component
         SystemSetting::set('shop_hn_phone',   $this->shop_hn_phone);
         SystemSetting::set('shop_sg_address', $this->shop_sg_address);
         SystemSetting::set('shop_sg_phone',   $this->shop_sg_phone);
+        $ranges = collect($this->commission_ranges)
+            ->map(fn($range) => [
+                'min' => max(0, (int) ($range['min'] ?? 0)),
+                'max' => max(0, (int) ($range['max'] ?? 0)),
+                'amount' => max(0, (int) ($range['amount'] ?? 0)),
+            ])
+            ->filter(fn($range) => $range['amount'] > 0 || $range['min'] > 0 || $range['max'] > 0)
+            ->sortBy('min')
+            ->values()
+            ->all();
+
         SystemSetting::set('auto_commission_enabled', $this->auto_commission_enabled ? 'true' : 'false');
-        SystemSetting::set('commission_ranges', $this->commission_ranges);
+        SystemSetting::set('commission_ranges', $ranges);
+        $this->commission_ranges = $ranges;
 
         $this->dispatch('notify', message: 'Đã lưu cài đặt cửa hàng!', type: 'success');
     }
 
     public function addCommissionRange()
     {
-        $this->commission_ranges[] = ['min' => 0, 'max' => 0, 'amount' => 0];
+        $lastMax = collect($this->commission_ranges)->max(fn($range) => (int) ($range['max'] ?? 0));
+        $this->commission_ranges[] = ['min' => (int) $lastMax, 'max' => 0, 'amount' => 0];
     }
 
     public function removeCommissionRange($index)

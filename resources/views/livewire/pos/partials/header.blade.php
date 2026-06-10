@@ -21,6 +21,12 @@
             </div>
 
             {{-- Branch Filter (Tất cả / Sài Gòn / Hà Nội) — segmented control --}}
+            @if($lockedWorkBranch)
+                <div class="px-2.5 py-1 rounded border text-[10px] font-black uppercase tracking-wider shrink-0
+                            {{ $lockedWorkBranch === 'sg' ? 'bg-emerald-50 border-emerald-200 text-emerald-700' : 'bg-rose-50 border-rose-200 text-rose-700' }}">
+                    {{ $lockedWorkBranch === 'sg' ? 'SG' : 'HN' }}
+                </div>
+            @else
             <div class="flex items-center gap-0.5 bg-slate-100 border border-slate-200 p-0.5 rounded shrink-0">
                 <button wire:click="setBranch('all')"
                         class="px-2 py-1 rounded text-[10px] font-black uppercase tracking-wider transition-all
@@ -38,10 +44,11 @@
                     HN
                 </button>
             </div>
+            @endif
         </div>
 
         {{-- Active Filters Tags --}}
-        @if($boxCode || $search || $branch !== 'all')
+        @if($boxCode || $search || (!$lockedWorkBranch && $branch !== 'all'))
             <div class="flex flex-wrap items-center gap-2 animate-in fade-in slide-in-from-top-1 duration-200">
                 <span class="text-[8px] font-black text-slate-400 tracking-tighter mr-1">Đang áp dụng:</span>
 
@@ -52,7 +59,7 @@
                     </div>
                 @endif
 
-                @if($branch !== 'all')
+                @if(!$lockedWorkBranch && $branch !== 'all')
                     <div class="flex items-center gap-1.5 px-2.5 py-1 {{ $branch === 'sg' ? 'bg-emerald-50 border-emerald-200 text-emerald-700' : 'bg-rose-50 border-rose-200 text-rose-700' }} border rounded-lg text-[10px] font-bold shadow-sm">
                         <span class="opacity-60">CN:</span> {{ $branch === 'sg' ? 'Sài Gòn' : 'Hà Nội' }}
                         <button wire:click="setBranch('all')" class="opacity-50 hover:opacity-100 transition-opacity"><svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg></button>

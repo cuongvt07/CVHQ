@@ -26,10 +26,15 @@
         }
 
         .header {
-            display: flex;
-            justify-content: space-between;
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) max-content;
+            column-gap: 12mm;
             align-items: flex-start;
             margin-bottom: 20px;
+        }
+
+        .store-info {
+            min-width: 0;
         }
 
         .store-info p {
@@ -43,14 +48,19 @@
             margin-bottom: 6px;
         }
 
-        .invoice-title-block { text-align: right; }
+        .invoice-title-block {
+            text-align: right;
+            min-width: max-content;
+        }
 
         .invoice-title {
-            font-size: 22px;
+            font-size: 20px;
+            line-height: 1.15;
             font-weight: 700;
             letter-spacing: 1px;
             text-transform: uppercase;
             white-space: nowrap;
+            word-break: keep-all;
         }
 
         .customer-section { margin: 18px 0 16px; }
@@ -121,29 +131,15 @@
         }
 
         .signatures {
-            display: flex;
-            justify-content: space-between;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            column-gap: 28mm;
             margin-top: 32px;
             align-items: flex-start;
-            gap: 22mm;
         }
 
         .sig-block {
             text-align: center;
-            flex: 1;
-        }
-
-        .sig-block.buyer {
-            text-align: left;
-        }
-
-        .sig-block.buyer .sig-label {
-            text-align: center;
-        }
-
-        .sig-block.buyer .sig-line {
-            margin-left: auto;
-            margin-right: auto;
         }
 
         .sig-date {
@@ -384,9 +380,9 @@
             <div class="sig-label">Người Mua Hàng</div>
             <div class="sig-line"></div>
         </div>
-        <div class="sig-block" style="text-align:right">
+        <div class="sig-block seller">
             <div class="sig-label">Người Bán Hàng</div>
-            <div class="sig-line" style="margin-right:0; margin-left:auto"></div>
+            <div class="sig-line"></div>
         </div>
     </div>
 </div>

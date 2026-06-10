@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 
 namespace App\Livewire\User;
 
@@ -110,10 +110,10 @@ class UserIndex extends Component
 
         if ($this->userId) {
             User::find($this->userId)->update($data);
-            $this->dispatch('notify', message: 'Cập nhật nhân viên thành công!', type: 'success');
+            $this->dispatch('notify', message: 'Cáº­p nháº­t nhÃ¢n viÃªn thÃ nh cÃ´ng!', type: 'success');
         } else {
             User::create($data);
-            $this->dispatch('notify', message: 'Thêm nhân viên thành công!', type: 'success');
+            $this->dispatch('notify', message: 'ThÃªm nhÃ¢n viÃªn thÃ nh cÃ´ng!', type: 'success');
         }
 
         $this->dispatch('close-user-modal');
@@ -129,13 +129,13 @@ class UserIndex extends Component
     public function delete()
     {
         if ($this->userId === auth()->id()) {
-            $this->dispatch('notify', message: 'Bạn không thể tự xóa chính mình!', type: 'error');
+            $this->dispatch('notify', message: 'Báº¡n khÃ´ng thá»ƒ tá»± xÃ³a chÃ­nh mÃ¬nh!', type: 'error');
             $this->dispatch('close-delete-modal');
             return;
         }
 
         User::find($this->userId)->delete();
-        $this->dispatch('notify', message: 'Đã xóa tài khoản nhân viên!', type: 'success');
+        $this->dispatch('notify', message: 'ÄÃ£ xÃ³a tÃ i khoáº£n nhÃ¢n viÃªn!', type: 'success');
         $this->dispatch('close-delete-modal');
         $this->userId = null;
     }
@@ -156,31 +156,31 @@ class UserIndex extends Component
     public function getAvailablePermissionsProperty()
     {
         return [
-            'dashboard' => ['label' => 'Tổng quan', 'actions' => []],
-            'pos' => ['label' => 'Bán hàng (POS)', 'actions' => []],
+            'dashboard' => ['label' => 'Tá»•ng quan', 'actions' => []],
+            'pos' => ['label' => 'BÃ¡n hÃ ng (POS)', 'actions' => []],
             'products' => [
-                'label' => 'Sản phẩm',
+                'label' => 'Sáº£n pháº©m',
                 'actions' => [
-                    'product.edit_commission' => 'Sửa hoa hồng sản phẩm',
-                    'product.stock_check' => 'Kiểm kho',
-                    'product.stock_check_delete' => 'Xóa phiếu kiểm kho',
-                    'product.delete' => 'Xóa sản phẩm'
+                    'product.edit_commission' => 'Sá»­a hoa há»“ng sáº£n pháº©m',
+                    'product.stock_check' => 'Kiá»ƒm kho',
+                    'product.stock_check_delete' => 'XÃ³a phiáº¿u kiá»ƒm kho',
+                    'product.delete' => 'XÃ³a sáº£n pháº©m'
                 ]
             ],
-            'categories' => ['label' => 'Danh mục', 'actions' => []],
-            'commissions' => ['label' => 'Bảng hoa hồng', 'actions' => []],
-            'customers' => ['label' => 'Khách hàng', 'actions' => []],
-            'users' => ['label' => 'Nhân viên', 'actions' => []],
+            'categories' => ['label' => 'Danh má»¥c', 'actions' => []],
+            'commissions' => ['label' => 'Báº£ng hoa há»“ng', 'actions' => []],
+            'customers' => ['label' => 'KhÃ¡ch hÃ ng', 'actions' => []],
+            'users' => ['label' => 'NhÃ¢n viÃªn', 'actions' => []],
             'invoices' => [
-                'label' => 'Hóa đơn',
+                'label' => 'HÃ³a Ä‘Æ¡n',
                 'actions' => [
-                    'invoice.edit' => 'Sửa hóa đơn',
-                    'invoice.return' => 'Trả hàng',
-                    'invoice.cancel' => 'Hủy hóa đơn',
-                    'invoice.view_commission' => 'Xem hoa hồng'
+                    'invoice.edit' => 'Sá»­a hÃ³a Ä‘Æ¡n',
+                    'invoice.return' => 'Tráº£ hÃ ng',
+                    'invoice.cancel' => 'Há»§y hÃ³a Ä‘Æ¡n',
+                    'invoice.view_commission' => 'Xem hoa há»“ng'
                 ]
             ],
-            'reports' => ['label' => 'Báo cáo', 'actions' => []],
+            'reports' => ['label' => 'BÃ¡o cÃ¡o', 'actions' => []],
         ];
     }
 

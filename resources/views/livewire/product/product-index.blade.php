@@ -105,14 +105,79 @@
             </div>
 
             <div class="flex items-center justify-between gap-2 pt-1">
-                <button wire:click="$set('boxCode', '')"
-                        class="text-[10px] font-black text-rose-500 hover:underline">Xóa lọc</button>
+                                    <button wire:click="clearFilter('all')"
+                                            class="text-[10px] font-black text-rose-500 hover:underline">Xóa lọc</button>
                 <button @click="mobileFilterOpen = false"
                         class="px-3 py-1 bg-electric-blue text-white rounded text-[10px] font-bold uppercase tracking-wider">Xong</button>
             </div>
         </div>
 
         {{-- Desktop: SINGLE compact row — search + box + branch + quickEdit + bulkActions + perPage + paginator + columnToggle --}}
+        <div class="md:hidden flex flex-wrap items-center gap-2">
+            <label class="h-9 px-3 inline-flex items-center gap-2 rounded-lg border bg-white border-slate-200 text-[11px] font-black uppercase tracking-wider text-slate-600">
+                <input type="checkbox" wire:model.live="selectAll" class="w-4 h-4 rounded border-slate-300 text-electric-blue focus:ring-electric-blue">
+                Chọn trang
+            </label>
+            <select wire:model.live="perPage" class="h-9 bg-white border border-slate-200 rounded-lg px-2 text-[11px] font-black text-slate-600 focus:outline-none focus:border-electric-blue">
+                <option value="10">10</option>
+                <option value="25">25</option>
+                <option value="50">50</option>
+                <option value="100">100</option>
+            </select>
+            <select wire:model.live="sortField" class="h-9 flex-1 min-w-[118px] bg-white border border-slate-200 rounded-lg px-2 text-[11px] font-black text-slate-600 focus:outline-none focus:border-electric-blue">
+                <option value="created_at">Mới nhất</option>
+                <option value="sku">SKU</option>
+                <option value="base_name">Tên</option>
+                <option value="brand">Thương hiệu</option>
+                <option value="category_path">Danh mục</option>
+                <option value="location">Vị trí</option>
+                <option value="stock_quantity">Tồn</option>
+                <option value="sale_price">Giá</option>
+            </select>
+            <button wire:click="$set('sortDirection', '{{ $sortDirection === 'asc' ? 'desc' : 'asc' }}')"
+                    class="h-9 w-9 inline-flex items-center justify-center rounded-lg border bg-white border-slate-200 text-slate-500">
+                @if($sortDirection === 'asc')
+                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m18 15-6-6-6 6"/></svg>
+                @else
+                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
+                @endif
+            </button>
+            <button wire:click="$toggle('quickEditMode')"
+                    class="h-9 px-3 inline-flex items-center gap-1.5 rounded-lg border text-[11px] font-black uppercase tracking-wider transition-colors {{ $quickEditMode ? 'bg-electric-blue/10 border-electric-blue text-electric-blue' : 'bg-white border-slate-200 text-slate-500' }}">
+                <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+                Sửa nhanh
+            </button>
+            @if(count($selectedRows) > 0)
+                <div class="flex-1 min-w-full flex items-center justify-end gap-1.5">
+                    <span class="text-[10px] font-black text-electric-blue">Đã chọn {{ count($selectedRows) }}</span>
+                    <button wire:click="clearSelection" class="px-2.5 py-1.5 rounded-lg text-[10px] font-black bg-white text-slate-500 border border-slate-200 uppercase">Bỏ chọn</button>
+                    <button wire:click="bulkCopyToSG" class="px-2.5 py-1.5 rounded-lg text-[10px] font-black bg-emerald-500 text-white uppercase">→ SG</button>
+                    @if(auth()->user()?->hasPermission('product.delete'))
+                        <button wire:click="bulkDelete" wire:confirm="Bạn có chắc chắn muốn xóa?" class="px-2.5 py-1.5 rounded-lg text-[10px] font-black bg-rose-50 text-rose-600 border border-rose-200 uppercase">Xóa</button>
+                    @endif
+                </div>
+            @endif
+            @php
+                $mCurPage  = $products->currentPage();
+                $mLastPage = max(1, $products->lastPage());
+                $mOnFirst  = $mCurPage <= 1;
+                $mOnLast   = $mCurPage >= $mLastPage;
+            @endphp
+            <div class="ml-auto flex items-center gap-0.5 bg-white border border-slate-200 rounded-lg px-1 py-0.5">
+                <button wire:click="previousPage" @disabled($mOnFirst)
+                        class="w-7 h-7 flex items-center justify-center rounded {{ $mOnFirst ? 'text-slate-200 cursor-not-allowed' : 'text-slate-500 active:bg-electric-blue/10' }}">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>
+                </button>
+                <div class="px-1 text-[10px] font-black text-slate-500 tabular-nums">
+                    <span class="text-electric-blue">{{ $mCurPage }}</span>/<span>{{ $mLastPage }}</span>
+                </div>
+                <button wire:click="nextPage" @disabled($mOnLast)
+                        class="w-7 h-7 flex items-center justify-center rounded {{ $mOnLast ? 'text-slate-200 cursor-not-allowed' : 'text-slate-500 active:bg-electric-blue/10' }}">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"/></svg>
+                </button>
+            </div>
+        </div>
+
         <div class="hidden md:flex flex-wrap items-center gap-2">
             <!-- Search -->
             <div class="relative w-72 group">
@@ -234,16 +299,19 @@
                 <div class="py-10 text-center text-slate-300 text-[11px] font-bold tracking-widest">Không có sản phẩm</div>
             @else
                 @foreach($products as $product)
-                    <div wire:key="m-prod-{{ $product->id }}" class="bg-white border border-slate-200 rounded-xl shadow-sm overflow-hidden">
+                    <div wire:key="m-prod-{{ $product->id }}"
+                         x-data="{ zoomOpen: false }"
+                         class="bg-white border rounded-xl shadow-sm overflow-hidden {{ in_array((string) $product->id, $selectedRows, true) ? 'border-electric-blue ring-2 ring-electric-blue/15' : 'border-slate-200' }}">
 
                         {{-- 3-column card --}}
-                        <div class="flex items-stretch">
+                        <div class="flex items-stretch min-h-[112px]">
 
                             {{-- Col 1: Image --}}
-                            <div class="relative w-[72px] shrink-0">
+                            <div class="relative w-[96px] shrink-0">
                                 <input type="checkbox" wire:model.live="selectedRows" value="{{ $product->id }}"
-                                       class="absolute top-1.5 left-1.5 z-10 w-3.5 h-3.5 rounded border-slate-300 text-electric-blue focus:ring-electric-blue/20">
-                                <div class="w-full aspect-square bg-slate-100">
+                                       class="absolute top-2 left-2 z-10 w-5 h-5 rounded border-slate-300 bg-white text-electric-blue shadow focus:ring-electric-blue/20">
+                                <div class="absolute inset-0 bg-slate-100 {{ !empty($product->images) ? 'cursor-zoom-in' : '' }}"
+                                     @if(!empty($product->images)) @click="zoomOpen = true" @endif>
                                     @if(!empty($product->images))
                                         <img src="{{ $product->images[0] }}" class="w-full h-full object-cover">
                                     @else
@@ -252,13 +320,44 @@
                                         </div>
                                     @endif
                                 </div>
+                                @if(!empty($product->images))
+                                    <template x-teleport="body">
+                                        <div x-show="zoomOpen" x-cloak
+                                             x-transition.opacity
+                                             @click="zoomOpen = false"
+                                             @keydown.escape.window="zoomOpen = false"
+                                             class="fixed inset-0 z-[200] bg-black/90 flex items-center justify-center p-4">
+                                            <img src="{{ $product->images[0] }}" alt="{{ $product->name }}"
+                                                 @click.stop
+                                                 class="max-w-[95vw] max-h-[95vh] object-contain rounded-lg shadow-2xl">
+                                            <button type="button" @click.stop="zoomOpen = false"
+                                                    class="absolute top-4 right-4 w-11 h-11 rounded-full bg-white/95 text-slate-700 hover:text-rose-500 shadow-xl flex items-center justify-center">
+                                                <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+                                            </button>
+                                        </div>
+                                    </template>
+                                @endif
                             </div>
 
                             {{-- Col 2: SKU / location / stock / price --}}
-                            <div class="w-[88px] shrink-0 flex flex-col justify-between px-2 py-2 border-x border-slate-100 bg-slate-50/60">
+                            <div class="w-[92px] shrink-0 flex flex-col justify-between px-2 py-2 border-x border-slate-100 bg-slate-50/60">
                                 <div class="space-y-0.5">
-                                    <div class="text-[11px] font-black text-electric-blue font-mono leading-tight truncate">{{ $product->sku }}</div>
-                                    @if($product->location)
+                                    @if($quickEditMode)
+                                        <input type="text"
+                                               value="{{ $product->sku }}"
+                                               x-on:blur="$wire.updateField({{ $product->id }}, 'sku', $event.target.value)"
+                                               x-on:keydown.enter="$event.target.blur()"
+                                               class="w-full bg-white border border-slate-200 rounded px-1 py-0.5 text-[10px] font-black text-electric-blue focus:outline-none focus:border-electric-blue">
+                                    @else
+                                        <div class="text-[11px] font-black text-electric-blue font-mono leading-tight truncate">{{ $product->sku }}</div>
+                                    @endif
+                                    @if($quickEditMode)
+                                        <input type="text"
+                                               value="{{ $product->location }}"
+                                               x-on:blur="$wire.updateField({{ $product->id }}, 'location', $event.target.value)"
+                                               x-on:keydown.enter="$event.target.blur()"
+                                               class="w-full bg-white border border-slate-200 rounded px-1 py-0.5 text-[10px] font-bold text-emerald-700 focus:outline-none focus:border-electric-blue">
+                                    @elseif($product->location)
                                         <div class="text-[10px] font-bold text-emerald-700 bg-emerald-50 px-1 py-px rounded inline-block">{{ $product->location }}</div>
                                     @elseif($product->brand)
                                         <div class="text-[10px] text-slate-400 truncate">{{ $product->brand }}</div>
@@ -267,21 +366,53 @@
                                     @endif
                                 </div>
                                 <div class="space-y-0.5 mt-1">
+                                    @if($quickEditMode)
+                                        <input type="number"
+                                               value="{{ $product->stock_quantity }}"
+                                               x-on:blur="$wire.updateField({{ $product->id }}, 'stock_quantity', $event.target.value)"
+                                               x-on:keydown.enter="$event.target.blur()"
+                                               class="w-full bg-white border border-slate-200 rounded px-1 py-0.5 text-[10px] font-black {{ $product->stock_quantity <= 5 ? 'text-rose-600' : 'text-slate-800' }} focus:outline-none focus:border-electric-blue">
+                                        <input type="number"
+                                               value="{{ $product->sale_price }}"
+                                               x-on:blur="$wire.updateField({{ $product->id }}, 'sale_price', $event.target.value)"
+                                               x-on:keydown.enter="$event.target.blur()"
+                                               class="w-full bg-white border border-slate-200 rounded px-1 py-0.5 text-[10px] font-black text-slate-900 focus:outline-none focus:border-electric-blue">
+                                    @else
                                     <div class="text-[11px] font-black {{ $product->stock_quantity <= 5 ? 'text-rose-600' : 'text-slate-800' }}">
                                         Tồn: {{ $product->stock_quantity }}
                                     </div>
                                     <div class="text-[11px] font-black text-slate-900 leading-tight">
                                         {{ number_format($product->sale_price, 0, ',', '.') }}
                                     </div>
+                                    @endif
                                 </div>
                             </div>
 
                             {{-- Col 3: Name / category / actions --}}
                             <div class="flex-1 min-w-0 flex flex-col px-2.5 py-2">
                                 <div class="flex-1 min-h-0">
-                                    <div class="text-[12px] font-bold text-slate-900 leading-snug line-clamp-2">{{ $product->name ?: $product->base_name }}</div>
-                                    @if($product->category)
-                                        <div class="text-[10px] text-slate-400 mt-0.5 truncate">{{ $product->category->name }}</div>
+                                    @if($quickEditMode)
+                                        <div class="space-y-1">
+                                            <textarea
+                                                x-on:blur="$wire.updateField({{ $product->id }}, 'base_name', $event.target.value)"
+                                                class="w-full min-h-[48px] bg-slate-50 border border-slate-200 rounded-lg px-2 py-1 text-[12px] font-bold text-slate-900 leading-snug focus:outline-none focus:border-electric-blue">{{ $product->base_name }}</textarea>
+                                            <div class="grid grid-cols-2 gap-1">
+                                                <input type="text"
+                                                       value="{{ $product->brand }}"
+                                                       x-on:blur="$wire.updateField({{ $product->id }}, 'brand', $event.target.value)"
+                                                       x-on:keydown.enter="$event.target.blur()"
+                                                       class="w-full bg-white border border-slate-200 rounded px-1.5 py-1 text-[10px] font-bold text-slate-600 focus:outline-none focus:border-electric-blue"
+                                                       placeholder="Thương hiệu">
+                                                <input type="text"
+                                                       value="{{ $product->category_path }}"
+                                                       x-on:blur="$wire.updateField({{ $product->id }}, 'category_path', $event.target.value)"
+                                                       x-on:keydown.enter="$event.target.blur()"
+                                                       class="w-full bg-white border border-slate-200 rounded px-1.5 py-1 text-[10px] font-bold text-slate-600 focus:outline-none focus:border-electric-blue"
+                                                       placeholder="Danh mục">
+                                            </div>
+                                        </div>
+                                    @else
+                                        <div class="text-[12px] font-bold text-slate-900 leading-snug line-clamp-3">{{ $product->name ?: $product->base_name }}</div>
                                     @endif
                                 </div>
                                 <div class="flex items-center gap-1.5 mt-2 justify-end">
