@@ -46,13 +46,13 @@
                         <span class="w-1.5 h-4 bg-electric-blue rounded-full"></span>
                         Thông tin chung (Áp dụng cho tất cả)
                     </h4>
-                    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
+                    <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
                         <div>
                             <label class="block text-[11px] font-bold text-slate-600 mb-1">Tiền tố SKU <span class="text-rose-500">*</span></label>
                             <input type="text" wire:model.blur="bulkPrefix" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:border-electric-blue focus:ring-2 focus:ring-electric-blue/10" placeholder="VD: GTS">
                             @error('bulkPrefix') <span class="text-[10px] text-rose-500 font-bold">{{ $message }}</span> @enderror
                         </div>
-                        <div class="sm:col-span-3">
+                        <div class="col-span-full md:col-span-3">
                             <label class="block text-[11px] font-bold text-slate-600 mb-1">Tên sản phẩm chung <span class="text-rose-500">*</span></label>
                             <input type="text" wire:model="bulkBaseName" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:border-electric-blue focus:ring-2 focus:ring-electric-blue/10" placeholder="VD: CÀ VẠT GÂN TĂM 6 CM">
                             @error('bulkBaseName') <span class="text-[10px] text-rose-500 font-bold">{{ $message }}</span> @enderror
@@ -86,24 +86,18 @@
                             <span class="w-1.5 h-4 bg-electric-blue rounded-full"></span>
                             Danh sách phân loại
                         </h4>
-                        <div class="flex flex-wrap items-center justify-end gap-2">
-                            <div class="flex items-center gap-1.5 bg-white border border-slate-200 rounded-lg px-2 py-1">
-                                <span class="text-[10px] font-black text-slate-500 uppercase tracking-wider">Số dòng</span>
+                        <div class="flex flex-wrap items-center justify-end gap-1.5">
+                            <div class="flex items-center gap-1 bg-white border border-slate-200 rounded-lg px-2 py-1">
+                                <span class="text-[10px] font-black text-slate-500 uppercase tracking-wider hidden sm:inline">Số dòng</span>
                                 <input type="number" min="1" max="200" wire:model="bulkRowCount"
-                                       class="w-16 bg-slate-50 border border-slate-200 rounded px-2 py-1 text-xs font-black text-slate-900 focus:outline-none focus:border-electric-blue">
+                                       class="w-12 bg-slate-50 border border-slate-200 rounded px-1.5 py-1 text-xs font-black text-slate-900 focus:outline-none focus:border-electric-blue">
                                 <button type="button" wire:click="applyBulkRowCount" class="px-2 py-1 rounded bg-electric-blue text-white text-[10px] font-black uppercase">
-                                    Tạo bảng
+                                    Tạo
                                 </button>
                             </div>
-                            <button type="button" wire:click="addBulkRow(1)" class="btn-slate text-[10px] px-3 py-1.5 rounded-lg border border-slate-200 hover:bg-slate-50 font-bold">
-                                + 1 dòng
-                            </button>
-                            <button type="button" wire:click="addBulkRow(10)" class="btn-slate text-[10px] px-3 py-1.5 rounded-lg border border-slate-200 hover:bg-slate-50 font-bold">
-                                + 10 dòng
-                            </button>
-                            <button type="button" wire:click="addBulkRow(30)" class="btn-slate text-[10px] px-3 py-1.5 rounded-lg border border-slate-200 hover:bg-slate-50 font-bold">
-                                + 30 dòng
-                            </button>
+                            <button type="button" wire:click="addBulkRow(1)" class="btn-slate text-[10px] px-2 py-1.5 rounded-lg border border-slate-200 hover:bg-slate-50 font-bold">+1</button>
+                            <button type="button" wire:click="addBulkRow(10)" class="btn-slate text-[10px] px-2 py-1.5 rounded-lg border border-slate-200 hover:bg-slate-50 font-bold">+10</button>
+                            <button type="button" wire:click="addBulkRow(30)" class="btn-slate text-[10px] px-2 py-1.5 rounded-lg border border-slate-200 hover:bg-slate-50 font-bold">+30</button>
                         </div>
                     </div>
                     <p class="mb-2 text-[10px] font-semibold text-slate-400">Nhập liên tiếp từng dòng trong bảng. Dòng không có màu/phân loại và không có vị trí sẽ tự bỏ qua khi lưu.</p>
