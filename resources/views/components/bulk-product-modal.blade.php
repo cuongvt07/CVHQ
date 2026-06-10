@@ -25,7 +25,7 @@
              x-transition:leave="ease-in duration-200" 
              x-transition:leave-start="opacity-100 translate-y-0 sm:scale-100" 
              x-transition:leave-end="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95" 
-             class="relative w-full max-w-6xl text-left transition-all transform bg-white rounded-t-2xl sm:rounded-2xl shadow-2xl border border-slate-200 flex flex-col h-[92vh] sm:max-h-[92vh] sm:h-auto">
+             class="relative w-full max-w-6xl text-left transition-all transform bg-white rounded-t-2xl sm:rounded-2xl shadow-2xl border border-slate-200 flex flex-col h-[86vh] sm:max-h-[92vh] sm:h-auto">
             
             <!-- Header -->
             <div class="px-6 py-4 border-b border-slate-100 bg-slate-50/50 flex justify-between items-center shrink-0">
