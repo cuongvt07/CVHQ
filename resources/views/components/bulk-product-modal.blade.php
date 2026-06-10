@@ -1,11 +1,11 @@
-<div x-data="{ open: false }" 
-     x-on:open-bulk-modal.window="open = true" 
-     x-on:close-bulk-modal.window="open = false" 
-     x-show="open" 
-     class="fixed inset-0 z-[100] overflow-y-auto" 
+<div x-data="{ open: false }"
+     x-on:open-bulk-modal.window="open = true"
+     x-on:close-bulk-modal.window="open = false"
+     x-show="open"
+     class="fixed inset-0 z-[100] flex items-end sm:items-center justify-center overflow-hidden"
      x-cloak>
-    
-    <div class="flex items-center justify-center min-h-screen px-4 pt-4 pb-20 text-center sm:p-0">
+
+    <div class="relative w-full sm:px-4 sm:py-6 flex items-end sm:items-center justify-center min-h-full sm:min-h-0">
         <!-- Overlay -->
         <div x-show="open" 
              x-transition:enter="ease-out duration-300" 
@@ -25,7 +25,7 @@
              x-transition:leave="ease-in duration-200" 
              x-transition:leave-start="opacity-100 translate-y-0 sm:scale-100" 
              x-transition:leave-end="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95" 
-             class="relative inline-block w-full max-w-6xl overflow-hidden text-left align-bottom transition-all transform bg-white rounded-2xl shadow-2xl sm:my-6 sm:align-middle border border-slate-200 flex flex-col max-h-[94vh]">
+             class="relative w-full max-w-6xl text-left transition-all transform bg-white rounded-t-2xl sm:rounded-2xl shadow-2xl border border-slate-200 flex flex-col h-[92vh] sm:max-h-[92vh] sm:h-auto">
             
             <!-- Header -->
             <div class="px-6 py-4 border-b border-slate-100 bg-slate-50/50 flex justify-between items-center shrink-0">
@@ -39,7 +39,7 @@
             </div>
 
             <!-- Body -->
-            <div class="flex-1 overflow-y-auto custom-scrollbar p-6 bg-white flex flex-col gap-6">
+            <div class="flex-1 overflow-y-auto overscroll-contain custom-scrollbar p-4 sm:p-6 bg-white flex flex-col gap-4 sm:gap-6" style="-webkit-overflow-scrolling: touch;">
                 <!-- Thông tin chung -->
                 <div>
                     <h4 class="text-xs font-black text-electric-blue uppercase tracking-widest mb-3 flex items-center gap-2">
