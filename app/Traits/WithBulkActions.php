@@ -25,11 +25,16 @@ trait WithBulkActions
     {
         if (empty($this->selectedRows)) return;
 
-        $this->getModelForBulk()::whereIn('id', $this->selectedRows)->delete();
-        
+        // Xoá từng bản ghi (không dùng mass-delete) để KÍCH HOẠT model event
+        // -> trait Loggable ghi nhật ký "deleted" (ai xoá, xoá gì) vào system log.
+        $models = $this->getModelForBulk()::whereIn('id', $this->selectedRows)->get();
+        foreach ($models as $model) {
+            $model->delete();
+        }
+
         $this->selectedRows = [];
         $this->selectAll = false;
-        
+
         $this->dispatch('notify', message: 'Đã xóa các mục đã chọn!', type: 'success');
     }
 
