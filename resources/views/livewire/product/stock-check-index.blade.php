@@ -410,10 +410,17 @@
                         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><path d="M17 21v-8H7v8"/><path d="M7 3v5h8"/></svg>
                         Lưu tạm
                     </button>
-                    <button wire:click="complete" class="h-12 rounded-xl bg-emerald-500 text-white text-sm font-black flex items-center justify-center gap-2 active:scale-[0.98] transition-transform">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M20 6 9 17l-5-5"/></svg>
-                        Hoàn thành
-                    </button>
+                    @if($status === 'completed')
+                        <button disabled class="h-12 rounded-xl bg-slate-100 text-slate-400 text-sm font-black flex items-center justify-center gap-2 cursor-not-allowed">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M20 6 9 17l-5-5"/></svg>
+                            Đã hoàn thành
+                        </button>
+                    @else
+                        <button wire:click="complete" wire:loading.attr="disabled" wire:target="complete" class="h-12 rounded-xl bg-emerald-500 text-white text-sm font-black flex items-center justify-center gap-2 active:scale-[0.98] transition-transform disabled:opacity-60 disabled:cursor-not-allowed">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M20 6 9 17l-5-5"/></svg>
+                            Hoàn thành
+                        </button>
+                    @endif
                 </div>
             </div>
 
@@ -638,10 +645,17 @@
                         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><path d="M17 21v-8H7v8"/><path d="M7 3v5h8"/></svg>
                         Lưu tạm
                     </button>
-                    <button wire:click="complete" class="h-14 rounded-lg bg-emerald-500 text-white text-sm font-black flex items-center justify-center gap-2">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M20 6 9 17l-5-5"/></svg>
-                        Hoàn thành
-                    </button>
+                    @if($status === 'completed')
+                        <button disabled class="h-14 rounded-lg bg-slate-100 text-slate-400 text-sm font-black flex items-center justify-center gap-2 cursor-not-allowed">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M20 6 9 17l-5-5"/></svg>
+                            Đã hoàn thành
+                        </button>
+                    @else
+                        <button wire:click="complete" wire:loading.attr="disabled" wire:target="complete" class="h-14 rounded-lg bg-emerald-500 text-white text-sm font-black flex items-center justify-center gap-2 disabled:opacity-60 disabled:cursor-not-allowed">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M20 6 9 17l-5-5"/></svg>
+                            Hoàn thành
+                        </button>
+                    @endif
                 </div>
             </aside>
         </div>{{-- /hidden md:flex desktop --}}

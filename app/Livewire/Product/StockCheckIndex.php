@@ -291,40 +291,50 @@ class StockCheckIndex extends Component
             return;
         }
 
-        if ($this->status === 'completed') {
-            $this->dispatch('notify', message: 'Phiếu này đã được cân bằng kho.', type: 'warning');
+        try {
+            \DB::transaction(function () {
+                // Lock row ở DB — request thứ 2 bị block cho đến khi request 1 commit
+                $check = StockCheck::lockForUpdate()->find($this->stockCheckId);
+
+                if (!$check || $check->status === 'completed') {
+                    $this->status = 'completed';
+                    $this->dispatch('notify', message: 'Phiếu này đã được cân bằng kho.', type: 'warning');
+                    return;
+                }
+
+                $check = $this->persist('completed');
+                $this->logCheckAction('complete');
+
+                $branchLabel = strtoupper($check->branch ?? 'HN');
+                $balancedAt  = now();
+
+                foreach ($check->items as $item) {
+                    $product = Product::find($item->product_id);
+                    if (!$product) continue;
+
+                    if ((int) $item->difference !== 0) {
+                        $product->recordStockHistory(
+                            'Adjustment',
+                            (int) $item->difference,
+                            $check->id,
+                            $check->code,
+                            "Cân bằng kho từ phiếu kiểm ({$branchLabel})",
+                            $item->system_quantity
+                        );
+                    }
+
+                    $product->stock_quantity = (int) $item->actual_quantity;
+                    $product->save();
+                }
+
+                $check->update(['balanced_at' => $balancedAt]);
+                $this->status = 'completed';
+            });
+        } catch (\Exception $e) {
+            $this->dispatch('notify', message: 'Lỗi: ' . $e->getMessage(), type: 'error');
             return;
         }
 
-        $check = $this->persist('completed');
-        $this->logCheckAction('complete');
-
-        $branchLabel = strtoupper($check->branch ?? 'HN');
-        $balancedAt  = now();
-
-        foreach ($check->items as $item) {
-            $product = Product::find($item->product_id);
-            if (!$product) {
-                continue;
-            }
-
-            if ((int) $item->difference !== 0) {
-                $product->recordStockHistory(
-                    'Adjustment',
-                    (int) $item->difference,
-                    $check->id,
-                    $check->code,
-                    "Cân bằng kho từ phiếu kiểm ({$branchLabel})",
-                    $item->system_quantity  // quantity_before = tồn kho theo phiếu, đồng bộ với detail
-                );
-            }
-
-            $product->stock_quantity = (int) $item->actual_quantity;
-            $product->save();
-        }
-
-        $check->update(['balanced_at' => $balancedAt]);
-        $this->status = 'completed';
         $this->dispatch('notify', message: 'Đã hoàn thành và cân bằng kho.', type: 'success');
         $this->cancelEdit();
     }
