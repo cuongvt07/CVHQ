@@ -58,7 +58,7 @@
                 <div class="h-12 bg-white border-b border-slate-200 flex items-center gap-2 px-3">
                     <div class="relative flex-1 max-w-md">
                         <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
-                        <input type="text" wire:model.live.debounce.400ms="search" placeholder="Theo mã phiếu kiểm" class="w-full h-8 bg-white border border-slate-200 rounded-lg pl-9 pr-3 text-xs focus:outline-none focus:border-electric-blue">
+                        <input type="text" wire:model.live.debounce.400ms="search" placeholder="Mã phiếu hoặc mã / tên sản phẩm" class="w-full h-8 bg-white border border-slate-200 rounded-lg pl-9 pr-3 text-xs focus:outline-none focus:border-electric-blue">
                     </div>
 
                     {{-- Mobile filter button --}}
@@ -135,7 +135,7 @@
                 {{-- Mobile cards --}}
                 <div class="md:hidden flex-1 min-h-0 overflow-auto bg-white p-3 space-y-2">
                     @forelse($checks as $check)
-                        <div wire:key="check-card-{{ $check->id }}" wire:click="edit({{ $check->id }})" class="bg-white border border-slate-200 rounded-xl p-3 shadow-sm cursor-pointer hover:border-electric-blue/40 transition-colors">
+                        <div wire:key="check-card-{{ $check->id }}" onclick="window.open('{{ route('products.stock-checks', ['open' => $check->id]) }}', '_blank')" class="bg-white border border-slate-200 rounded-xl p-3 shadow-sm cursor-pointer hover:border-electric-blue/40 transition-colors">
                             <div class="flex items-start justify-between gap-2 mb-1.5">
                                 <div class="min-w-0">
                                     <div class="text-sm font-bold text-electric-blue">{{ $check->code }}</div>
@@ -201,7 +201,7 @@
                         </thead>
                         <tbody class="divide-y divide-slate-100">
                             @forelse($checks as $check)
-                                <tr wire:key="check-{{ $check->id }}" wire:click="edit({{ $check->id }})" class="hover:bg-slate-50 cursor-pointer">
+                                <tr wire:key="check-{{ $check->id }}" onclick="window.open('{{ route('products.stock-checks', ['open' => $check->id]) }}', '_blank')" class="hover:bg-slate-50 cursor-pointer">
                                     <td class="px-3 py-2"><input type="checkbox" wire:click.stop wire:model.live="selectedChecks" value="{{ $check->id }}" class="rounded border-slate-300"></td>
                                     <td class="px-3 py-2 text-xs">
                                         <div class="font-bold text-electric-blue">{{ $check->code }}</div>
@@ -298,7 +298,7 @@
             <div class="bg-white border-b border-slate-200 flex items-center gap-2 px-3 h-14 shrink-0">
                 {{-- List header --}}
                 <div x-show="mobileDetail === null" class="flex items-center gap-2 w-full">
-                    <button wire:click="cancelEdit" class="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-slate-100 text-slate-600 shrink-0">
+                    <button @if($standalone) onclick="window.close()" @else wire:click="cancelEdit" @endif class="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-slate-100 text-slate-600 shrink-0">
                         <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="m15 18-6-6 6-6"/></svg>
                     </button>
                     <h1 class="text-sm font-black text-slate-900 shrink-0">{{ $locked ? 'Chi tiết phiếu kiểm' : 'Tạo phiếu kiểm kho' }}</h1>
@@ -334,6 +334,23 @@
 
             {{-- ─── MOBILE LIST VIEW ─────────────────────────────────────── --}}
             <div x-show="mobileDetail === null" class="flex-1 flex flex-col min-h-0">
+                {{-- Thông tin phiếu --}}
+                <div class="bg-white border-b border-slate-100 px-3 py-2.5">
+                    <div class="flex items-center justify-between gap-2">
+                        <span class="text-sm font-black text-electric-blue">{{ $code ?: 'Phiếu mới' }}</span>
+                        @if($locked)
+                            <span class="inline-flex items-center rounded-full bg-emerald-50 px-2 py-0.5 text-[10px] font-black text-emerald-700 border border-emerald-100">Đã hoàn thành</span>
+                        @else
+                            <span class="inline-flex items-center rounded-full bg-amber-50 px-2 py-0.5 text-[10px] font-black text-amber-700 border border-amber-100">Phiếu tạm</span>
+                        @endif
+                    </div>
+                    <div class="mt-1 flex items-center gap-2 text-[11px] text-slate-500">
+                        <span class="font-bold text-slate-600">{{ $creatorName ?: '—' }}</span>
+                        @if($createdAtLabel)<span>· {{ $createdAtLabel }}</span>@endif
+                        <span class="ml-auto uppercase tracking-wider">{{ $branch === 'sg' ? 'Sài Gòn' : 'Hà Nội' }}</span>
+                    </div>
+                </div>
+
                 {{-- Filter tabs --}}
                 <div class="bg-white border-b border-slate-100 px-3 py-2 flex gap-2">
                     <button @click="filterTab = 'all'"
@@ -511,7 +528,7 @@
         <div class="hidden md:flex flex-1 min-h-0 flex-row">
             <main class="flex-1 min-w-0 flex flex-col min-h-0">
                 <div class="h-14 bg-white border-b border-slate-200 flex items-center gap-2 px-4">
-                    <button wire:click="cancelEdit" class="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-slate-100 text-slate-600 shrink-0">
+                    <button @if($standalone) onclick="window.close()" @else wire:click="cancelEdit" @endif class="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-slate-100 text-slate-600 shrink-0">
                         <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="m15 18-6-6 6-6"/></svg>
                     </button>
                     <h1 class="text-lg font-black text-slate-900 shrink-0">{{ $locked ? 'Chi tiết phiếu kiểm' : 'Kiểm kho' }}</h1>
@@ -604,8 +621,8 @@
                 <div class="p-4 space-y-4 flex-1 min-h-0 overflow-y-auto">
                     <div class="flex items-center gap-2 text-xs font-bold text-slate-700">
                         <span class="w-2 h-2 rounded-full bg-slate-500"></span>
-                        {{ auth()->user()?->name }}
-                        <span class="ml-auto text-slate-400">{{ now()->format('d/m/Y H:i') }}</span>
+                        {{ $creatorName ?: '—' }}
+                        <span class="ml-auto text-slate-400">{{ $createdAtLabel }}</span>
                     </div>
                     <div class="grid grid-cols-[96px_1fr] items-center gap-3 text-xs">
                         <span class="text-slate-500">Mã kiểm kho</span>

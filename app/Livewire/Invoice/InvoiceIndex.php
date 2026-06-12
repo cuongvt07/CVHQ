@@ -342,12 +342,39 @@ class InvoiceIndex extends Component
             return;
         }
 
-        \DB::transaction(function () use ($invoice) {
-            // Restore stock
+        $restored = 0;
+        $skipped = 0;
+
+        \DB::transaction(function () use ($invoice, &$restored, &$skipped) {
+            // Hoàn (cộng bù) tồn kho cho từng sản phẩm.
+            // Dùng withTrashed + fallback theo SKU để không bỏ sót sản phẩm
+            // đã xoá mềm hoặc hoá đơn nhập khẩu không gắn product_id.
             foreach ($invoice->items as $item) {
-                if ($item->product) {
-                    $item->product->increment('stock_quantity', $item->quantity);
+                $qty = (int) $item->quantity;
+                if ($qty <= 0) {
+                    continue;
                 }
+
+                $product = $item->product()->withTrashed()->first();
+                if (!$product && $item->sku) {
+                    $product = \App\Models\Product::withTrashed()->where('sku', $item->sku)->first();
+                }
+
+                if (!$product) {
+                    $skipped++;
+                    continue;
+                }
+
+                // Ghi thẻ kho trước (lấy tồn trước khi cộng), rồi cộng bù tồn kho.
+                $product->recordStockHistory(
+                    'Return',
+                    $qty,
+                    $invoice->id,
+                    $invoice->invoice_code,
+                    'Trả hàng'
+                );
+                $product->increment('stock_quantity', $qty);
+                $restored++;
             }
 
             $newCode = str_replace('HD', 'TH', $invoice->invoice_code);
@@ -362,7 +389,13 @@ class InvoiceIndex extends Component
             ]);
         });
 
-        $this->dispatch('notify', message: 'Đã hoàn tất trả hàng và nhập lại kho!', type: 'success');
+        if ($restored === 0) {
+            $this->dispatch('notify', message: 'Đã trả hàng nhưng KHÔNG cộng được tồn kho (hóa đơn không có dòng hàng hợp lệ / không khớp sản phẩm).', type: 'warning');
+        } elseif ($skipped > 0) {
+            $this->dispatch('notify', message: "Đã trả hàng và cộng bù tồn cho {$restored} sản phẩm; {$skipped} dòng không khớp sản phẩm.", type: 'warning');
+        } else {
+            $this->dispatch('notify', message: "Đã hoàn tất trả hàng và cộng bù tồn kho cho {$restored} sản phẩm!", type: 'success');
+        }
     }
 
     public function getCustomersProperty()

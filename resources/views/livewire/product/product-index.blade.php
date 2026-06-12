@@ -450,6 +450,7 @@
                                                 'Adjustment' => 'text-amber-400',
                                                 'Cancel' => 'text-rose-400',
                                                 'Import' => 'text-purple-400',
+                                                'Return' => 'text-sky-400',
                                             ];
                                             $mTypeShortLabels = [
                                                 'Sale' => 'Bán',
@@ -458,6 +459,7 @@
                                                 'Cancel' => 'Hủy',
                                                 'Import' => 'IE',
                                                 'Transfer' => 'CK',
+                                                'Return' => 'Trả',
                                             ];
                                         @endphp
                                         @foreach($product->stockHistories()->with('user')->take(10)->get() as $h)
@@ -765,6 +767,7 @@
                                                                             'Adjustment' => 'text-amber-400',
                                                                             'Cancel' => 'text-rose-400',
                                                                             'Import' => 'text-purple-400',
+                                                                            'Return' => 'text-sky-400',
                                                                         ];
                                                                         $typeLabels = [
                                                                             'Sale' => 'Bán hàng',
@@ -773,6 +776,7 @@
                                                                             'Cancel' => 'Hủy bán',
                                                                             'Import' => 'Import Excel',
                                                                             'Transfer' => 'Chuyển hàng',
+                                                                            'Return' => 'Trả hàng',
                                                                         ];
                                                                     @endphp
                                                                     <span class="{{ $typeColors[$history->type] ?? 'text-slate-400' }} font-bold">

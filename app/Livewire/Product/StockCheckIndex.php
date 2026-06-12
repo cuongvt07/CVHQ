@@ -45,12 +45,23 @@ class StockCheckIndex extends Component
         return $this->status === 'completed';
     }
 
+    public bool $standalone = false;
+    public string $creatorName = '';
+    public string $createdAtLabel = '';
+
     public function mount(): void
     {
         $this->logSession = (string) Str::uuid();
         $this->branch = auth()->user()?->work_branch ?: 'hn';
         if (!in_array($this->branch, ['hn', 'sg'], true)) {
             $this->branch = 'hn';
+        }
+
+        // Mở chi tiết phiếu trực tiếp qua URL (?open=ID) — dùng khi mở phiếu ở tab mới
+        $openId = (int) request()->query('open');
+        if ($openId > 0 && StockCheck::whereKey($openId)->exists()) {
+            $this->standalone = true;
+            $this->edit($openId);
         }
     }
 
@@ -98,13 +109,15 @@ class StockCheckIndex extends Component
         $this->lastLoggedSearch = '';
         $this->logSession = (string) Str::uuid();
         $this->lines = [];
+        $this->creatorName = auth()->user()?->name ?: '';
+        $this->createdAtLabel = now()->format('d/m/Y H:i');
         $this->mode = 'edit';
-        $this->persist('draft');
+        // Không tạo bản ghi rỗng ngay — phiếu chỉ được lưu khi thêm hàng / lưu tạm / hoàn thành
     }
 
     public function edit(int $id): void
     {
-        $check = StockCheck::with('items')->findOrFail($id);
+        $check = StockCheck::with(['items', 'user'])->findOrFail($id);
         $this->stockCheckId = $check->id;
         $this->code = $check->code;
         $this->branch = $check->branch ?: 'hn';
@@ -113,6 +126,8 @@ class StockCheckIndex extends Component
         $this->productSearch = '';
         $this->lastLoggedSearch = '';
         $this->logSession = (string) Str::uuid();
+        $this->creatorName = $check->user?->name ?: '—';
+        $this->createdAtLabel = $check->created_at?->format('d/m/Y H:i') ?: '';
 
         if ($check->status === 'draft') {
             // Refresh system_quantity từ tồn kho thực tế hiện tại
@@ -133,7 +148,8 @@ class StockCheckIndex extends Component
             foreach (array_keys($this->lines) as $index) {
                 $this->recalculateLine($index);
             }
-            $this->persist('draft');
+            // Chỉ refresh tồn kho để hiển thị — KHÔNG ghi đè DB khi mới mở phiếu.
+            // Phiếu sẽ được lưu lại khi người dùng thực sự chỉnh sửa.
         } else {
             // Phiếu completed: load nguyên dữ liệu gốc, không thay đổi
             $this->lines = $check->items->map(fn($item) => [
@@ -153,12 +169,9 @@ class StockCheckIndex extends Component
 
     public function cancelEdit(): void
     {
-        if ($this->stockCheckId && empty($this->lines)) {
-            StockCheckLog::where('stock_check_id', $this->stockCheckId)->delete();
-            StockCheck::where('id', $this->stockCheckId)->delete();
-        }
+        // KHÔNG tự xoá phiếu khi quay lại — tránh mất phiếu ngoài ý muốn.
+        // Giữ nguyên trang danh sách hiện tại (không resetPage).
         $this->mode = 'list';
-        $this->resetPage();
     }
 
     public function deleteCheck(int $id): void
@@ -361,6 +374,12 @@ class StockCheckIndex extends Component
         }
 
         $this->dispatch('notify', message: 'Đã hoàn thành và cân bằng kho.', type: 'success');
+
+        // Mở ở tab riêng: ở lại trang chi tiết (giờ chuyển sang chế độ chỉ xem)
+        if ($this->standalone) {
+            return;
+        }
+
         $this->cancelEdit();
     }
 
@@ -523,7 +542,13 @@ class StockCheckIndex extends Component
     private function checksQuery()
     {
         return StockCheck::with('user')
-            ->when($this->search, fn($q) => $q->where('code', 'like', "%{$this->search}%"))
+            ->when($this->search, fn($q) => $q->where(function ($sub) {
+                $sub->where('code', 'like', "%{$this->search}%")
+                    ->orWhereHas('items', function ($iq) {
+                        $iq->where('sku', 'like', "%{$this->search}%")
+                            ->orWhere('product_name', 'like', "%{$this->search}%");
+                    });
+            }))
             ->when($this->dateFilter === 'month', fn($q) => $q->where('created_at', '>=', now()->startOfMonth()))
             ->when($this->dateFilter === 'custom' && $this->dateFrom, fn($q) => $q->whereDate('created_at', '>=', $this->dateFrom))
             ->when($this->dateFilter === 'custom' && $this->dateTo, fn($q) => $q->whereDate('created_at', '<=', $this->dateTo))
