@@ -29,8 +29,14 @@ class SystemSettings extends Component
         $this->shop_sg_address = SystemSetting::get('shop_sg_address', '');
         $this->shop_sg_phone  = SystemSetting::get('shop_sg_phone', '');
         
-        $this->auto_commission_enabled = SystemSetting::get('auto_commission_enabled') === 'true';
+        // get() trả về JSON đã decode (bool true, không phải chuỗi 'true'),
+        // nên dùng filter_var để nhận đúng cả bool/'true'/'1'. Nếu so sánh === 'true'
+        // sẽ luôn ra false -> tự tắt auto hoa hồng mỗi lần lưu cài đặt.
+        $this->auto_commission_enabled = filter_var(SystemSetting::get('auto_commission_enabled', false), FILTER_VALIDATE_BOOLEAN);
         $this->commission_ranges = SystemSetting::get('commission_ranges', []);
+        if (!is_array($this->commission_ranges)) {
+            $this->commission_ranges = [];
+        }
     }
 
     public function save(): void
