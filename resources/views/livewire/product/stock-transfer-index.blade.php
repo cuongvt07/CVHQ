@@ -212,7 +212,7 @@
                         <button wire:click="addProduct({{ $r['id'] }})"
                                 class="w-full flex items-center gap-2 px-3 py-2 hover:bg-slate-50 transition-colors text-left border-b border-slate-50 last:border-0">
                             <div class="w-8 h-8 rounded bg-slate-100 overflow-hidden shrink-0">
-                                @if($r['image'])<img src="{{ $r['image'] }}" class="w-full h-full object-cover">@endif
+                                @if($r['image'])<img src="{{ \App\Models\Product::imageUrl($r['image']) }}" class="w-full h-full object-cover">@endif
                             </div>
                             <div class="min-w-0 flex-1">
                                 <div class="text-xs font-black text-electric-blue font-mono">{{ $r['sku'] }}</div>
@@ -235,7 +235,7 @@
                             {{-- Image --}}
                             <div class="w-14 h-14 shrink-0 bg-slate-100">
                                 @if($line['image'])
-                                    <img src="{{ $line['image'] }}" class="w-full h-full object-cover">
+                                    <img src="{{ \App\Models\Product::imageUrl($line['image']) }}" class="w-full h-full object-cover">
                                 @endif
                             </div>
                             {{-- Info --}}
@@ -281,7 +281,7 @@
                         <button wire:click="addProduct({{ $s['id'] }})"
                                 class="w-full flex items-center gap-2 bg-white border border-slate-100 rounded-xl px-3 py-2 mb-1.5 hover:border-electric-blue/30 hover:bg-electric-blue/5 transition-colors text-left">
                             <div class="w-8 h-8 rounded bg-slate-100 overflow-hidden shrink-0">
-                                @if($s['image'])<img src="{{ $s['image'] }}" class="w-full h-full object-cover">@endif
+                                @if($s['image'])<img src="{{ \App\Models\Product::imageUrl($s['image']) }}" class="w-full h-full object-cover">@endif
                             </div>
                             <div class="flex-1 min-w-0">
                                 <div class="text-[10px] font-black text-electric-blue font-mono">{{ $s['sku'] }} → {{ $s['related_sku'] }}</div>
@@ -419,7 +419,7 @@
                             <button wire:click="addProduct({{ $r['id'] }})"
                                     class="w-full flex items-center gap-3 px-3 py-2.5 hover:bg-slate-50 transition-colors text-left border-b border-slate-50 last:border-0">
                                 <div class="w-9 h-9 rounded-lg bg-slate-100 overflow-hidden shrink-0">
-                                    @if($r['image'])<img src="{{ $r['image'] }}" class="w-full h-full object-cover">@endif
+                                    @if($r['image'])<img src="{{ \App\Models\Product::imageUrl($r['image']) }}" class="w-full h-full object-cover">@endif
                                 </div>
                                 <div class="flex-1 min-w-0">
                                     <div class="text-xs font-black text-electric-blue font-mono">{{ $r['sku'] }}</div>
@@ -462,7 +462,7 @@
                                 <td class="px-3 py-2 text-xs text-slate-400 text-center">{{ $idx + 1 }}</td>
                                 <td class="px-3 py-2">
                                     <div class="w-10 h-10 rounded-lg bg-slate-100 overflow-hidden">
-                                        @if($line['image'])<img src="{{ $line['image'] }}" class="w-full h-full object-cover">@endif
+                                        @if($line['image'])<img src="{{ \App\Models\Product::imageUrl($line['image']) }}" class="w-full h-full object-cover">@endif
                                     </div>
                                 </td>
                                 <td class="px-3 py-2">
@@ -563,7 +563,7 @@
                     <button wire:click="addProduct({{ $s['id'] }})"
                             class="w-full flex items-center gap-2 bg-white border border-slate-100 rounded-xl px-2.5 py-2 hover:border-electric-blue/40 hover:bg-electric-blue/5 transition-colors text-left group">
                         <div class="w-9 h-9 rounded-lg bg-slate-100 overflow-hidden shrink-0">
-                            @if($s['image'])<img src="{{ $s['image'] }}" class="w-full h-full object-cover">@endif
+                            @if($s['image'])<img src="{{ \App\Models\Product::imageUrl($s['image']) }}" class="w-full h-full object-cover">@endif
                         </div>
                         <div class="flex-1 min-w-0">
                             <div class="text-[10px] font-black text-electric-blue font-mono truncate">{{ $s['sku'] }}</div>

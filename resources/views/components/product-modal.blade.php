@@ -192,63 +192,26 @@
 
                         <!-- Location / Price / Stock row (required + commission if permitted or creating new) -->
                         <div class="grid {{ $__canEditCommission ? 'grid-cols-1 sm:grid-cols-4' : 'grid-cols-1 sm:grid-cols-3' }} gap-3 sm:gap-6">
-                            <!-- Location (gợi ý vị trí có sẵn + thêm vị trí mới) -->
+                            <!-- Location (gợi ý vị trí có sẵn trong DB + cho phép gõ vị trí mới) -->
                             <div class="space-y-2">
                                 <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">
                                     Vị trí hàng hóa<span class="text-rose-500 ml-0.5">*</span>
                                 </label>
-                                <div class="relative"
-                                     x-data="{
-                                        open: false,
-                                        options: @js($this->locationOptions),
-                                        query: @js($this->location ?? ''),
-                                        matches() {
-                                            const q = (this.query || '').toString().toLowerCase().trim();
-                                            const base = q ? this.options.filter(o => o.toLowerCase().includes(q)) : this.options;
-                                            return base.slice(0, 50);
-                                        },
-                                        canAddNew() {
-                                            const q = (this.query || '').toString().trim();
-                                            return q.length > 0 && !this.options.some(o => o.toLowerCase() === q.toLowerCase());
-                                        },
-                                        sync() { $wire.set('location', this.query, false); },
-                                        pick(opt) { this.query = opt; this.sync(); this.open = false; },
-                                        commitNew() {
-                                            const q = (this.query || '').toString().trim();
-                                            if (q && !this.options.some(o => o.toLowerCase() === q.toLowerCase())) {
-                                                this.options.unshift(q);
-                                            }
-                                            this.sync();
-                                            this.open = false;
-                                        }
-                                     }"
-                                     x-init="$watch(() => $wire.location, v => { if ((v ?? '') !== query) query = v ?? '' })"
-                                     @click.outside="open = false">
-                                    <div class="flex items-center gap-2">
-                                        <input type="text" x-model="query" @input="sync(); open = true" @focus="open = true"
-                                               class="w-full bg-slate-50 border border-slate-200 rounded-xl sm:rounded-2xl py-2 sm:py-3 px-3 sm:px-5 text-[13px] sm:text-sm focus:outline-none focus:border-electric-blue/40 focus:ring-2 sm:focus:ring-4 focus:ring-electric-blue/5 transition-all"
-                                               placeholder="Ví dụ: Kệ A1">
-                                        <button type="button" @click="commitNew()" title="Dùng làm vị trí mới"
-                                                class="shrink-0 w-10 h-[42px] sm:h-[46px] flex items-center justify-center rounded-xl sm:rounded-2xl border border-electric-blue/30 text-electric-blue hover:bg-electric-blue/5 transition-colors">
-                                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="M12 5v14"/></svg>
-                                        </button>
-                                    </div>
-                                    <div x-show="open" x-cloak x-transition.opacity
-                                         class="absolute left-0 right-0 top-full mt-1 z-50 max-h-56 overflow-y-auto bg-white border border-slate-200 rounded-xl shadow-xl custom-scrollbar">
-                                        <template x-for="opt in matches()" :key="opt">
-                                            <button type="button" @click="pick(opt)" class="w-full text-left px-4 py-2 text-[13px] text-slate-700 hover:bg-blue-50 transition-colors" x-text="opt"></button>
-                                        </template>
-                                        <template x-if="canAddNew()">
-                                            <button type="button" @click="commitNew()" class="w-full text-left px-4 py-2 text-[13px] font-bold text-electric-blue hover:bg-blue-50 border-t border-slate-100 flex items-center gap-1.5">
-                                                <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="M12 5v14"/></svg>
-                                                <span>Thêm vị trí mới: “<span x-text="query"></span>”</span>
-                                            </button>
-                                        </template>
-                                        <template x-if="matches().length === 0 && !canAddNew()">
-                                            <div class="px-4 py-2 text-[12px] text-slate-400 italic">Chưa có vị trí nào.</div>
-                                        </template>
-                                    </div>
+                                <div class="flex items-center gap-2">
+                                    <input type="text" wire:model="location" list="product-location-suggestions"
+                                           class="flex-1 min-w-0 bg-slate-50 border border-slate-200 rounded-xl sm:rounded-2xl py-2 sm:py-3 px-3 sm:px-5 text-[13px] sm:text-sm focus:outline-none focus:border-electric-blue/40 focus:ring-2 sm:focus:ring-4 focus:ring-electric-blue/5 transition-all"
+                                           placeholder="Gõ để chọn vị trí có sẵn hoặc nhập vị trí mới">
+                                    <button type="button" wire:click="confirmLocation" title="Thêm / xác nhận vị trí mới"
+                                            class="shrink-0 w-11 h-[42px] sm:h-[50px] flex items-center justify-center rounded-xl sm:rounded-2xl border-2 border-electric-blue text-electric-blue hover:bg-electric-blue hover:text-white transition-colors">
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="M12 5v14"/></svg>
+                                    </button>
                                 </div>
+                                <datalist id="product-location-suggestions">
+                                    @foreach($this->locationOptions as $loc)
+                                        <option value="{{ $loc }}">
+                                    @endforeach
+                                </datalist>
+                                <p class="text-[10px] text-slate-400 ml-1">Gõ để xem gợi ý vị trí đã có; nhập giá trị mới rồi bấm <span class="font-bold text-electric-blue">+</span> để thêm vị trí mới.</p>
                                 @error('location') <span class="text-[10px] text-rose-500 font-bold ml-1">{{ $message }}</span> @enderror
                             </div>
 

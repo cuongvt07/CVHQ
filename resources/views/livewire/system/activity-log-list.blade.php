@@ -16,6 +16,7 @@
                 'stock'       => 'Tồn kho',
                 'product'     => 'Hàng hóa',
                 'stock_check' => 'Kiểm kho',
+                'transfer'    => 'Chuyển hàng',
                 'import'      => 'Nhập hàng',
             ];
         @endphp

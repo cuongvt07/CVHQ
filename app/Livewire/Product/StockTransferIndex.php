@@ -274,6 +274,29 @@ class StockTransferIndex extends Component
             $this->persistToDb('confirmed');
             $this->status = 'confirmed';
 
+            // Ghi nhật ký hệ thống cho việc gửi/chuyển hàng (ai thực hiện, phiếu nào).
+            // Dùng cấu trúc before/after để trang Lịch sử hệ thống hiển thị chi tiết.
+            $totalQty = collect($this->lines)->sum(fn($l) => (int) ($l['actual_quantity'] ?? $l['send_quantity'] ?? 0));
+            $after = [
+                'Mã phiếu'    => $this->transferCode,
+                'Tuyến'       => strtoupper($this->fromBranch) . ' → ' . strtoupper($this->toBranch),
+                'Số mặt hàng' => (string) count($this->lines),
+                'Tổng SL gửi' => (string) $totalQty,
+                'Trạng thái'  => 'Đã chuyển',
+            ];
+            \App\Models\ActivityLog::create([
+                'user_id'    => auth()->id(),
+                'action'     => 'updated',
+                'model_type' => StockTransfer::class,
+                'model_id'   => $this->editingId,
+                'changes'    => [
+                    'before' => array_fill_keys(array_keys($after), ''),
+                    'after'  => $after,
+                ],
+                'ip_address' => request()->ip(),
+                'user_agent' => request()->userAgent(),
+            ]);
+
             \DB::commit();
             $this->dispatch('notify', message: 'Đã xác nhận nhận hàng! Tồn kho đã được cập nhật.', type: 'success');
         } catch (\Exception $e) {

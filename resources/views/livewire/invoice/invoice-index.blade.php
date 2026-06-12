@@ -901,7 +901,7 @@
                                                                                       ">
                                                                                      @php
                                                                                          $itemProduct = \App\Models\Product::where('sku', $item->sku)->first();
-                                                                                         $itemImg = (!empty($itemProduct?->images) && isset($itemProduct->images[0])) ? $itemProduct->images[0] : null;
+                                                                                         $itemImg = $itemProduct?->image_url;
                                                                                      @endphp
                                                                                      @if($itemImg)
                                                                                          <img src="{{ $itemImg }}" @mouseenter="hover = true" @mouseleave="hover = false" class="w-full h-full object-cover">

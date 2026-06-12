@@ -156,6 +156,23 @@ class ProductIndex extends Component
         return \App\Models\Product::getUniqueLocations();
     }
 
+    /**
+     * Bấm nút "+" cạnh ô vị trí: xác nhận vị trí đang nhập (có thể là vị trí mới).
+     * Vị trí sẽ được lưu cùng sản phẩm khi bấm Lưu.
+     */
+    public function confirmLocation(): void
+    {
+        $loc = trim((string) $this->location);
+        if ($loc === '') {
+            $this->dispatch('notify', message: 'Vui lòng nhập vị trí trước khi thêm.', type: 'warning');
+            return;
+        }
+
+        $this->location = $loc;
+        $isNew = !in_array($loc, \App\Models\Product::getUniqueLocations(), true);
+        $this->dispatch('notify', message: $isNew ? "Đã thêm vị trí mới: {$loc}" : "Đã chọn vị trí: {$loc}", type: 'success');
+    }
+
     protected function commissionForPrice(int $price): int
     {
         $ranges = \App\Models\SystemSetting::get('commission_ranges', []);

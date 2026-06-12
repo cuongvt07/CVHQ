@@ -169,7 +169,7 @@
                 <div wire:key="restock-card-{{ $product->id }}" class="bg-white border border-slate-200 rounded-xl p-3 shadow-sm">
                     <div class="flex items-center gap-3 mb-2">
                         @if(!empty($product->images))
-                            <img src="{{ $product->images[0] }}" class="w-10 h-10 rounded-lg object-cover border border-slate-100 shrink-0">
+                            <img src="{{ $product->image_url }}" class="w-10 h-10 rounded-lg object-cover border border-slate-100 shrink-0">
                         @else
                             <div class="w-10 h-10 rounded-lg bg-slate-100 flex items-center justify-center text-slate-300 shrink-0">
                                 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="3" rx="2" ry="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/></svg>
@@ -238,7 +238,7 @@
                             <td class="px-4 py-2">
                                 <div class="flex items-center gap-3">
                                     @if(!empty($product->images))
-                                        <img src="{{ $product->images[0] }}" class="w-10 h-10 rounded-lg object-cover border border-slate-100">
+                                        <img src="{{ $product->image_url }}" class="w-10 h-10 rounded-lg object-cover border border-slate-100">
                                     @else
                                         <div class="w-10 h-10 rounded-lg bg-slate-100 flex items-center justify-center text-slate-300">
                                             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="3" rx="2" ry="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/></svg>

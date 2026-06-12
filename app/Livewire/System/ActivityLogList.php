@@ -123,6 +123,7 @@ class ActivityLogList extends Component
                         'invoice' => $query->where('model_type', \App\Models\Invoice::class),
                         'product' => $query->whereIn('model_type', [\App\Models\Product::class, \App\Models\Category::class]),
                         'stock_check' => $query->where('model_type', \App\Models\StockCheck::class),
+                        'transfer' => $query->where('model_type', \App\Models\StockTransfer::class),
                         default => null,
                     };
                 })

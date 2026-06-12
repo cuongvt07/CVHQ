@@ -310,7 +310,7 @@ class PosTerminal extends Component
                 'sale_price'    => (int) $product->sale_price,
                 'location'      => $product->location,
                 'stock_quantity'=> $product->stock_quantity,
-                'image'         => !empty($product->images) ? $product->images[0] : null,
+                'image'         => $product->image_url,
             ]);
     }
 
@@ -502,7 +502,7 @@ class PosTerminal extends Component
                 'original_price'      => (int) $product->sale_price,
                 'quantity'            => 1,
                 'commission_amount'   => (int) ($product->commission_amount ?? 0),
-                'image'               => !empty($product->images) ? $product->images[0] : null,
+                'image'               => $product->image_url,
                 'discount'            => 0,
                 'calculated_discount' => 0,
             ];

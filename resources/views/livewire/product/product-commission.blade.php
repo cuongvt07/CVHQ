@@ -112,7 +112,7 @@
             <div class="flex items-center gap-3 mb-2">
                 <div class="w-10 h-10 rounded-lg overflow-hidden bg-slate-100 border border-slate-200 shrink-0">
                     @if(!empty($product->images) && isset($product->images[0]))
-                        <img src="{{ $product->images[0] }}" class="w-full h-full object-cover">
+                        <img src="{{ $product->image_url }}" class="w-full h-full object-cover">
                     @else
                         <div class="w-full h-full flex items-center justify-center text-slate-300">
                             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect width="18" height="18" x="3" y="3" rx="2" ry="2"/></svg>
@@ -202,13 +202,13 @@
                                             zoomY = (($event.clientY - rect.top) / rect.height) * 100;
                                          ">
                                         @if(!empty($product->images) && isset($product->images[0]))
-                                            <img src="{{ $product->images[0] }}" @mouseenter="hover = true" @mouseleave="hover = false" class="w-full h-full object-cover">
+                                            <img src="{{ $product->image_url }}" @mouseenter="hover = true" @mouseleave="hover = false" class="w-full h-full object-cover">
                                             <template x-teleport="body">
-                                                <div x-show="hover" 
-                                                     class="product-zoom-preview" 
+                                                <div x-show="hover"
+                                                     class="product-zoom-preview"
                                                      :style="`left: ${mouseX}px; top: ${mouseY}px; transform: translate(-50%, -50%);`"
                                                      x-cloak>
-                                                    <img src="{{ $product->images[0] }}" 
+                                                    <img src="{{ $product->image_url }}"
                                                          class="w-full h-full object-cover scale-[1.2] transition-transform duration-150 ease-out"
                                                          :style="`transform-origin: ${zoomX}% ${zoomY}%`"
                                                     >

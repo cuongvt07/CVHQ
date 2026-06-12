@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Support\Str;
 
 use App\Traits\Loggable;
 
@@ -147,6 +148,31 @@ class Product extends Model
     public function stockHistories(): HasMany
     {
         return $this->hasMany(StockHistory::class)->orderBy('created_at', 'desc');
+    }
+
+    /**
+     * Đổi đường dẫn ảnh đã lưu (vd: "products/abc.jpg" trên disk public)
+     * thành URL truy cập được (/storage/products/abc.jpg).
+     * Ảnh đã là URL ngoài (http) hoặc đường dẫn tuyệt đối thì giữ nguyên.
+     */
+    public static function imageUrl(?string $path): ?string
+    {
+        if (empty($path)) {
+            return null;
+        }
+        if (Str::startsWith($path, ['http://', 'https://', '/'])) {
+            return $path;
+        }
+        return asset('storage/' . ltrim($path, '/'));
+    }
+
+    /**
+     * URL ảnh đầu tiên của sản phẩm (đã resolve sang /storage/...).
+     */
+    public function getImageUrlAttribute(): ?string
+    {
+        $images = is_array($this->images) ? $this->images : [];
+        return self::imageUrl($images[0] ?? null);
     }
 
     /**

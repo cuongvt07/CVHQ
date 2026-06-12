@@ -313,7 +313,7 @@
                                 <div class="absolute inset-0 bg-slate-100 {{ !empty($product->images) ? 'cursor-zoom-in' : '' }}"
                                      @if(!empty($product->images)) @click="zoomOpen = true" @endif>
                                     @if(!empty($product->images))
-                                        <img src="{{ $product->images[0] }}" class="w-full h-full object-cover">
+                                        <img src="{{ $product->image_url }}" class="w-full h-full object-cover">
                                     @else
                                         <div class="w-full h-full flex items-center justify-center text-slate-300">
                                             <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect width="18" height="18" x="3" y="3" rx="2" ry="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/></svg>
@@ -327,7 +327,7 @@
                                              @click="zoomOpen = false"
                                              @keydown.escape.window="zoomOpen = false"
                                              class="fixed inset-0 z-[200] bg-black/90 flex items-center justify-center p-4">
-                                            <img src="{{ $product->images[0] }}" alt="{{ $product->name }}"
+                                            <img src="{{ $product->image_url }}" alt="{{ $product->name }}"
                                                  @click.stop
                                                  class="max-w-[95vw] max-h-[95vh] object-contain rounded-lg shadow-2xl">
                                             <button type="button" @click.stop="zoomOpen = false"
@@ -583,13 +583,13 @@
                                              zoomY = (($event.clientY - rect.top) / rect.height) * 100;
                                          ">
                                         @if(!empty($product->images) && isset($product->images[0]))
-                                            <img src="{{ $product->images[0] }}" @mouseenter="hover = true" @mouseleave="hover = false" class="w-full h-full object-cover">
+                                            <img src="{{ $product->image_url }}" @mouseenter="hover = true" @mouseleave="hover = false" class="w-full h-full object-cover">
                                             <template x-teleport="body">
-                                                <div x-show="hover" 
-                                                     class="product-zoom-preview" 
+                                                <div x-show="hover"
+                                                     class="product-zoom-preview"
                                                      :style="`left: ${mouseX}px; top: ${mouseY}px; transform: translate(-50%, -50%);`"
                                                      x-cloak>
-                                                    <img src="{{ $product->images[0] }}" 
+                                                    <img src="{{ $product->image_url }}"
                                                          class="w-full h-full object-cover scale-[1.2] transition-transform duration-150 ease-out"
                                                          :style="`transform-origin: ${zoomX}% ${zoomY}%`"
                                                     >
