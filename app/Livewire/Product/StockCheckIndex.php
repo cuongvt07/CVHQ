@@ -40,6 +40,11 @@ class StockCheckIndex extends Component
         return 'products';
     }
 
+    public function getLockedProperty(): bool
+    {
+        return $this->status === 'completed';
+    }
+
     public function mount(): void
     {
         $this->logSession = (string) Str::uuid();
@@ -191,6 +196,10 @@ class StockCheckIndex extends Component
 
     public function updatedProductSearch($value): void
     {
+        if ($this->locked) {
+            return;
+        }
+
         $keyword = trim((string) $value);
         if ($keyword === '' || $keyword === $this->lastLoggedSearch) {
             return;
@@ -202,6 +211,10 @@ class StockCheckIndex extends Component
 
     public function addProduct(int $productId): void
     {
+        if ($this->locked) {
+            return;
+        }
+
         if (collect($this->lines)->contains('product_id', $productId)) {
             $product = Product::find($productId);
             $this->logCheckAction('duplicate_product', [
@@ -240,6 +253,10 @@ class StockCheckIndex extends Component
 
     public function removeLine(int $index): void
     {
+        if ($this->locked) {
+            return;
+        }
+
         unset($this->lines[$index]);
         $this->lines = array_values($this->lines);
         $this->persist($this->status);
@@ -247,6 +264,10 @@ class StockCheckIndex extends Component
 
     public function updatedLines($value, string $key): void
     {
+        if ($this->locked) {
+            return;
+        }
+
         if (!str_ends_with($key, '.actual_quantity')) {
             return;
         }
@@ -279,6 +300,10 @@ class StockCheckIndex extends Component
 
     public function saveDraft(): void
     {
+        if ($this->locked) {
+            return;
+        }
+
         $this->persist('draft');
         $this->logCheckAction('save_draft');
         $this->dispatch('notify', message: 'Đã lưu tạm phiếu kiểm kho.', type: 'success');

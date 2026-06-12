@@ -255,6 +255,7 @@
         $matched = collect($lines)->where('difference', 0)->whereNotNull('actual_quantity')->count();
         $different = collect($lines)->filter(fn($l) => $l['actual_quantity'] !== null && $l['difference'] != 0)->count();
         $unchecked = collect($lines)->whereNull('actual_quantity')->count();
+        $locked = $status === 'completed';
     @endphp
     <div class="h-full min-h-0 flex flex-col bg-slate-50"
          x-data="{
@@ -300,7 +301,8 @@
                     <button wire:click="cancelEdit" class="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-slate-100 text-slate-600 shrink-0">
                         <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="m15 18-6-6 6-6"/></svg>
                     </button>
-                    <h1 class="text-sm font-black text-slate-900 shrink-0">Tạo phiếu kiểm kho</h1>
+                    <h1 class="text-sm font-black text-slate-900 shrink-0">{{ $locked ? 'Chi tiết phiếu kiểm' : 'Tạo phiếu kiểm kho' }}</h1>
+                    @unless($locked)
                     <div class="relative flex-1">
                         <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
                         <input type="text" wire:model.live.debounce.300ms="productSearch" placeholder="Chọn hàng hóa kiểm" class="w-full h-9 bg-white border border-slate-300 rounded-lg pl-9 pr-3 text-xs focus:outline-none focus:border-electric-blue">
@@ -318,6 +320,7 @@
                             </div>
                         @endif
                     </div>
+                    @endunless
                 </div>
                 {{-- Detail header --}}
                 <div x-show="mobileDetail !== null" x-cloak class="flex items-center gap-3 w-full">
@@ -405,17 +408,17 @@
                 </div>
 
                 {{-- Bottom save/complete --}}
-                <div class="shrink-0 grid grid-cols-2 gap-2 p-3 bg-white border-t border-slate-200">
-                    <button wire:click="saveDraft" class="h-12 rounded-xl bg-blue-600 text-white text-sm font-black flex items-center justify-center gap-2 active:scale-[0.98] transition-transform">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><path d="M17 21v-8H7v8"/><path d="M7 3v5h8"/></svg>
-                        Lưu tạm
-                    </button>
-                    @if($status === 'completed')
-                        <button disabled class="h-12 rounded-xl bg-slate-100 text-slate-400 text-sm font-black flex items-center justify-center gap-2 cursor-not-allowed">
+                <div class="shrink-0 {{ $locked ? '' : 'grid grid-cols-2 gap-2' }} p-3 bg-white border-t border-slate-200">
+                    @if($locked)
+                        <button disabled class="w-full h-12 rounded-xl bg-slate-100 text-slate-400 text-sm font-black flex items-center justify-center gap-2 cursor-not-allowed">
                             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M20 6 9 17l-5-5"/></svg>
                             Đã hoàn thành
                         </button>
                     @else
+                        <button wire:click="saveDraft" class="h-12 rounded-xl bg-blue-600 text-white text-sm font-black flex items-center justify-center gap-2 active:scale-[0.98] transition-transform">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><path d="M17 21v-8H7v8"/><path d="M7 3v5h8"/></svg>
+                            Lưu tạm
+                        </button>
                         <button wire:click="complete" wire:loading.attr="disabled" wire:target="complete" class="h-12 rounded-xl bg-emerald-500 text-white text-sm font-black flex items-center justify-center gap-2 active:scale-[0.98] transition-transform disabled:opacity-60 disabled:cursor-not-allowed">
                             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M20 6 9 17l-5-5"/></svg>
                             Hoàn thành
@@ -458,7 +461,7 @@
                 </div>
 
                 {{-- Stepper --}}
-                <div class="flex items-center justify-center gap-8 py-10">
+                <div x-show="!{{ $locked ? 'true' : 'false' }}" class="flex items-center justify-center gap-8 py-10">
                     <button @click="if (stepVal > 0) stepVal--"
                             class="w-14 h-14 rounded-full bg-slate-100 text-slate-700 text-3xl flex items-center justify-center font-light active:bg-slate-200 transition-colors select-none">−</button>
                     <input type="number" x-model.number="stepVal" min="0"
@@ -468,6 +471,7 @@
                 </div>
 
                 {{-- Action buttons --}}
+                @unless($locked)
                 <div class="grid grid-cols-2 gap-3 px-4">
                     <button @click="gheDe()"
                             class="h-14 rounded-2xl bg-emerald-500 text-white text-base font-black active:scale-[0.97] transition-transform shadow-lg shadow-emerald-500/20">
@@ -478,6 +482,13 @@
                         Cộng thêm
                     </button>
                 </div>
+                @else
+                <div class="px-4">
+                    <div class="h-14 rounded-2xl bg-slate-100 text-slate-400 text-sm font-black flex items-center justify-center">
+                        Phiếu đã hoàn thành — chỉ xem
+                    </div>
+                </div>
+                @endunless
 
                 {{-- Navigation --}}
                 <div class="flex items-center justify-between px-6 mt-6">
@@ -503,8 +514,9 @@
                     <button wire:click="cancelEdit" class="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-slate-100 text-slate-600 shrink-0">
                         <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="m15 18-6-6 6-6"/></svg>
                     </button>
-                    <h1 class="text-lg font-black text-slate-900 shrink-0">Kiểm kho</h1>
+                    <h1 class="text-lg font-black text-slate-900 shrink-0">{{ $locked ? 'Chi tiết phiếu kiểm' : 'Kiểm kho' }}</h1>
 
+                    @unless($locked)
                     <div class="relative w-[360px]">
                         <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
                         <input type="text" wire:model.live.debounce.300ms="productSearch" placeholder="Tìm hàng hóa theo mã hoặc tên (F3)" class="w-full h-9 bg-white border border-slate-300 rounded-lg pl-9 pr-9 text-xs focus:outline-none focus:border-electric-blue focus:ring-1 focus:ring-electric-blue">
@@ -522,6 +534,7 @@
                             </div>
                         @endif
                     </div>
+                    @endunless
 
                     <div class="ml-auto flex items-center gap-2">
                         <button class="w-9 h-9 border border-slate-200 rounded-lg flex items-center justify-center text-slate-500 hover:text-electric-blue hover:border-electric-blue/40">
@@ -556,9 +569,11 @@
                             @forelse($lines as $index => $line)
                                 <tr wire:key="line-{{ $line['product_id'] }}" class="{{ $line['difference'] < 0 ? 'bg-slate-50' : '' }}">
                                     <td class="px-3 py-2">
+                                        @unless($locked)
                                         <button wire:click="removeLine({{ $index }})" class="text-slate-400 hover:text-rose-500">
                                             <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18"/><path d="M19 6v14H5V6"/><path d="M8 6V4h8v2"/></svg>
                                         </button>
+                                        @endunless
                                     </td>
                                     <td class="px-3 py-2 text-xs text-slate-700">{{ $index + 1 }}</td>
                                     <td class="px-3 py-2 text-xs font-bold text-electric-blue">{{ $line['sku'] }}</td>
@@ -566,7 +581,11 @@
                                     <td class="px-3 py-2 text-xs text-slate-600">{{ $line['unit'] }}</td>
                                     <td class="px-3 py-2 text-xs text-right font-bold text-slate-900">{{ number_format($line['system_quantity']) }}</td>
                                     <td class="px-3 py-2 text-center">
-                                        <input type="number" min="0" wire:model.live.debounce.250ms="lines.{{ $index }}.actual_quantity" class="w-20 h-7 border border-slate-200 rounded-lg text-xs text-center focus:outline-none focus:border-electric-blue">
+                                        @if($locked)
+                                            <span class="inline-block w-20 text-xs text-center font-bold text-slate-900">{{ number_format($line['actual_quantity']) }}</span>
+                                        @else
+                                            <input type="number" min="0" wire:model.live.debounce.250ms="lines.{{ $index }}.actual_quantity" class="w-20 h-7 border border-slate-200 rounded-lg text-xs text-center focus:outline-none focus:border-electric-blue">
+                                        @endif
                                     </td>
                                     <td class="px-3 py-2 text-xs text-right font-bold {{ $line['difference'] < 0 ? 'text-rose-600' : ($line['difference'] > 0 ? 'text-emerald-600' : 'text-slate-500') }}">{{ number_format($line['difference']) }}</td>
                                     <td class="px-3 py-2 text-xs text-right text-slate-700">{{ number_format($line['difference_value']) }}</td>
@@ -590,18 +609,18 @@
                     </div>
                     <div class="grid grid-cols-[96px_1fr] items-center gap-3 text-xs">
                         <span class="text-slate-500">Mã kiểm kho</span>
-                        <input type="text" wire:model="code" placeholder="Mã phiếu tự động" class="h-8 border border-slate-200 rounded-lg px-3 text-xs focus:outline-none focus:border-electric-blue">
+                        <input type="text" wire:model="code" placeholder="Mã phiếu tự động" @disabled($locked) class="h-8 border border-slate-200 rounded-lg px-3 text-xs focus:outline-none focus:border-electric-blue disabled:bg-slate-50 disabled:text-slate-500">
                         <span class="text-slate-500">Chi nhánh</span>
-                        <select wire:model="branch" class="h-8 border border-slate-200 rounded-lg px-3 text-xs focus:outline-none focus:border-electric-blue">
+                        <select wire:model="branch" @disabled($locked) class="h-8 border border-slate-200 rounded-lg px-3 text-xs focus:outline-none focus:border-electric-blue disabled:bg-slate-50 disabled:text-slate-500">
                             <option value="hn">Hà Nội</option>
                             <option value="sg">Sài Gòn</option>
                         </select>
                         <span class="text-slate-500">Trạng thái</span>
-                        <span class="text-slate-700">Phiếu tạm</span>
+                        <span class="{{ $locked ? 'text-emerald-600 font-bold' : 'text-slate-700' }}">{{ $locked ? 'Đã hoàn thành' : 'Phiếu tạm' }}</span>
                         <span class="text-slate-500">Tổng SL thực tế</span>
                         <span class="font-bold text-slate-900">{{ number_format($totals['actual']) }}</span>
                     </div>
-                    <textarea wire:model="note" rows="2" placeholder="Ghi chú" class="w-full border border-slate-200 rounded-lg px-3 py-2 text-xs focus:outline-none focus:border-electric-blue"></textarea>
+                    <textarea wire:model="note" rows="2" placeholder="Ghi chú" @disabled($locked) class="w-full border border-slate-200 rounded-lg px-3 py-2 text-xs focus:outline-none focus:border-electric-blue disabled:bg-slate-50 disabled:text-slate-500"></textarea>
 
                     <div class="border border-slate-200">
                         <div class="bg-blue-50 px-3 py-2 text-xs font-black text-slate-700">Kiểm gần đây</div>
@@ -640,17 +659,17 @@
                     </div>
                 </div>
 
-                <div class="grid grid-cols-2 gap-2 p-4 shrink-0 border-t border-slate-100">
-                    <button wire:click="saveDraft" class="h-14 rounded-lg bg-blue-600 text-white text-sm font-black flex items-center justify-center gap-2">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><path d="M17 21v-8H7v8"/><path d="M7 3v5h8"/></svg>
-                        Lưu tạm
-                    </button>
-                    @if($status === 'completed')
-                        <button disabled class="h-14 rounded-lg bg-slate-100 text-slate-400 text-sm font-black flex items-center justify-center gap-2 cursor-not-allowed">
+                <div class="{{ $locked ? '' : 'grid grid-cols-2 gap-2' }} p-4 shrink-0 border-t border-slate-100">
+                    @if($locked)
+                        <button disabled class="w-full h-14 rounded-lg bg-slate-100 text-slate-400 text-sm font-black flex items-center justify-center gap-2 cursor-not-allowed">
                             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M20 6 9 17l-5-5"/></svg>
                             Đã hoàn thành
                         </button>
                     @else
+                        <button wire:click="saveDraft" class="h-14 rounded-lg bg-blue-600 text-white text-sm font-black flex items-center justify-center gap-2">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><path d="M17 21v-8H7v8"/><path d="M7 3v5h8"/></svg>
+                            Lưu tạm
+                        </button>
                         <button wire:click="complete" wire:loading.attr="disabled" wire:target="complete" class="h-14 rounded-lg bg-emerald-500 text-white text-sm font-black flex items-center justify-center gap-2 disabled:opacity-60 disabled:cursor-not-allowed">
                             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M20 6 9 17l-5-5"/></svg>
                             Hoàn thành
