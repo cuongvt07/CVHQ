@@ -121,7 +121,7 @@
                                         <input type="text" wire:model="bulkProducts.{{ $index }}.attribute" class="w-full bg-transparent border border-transparent hover:border-slate-200 focus:border-electric-blue focus:bg-white rounded-lg px-2 py-1.5 text-xs focus:outline-none transition-all" placeholder="VD: Đỏ, Xanh, ...">
                                     </td>
                                     <td class="px-3 py-1.5">
-                                        <input type="text" wire:model="bulkProducts.{{ $index }}.location" class="w-full bg-transparent border border-transparent hover:border-slate-200 focus:border-electric-blue focus:bg-white rounded-lg px-2 py-1.5 text-xs font-bold text-electric-blue focus:outline-none transition-all" placeholder="Mã thùng">
+                                        <input type="text" wire:model="bulkProducts.{{ $index }}.location" list="bulk-location-suggestions" class="w-full bg-transparent border border-transparent hover:border-slate-200 focus:border-electric-blue focus:bg-white rounded-lg px-2 py-1.5 text-xs font-bold text-electric-blue focus:outline-none transition-all" placeholder="Gõ để chọn / thêm vị trí">
                                     </td>
                                     <td class="px-3 py-1.5">
                                         <input type="number" wire:model="bulkProducts.{{ $index }}.stock" class="w-full bg-transparent border border-transparent hover:border-slate-200 focus:border-electric-blue focus:bg-white rounded-lg px-2 py-1.5 text-xs font-bold text-slate-900 focus:outline-none transition-all">
@@ -138,6 +138,13 @@
                         @if(empty($this->bulkProducts))
                             <div class="p-8 text-center text-slate-400 text-xs font-bold">Chưa có dòng nào. Vui lòng bấm thêm dòng.</div>
                         @endif
+
+                        {{-- Gợi ý vị trí đã có; gõ giá trị mới để thêm vị trí mới --}}
+                        <datalist id="bulk-location-suggestions">
+                            @foreach($this->locationOptions as $loc)
+                                <option value="{{ $loc }}">
+                            @endforeach
+                        </datalist>
                     </div>
                 </div>
             </div>

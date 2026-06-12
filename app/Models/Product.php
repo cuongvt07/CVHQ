@@ -131,6 +131,19 @@ class Product extends Model
         return array_values(array_unique(array_filter($values)));
     }
 
+    /**
+     * Lấy danh sách các vị trí hàng hóa đã tồn tại (gợi ý khi nhập vị trí)
+     */
+    public static function getUniqueLocations()
+    {
+        return self::whereNotNull('location')
+            ->where('location', '!=', '')
+            ->distinct()
+            ->orderBy('location')
+            ->pluck('location')
+            ->all();
+    }
+
     public function stockHistories(): HasMany
     {
         return $this->hasMany(StockHistory::class)->orderBy('created_at', 'desc');

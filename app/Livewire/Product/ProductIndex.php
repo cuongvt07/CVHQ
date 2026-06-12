@@ -147,6 +147,15 @@ class ProductIndex extends Component
         return filter_var(\App\Models\SystemSetting::get('auto_commission_enabled', false), FILTER_VALIDATE_BOOLEAN);
     }
 
+    /**
+     * Danh sách vị trí hàng hóa đã tồn tại — dùng để gợi ý khi nhập vị trí
+     * (cả thêm từng sản phẩm lẫn thêm hàng loạt).
+     */
+    public function getLocationOptionsProperty(): array
+    {
+        return \App\Models\Product::getUniqueLocations();
+    }
+
     protected function commissionForPrice(int $price): int
     {
         $ranges = \App\Models\SystemSetting::get('commission_ranges', []);
