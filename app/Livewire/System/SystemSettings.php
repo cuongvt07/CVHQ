@@ -13,10 +13,6 @@ class SystemSettings extends Component
     public string $shop_sg_address = '';
     public string $shop_sg_phone = '';
 
-    // Commission Settings
-    public bool $auto_commission_enabled = false;
-    public array $commission_ranges = [];
-
     public function mount(): void
     {
         if (!auth()->user() || auth()->user()->role !== 'admin') {
@@ -28,15 +24,6 @@ class SystemSettings extends Component
         $this->shop_hn_phone  = SystemSetting::get('shop_hn_phone', '');
         $this->shop_sg_address = SystemSetting::get('shop_sg_address', '');
         $this->shop_sg_phone  = SystemSetting::get('shop_sg_phone', '');
-        
-        // get() trả về JSON đã decode (bool true, không phải chuỗi 'true'),
-        // nên dùng filter_var để nhận đúng cả bool/'true'/'1'. Nếu so sánh === 'true'
-        // sẽ luôn ra false -> tự tắt auto hoa hồng mỗi lần lưu cài đặt.
-        $this->auto_commission_enabled = filter_var(SystemSetting::get('auto_commission_enabled', false), FILTER_VALIDATE_BOOLEAN);
-        $this->commission_ranges = SystemSetting::get('commission_ranges', []);
-        if (!is_array($this->commission_ranges)) {
-            $this->commission_ranges = [];
-        }
     }
 
     public function save(): void
@@ -47,8 +34,6 @@ class SystemSettings extends Component
             'shop_hn_phone'   => 'nullable|string|max:50',
             'shop_sg_address' => 'nullable|string|max:500',
             'shop_sg_phone'   => 'nullable|string|max:50',
-            'auto_commission_enabled' => 'boolean',
-            'commission_ranges' => 'array',
         ]);
 
         SystemSetting::set('shop_name',       $this->shop_name);
@@ -56,34 +41,8 @@ class SystemSettings extends Component
         SystemSetting::set('shop_hn_phone',   $this->shop_hn_phone);
         SystemSetting::set('shop_sg_address', $this->shop_sg_address);
         SystemSetting::set('shop_sg_phone',   $this->shop_sg_phone);
-        $ranges = collect($this->commission_ranges)
-            ->map(fn($range) => [
-                'min' => max(0, (int) ($range['min'] ?? 0)),
-                'max' => max(0, (int) ($range['max'] ?? 0)),
-                'amount' => max(0, (int) ($range['amount'] ?? 0)),
-            ])
-            ->filter(fn($range) => $range['amount'] > 0 || $range['min'] > 0 || $range['max'] > 0)
-            ->sortBy('min')
-            ->values()
-            ->all();
-
-        SystemSetting::set('auto_commission_enabled', $this->auto_commission_enabled ? 'true' : 'false');
-        SystemSetting::set('commission_ranges', $ranges);
-        $this->commission_ranges = $ranges;
 
         $this->dispatch('notify', message: 'Đã lưu cài đặt cửa hàng!', type: 'success');
-    }
-
-    public function addCommissionRange()
-    {
-        $lastMax = collect($this->commission_ranges)->max(fn($range) => (int) ($range['max'] ?? 0));
-        $this->commission_ranges[] = ['min' => (int) $lastMax, 'max' => 0, 'amount' => 0];
-    }
-
-    public function removeCommissionRange($index)
-    {
-        unset($this->commission_ranges[$index]);
-        $this->commission_ranges = array_values($this->commission_ranges);
     }
 
     public function render()

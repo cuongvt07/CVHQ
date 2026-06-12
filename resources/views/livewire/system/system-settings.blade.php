@@ -66,59 +66,6 @@
             </div>
         </div>
 
-        {{-- Hoa hồng tự động --}}
-        <div class="p-6">
-            <h2 class="text-sm font-bold text-slate-700 mb-4 flex items-center gap-2">
-                <span class="inline-flex items-center p-1.5 rounded-lg bg-indigo-100 text-indigo-700">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v20"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
-                </span>
-                Cấu hình Hoa hồng tự động
-            </h2>
-            <div class="space-y-4">
-                <label class="flex items-center gap-2 cursor-pointer mb-4">
-                    <input type="checkbox" wire:model.live="auto_commission_enabled" class="w-4 h-4 text-electric-blue rounded border-slate-300 focus:ring-electric-blue">
-                    <span class="text-sm font-semibold text-slate-700">Bật tính năng tự nhảy mức hoa hồng theo giá bán</span>
-                </label>
-
-                    <div class="bg-slate-50 border border-slate-200 rounded-xl p-4 {{ $auto_commission_enabled ? '' : 'opacity-70' }}">
-                        <div class="flex items-center justify-between mb-3">
-                            <h3 class="text-xs font-bold text-slate-600 uppercase tracking-widest">Các mốc giá & Hoa hồng</h3>
-                            <button type="button" wire:click="addCommissionRange" class="text-[11px] font-bold text-electric-blue hover:underline flex items-center gap-1">
-                                <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="M12 5v14"/></svg>
-                                Thêm mốc mới
-                            </button>
-                        </div>
-                        @unless($auto_commission_enabled)
-                            <p class="mb-3 text-[11px] font-semibold text-slate-400">Có thể thiết lập mốc hoa hồng trước; bật checkbox phía trên để áp dụng tự động khi nhập giá sản phẩm.</p>
-                        @endunless
-                        <div class="space-y-2">
-                            @foreach($commission_ranges as $index => $range)
-                                <div class="grid grid-cols-1 sm:grid-cols-[1fr_1fr_1fr_auto] gap-2 sm:items-center" wire:key="range-{{ $index }}">
-                                    <div class="flex items-center gap-2">
-                                        <span class="text-xs font-semibold text-slate-500 whitespace-nowrap w-8">Từ:</span>
-                                        <input type="number" wire:model="commission_ranges.{{ $index }}.min" class="w-full bg-white border border-slate-200 rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:border-electric-blue" placeholder="Giá tối thiểu">
-                                    </div>
-                                    <div class="flex items-center gap-2">
-                                        <span class="text-xs font-semibold text-slate-500 whitespace-nowrap w-8">Đến:</span>
-                                        <input type="number" wire:model="commission_ranges.{{ $index }}.max" class="w-full bg-white border border-slate-200 rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:border-electric-blue" placeholder="Giá tối đa">
-                                    </div>
-                                    <div class="flex items-center gap-2">
-                                        <span class="text-xs font-semibold text-slate-500 whitespace-nowrap w-16">Hoa hồng:</span>
-                                        <input type="number" wire:model="commission_ranges.{{ $index }}.amount" class="w-full bg-white border border-slate-200 rounded-lg px-3 py-1.5 text-sm font-bold text-electric-blue focus:outline-none focus:border-electric-blue" placeholder="Số tiền">
-                                    </div>
-                                    <button type="button" wire:click="removeCommissionRange({{ $index }})" class="shrink-0 p-2 text-slate-400 hover:text-rose-500 hover:bg-rose-50 rounded-lg transition-colors">
-                                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
-                                    </button>
-                                </div>
-                            @endforeach
-                            @if(count($commission_ranges) === 0)
-                                <p class="text-[11px] text-slate-400 font-medium italic py-2 text-center">Chưa có thiết lập mốc giá. Vui lòng thêm mốc mới.</p>
-                            @endif
-                        </div>
-                    </div>
-            </div>
-        </div>
-
         {{-- Actions --}}
         <div class="px-6 py-4 flex justify-end">
             <button wire:click="save"
