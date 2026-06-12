@@ -189,7 +189,10 @@
                             @if(in_array('actions', $visibleColumns))
                             <td class="px-4 py-2">
                                 <div class="flex items-center gap-2">
-                                    <button wire:click="edit({{ $user->id }})" class="p-1.5 text-slate-400 hover:text-electric-blue transition-colors">
+                                    <button wire:click="copy({{ $user->id }})" title="Sao chép nhân viên (tạo nhân viên mới cùng quyền)" class="p-1.5 text-slate-400 hover:text-emerald-500 transition-colors">
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg>
+                                    </button>
+                                    <button wire:click="edit({{ $user->id }})" title="Sửa nhân viên" class="p-1.5 text-slate-400 hover:text-electric-blue transition-colors">
                                         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
                                     </button>
                                     <button wire:click="confirmDelete({{ $user->id }})" class="p-1.5 text-slate-400 hover:text-rose-500 transition-colors {{ auth()->id() === $user->id ? 'hidden' : '' }}">

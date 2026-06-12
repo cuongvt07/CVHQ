@@ -39,6 +39,13 @@
                         </button>
                     </div>
 
+                    @if($this->copiedFromName)
+                        <div class="flex items-center gap-2 mb-4 px-4 py-2.5 bg-emerald-50 border border-emerald-100 rounded-2xl text-[12px] font-semibold text-emerald-700">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg>
+                            Đã sao chép quyền từ <span class="font-black">{{ $this->copiedFromName }}</span>. Hãy nhập tên, email và mật khẩu cho nhân viên mới.
+                        </div>
+                    @endif
+
                     <form wire:submit.prevent="save" class="space-y-4">
                         <!-- Name -->
                         <div class="space-y-2">

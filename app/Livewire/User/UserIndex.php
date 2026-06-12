@@ -44,6 +44,9 @@ class UserIndex extends Component
     public $userId;
     public $name, $email, $password, $role = 'staff', $can_receive_commission = true, $work_branch = '', $permissions = [];
 
+    // Khi sao chép nhân viên: tên nhân viên nguồn (hiển thị nhắc trong form)
+    public $copiedFromName = null;
+
     protected function rules()
     {
         return [
@@ -67,6 +70,7 @@ class UserIndex extends Component
         $this->can_receive_commission = true;
         $this->work_branch = '';
         $this->permissions = [];
+        $this->copiedFromName = null;
         $this->resetErrorBag();
     }
 
@@ -87,8 +91,29 @@ class UserIndex extends Component
         $this->can_receive_commission = $user->can_receive_commission;
         $this->work_branch = $user->work_branch ?? '';
         $this->permissions = $user->permissions ?? [];
-        
+
         $this->dispatch('open-user-modal');
+    }
+
+    /**
+     * Sao chép nhân viên: tạo nhân viên mới với toàn bộ quyền (và vai trò,
+     * chi nhánh, cấu hình hoa hồng) giống nhân viên nguồn. Chỉ cần nhập
+     * tên / email / mật khẩu mới.
+     */
+    public function copy($id)
+    {
+        $source = User::findOrFail($id);
+
+        $this->resetForm();
+        // userId vẫn null => save() sẽ TẠO MỚI, không sửa nhân viên nguồn.
+        $this->role = $source->role;
+        $this->can_receive_commission = $source->can_receive_commission;
+        $this->work_branch = $source->work_branch ?? '';
+        $this->permissions = $source->permissions ?? [];
+        $this->copiedFromName = $source->name;
+
+        $this->dispatch('open-user-modal');
+        $this->dispatch('notify', message: "Đã sao chép quyền từ \"{$source->name}\". Nhập tên, email và mật khẩu cho nhân viên mới.", type: 'info');
     }
 
     public function save()
@@ -110,10 +135,10 @@ class UserIndex extends Component
 
         if ($this->userId) {
             User::find($this->userId)->update($data);
-            $this->dispatch('notify', message: 'Cáº­p nháº­t nhÃ¢n viÃªn thÃ nh cÃ´ng!', type: 'success');
+            $this->dispatch('notify', message: 'Cập nhật nhân viên thành công!', type: 'success');
         } else {
             User::create($data);
-            $this->dispatch('notify', message: 'ThÃªm nhÃ¢n viÃªn thÃ nh cÃ´ng!', type: 'success');
+            $this->dispatch('notify', message: 'Thêm nhân viên thành công!', type: 'success');
         }
 
         $this->dispatch('close-user-modal');
@@ -129,13 +154,13 @@ class UserIndex extends Component
     public function delete()
     {
         if ($this->userId === auth()->id()) {
-            $this->dispatch('notify', message: 'Báº¡n khÃ´ng thá»ƒ tá»± xÃ³a chÃ­nh mÃ¬nh!', type: 'error');
+            $this->dispatch('notify', message: 'Bạn không thể tự xóa chính mình!', type: 'error');
             $this->dispatch('close-delete-modal');
             return;
         }
 
         User::find($this->userId)->delete();
-        $this->dispatch('notify', message: 'ÄÃ£ xÃ³a tÃ i khoáº£n nhÃ¢n viÃªn!', type: 'success');
+        $this->dispatch('notify', message: 'Đã xóa tài khoản nhân viên!', type: 'success');
         $this->dispatch('close-delete-modal');
         $this->userId = null;
     }
@@ -156,31 +181,31 @@ class UserIndex extends Component
     public function getAvailablePermissionsProperty()
     {
         return [
-            'dashboard' => ['label' => 'Tá»•ng quan', 'actions' => []],
-            'pos' => ['label' => 'BÃ¡n hÃ ng (POS)', 'actions' => []],
+            'dashboard' => ['label' => 'Tổng quan', 'actions' => []],
+            'pos' => ['label' => 'Bán hàng (POS)', 'actions' => []],
             'products' => [
-                'label' => 'Sáº£n pháº©m',
+                'label' => 'Sản phẩm',
                 'actions' => [
-                    'product.edit_commission' => 'Sá»­a hoa há»“ng sáº£n pháº©m',
-                    'product.stock_check' => 'Kiá»ƒm kho',
-                    'product.stock_check_delete' => 'XÃ³a phiáº¿u kiá»ƒm kho',
-                    'product.delete' => 'XÃ³a sáº£n pháº©m'
+                    'product.edit_commission' => 'Sửa hoa hồng sản phẩm',
+                    'product.stock_check' => 'Kiểm kho',
+                    'product.stock_check_delete' => 'Xóa phiếu kiểm kho',
+                    'product.delete' => 'Xóa sản phẩm'
                 ]
             ],
-            'categories' => ['label' => 'Danh má»¥c', 'actions' => []],
-            'commissions' => ['label' => 'Báº£ng hoa há»“ng', 'actions' => []],
-            'customers' => ['label' => 'KhÃ¡ch hÃ ng', 'actions' => []],
-            'users' => ['label' => 'NhÃ¢n viÃªn', 'actions' => []],
+            'categories' => ['label' => 'Danh mục', 'actions' => []],
+            'commissions' => ['label' => 'Bảng hoa hồng', 'actions' => []],
+            'customers' => ['label' => 'Khách hàng', 'actions' => []],
+            'users' => ['label' => 'Nhân viên', 'actions' => []],
             'invoices' => [
-                'label' => 'HÃ³a Ä‘Æ¡n',
+                'label' => 'Hóa đơn',
                 'actions' => [
-                    'invoice.edit' => 'Sá»­a hÃ³a Ä‘Æ¡n',
-                    'invoice.return' => 'Tráº£ hÃ ng',
-                    'invoice.cancel' => 'Há»§y hÃ³a Ä‘Æ¡n',
-                    'invoice.view_commission' => 'Xem hoa há»“ng'
+                    'invoice.edit' => 'Sửa hóa đơn',
+                    'invoice.return' => 'Trả hàng',
+                    'invoice.cancel' => 'Hủy hóa đơn',
+                    'invoice.view_commission' => 'Xem hoa hồng'
                 ]
             ],
-            'reports' => ['label' => 'BÃ¡o cÃ¡o', 'actions' => []],
+            'reports' => ['label' => 'Báo cáo', 'actions' => []],
         ];
     }
 
