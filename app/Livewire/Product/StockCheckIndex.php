@@ -299,6 +299,9 @@ class StockCheckIndex extends Component
         $check = $this->persist('completed');
         $this->logCheckAction('complete');
 
+        $branchLabel = strtoupper($check->branch ?? 'HN');
+        $balancedAt  = now();
+
         foreach ($check->items as $item) {
             $product = Product::find($item->product_id);
             if (!$product) {
@@ -311,7 +314,8 @@ class StockCheckIndex extends Component
                     (int) $item->difference,
                     $check->id,
                     $check->code,
-                    'Cân bằng kho từ phiếu kiểm'
+                    "Cân bằng kho từ phiếu kiểm ({$branchLabel})",
+                    $item->system_quantity  // quantity_before = tồn kho theo phiếu, đồng bộ với detail
                 );
             }
 
@@ -319,7 +323,7 @@ class StockCheckIndex extends Component
             $product->save();
         }
 
-        $check->update(['balanced_at' => now()]);
+        $check->update(['balanced_at' => $balancedAt]);
         $this->status = 'completed';
         $this->dispatch('notify', message: 'Đã hoàn thành và cân bằng kho.', type: 'success');
         $this->cancelEdit();

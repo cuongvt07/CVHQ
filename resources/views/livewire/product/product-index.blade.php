@@ -454,9 +454,10 @@
                                             $mTypeShortLabels = [
                                                 'Sale' => 'Bán',
                                                 'Purchase' => 'Nhập',
-                                                'Adjustment' => 'ĐC',
+                                                'Adjustment' => 'KK',
                                                 'Cancel' => 'Hủy',
                                                 'Import' => 'IE',
+                                                'Transfer' => 'CK',
                                             ];
                                         @endphp
                                         @foreach($product->stockHistories()->with('user')->take(10)->get() as $h)
@@ -768,9 +769,10 @@
                                                                         $typeLabels = [
                                                                             'Sale' => 'Bán hàng',
                                                                             'Purchase' => 'Nhập hàng',
-                                                                            'Adjustment' => 'Điều chỉnh',
+                                                                            'Adjustment' => 'Kiểm kho',
                                                                             'Cancel' => 'Hủy bán',
                                                                             'Import' => 'Import Excel',
+                                                                            'Transfer' => 'Chuyển hàng',
                                                                         ];
                                                                     @endphp
                                                                     <span class="{{ $typeColors[$history->type] ?? 'text-slate-400' }} font-bold">

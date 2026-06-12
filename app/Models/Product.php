@@ -139,9 +139,9 @@ class Product extends Model
     /**
      * Ghi lại lịch sử thay đổi kho
      */
-    public function recordStockHistory($type, $change, $referenceId = null, $referenceCode = null, $note = null)
+    public function recordStockHistory($type, $change, $referenceId = null, $referenceCode = null, $note = null, $quantityBefore = null)
     {
-        $before = (int)$this->stock_quantity;
+        $before = $quantityBefore !== null ? (int)$quantityBefore : (int)$this->stock_quantity;
         $after = $before + (int)$change;
 
         return StockHistory::create([
