@@ -109,31 +109,41 @@ class StockCheckIndex extends Component
         $this->lastLoggedSearch = '';
         $this->logSession = (string) Str::uuid();
 
-        // Refresh system_quantity từ stock hiện tại
-        $productIds = $check->items->pluck('product_id')->filter()->all();
-        $currentStocks = Product::whereIn('id', $productIds)->pluck('stock_quantity', 'id');
+        if ($check->status === 'draft') {
+            // Refresh system_quantity từ tồn kho thực tế hiện tại
+            $productIds = $check->items->pluck('product_id')->filter()->all();
+            $currentStocks = Product::whereIn('id', $productIds)->pluck('stock_quantity', 'id');
 
-        $this->lines = $check->items->map(fn($item) => [
-            'product_id' => $item->product_id,
-            'sku' => $item->sku,
-            'name' => $item->product_name,
-            'unit' => $item->unit ?: 'Cái',
-            'system_quantity' => (int) ($currentStocks[$item->product_id] ?? $item->system_quantity),
-            'actual_quantity' => (int) $item->actual_quantity,
-            'difference' => (int) $item->difference,
-            'difference_value' => (int) $item->difference_value,
-        ])->values()->all();
+            $this->lines = $check->items->map(fn($item) => [
+                'product_id' => $item->product_id,
+                'sku' => $item->sku,
+                'name' => $item->product_name,
+                'unit' => $item->unit ?: 'Cái',
+                'system_quantity' => (int) ($currentStocks[$item->product_id] ?? $item->system_quantity),
+                'actual_quantity' => (int) $item->actual_quantity,
+                'difference' => (int) $item->difference,
+                'difference_value' => (int) $item->difference_value,
+            ])->values()->all();
 
-        // Tính lại difference với system_quantity mới
-        foreach (array_keys($this->lines) as $index) {
-            $this->recalculateLine($index);
+            foreach (array_keys($this->lines) as $index) {
+                $this->recalculateLine($index);
+            }
+            $this->persist('draft');
+        } else {
+            // Phiếu completed: load nguyên dữ liệu gốc, không thay đổi
+            $this->lines = $check->items->map(fn($item) => [
+                'product_id' => $item->product_id,
+                'sku' => $item->sku,
+                'name' => $item->product_name,
+                'unit' => $item->unit ?: 'Cái',
+                'system_quantity' => (int) $item->system_quantity,
+                'actual_quantity' => (int) $item->actual_quantity,
+                'difference' => (int) $item->difference,
+                'difference_value' => (int) $item->difference_value,
+            ])->values()->all();
         }
 
         $this->mode = 'edit';
-
-        if ($this->status === 'draft') {
-            $this->persist('draft');
-        }
     }
 
     public function cancelEdit(): void
