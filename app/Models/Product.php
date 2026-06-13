@@ -133,6 +133,37 @@ class Product extends Model
     }
 
     /**
+     * Định dạng chuỗi vị trí (lưu dạng "A, B, C") để hiển thị: "A | B | C",
+     * tối đa $max vị trí, nếu dư thì thêm "…".
+     */
+    public static function formatLocation(?string $location, int $max = 3): string
+    {
+        $parts = collect(explode(',', (string) $location))
+            ->map(fn($p) => trim($p))
+            ->filter()
+            ->values();
+
+        if ($parts->isEmpty()) {
+            return '';
+        }
+
+        $display = $parts->take($max)->implode(' | ');
+        if ($parts->count() > $max) {
+            $display .= ' …';
+        }
+
+        return $display;
+    }
+
+    /**
+     * Vị trí dạng hiển thị: "A | B | C" (tối đa 3).
+     */
+    public function getLocationDisplayAttribute(): string
+    {
+        return static::formatLocation($this->location);
+    }
+
+    /**
      * Lấy danh sách các vị trí hàng hóa đã tồn tại (gợi ý khi nhập vị trí)
      */
     public static function getUniqueLocations()

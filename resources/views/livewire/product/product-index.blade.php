@@ -19,8 +19,8 @@
                 <span class="sm:hidden">Hàng loạt</span>
             </button>
 
-            {{-- Thêm sản phẩm --}}
-            <button wire:click="create" class="btn-electric flex items-center gap-1.5 px-3 md:px-4 py-1.5 md:py-1.5 text-[11px] md:text-[12px] font-bold tracking-wider rounded-lg">
+            {{-- Thêm sản phẩm: mở popup ngay lập tức (client-side), create() reset form chạy nền --}}
+            <button wire:click="create" @click="$dispatch('open-product-modal')" class="btn-electric flex items-center gap-1.5 px-3 md:px-4 py-1.5 md:py-1.5 text-[11px] md:text-[12px] font-bold tracking-wider rounded-lg">
                 <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="M12 5v14"/></svg>
                 <span class="hidden sm:inline">Thêm sản phẩm</span>
                 <span class="sm:hidden">Thêm</span>
@@ -358,7 +358,7 @@
                                                x-on:keydown.enter="$event.target.blur()"
                                                class="w-full bg-white border border-slate-200 rounded px-1 py-0.5 text-[10px] font-bold text-emerald-700 focus:outline-none focus:border-electric-blue">
                                     @elseif($product->location)
-                                        <div class="text-[10px] font-bold text-emerald-700 bg-emerald-50 px-1 py-px rounded inline-block">{{ $product->location }}</div>
+                                        <div class="text-[10px] font-bold text-emerald-700 bg-emerald-50 px-1 py-px rounded inline-block" title="{{ $product->location }}">{{ $product->location_display }}</div>
                                     @elseif($product->brand)
                                         <div class="text-[10px] text-slate-400 truncate">{{ $product->brand }}</div>
                                     @else
@@ -664,7 +664,7 @@
                                            x-on:keydown.enter="$event.target.blur()"
                                            class="w-24 bg-slate-50 border border-slate-100 rounded-lg px-2 py-1 text-xs font-bold text-electric-blue transition-all focus:bg-white focus:border-electric-blue focus:ring-0 shadow-inner">
                                 @else
-                                    <span class="text-xs font-bold text-slate-700">{{ $product->location ?: '-' }}</span>
+                                    <span class="text-xs font-bold text-slate-700" title="{{ $product->location }}">{{ $product->location_display ?: '-' }}</span>
                                 @endif
                             </td>
                             @endif
@@ -836,7 +836,7 @@
     <!-- Commission Settings Modal -->
 
     {{-- Mobile FAB: Thêm sản phẩm mới --}}
-    <button wire:click="create"
+    <button wire:click="create" @click="$dispatch('open-product-modal')"
             class="md:hidden fixed bottom-4 right-4 z-30 w-14 h-14 bg-electric-blue text-white rounded-full shadow-lg shadow-electric-blue/40 flex items-center justify-center hover:bg-electric-blue/90 active:scale-95 transition-all">
         <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="M12 5v14"/></svg>
     </button>

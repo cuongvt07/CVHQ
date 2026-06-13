@@ -334,9 +334,11 @@ class StockCheckIndex extends Component
                 // Lock row ở DB — request thứ 2 bị block cho đến khi request 1 commit
                 $check = StockCheck::lockForUpdate()->find($this->stockCheckId);
 
-                if (!$check || $check->status === 'completed') {
+                // Đã cân bằng (balanced_at có giá trị) HOẶC đang completed -> KHÔNG cân bằng lại.
+                // Dùng balanced_at làm dấu vĩnh viễn: dù status có bị đổi về draft cũng không trừ kho lần 2.
+                if (!$check || $check->status === 'completed' || $check->balanced_at !== null) {
                     $this->status = 'completed';
-                    $this->dispatch('notify', message: 'Phiếu này đã được cân bằng kho.', type: 'warning');
+                    $this->dispatch('notify', message: 'Phiếu này đã được cân bằng kho, không thể cân bằng lại.', type: 'warning');
                     return;
                 }
 
@@ -350,23 +352,50 @@ class StockCheckIndex extends Component
                     $product = Product::find($item->product_id);
                     if (!$product) continue;
 
-                    if ((int) $item->difference !== 0) {
+                    // Lấy tồn THỰC TẾ hiện tại làm mốc "trước" -> thẻ kho liền mạch,
+                    // mức điều chỉnh = đếm thực tế - tồn hiện tại (chính xác kể cả khi
+                    // tồn thay đổi giữa lúc đếm và lúc cân bằng).
+                    $before = (int) $product->stock_quantity;
+                    $target = (int) $item->actual_quantity;
+                    $change = $target - $before;
+
+                    if ($change !== 0) {
                         $product->recordStockHistory(
                             'Adjustment',
-                            (int) $item->difference,
+                            $change,
                             $check->id,
                             $check->code,
                             "Cân bằng kho từ phiếu kiểm ({$branchLabel})",
-                            $item->system_quantity
+                            $before
                         );
                     }
 
-                    $product->stock_quantity = (int) $item->actual_quantity;
+                    $product->stock_quantity = $target;
                     $product->save();
                 }
 
                 $check->update(['balanced_at' => $balancedAt]);
                 $this->status = 'completed';
+
+                // Ghi MỐC vào system log (1 dòng), thay vì spam autosave.
+                \App\Models\ActivityLog::create([
+                    'user_id'    => auth()->id(),
+                    'action'     => 'updated',
+                    'model_type' => StockCheck::class,
+                    'model_id'   => $check->id,
+                    'changes'    => [
+                        'before' => ['Mã phiếu' => '', 'Trạng thái' => '', 'Tổng lệch' => '', 'Lệch tăng' => '', 'Lệch giảm' => ''],
+                        'after'  => [
+                            'Mã phiếu'   => $check->code,
+                            'Trạng thái' => 'Đã cân bằng kho',
+                            'Tổng lệch'  => (string) $check->total_difference,
+                            'Lệch tăng'  => (string) $check->total_increase,
+                            'Lệch giảm'  => (string) $check->total_decrease,
+                        ],
+                    ],
+                    'ip_address' => request()->ip(),
+                    'user_agent' => request()->userAgent(),
+                ]);
             });
         } catch (\Exception $e) {
             $this->dispatch('notify', message: 'Lỗi: ' . $e->getMessage(), type: 'error');
@@ -385,6 +414,17 @@ class StockCheckIndex extends Component
 
     private function persist(string $status): StockCheck
     {
+        // Phiếu đã cân bằng kho (balanced_at có giá trị) thì KHÓA HOÀN TOÀN:
+        // không cho ghi đè totals/items, không hạ về nháp, không sửa qua autosave.
+        // complete() lần đầu vẫn chạy được vì lúc đó balanced_at còn null (set sau persist).
+        if ($this->stockCheckId) {
+            $existing = StockCheck::find($this->stockCheckId);
+            if ($existing && $existing->balanced_at !== null) {
+                $this->status = 'completed';
+                return $existing->fresh('items');
+            }
+        }
+
         foreach (array_keys($this->lines) as $index) {
             $this->recalculateLine((int) $index);
         }
@@ -417,6 +457,19 @@ class StockCheckIndex extends Component
                 'actual_quantity' => (int) $line['actual_quantity'],
                 'difference' => (int) $line['difference'],
                 'difference_value' => (int) $line['difference_value'],
+            ]);
+        }
+
+        // Ghi MỐC "tạo phiếu" 1 lần duy nhất (autosave sau đó không ghi log hệ thống).
+        if ($check->wasRecentlyCreated) {
+            \App\Models\ActivityLog::create([
+                'user_id'    => auth()->id(),
+                'action'     => 'created',
+                'model_type' => StockCheck::class,
+                'model_id'   => $check->id,
+                'changes'    => null,
+                'ip_address' => request()->ip(),
+                'user_agent' => request()->userAgent(),
             ]);
         }
 

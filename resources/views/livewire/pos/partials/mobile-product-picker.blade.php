@@ -154,7 +154,7 @@
                             <div class="flex items-center gap-1.5 mt-0.5">
                                 <span class="text-[9px] font-mono text-slate-400">{{ $product['sku'] }}</span>
                                 @if($product['location'])
-                                    <span class="text-[9px] font-bold text-emerald-600 bg-emerald-50 px-1 py-px rounded">{{ $product['location'] }}</span>
+                                    <span class="text-[9px] font-bold text-emerald-600 bg-emerald-50 px-1 py-px rounded" title="{{ $product['location'] }}">{{ \App\Models\Product::formatLocation($product['location']) }}</span>
                                 @endif
                             </div>
                         </div>

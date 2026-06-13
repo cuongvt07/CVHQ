@@ -157,20 +157,20 @@ class ProductIndex extends Component
     }
 
     /**
-     * Bấm nút "+" cạnh ô vị trí: xác nhận vị trí đang nhập (có thể là vị trí mới).
-     * Vị trí sẽ được lưu cùng sản phẩm khi bấm Lưu.
+     * Thêm một ô nhập vị trí mới (một sản phẩm có thể ở nhiều vị trí).
      */
-    public function confirmLocation(): void
+    public function addLocation(): void
     {
-        $loc = trim((string) $this->location);
-        if ($loc === '') {
-            $this->dispatch('notify', message: 'Vui lòng nhập vị trí trước khi thêm.', type: 'warning');
-            return;
-        }
+        $this->locations[] = '';
+    }
 
-        $this->location = $loc;
-        $isNew = !in_array($loc, \App\Models\Product::getUniqueLocations(), true);
-        $this->dispatch('notify', message: $isNew ? "Đã thêm vị trí mới: {$loc}" : "Đã chọn vị trí: {$loc}", type: 'success');
+    public function removeLocation($index): void
+    {
+        unset($this->locations[$index]);
+        $this->locations = array_values($this->locations);
+        if (empty($this->locations)) {
+            $this->locations = [''];
+        }
     }
 
     protected function commissionForPrice(int $price): int
@@ -242,6 +242,7 @@ class ProductIndex extends Component
     // Form properties
     public $productId;
     public $sku, $base_name, $category_path, $brand, $sale_price, $commission_amount, $stock_quantity, $location;
+    public array $locations = ['']; // nhiều ô vị trí; lưu gộp vào cột location (cách nhau ", ")
     public $is_active = true;
     public $newImages = []; // Array of UploadedFile objects
     public $existingImages = []; // Array of strings (paths)
@@ -337,6 +338,7 @@ class ProductIndex extends Component
         $this->commission_amount = 0;
         $this->stock_quantity = 999;
         $this->location = '';
+        $this->locations = [''];
         $this->is_active = true;
         $this->newImages = [];
         $this->existingImages = [];
@@ -530,6 +532,15 @@ class ProductIndex extends Component
         $this->commission_amount = $product->commission_amount;
         $this->stock_quantity = $product->stock_quantity;
         $this->location = $product->location;
+        // Tách chuỗi vị trí thành nhiều ô input
+        $this->locations = collect(explode(',', (string) $product->location))
+            ->map(fn($l) => trim($l))
+            ->filter()
+            ->values()
+            ->all();
+        if (empty($this->locations)) {
+            $this->locations = [''];
+        }
         $this->is_active = $product->is_active;
         $this->existingImages = is_array($product->images) ? $product->images : [];
         $this->newImages = [];
@@ -547,6 +558,13 @@ class ProductIndex extends Component
 
     public function save($keepOpen = false)
     {
+        // Gộp các ô vị trí thành 1 chuỗi (nhiều vị trí cách nhau ", "), bỏ rỗng/trùng.
+        $this->location = collect($this->locations)
+            ->map(fn($l) => trim((string) $l))
+            ->filter()
+            ->unique()
+            ->implode(', ');
+
         $currentSku = $this->sku;
         $rules = $this->rules;
         if ($this->productId) {
