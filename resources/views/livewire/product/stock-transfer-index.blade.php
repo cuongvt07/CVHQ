@@ -320,22 +320,22 @@
                 {{-- Bottom actions --}}
                 <div class="grid grid-cols-2 gap-2 p-3 border-t border-slate-100 bg-white shrink-0">
                     @if($status === 'draft')
-                    @if($this->canEdit)
-                    <button wire:click="saveDraft" class="py-2.5 bg-slate-100 text-slate-700 text-sm font-bold rounded-xl hover:bg-slate-200 transition-colors">
-                        Lưu tạm
-                    </button>
-                    @endif
-                    @if($editingId)
-                    @php $canConfirm = $this->canConfirm; @endphp
-                    <button wire:click="{{ $canConfirm ? 'confirmReceived' : '' }}"
-                            @if($canConfirm) wire:confirm="Xác nhận đã nhận đủ hàng? Tồn kho sẽ được cập nhật." @endif
-                            @if(!$canConfirm) disabled title="Chỉ chi nhánh {{ strtoupper($toBranch) }} mới được xác nhận" @endif
-                            class="py-2.5 text-sm font-bold rounded-xl transition-colors {{ $this->canEdit ? '' : 'col-span-2' }} {{ $canConfirm ? 'bg-electric-blue text-white hover:bg-electric-blue/90' : 'bg-slate-200 text-slate-400 cursor-not-allowed' }}">
-                        Xác nhận nhận
-                    </button>
-                    @elseif($this->canEdit)
-                    <div></div>
-                    @endif
+                        {{-- Bên gửi: chỉ thêm/sửa + lưu tạm --}}
+                        @if($this->canEdit)
+                        <button wire:click="saveDraft" class="{{ $this->canConfirm ? '' : 'col-span-2' }} py-2.5 bg-slate-100 text-slate-700 text-sm font-bold rounded-xl hover:bg-slate-200 transition-colors">
+                            Lưu tạm
+                        </button>
+                        @endif
+                        {{-- Bên nhận: chỉ xác nhận --}}
+                        @if($editingId && $this->canConfirm)
+                        <button wire:click="confirmReceived" wire:confirm="Xác nhận đã nhận đủ hàng? Tồn kho sẽ được cập nhật."
+                                class="{{ $this->canEdit ? '' : 'col-span-2' }} py-2.5 text-sm font-bold rounded-xl bg-electric-blue text-white hover:bg-electric-blue/90 transition-colors">
+                            Xác nhận nhận hàng
+                        </button>
+                        @endif
+                        @if(!$this->canEdit && !$this->canConfirm)
+                        <div class="col-span-2 text-center py-2.5 text-xs text-slate-400">Bạn chỉ có quyền xem phiếu này.</div>
+                        @endif
                     @else
                     <div class="col-span-2 text-center py-2.5 bg-emerald-50 text-emerald-700 text-sm font-bold rounded-xl">
                         Đã xác nhận · Tồn kho đã cập nhật
@@ -556,20 +556,22 @@
                     </div>
                     <div class="flex items-center gap-2">
                         @if($status === 'draft')
+                        {{-- Bên gửi: chỉ thêm/sửa + lưu tạm --}}
                         @if($this->canEdit)
                         <button wire:click="saveDraft"
                                 class="px-4 py-2 border border-slate-200 text-slate-700 text-sm font-bold rounded-xl hover:bg-slate-50 transition-colors">
                             Lưu tạm
                         </button>
                         @endif
-                        @if($editingId)
-                        @php $canConfirm = $this->canConfirm; @endphp
-                        <button wire:click="{{ $canConfirm ? 'confirmReceived' : '' }}"
-                                @if($canConfirm) wire:confirm="Xác nhận đã nhận đủ hàng? Tồn kho sẽ được cập nhật ngay." @endif
-                                @if(!$canConfirm) disabled title="Chỉ chi nhánh {{ strtoupper($toBranch) }} mới được xác nhận nhận hàng" @endif
-                                class="px-5 py-2 text-sm font-bold rounded-xl transition-colors {{ $canConfirm ? 'bg-electric-blue text-white hover:bg-electric-blue/90 shadow-sm' : 'bg-slate-200 text-slate-400 cursor-not-allowed' }}">
+                        {{-- Bên nhận: chỉ xác nhận --}}
+                        @if($editingId && $this->canConfirm)
+                        <button wire:click="confirmReceived" wire:confirm="Xác nhận đã nhận đủ hàng? Tồn kho sẽ được cập nhật ngay."
+                                class="px-5 py-2 text-sm font-bold rounded-xl bg-electric-blue text-white hover:bg-electric-blue/90 shadow-sm transition-colors">
                             Xác nhận đã nhận hàng
                         </button>
+                        @endif
+                        @if(!$this->canEdit && !$this->canConfirm)
+                        <span class="text-xs text-slate-400">Bạn chỉ có quyền xem phiếu này.</span>
                         @endif
                         @else
                         <div class="px-4 py-2 bg-emerald-50 text-emerald-700 text-sm font-bold rounded-xl border border-emerald-200">
