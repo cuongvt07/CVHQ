@@ -600,11 +600,13 @@
                                     </td>
                                     <td class="px-3 py-2 text-xs text-slate-700">{{ $index + 1 }}</td>
                                     <td class="px-3 py-2 text-xs">
-                                        <button type="button" wire:click="openStockCard({{ $line['product_id'] }})" title="Xem thẻ kho"
-                                                class="font-bold text-electric-blue hover:underline decoration-dotted underline-offset-2 inline-flex items-center gap-1">
-                                            {{ $line['sku'] }}
-                                            <svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="opacity-50"><path d="M3 3v18h18"/><path d="m19 9-5 5-4-4-3 3"/></svg>
-                                        </button>
+                                        <div class="inline-flex items-center gap-1.5">
+                                            <span class="font-bold text-electric-blue">{{ $line['sku'] }}</span>
+                                            <button type="button" wire:click="openStockCard({{ $line['product_id'] }})" title="Xem thẻ kho"
+                                                    class="w-5 h-5 shrink-0 flex items-center justify-center rounded border border-electric-blue/30 text-electric-blue hover:bg-electric-blue hover:text-white transition-colors">
+                                                <svg xmlns="http://www.w3.org/2000/svg" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="m19 9-5 5-4-4-3 3"/></svg>
+                                            </button>
+                                        </div>
                                     </td>
                                     <td class="px-3 py-2 text-xs text-slate-900 max-w-[360px]">{{ $line['name'] }}</td>
                                     <td class="px-3 py-2 text-xs text-slate-600">{{ $line['unit'] }}</td>
