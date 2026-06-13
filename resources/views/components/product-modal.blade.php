@@ -202,12 +202,12 @@
                                 </button>
                             </div>
                             <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                                @foreach($locations as $index => $loc)
+                                @foreach($this->locations as $index => $loc)
                                     <div class="flex items-center gap-2" wire:key="loc-{{ $index }}">
                                         <input type="text" wire:model="locations.{{ $index }}" list="product-location-suggestions"
                                                class="flex-1 min-w-0 bg-slate-50 border border-slate-200 rounded-xl py-2 sm:py-2.5 px-3 sm:px-4 text-[13px] sm:text-sm focus:outline-none focus:border-electric-blue/40 focus:ring-2 focus:ring-electric-blue/5 transition-all"
                                                placeholder="VD: Kệ A1">
-                                        @if(count($locations) > 1)
+                                        @if(count($this->locations) > 1)
                                             <button type="button" wire:click="removeLocation({{ $index }})" class="shrink-0 w-9 h-9 flex items-center justify-center rounded-lg text-slate-300 hover:text-rose-500 hover:bg-rose-50 transition-colors">
                                                 <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
                                             </button>
