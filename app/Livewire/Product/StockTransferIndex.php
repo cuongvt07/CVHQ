@@ -30,6 +30,7 @@ class StockTransferIndex extends Component
     public string $status = 'draft';
     public string $notes = '';
     public array $lines = [];
+    public ?int $createdBy = null;
 
     // ── Search ───────────────────────────────────────────────────────────────
     public string $productSearch = '';
@@ -62,12 +63,17 @@ class StockTransferIndex extends Component
     }
 
     // ── Quyền ──────────────────────────────────────────────────────────────
-    // Người gửi (chi nhánh nguồn hoặc admin) được chỉnh khi phiếu còn nháp.
+    // Bên gửi (người tạo phiếu) được chỉnh khi còn nháp — chọn chiều nào cũng sửa được.
+    // Phiếu mới chưa lưu (createdBy null) hoặc nhân viên chi nhánh nguồn cũng được.
     public function getCanEditProperty(): bool
     {
         if ($this->status !== 'draft') return false;
         $u = auth()->user();
-        return $u && ($u->role === 'admin' || $u->work_branch === $this->fromBranch);
+        if (!$u) return false;
+        return $u->role === 'admin'
+            || $this->createdBy === null
+            || (int) $this->createdBy === (int) $u->id
+            || $u->work_branch === $this->fromBranch;
     }
 
     // CHỈ chi nhánh nhận (work_branch === toBranch) mới được xác nhận. Không có ngoại lệ admin.
@@ -89,6 +95,7 @@ class StockTransferIndex extends Component
         $this->productSearch = '';
         $this->searchResults = [];
         $this->suggestionSearch = '';
+        $this->createdBy    = auth()->id();
         $this->resetDirectionFromUser();
         $this->mode = 'edit';
     }
@@ -104,6 +111,7 @@ class StockTransferIndex extends Component
         $this->transferCode = $transfer->code;
         $this->status       = $transfer->status;
         $this->notes        = $transfer->notes ?? '';
+        $this->createdBy    = $transfer->created_by;
 
         $this->lines = $transfer->items->map(fn($item) => [
             'from_product_id' => $item->from_product_id,
@@ -299,7 +307,6 @@ class StockTransferIndex extends Component
         $data = [
             'from_branch' => $this->fromBranch,
             'to_branch'   => $this->toBranch,
-            'created_by'  => auth()->id(),
             'status'      => $status,
             'notes'       => $this->notes,
         ];
@@ -307,12 +314,13 @@ class StockTransferIndex extends Component
         if ($this->editingId) {
             $transfer = StockTransfer::find($this->editingId);
             if (!$transfer) return;
-            $transfer->update($data);
+            $transfer->update($data); // KHÔNG đổi created_by — giữ nguyên người tạo (bên gửi)
         } else {
             $code     = 'CK-' . strtoupper($this->fromBranch) . strtoupper($this->toBranch) . '-' . date('ymdHis');
-            $transfer = StockTransfer::create(array_merge($data, ['code' => $code]));
+            $transfer = StockTransfer::create(array_merge($data, ['code' => $code, 'created_by' => auth()->id()]));
             $this->editingId    = $transfer->id;
             $this->transferCode = $transfer->code;
+            $this->createdBy    = $transfer->created_by;
         }
 
         $transfer->items()->delete();
