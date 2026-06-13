@@ -272,7 +272,7 @@ class InvoiceIndex extends Component
                 };
             })
             ->when($this->salesChannelFilter, fn($q) => $q->where('sales_channel', $this->salesChannelFilter))
-            ->with(['customer'])
+            ->with(['customer', 'sharedTo'])
             ->latest()
             ->paginate($this->perPage)
             ->onEachSide(1);

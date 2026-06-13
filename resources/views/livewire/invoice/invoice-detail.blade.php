@@ -174,6 +174,24 @@
                         <span class="text-[9px] md:text-[13px] text-white/40 uppercase tracking-widest">Người bán</span>
                         <span class="text-[10px] md:text-[14px] font-bold text-right">{{ $invoice->seller_name }}</span>
                     </div>
+
+                    @if(auth()->user()?->hasPermission('invoice.view_commission'))
+                        <div class="flex justify-between items-start pt-3 border-t border-white/10">
+                            <span class="text-[9px] md:text-[13px] text-white/40 uppercase tracking-widest">Tổng hoa hồng</span>
+                            <span class="text-[10px] md:text-[14px] font-bold text-right text-rose-300">{{ number_format($invoice->total_commission, 0, ',', '.') }}đ</span>
+                        </div>
+                        @if($invoice->shared_to_user_id || (int) $invoice->shared_commission_amount > 0)
+                            <div class="flex justify-between items-start">
+                                <span class="text-[9px] md:text-[13px] text-white/40 uppercase tracking-widest">Chia sẻ hoa hồng</span>
+                                <span class="text-[10px] md:text-[14px] font-bold text-right text-amber-300">
+                                    {{ number_format($invoice->shared_commission_amount, 0, ',', '.') }}đ
+                                    @if($invoice->sharedTo)
+                                        <span class="block text-[9px] md:text-[12px] font-normal text-white/50">→ {{ $invoice->sharedTo->name }}</span>
+                                    @endif
+                                </span>
+                            </div>
+                        @endif
+                    @endif
                 </div>
             </div>
         </div>

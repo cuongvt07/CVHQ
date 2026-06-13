@@ -600,6 +600,12 @@
                                             <span>Tổng hoa hồng:</span>
                                             <span>{{ number_format($invoice->total_commission, 0, ',', '.') }}đ</span>
                                         </div>
+                                        @if($invoice->shared_to_user_id || (int) $invoice->shared_commission_amount > 0)
+                                            <div class="flex justify-between text-amber-600">
+                                                <span>Chia sẻ HH{{ $invoice->sharedTo ? ' → ' . $invoice->sharedTo->name : '' }}:</span>
+                                                <span>{{ number_format($invoice->shared_commission_amount, 0, ',', '.') }}đ</span>
+                                            </div>
+                                        @endif
                                     @endif
                                     <div class="flex justify-between font-bold text-slate-950 pt-1.5 border-t border-slate-200">
                                         <span>Phải trả:</span>
@@ -993,6 +999,12 @@
                                                             <span>Tổng hoa hồng</span>
                                                             <span>{{ number_format($invoice->total_commission, 0, ',', '.') }}đ</span>
                                                         </div>
+                                                        @if($invoice->shared_to_user_id || (int) $invoice->shared_commission_amount > 0)
+                                                            <div class="flex justify-between text-[11px] text-amber-600">
+                                                                <span>Chia sẻ HH{{ $invoice->sharedTo ? ' → ' . $invoice->sharedTo->name : '' }}</span>
+                                                                <span>{{ number_format($invoice->shared_commission_amount, 0, ',', '.') }}đ</span>
+                                                            </div>
+                                                        @endif
                                                     @endif
                                                     <div class="pt-2 border-t border-slate-200 flex justify-between items-center">
                                                         <span class="text-[11px] font-bold text-slate-900">Phải trả</span>

@@ -51,7 +51,7 @@
                         <span class="font-bold {{ $tr->from_branch === 'hn' ? 'text-rose-600' : 'text-emerald-600' }}">{{ strtoupper($tr->from_branch) }}</span>
                         <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-slate-300"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
                         <span class="font-bold {{ $tr->to_branch === 'sg' ? 'text-emerald-600' : 'text-rose-600' }}">{{ strtoupper($tr->to_branch) }}</span>
-                        <span class="text-slate-400">· {{ $tr->items_count ?? $tr->items()->count() }} sản phẩm</span>
+                        <span class="text-slate-400">· {{ $tr->items_count ?? 0 }} sản phẩm</span>
                     </div>
                     <div class="flex gap-2">
                         <button wire:click="editTransfer({{ $tr->id }})" class="flex-1 py-1.5 bg-slate-100 text-slate-700 text-xs font-bold rounded-lg hover:bg-slate-200 transition-colors">Mở</button>
@@ -97,7 +97,7 @@
                                     <span class="{{ $tr->to_branch === 'sg' ? 'text-emerald-600' : 'text-rose-600' }}">{{ strtoupper($tr->to_branch) }}</span>
                                 </div>
                             </td>
-                            <td class="px-4 py-3 text-right text-sm font-bold text-slate-600">{{ $tr->items()->count() }}</td>
+                            <td class="px-4 py-3 text-right text-sm font-bold text-slate-600">{{ $tr->items_count ?? 0 }}</td>
                             <td class="px-4 py-3 text-sm text-slate-600">{{ $tr->createdBy?->name }}</td>
                             <td class="px-4 py-3 text-xs text-slate-400">{{ $tr->created_at->format('d/m/Y H:i') }}</td>
                             <td class="px-4 py-3">

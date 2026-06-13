@@ -19,7 +19,7 @@ class InvoiceDetail extends Component
 
     public function mount(Invoice $invoice)
     {
-        $this->invoice = $invoice->load(['customer', 'items']);
+        $this->invoice = $invoice->load(['customer', 'items', 'sharedTo']);
     }
 
     public function render()

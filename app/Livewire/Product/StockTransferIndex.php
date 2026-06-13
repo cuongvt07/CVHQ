@@ -373,7 +373,7 @@ class StockTransferIndex extends Component
         $data = ['suggestions' => $this->suggestions];
 
         if ($this->mode === 'list') {
-            $data['transfers'] = StockTransfer::with('createdBy')
+            $data['transfers'] = StockTransfer::with('createdBy')->withCount('items')
                 ->when($this->statusFilter !== 'all', fn($q) => $q->where('status', $this->statusFilter))
                 ->when($this->branchFilter !== 'all', fn($q) => $q->where(function ($q) {
                     $q->where('from_branch', $this->branchFilter)
