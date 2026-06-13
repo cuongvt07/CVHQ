@@ -239,6 +239,19 @@ class ProductIndex extends Component
         }
     }
 
+    // Popup thẻ kho: click mã SP -> mở popup ngay tại màn danh sách
+    public $stockCardId = null;
+
+    public function openStockCard($id)
+    {
+        $this->stockCardId = $id;
+    }
+
+    public function closeStockCard()
+    {
+        $this->stockCardId = null;
+    }
+
     // Form properties
     public $productId;
     public $sku, $base_name, $category_path, $brand, $sale_price, $commission_amount, $stock_quantity, $location;
