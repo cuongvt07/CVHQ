@@ -83,7 +83,7 @@ class ActivityLogList extends Component
                 $item->model_name = 'Tồn kho: ' . ($item->product->name ?? 'SP');
                 $item->model_id = $item->product_id;
                 
-                $typeMap = ['Import' => 'Nhập hàng', 'Sale' => 'Bán hàng', 'Cancel' => 'Hủy đơn', 'Check' => 'Kiểm kho', 'Manual' => 'Chỉnh tay'];
+                $typeMap = ['Import' => 'Nhập hàng', 'Sale' => 'Bán hàng', 'Cancel' => 'Hủy đơn', 'Check' => 'Kiểm kho', 'Manual' => 'Chỉnh tay', 'Adjustment' => 'Điều chỉnh', 'Transfer' => 'Chuyển hàng', 'Return' => 'Trả hàng', 'Initial' => 'Khởi tạo', 'Delete' => 'Xóa hóa đơn'];
                 $item->custom_details = ($typeMap[$item->type] ?? $item->type) . ' (' . ($item->quantity_change > 0 ? '+' : '') . $item->quantity_change . ')';
                 if ($item->note) $item->custom_details .= ' - ' . $item->note;
                 

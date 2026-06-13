@@ -245,22 +245,26 @@ class StockTransferIndex extends Component
 
                 $fromProduct = Product::find($line['from_product_id']);
                 if ($fromProduct) {
+                    $beforeFrom = (int) $fromProduct->stock_quantity;
                     $fromProduct->decrement('stock_quantity', $actual);
                     $fromProduct->recordStockHistory(
                         'Transfer', -$actual,
                         $this->editingId, $this->transferCode,
-                        'Chuyển hàng đi ' . strtoupper($this->toBranch)
+                        'Chuyển hàng đi ' . strtoupper($this->toBranch),
+                        $beforeFrom
                     );
                 }
 
                 if (!empty($line['to_product_id'])) {
                     $toProduct = Product::find($line['to_product_id']);
                     if ($toProduct) {
+                        $beforeTo = (int) $toProduct->stock_quantity;
                         $toProduct->increment('stock_quantity', $actual);
                         $toProduct->recordStockHistory(
                             'Transfer', $actual,
                             $this->editingId, $this->transferCode,
-                            'Nhận hàng từ ' . strtoupper($this->fromBranch)
+                            'Nhận hàng từ ' . strtoupper($this->fromBranch),
+                            $beforeTo
                         );
                     }
                 }

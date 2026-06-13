@@ -33,6 +33,46 @@ class Invoice extends Model
         'cancelled_at' => 'datetime',
     ];
 
+    protected static function booted(): void
+    {
+        // Xóa hóa đơn được coi như trả hàng: hoàn lại tồn kho + ghi thẻ kho (loại "Delete" = Xóa đơn).
+        // Chỉ hoàn khi đơn đang hiệu lực (chưa Hủy/Trả) để tránh hoàn kho trùng.
+        static::deleting(function (Invoice $invoice) {
+            if ($invoice->isForceDeleting()) {
+                return;
+            }
+            if (in_array($invoice->status, ['Cancelled', 'Returned'], true)) {
+                return;
+            }
+
+            foreach ($invoice->items as $item) {
+                $qty = (int) $item->quantity;
+                if ($qty === 0) {
+                    continue;
+                }
+
+                $product = $item->product()->withTrashed()->first();
+                if (!$product && $item->sku) {
+                    $product = Product::withTrashed()->where('sku', $item->sku)->first();
+                }
+                if (!$product) {
+                    continue;
+                }
+
+                $before = (int) $product->stock_quantity;
+                $product->increment('stock_quantity', $qty);
+                $product->recordStockHistory(
+                    'Delete',
+                    $qty,
+                    $invoice->id,
+                    $invoice->invoice_code,
+                    'Xóa hóa đơn (hoàn kho)',
+                    $before
+                );
+            }
+        });
+    }
+
     public function customer(): BelongsTo
     {
         return $this->belongsTo(Customer::class);

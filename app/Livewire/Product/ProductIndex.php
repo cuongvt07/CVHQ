@@ -623,10 +623,27 @@ class ProductIndex extends Component
 
         if ($this->productId) {
             $product = Product::findOrFail($this->productId);
+            $oldStock = (int) $product->stock_quantity;
             $product->update($productData);
+            // Sửa số lượng trực tiếp trên form -> ghi thẻ kho phần chênh lệch
+            $newStock = (int) $product->stock_quantity;
+            if ($newStock !== $oldStock) {
+                $product->recordStockHistory(
+                    'Adjustment', $newStock - $oldStock,
+                    null, null, 'Điều chỉnh khi sửa sản phẩm', $oldStock
+                );
+            }
             $this->dispatch('notify', message: 'Cập nhật sản phẩm thành công!', type: 'success');
         } else {
-            Product::create($productData);
+            $product = Product::create($productData);
+            // Khởi tạo tồn kho khi thêm sản phẩm mới -> ghi thẻ kho
+            $initStock = (int) $product->stock_quantity;
+            if ($initStock !== 0) {
+                $product->recordStockHistory(
+                    'Initial', $initStock,
+                    null, null, 'Khởi tạo tồn kho khi thêm sản phẩm', 0
+                );
+            }
             $this->dispatch('notify', message: 'Thêm sản phẩm thành công!', type: 'success');
         }
 
@@ -763,7 +780,15 @@ class ProductIndex extends Component
                 $productData['commission_amount'] = 0;
             }
 
-            Product::create($productData);
+            $newProduct = Product::create($productData);
+            // Khởi tạo tồn kho khi thêm hàng loạt -> ghi thẻ kho
+            $initStock = (int) $newProduct->stock_quantity;
+            if ($initStock !== 0) {
+                $newProduct->recordStockHistory(
+                    'Initial', $initStock,
+                    null, null, 'Khởi tạo tồn kho (thêm hàng loạt)', 0
+                );
+            }
             $count++;
         }
 

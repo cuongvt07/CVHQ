@@ -529,9 +529,15 @@ class InvoiceIndex extends Component
             foreach ($this->itemsToDelete as $itemId) {
                 $item = \App\Models\InvoiceItem::find($itemId);
                 if ($item) {
-                    // Restore stock for deleted item
-                    if ($item->product) {
+                    // Restore stock for deleted item + ghi thẻ kho
+                    if ($item->product && (int) $item->quantity !== 0) {
+                        $before = (int) $item->product->stock_quantity;
                         $item->product->increment('stock_quantity', $item->quantity);
+                        $item->product->recordStockHistory(
+                            'Adjustment', (int) $item->quantity,
+                            $invoice->id, $invoice->invoice_code,
+                            'Bỏ sản phẩm khỏi hóa đơn (sửa HĐ)', $before
+                        );
                     }
                     $item->delete();
                 }
@@ -544,7 +550,13 @@ class InvoiceIndex extends Component
                     $diff = $itemData['quantity'] - $itemData['original_quantity'];
 
                     if ($diff != 0 && $item->product) {
+                        $before = (int) $item->product->stock_quantity;
                         $item->product->decrement('stock_quantity', $diff);
+                        $item->product->recordStockHistory(
+                            'Adjustment', -(int) $diff,
+                            $invoice->id, $invoice->invoice_code,
+                            'Sửa số lượng sản phẩm trên hóa đơn', $before
+                        );
                     }
 
                     $finalPrice = $itemData['unit_price'] * $itemData['quantity'];
@@ -570,10 +582,16 @@ class InvoiceIndex extends Component
                         'final_price' => $finalPrice,
                     ]);
                     
-                    // Subtract stock for new item
+                    // Subtract stock for new item + ghi thẻ kho
                     $product = \App\Models\Product::find($itemData['product_id']);
-                    if ($product) {
+                    if ($product && (int) $itemData['quantity'] !== 0) {
+                        $before = (int) $product->stock_quantity;
                         $product->decrement('stock_quantity', $itemData['quantity']);
+                        $product->recordStockHistory(
+                            'Adjustment', -(int) $itemData['quantity'],
+                            $invoice->id, $invoice->invoice_code,
+                            'Thêm sản phẩm vào hóa đơn (sửa HĐ)', $before
+                        );
                     }
                     $totalAmount += $finalPrice;
                     $totalCommission += ($commissionPerUnit * $itemData['quantity']);

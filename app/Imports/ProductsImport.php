@@ -136,14 +136,18 @@ class ProductsImport implements OnEachRow, WithHeadingRow, WithChunkReading, Sho
             $product->fill($data);
             
             if ($product->isDirty('stock_quantity')) {
-                $change = (int)$product->stock_quantity - (int)$product->getOriginal('stock_quantity', 0);
+                $before = (int) $product->getOriginal('stock_quantity', 0);
+                $change = (int) $product->stock_quantity - $before;
                 if ($change !== 0) {
+                    // Truyền $before tường minh: lúc này stock_quantity đã là giá trị MỚI (fill),
+                    // nếu không truyền before sẽ lấy nhầm giá trị mới -> tồn trước/sau sai.
                     $product->recordStockHistory(
-                        'Import', 
-                        $change, 
-                        null, 
-                        null, 
-                        'Nhập từ file Excel'
+                        'Import',
+                        $change,
+                        null,
+                        null,
+                        'Nhập từ file Excel',
+                        $before
                     );
                 }
             }
