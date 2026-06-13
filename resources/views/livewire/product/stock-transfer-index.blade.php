@@ -171,12 +171,27 @@
                             {{ $status === 'confirmed' ? 'Đã xác nhận' : 'Bản nháp' }}
                         </span>
                     </div>
-                    <div class="flex items-center gap-1.5 text-xs font-bold mt-0.5">
-                        <span class="{{ $fromBranch === 'hn' ? 'text-rose-600' : 'text-emerald-600' }}">{{ strtoupper($fromBranch) }}</span>
-                        <svg xmlns="http://www.w3.org/2000/svg" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="text-slate-300"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
-                        <span class="{{ $toBranch === 'sg' ? 'text-emerald-600' : 'text-rose-600' }}">{{ strtoupper($toBranch) }}</span>
-                        <span class="text-slate-400 font-normal">· {{ count($lines) }} sản phẩm</span>
-                    </div>
+                    @if($this->canEdit)
+                        <div class="flex items-center gap-2 mt-1">
+                            <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Chiều:</span>
+                            <label class="cursor-pointer">
+                                <input type="radio" wire:click="setDirection('hn')" @checked($fromBranch === 'hn') class="peer sr-only">
+                                <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold transition-colors {{ $fromBranch === 'hn' ? 'bg-electric-blue text-white' : 'bg-slate-100 text-slate-500 hover:bg-slate-200' }}">HN → SG</span>
+                            </label>
+                            <label class="cursor-pointer">
+                                <input type="radio" wire:click="setDirection('sg')" @checked($fromBranch === 'sg') class="peer sr-only">
+                                <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold transition-colors {{ $fromBranch === 'sg' ? 'bg-electric-blue text-white' : 'bg-slate-100 text-slate-500 hover:bg-slate-200' }}">SG → HN</span>
+                            </label>
+                            <span class="text-slate-400 font-normal text-xs">· {{ count($lines) }} sản phẩm</span>
+                        </div>
+                    @else
+                        <div class="flex items-center gap-1.5 text-xs font-bold mt-0.5">
+                            <span class="{{ $fromBranch === 'hn' ? 'text-rose-600' : 'text-emerald-600' }}">{{ strtoupper($fromBranch) }}</span>
+                            <svg xmlns="http://www.w3.org/2000/svg" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="text-slate-300"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
+                            <span class="{{ $toBranch === 'sg' ? 'text-emerald-600' : 'text-rose-600' }}">{{ strtoupper($toBranch) }}</span>
+                            <span class="text-slate-400 font-normal">· {{ count($lines) }} sản phẩm</span>
+                        </div>
+                    @endif
                 </div>
             </div>
             <div class="flex items-center gap-2 shrink-0">
@@ -197,7 +212,7 @@
             <div x-show="mobileDetail === null" class="flex flex-col h-full">
 
                 {{-- Search --}}
-                @if($status === 'draft')
+                @if($this->canEdit)
                 <div class="px-3 py-2 bg-white border-b border-slate-100 shrink-0">
                     <div class="relative">
                         <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-300"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
@@ -240,10 +255,14 @@
                             </div>
                             {{-- Info --}}
                             <div class="flex-1 min-w-0 px-2.5 py-2">
-                                <div class="text-[11px] font-black text-electric-blue font-mono">{{ $line['from_sku'] }}
-                                    @if($line['to_sku']) <span class="text-slate-400 font-normal">→ {{ $line['to_sku'] }}</span>@endif
-                                </div>
+                                <div class="text-[11px] font-black text-electric-blue font-mono">{{ $line['from_sku'] }}</div>
                                 <div class="text-xs font-semibold text-slate-800 truncate">{{ $line['product_name'] }}</div>
+                                @if($line['to_sku'])
+                                    <div class="text-[10px] text-slate-400 font-mono mt-0.5">
+                                        → {{ $line['to_sku'] }} <span>(tồn {{ $line['to_stock'] }})</span>
+                                        <span class="text-emerald-600 font-bold">+{{ $line['actual_quantity'] ?? $line['send_quantity'] }}</span>
+                                    </div>
+                                @endif
                                 <div class="flex items-center gap-2 mt-0.5 text-[10px] text-slate-500">
                                     <span>{{ strtoupper($fromBranch) }}: <strong>{{ $line['from_stock'] }}</strong></span>
                                     <span>{{ strtoupper($toBranch) }}: <strong>{{ $line['to_stock'] }}</strong></span>
@@ -274,7 +293,7 @@
                     @endforelse
 
                     {{-- Suggestions --}}
-                    @if($status === 'draft' && count($suggestions) > 0 && empty($productSearch))
+                    @if($this->canEdit && count($suggestions) > 0 && empty($productSearch))
                     <div class="mt-4">
                         <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">Gợi ý (lệch nhiều nhất)</p>
                         @foreach(array_slice($suggestions, 0, 20) as $s)
@@ -284,7 +303,7 @@
                                 @if($s['image'])<img src="{{ \App\Models\Product::imageUrl($s['image']) }}" class="w-full h-full object-cover">@endif
                             </div>
                             <div class="flex-1 min-w-0">
-                                <div class="text-[10px] font-black text-electric-blue font-mono">{{ $s['sku'] }} → {{ $s['related_sku'] }}</div>
+                                <div class="text-[10px] font-black text-electric-blue font-mono">{{ $s['sku'] }} → {{ $s['to_sku'] }}</div>
                                 <div class="text-[10px] text-slate-600 truncate">{{ $s['name'] }}</div>
                             </div>
                             <div class="text-right shrink-0">
@@ -301,18 +320,20 @@
                 {{-- Bottom actions --}}
                 <div class="grid grid-cols-2 gap-2 p-3 border-t border-slate-100 bg-white shrink-0">
                     @if($status === 'draft')
+                    @if($this->canEdit)
                     <button wire:click="saveDraft" class="py-2.5 bg-slate-100 text-slate-700 text-sm font-bold rounded-xl hover:bg-slate-200 transition-colors">
                         Lưu tạm
                     </button>
+                    @endif
                     @if($editingId)
-                    @php $canConfirm = auth()->user()?->work_branch === $toBranch; @endphp
+                    @php $canConfirm = $this->canConfirm; @endphp
                     <button wire:click="{{ $canConfirm ? 'confirmReceived' : '' }}"
                             @if($canConfirm) wire:confirm="Xác nhận đã nhận đủ hàng? Tồn kho sẽ được cập nhật." @endif
                             @if(!$canConfirm) disabled title="Chỉ chi nhánh {{ strtoupper($toBranch) }} mới được xác nhận" @endif
-                            class="py-2.5 text-sm font-bold rounded-xl transition-colors {{ $canConfirm ? 'bg-electric-blue text-white hover:bg-electric-blue/90' : 'bg-slate-200 text-slate-400 cursor-not-allowed' }}">
+                            class="py-2.5 text-sm font-bold rounded-xl transition-colors {{ $this->canEdit ? '' : 'col-span-2' }} {{ $canConfirm ? 'bg-electric-blue text-white hover:bg-electric-blue/90' : 'bg-slate-200 text-slate-400 cursor-not-allowed' }}">
                         Xác nhận nhận
                     </button>
-                    @else
+                    @elseif($this->canEdit)
                     <div></div>
                     @endif
                     @else
@@ -406,7 +427,7 @@
             <div class="flex-1 flex flex-col min-h-0 overflow-hidden">
 
                 {{-- Search bar --}}
-                @if($status === 'draft')
+                @if($this->canEdit)
                 <div class="px-4 py-2.5 bg-white border-b border-slate-100 shrink-0">
                     <div class="relative max-w-sm">
                         <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-300"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
@@ -451,7 +472,7 @@
                                 <th class="px-3 py-2.5 text-[10px] font-bold text-slate-400 uppercase tracking-widest text-center w-28">Số lượng gửi</th>
                                 <th class="px-3 py-2.5 text-[10px] font-bold text-slate-400 uppercase tracking-widest text-center w-28">Thực nhận</th>
                                 <th class="px-3 py-2.5 text-[10px] font-bold text-slate-400 uppercase tracking-widest">Ghi chú sửa</th>
-                                @if($status === 'draft')
+                                @if($this->canEdit)
                                 <th class="px-3 py-2.5 w-10"></th>
                                 @endif
                             </tr>
@@ -467,7 +488,12 @@
                                 </td>
                                 <td class="px-3 py-2">
                                     <div class="text-xs font-black text-electric-blue font-mono">{{ $line['from_sku'] }}</div>
-                                    @if($line['to_sku'])<div class="text-[9px] text-slate-400">→ {{ $line['to_sku'] }}</div>@endif
+                                    @if($line['to_sku'])
+                                        <div class="text-[9px] text-slate-400 font-mono mt-0.5">
+                                            → {{ $line['to_sku'] }} <span class="text-slate-400">(tồn {{ $line['to_stock'] }})</span>
+                                            <span class="text-emerald-600 font-bold">+{{ $line['actual_quantity'] ?? $line['send_quantity'] }}</span>
+                                        </div>
+                                    @endif
                                 </td>
                                 <td class="px-3 py-2 text-sm text-slate-800 max-w-[200px]">
                                     <div class="truncate">{{ $line['product_name'] }}</div>
@@ -475,7 +501,7 @@
                                 <td class="px-3 py-2 text-right text-sm font-bold text-slate-700">{{ $line['from_stock'] }}</td>
                                 <td class="px-3 py-2 text-right text-sm font-bold text-slate-500">{{ $line['to_stock'] }}</td>
                                 <td class="px-3 py-2 text-center">
-                                    @if($status === 'draft')
+                                    @if($this->canEdit)
                                     <input type="number" wire:model.live.debounce.400ms="lines.{{ $idx }}.send_quantity"
                                            min="0" class="w-20 text-center border border-slate-200 rounded-lg px-2 py-1 text-sm font-bold text-electric-blue focus:outline-none focus:border-electric-blue bg-white">
                                     @else
@@ -483,7 +509,7 @@
                                     @endif
                                 </td>
                                 <td class="px-3 py-2 text-center">
-                                    @if($status === 'draft')
+                                    @if($this->canEdit)
                                     <input type="number" wire:model.live.debounce.400ms="lines.{{ $idx }}.actual_quantity"
                                            min="0" placeholder="{{ $line['send_quantity'] }}"
                                            class="w-20 text-center border border-slate-200 rounded-lg px-2 py-1 text-sm font-bold {{ $line['actual_quantity'] !== null && $line['actual_quantity'] != $line['send_quantity'] ? 'text-amber-600 border-amber-300 bg-amber-50' : 'text-slate-700' }} focus:outline-none focus:border-electric-blue bg-white">
@@ -494,7 +520,7 @@
                                     @endif
                                 </td>
                                 <td class="px-3 py-2">
-                                    @if($status === 'draft')
+                                    @if($this->canEdit)
                                     <input type="text" wire:model.blur="lines.{{ $idx }}.adjust_reason"
                                            placeholder="Lý do điều chỉnh..."
                                            class="w-full border border-slate-100 rounded-lg px-2 py-1 text-xs text-slate-600 focus:outline-none focus:border-slate-300 bg-transparent">
@@ -502,7 +528,7 @@
                                     <span class="text-xs text-slate-500">{{ $line['adjust_reason'] }}</span>
                                     @endif
                                 </td>
-                                @if($status === 'draft')
+                                @if($this->canEdit)
                                 <td class="px-3 py-2 text-center">
                                     <button wire:click="removeLine({{ $idx }})" class="text-slate-300 hover:text-rose-500 transition-colors">
                                         <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
@@ -530,12 +556,14 @@
                     </div>
                     <div class="flex items-center gap-2">
                         @if($status === 'draft')
+                        @if($this->canEdit)
                         <button wire:click="saveDraft"
                                 class="px-4 py-2 border border-slate-200 text-slate-700 text-sm font-bold rounded-xl hover:bg-slate-50 transition-colors">
                             Lưu tạm
                         </button>
+                        @endif
                         @if($editingId)
-                        @php $canConfirm = auth()->user()?->work_branch === $toBranch; @endphp
+                        @php $canConfirm = $this->canConfirm; @endphp
                         <button wire:click="{{ $canConfirm ? 'confirmReceived' : '' }}"
                                 @if($canConfirm) wire:confirm="Xác nhận đã nhận đủ hàng? Tồn kho sẽ được cập nhật ngay." @endif
                                 @if(!$canConfirm) disabled title="Chỉ chi nhánh {{ strtoupper($toBranch) }} mới được xác nhận nhận hàng" @endif
@@ -553,20 +581,25 @@
             </div>
 
             {{-- Right: suggestions panel --}}
-            @if($status === 'draft' && count($suggestions) > 0)
+            @if($this->canEdit)
             <div class="w-72 shrink-0 border-l border-slate-200 flex flex-col min-h-0 bg-slate-50/50">
-                <div class="px-3 py-2.5 border-b border-slate-200 shrink-0">
-                    <p class="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Gợi ý (lệch nhiều nhất)</p>
+                <div class="px-3 py-2.5 border-b border-slate-200 shrink-0 space-y-2">
+                    <p class="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Gợi ý (lệch nhiều → ít)</p>
+                    <div class="relative">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-300"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+                        <input type="text" wire:model.live.debounce.300ms="suggestionSearch" placeholder="Tìm trong gợi ý..."
+                               class="w-full bg-white border border-slate-200 rounded-lg py-1.5 pl-8 pr-2 text-xs focus:outline-none focus:border-electric-blue">
+                    </div>
                 </div>
                 <div class="flex-1 overflow-y-auto custom-scrollbar p-2 space-y-1.5">
-                    @foreach($suggestions as $s)
+                    @forelse($suggestions as $s)
                     <button wire:click="addProduct({{ $s['id'] }})"
                             class="w-full flex items-center gap-2 bg-white border border-slate-100 rounded-xl px-2.5 py-2 hover:border-electric-blue/40 hover:bg-electric-blue/5 transition-colors text-left group">
                         <div class="w-9 h-9 rounded-lg bg-slate-100 overflow-hidden shrink-0">
                             @if($s['image'])<img src="{{ \App\Models\Product::imageUrl($s['image']) }}" class="w-full h-full object-cover">@endif
                         </div>
                         <div class="flex-1 min-w-0">
-                            <div class="text-[10px] font-black text-electric-blue font-mono truncate">{{ $s['sku'] }}</div>
+                            <div class="text-[10px] font-black text-electric-blue font-mono truncate">{{ $s['sku'] }} <span class="text-slate-400">→ {{ $s['to_sku'] }}</span></div>
                             <div class="text-[9px] text-slate-500 truncate">{{ $s['name'] }}</div>
                             <div class="flex items-center gap-1.5 mt-0.5">
                                 <span class="text-[9px] text-slate-400">{{ strtoupper($fromBranch) }}: {{ $s['from_stock'] }}</span>
@@ -581,7 +614,9 @@
                             <svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="ml-auto text-slate-300 group-hover:text-electric-blue transition-colors mt-0.5"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
                         </div>
                     </button>
-                    @endforeach
+                    @empty
+                    <div class="text-center py-8 text-[11px] text-slate-400">{{ $suggestionSearch !== '' ? 'Không tìm thấy sản phẩm phù hợp.' : 'Không có sản phẩm lệch tồn.' }}</div>
+                    @endforelse
                 </div>
             </div>
             @endif
