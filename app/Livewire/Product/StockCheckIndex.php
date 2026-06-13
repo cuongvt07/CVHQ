@@ -48,6 +48,17 @@ class StockCheckIndex extends Component
     public bool $standalone = false;
     public string $creatorName = '';
     public string $createdAtLabel = '';
+    public ?int $stockCardId = null; // popup thẻ kho khi click mã hàng trong phiếu
+
+    public function openStockCard(int $productId): void
+    {
+        $this->stockCardId = $productId;
+    }
+
+    public function closeStockCard(): void
+    {
+        $this->stockCardId = null;
+    }
 
     public function mount(): void
     {

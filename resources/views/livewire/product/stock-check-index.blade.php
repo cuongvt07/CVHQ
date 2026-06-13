@@ -599,7 +599,13 @@
                                         @endunless
                                     </td>
                                     <td class="px-3 py-2 text-xs text-slate-700">{{ $index + 1 }}</td>
-                                    <td class="px-3 py-2 text-xs font-bold text-electric-blue">{{ $line['sku'] }}</td>
+                                    <td class="px-3 py-2 text-xs">
+                                        <button type="button" wire:click="openStockCard({{ $line['product_id'] }})" title="Xem thẻ kho"
+                                                class="font-bold text-electric-blue hover:underline decoration-dotted underline-offset-2 inline-flex items-center gap-1">
+                                            {{ $line['sku'] }}
+                                            <svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="opacity-50"><path d="M3 3v18h18"/><path d="m19 9-5 5-4-4-3 3"/></svg>
+                                        </button>
+                                    </td>
                                     <td class="px-3 py-2 text-xs text-slate-900 max-w-[360px]">{{ $line['name'] }}</td>
                                     <td class="px-3 py-2 text-xs text-slate-600">{{ $line['unit'] }}</td>
                                     <td class="px-3 py-2 text-xs" title="{{ $line['location'] ?? '' }}">
@@ -709,5 +715,85 @@
             </aside>
         </div>{{-- /hidden md:flex desktop --}}
     </div>{{-- /x-data alpine wrapper --}}
+    @endif
+
+    {{-- ═══════════ POPUP THẺ KHO (click mã hàng trong phiếu kiểm) ═══════════ --}}
+    @if($stockCardId)
+        @php
+            $scProduct = \App\Models\Product::find($stockCardId);
+            $scHistories = $scProduct ? $scProduct->stockHistories()->with('user')->take(100)->get() : collect();
+            $scTypeColors = [
+                'Sale' => 'text-emerald-400', 'Purchase' => 'text-electric-blue', 'Adjustment' => 'text-amber-400',
+                'Cancel' => 'text-rose-400', 'Import' => 'text-purple-400', 'Return' => 'text-sky-400',
+                'Initial' => 'text-slate-400', 'Delete' => 'text-rose-400',
+            ];
+            $scTypeLabels = [
+                'Sale' => 'Bán hàng', 'Purchase' => 'Nhập hàng', 'Adjustment' => 'Điều chỉnh', 'Cancel' => 'Hủy bán',
+                'Import' => 'Import Excel', 'Transfer' => 'Chuyển hàng', 'Return' => 'Trả hàng',
+                'Initial' => 'Khởi tạo', 'Delete' => 'Xóa hóa đơn',
+            ];
+        @endphp
+        <div class="fixed inset-0 z-[9999] flex items-center justify-center p-4"
+             x-data wire:key="sc-stock-card-{{ $stockCardId }}"
+             x-on:keydown.escape.window="$wire.closeStockCard()">
+            <div class="absolute inset-0 bg-slate-900/70 backdrop-blur-sm" wire:click="closeStockCard"></div>
+            <div class="relative bg-slate-900 rounded-2xl shadow-2xl w-full max-w-4xl max-h-[85vh] flex flex-col border border-white/10">
+                <div class="flex items-center justify-between px-5 py-4 border-b border-white/10">
+                    <div class="flex items-center gap-2 min-w-0">
+                        <div class="w-1.5 h-6 bg-electric-blue rounded-full shrink-0"></div>
+                        <div class="min-w-0">
+                            <h3 class="text-[12px] font-black text-white uppercase tracking-[0.15em]">Thẻ kho: <span class="text-electric-blue">{{ $scProduct?->sku }}</span></h3>
+                            <p class="text-[11px] text-slate-400 truncate">{{ $scProduct?->name ?: $scProduct?->base_name }} · Tồn hiện tại: <span class="font-bold text-white">{{ number_format($scProduct?->stock_quantity ?? 0) }}</span></p>
+                        </div>
+                    </div>
+                    <button wire:click="closeStockCard" class="w-9 h-9 shrink-0 flex items-center justify-center rounded-full bg-white/5 text-slate-400 hover:text-white hover:bg-white/10 transition-colors">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+                    </button>
+                </div>
+                <div class="overflow-y-auto custom-scrollbar-dark bg-black/30">
+                    <table class="w-full text-[11px]">
+                        <thead class="sticky top-0 bg-black/80 backdrop-blur-md z-10">
+                            <tr class="text-slate-500 border-b border-white/5">
+                                <th class="px-4 py-3 font-bold text-left">Thời gian</th>
+                                <th class="px-4 py-3 font-bold text-left">Loại</th>
+                                <th class="px-4 py-3 font-bold text-left">Mã tham chiếu</th>
+                                <th class="px-4 py-3 font-bold text-right">Thay đổi</th>
+                                <th class="px-4 py-3 font-bold text-right">Tồn trước</th>
+                                <th class="px-4 py-3 font-bold text-right">Tồn sau</th>
+                                <th class="px-4 py-3 font-bold text-left">Người thực hiện</th>
+                                <th class="px-4 py-3 font-bold text-left">Ghi chú</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-white/5">
+                            @forelse($scHistories as $history)
+                                <tr class="text-slate-300 hover:bg-white/5 transition-colors">
+                                    <td class="px-4 py-2.5 whitespace-nowrap">{{ $history->created_at->format('d/m/Y H:i') }}</td>
+                                    <td class="px-4 py-2.5"><span class="{{ $scTypeColors[$history->type] ?? 'text-slate-400' }} font-bold">{{ $scTypeLabels[$history->type] ?? $history->type }}</span></td>
+                                    <td class="px-4 py-2.5 font-mono text-[10px]">
+                                        @if(in_array($history->type, ['Sale','Cancel','Return','Delete']) && $history->reference_id && $history->reference_code)
+                                            <a href="{{ route('invoices.detail', $history->reference_id) }}" target="_blank" rel="noopener" class="hover:text-electric-blue hover:underline">{{ $history->reference_code }}</a>
+                                        @else
+                                            {{ $history->reference_code ?: '-' }}
+                                        @endif
+                                    </td>
+                                    <td class="px-4 py-2.5 text-right font-black {{ $history->quantity_change > 0 ? 'text-emerald-400' : 'text-rose-400' }}">{{ $history->quantity_change > 0 ? '+' : '' }}{{ $history->quantity_change }}</td>
+                                    <td class="px-4 py-2.5 text-right text-slate-400">{{ $history->quantity_before }}</td>
+                                    <td class="px-4 py-2.5 text-right text-white font-black">{{ $history->quantity_after }}</td>
+                                    <td class="px-4 py-2.5">
+                                        <div class="flex items-center gap-2">
+                                            <div class="w-5 h-5 rounded-full bg-white/5 border border-white/10 flex items-center justify-center text-[8px] font-black text-electric-blue">{{ $history->user ? strtoupper(substr($history->user->name, 0, 1)) : '?' }}</div>
+                                            <span class="text-slate-400">{{ $history->user->name ?? 'Hệ thống' }}</span>
+                                        </div>
+                                    </td>
+                                    <td class="px-4 py-2.5 text-slate-500 italic">{{ $history->note ?: '-' }}</td>
+                                </tr>
+                            @empty
+                                <tr><td colspan="8" class="px-4 py-10 text-center text-slate-600 italic">Chưa có lịch sử biến động kho cho sản phẩm này.</td></tr>
+                            @endforelse
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
     @endif
 </div>
