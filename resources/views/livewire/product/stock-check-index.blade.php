@@ -395,7 +395,12 @@
                              class="flex items-center px-3 py-2.5 border-b border-slate-100 hover:bg-slate-50 active:bg-slate-100 cursor-pointer transition-colors">
                             <div class="flex-1 min-w-0 pr-2">
                                 <div class="text-sm font-bold text-slate-900 truncate">{{ $line['name'] }}</div>
-                                <div class="text-[10px] text-slate-400 font-mono mt-0.5">{{ $line['sku'] }}</div>
+                                <div class="flex items-center gap-1.5 mt-0.5">
+                                    <span class="text-[10px] text-slate-400 font-mono">{{ $line['sku'] }}</span>
+                                    @if(!empty($line['location']))
+                                        <span class="text-[9px] font-bold text-emerald-600 bg-emerald-50 px-1 py-px rounded" title="{{ $line['location'] }}">{{ \App\Models\Product::formatLocation($line['location'], 2) }}</span>
+                                    @endif
+                                </div>
                             </div>
                             <div class="w-12 text-right">
                                 <span class="text-sm font-bold text-slate-700">{{ number_format($line['system_quantity']) }}</span>
@@ -576,6 +581,7 @@
                                 <th class="px-3 py-2 text-[11px] font-black text-slate-700">Mã hàng</th>
                                 <th class="px-3 py-2 text-[11px] font-black text-slate-700">Tên hàng</th>
                                 <th class="px-3 py-2 text-[11px] font-black text-slate-700">ĐVT</th>
+                                <th class="px-3 py-2 text-[11px] font-black text-slate-700">Vị trí</th>
                                 <th class="px-3 py-2 text-[11px] font-black text-slate-700 text-right">Tồn kho</th>
                                 <th class="px-3 py-2 text-[11px] font-black text-slate-700 text-center">Thực tế</th>
                                 <th class="px-3 py-2 text-[11px] font-black text-slate-700 text-right">SL lệch</th>
@@ -596,6 +602,13 @@
                                     <td class="px-3 py-2 text-xs font-bold text-electric-blue">{{ $line['sku'] }}</td>
                                     <td class="px-3 py-2 text-xs text-slate-900 max-w-[360px]">{{ $line['name'] }}</td>
                                     <td class="px-3 py-2 text-xs text-slate-600">{{ $line['unit'] }}</td>
+                                    <td class="px-3 py-2 text-xs" title="{{ $line['location'] ?? '' }}">
+                                        @if(!empty($line['location']))
+                                            <span class="font-bold text-emerald-700 bg-emerald-50 px-1.5 py-0.5 rounded">{{ \App\Models\Product::formatLocation($line['location']) }}</span>
+                                        @else
+                                            <span class="text-slate-300">—</span>
+                                        @endif
+                                    </td>
                                     <td class="px-3 py-2 text-xs text-right font-bold text-slate-900">{{ number_format($line['system_quantity']) }}</td>
                                     <td class="px-3 py-2 text-center">
                                         @if($locked)
@@ -609,7 +622,7 @@
                                 </tr>
                             @empty
                                 <tr>
-                                    <td colspan="9" class="py-24 text-center text-sm text-slate-400">Tìm và thêm sản phẩm cần kiểm kho.</td>
+                                    <td colspan="10" class="py-24 text-center text-sm text-slate-400">Tìm và thêm sản phẩm cần kiểm kho.</td>
                                 </tr>
                             @endforelse
                         </tbody>

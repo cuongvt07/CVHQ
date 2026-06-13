@@ -129,9 +129,12 @@ class StockCheckIndex extends Component
         $this->creatorName = $check->user?->name ?: '—';
         $this->createdAtLabel = $check->created_at?->format('d/m/Y H:i') ?: '';
 
+        // Vị trí lấy LIVE từ sản phẩm (để giúp người kiểm tìm hàng), không lưu snapshot.
+        $productIds = $check->items->pluck('product_id')->filter()->all();
+        $locations = Product::whereIn('id', $productIds)->pluck('location', 'id');
+
         if ($check->status === 'draft') {
             // Refresh system_quantity từ tồn kho thực tế hiện tại
-            $productIds = $check->items->pluck('product_id')->filter()->all();
             $currentStocks = Product::whereIn('id', $productIds)->pluck('stock_quantity', 'id');
 
             $this->lines = $check->items->map(fn($item) => [
@@ -139,6 +142,7 @@ class StockCheckIndex extends Component
                 'sku' => $item->sku,
                 'name' => $item->product_name,
                 'unit' => $item->unit ?: 'Cái',
+                'location' => $locations[$item->product_id] ?? '',
                 'system_quantity' => (int) ($currentStocks[$item->product_id] ?? $item->system_quantity),
                 'actual_quantity' => (int) $item->actual_quantity,
                 'difference' => (int) $item->difference,
@@ -157,6 +161,7 @@ class StockCheckIndex extends Component
                 'sku' => $item->sku,
                 'name' => $item->product_name,
                 'unit' => $item->unit ?: 'Cái',
+                'location' => $locations[$item->product_id] ?? '',
                 'system_quantity' => (int) $item->system_quantity,
                 'actual_quantity' => (int) $item->actual_quantity,
                 'difference' => (int) $item->difference,
@@ -246,6 +251,7 @@ class StockCheckIndex extends Component
             'sku' => $product->sku,
             'name' => $product->name ?: $product->base_name,
             'unit' => $product->unit ?: $product->base_unit_code ?: 'Cái',
+            'location' => $product->location ?: '',
             'system_quantity' => $systemQty,
             'actual_quantity' => $systemQty,
             'difference' => 0,
