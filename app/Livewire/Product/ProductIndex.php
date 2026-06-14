@@ -64,6 +64,7 @@ class ProductIndex extends Component
     public $bulkSalePrice = 0;
     public $bulkCommission = 0;
     public $bulkRowCount = 30;
+    public $bulkImages = []; // ảnh chung áp dụng cho tất cả sản phẩm tạo hàng loạt
     public array $bulkProducts = [];
     // public $commissionRanges = [];
 
@@ -679,10 +680,25 @@ class ProductIndex extends Component
         $this->bulkSalePrice = 0;
         $this->bulkCommission = 0;
         $this->bulkRowCount = 30;
+        $this->bulkImages = [];
         $this->bulkProducts = [];
         $this->addBulkRow($this->bulkRowCount);
-        
+
         $this->dispatch('open-bulk-modal');
+    }
+
+    /**
+     * Mã SKU đầu tiên sẽ được gán cho lô hàng loạt (xem trước theo tiền tố hiện tại).
+     */
+    public function getNextBulkSkuProperty(): string
+    {
+        return $this->nextSkuForPrefix((string) $this->bulkPrefix);
+    }
+
+    public function removeBulkImage($index)
+    {
+        unset($this->bulkImages[$index]);
+        $this->bulkImages = array_values($this->bulkImages);
     }
 
     public function updatedBulkSalePrice()
@@ -692,6 +708,24 @@ class ProductIndex extends Component
         }
 
         $this->bulkCommission = $this->commissionForPrice((int) $this->bulkSalePrice);
+    }
+
+    // Tự nhảy hoa hồng theo GIÁ RIÊNG của từng dòng khi nhập (nếu bật auto hoa hồng).
+    public function updatedBulkProducts($value, $key): void
+    {
+        if (!$this->isAutoCommissionEnabled()) {
+            return;
+        }
+        if (!str_ends_with((string) $key, '.price')) {
+            return;
+        }
+
+        $index = (int) explode('.', $key)[0];
+        $price = (int) ($this->bulkProducts[$index]['price'] ?? 0);
+        // Có giá riêng -> hoa hồng theo giá riêng; bỏ trống -> để theo hoa hồng chung.
+        $this->bulkProducts[$index]['commission'] = $price > 0
+            ? $this->commissionForPrice($price)
+            : '';
     }
 
     public function applyBulkRowCount()
@@ -716,6 +750,8 @@ class ProductIndex extends Component
             $this->bulkProducts[] = [
                 'attribute' => '',
                 'location' => '',
+                'price' => '',        // để trống = dùng giá chung
+                'commission' => '',   // để trống = dùng hoa hồng chung
                 'stock' => 999
             ];
         }
@@ -733,6 +769,7 @@ class ProductIndex extends Component
             'bulkPrefix' => 'required|min:1',
             'bulkBaseName' => 'required|min:2',
             'bulkSalePrice' => 'required|numeric|min:0',
+            'bulkImages.*' => 'nullable|image|max:5120',
         ]);
 
         if (empty($this->bulkProducts)) {
@@ -740,12 +777,18 @@ class ProductIndex extends Component
             return;
         }
 
+        // Upload ảnh chung 1 lần, dùng cho tất cả sản phẩm trong lô.
+        $sharedImages = [];
+        foreach ($this->bulkImages as $image) {
+            $sharedImages[] = $image->store('products', 'public');
+        }
+
         $count = 0;
         $canEditCommission = auth()->user()?->hasPermission('product.edit_commission');
         if ($this->isAutoCommissionEnabled()) {
             $this->bulkCommission = $this->commissionForPrice((int) $this->bulkSalePrice);
         }
-        
+
         foreach ($this->bulkProducts as $row) {
             $attrVal = trim($row['attribute'] ?? '');
             $location = trim($row['location'] ?? '');
@@ -762,23 +805,35 @@ class ProductIndex extends Component
                 $attributes['Màu sắc/Phân loại'] = $attrVal;
             }
 
+            // Giá riêng từng dòng (để trống = dùng giá chung)
+            $rowPrice = ($row['price'] ?? '') !== '' && $row['price'] !== null
+                ? (int) $row['price']
+                : (int) $this->bulkSalePrice;
+
+            // Hoa hồng: auto theo giá dòng nếu bật; nếu không thì lấy riêng/chung.
+            if ($this->isAutoCommissionEnabled()) {
+                $rowCommission = $this->commissionForPrice($rowPrice);
+            } elseif ($canEditCommission) {
+                $rowCommission = ($row['commission'] ?? '') !== '' && $row['commission'] !== null
+                    ? (int) $row['commission']
+                    : (int) $this->bulkCommission;
+            } else {
+                $rowCommission = 0;
+            }
+
             $productData = [
                 'sku' => $sku,
                 'base_name' => $this->bulkBaseName,
                 'category_path' => $this->bulkCategory,
                 'brand' => $this->bulkBrand,
-                'sale_price' => $this->bulkSalePrice,
+                'sale_price' => $rowPrice,
+                'commission_amount' => $rowCommission,
                 'stock_quantity' => $row['stock'] === '' || $row['stock'] === null ? 999 : (int)$row['stock'],
                 'location' => $location,
                 'is_active' => true,
                 'attributes' => $attributes,
+                'images' => $sharedImages,
             ];
-
-            if ($canEditCommission || $this->isAutoCommissionEnabled()) {
-                $productData['commission_amount'] = $this->bulkCommission;
-            } else {
-                $productData['commission_amount'] = 0;
-            }
 
             $newProduct = Product::create($productData);
             // Khởi tạo tồn kho khi thêm hàng loạt -> ghi thẻ kho

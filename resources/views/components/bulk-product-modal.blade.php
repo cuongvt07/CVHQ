@@ -49,8 +49,11 @@
                     <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
                         <div>
                             <label class="block text-[11px] font-bold text-slate-600 mb-1">Tiền tố SKU <span class="text-rose-500">*</span></label>
-                            <input type="text" wire:model.blur="bulkPrefix" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:border-electric-blue focus:ring-2 focus:ring-electric-blue/10" placeholder="VD: GTS">
+                            <input type="text" wire:model.live.debounce.400ms="bulkPrefix" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:border-electric-blue focus:ring-2 focus:ring-electric-blue/10" placeholder="VD: GTS">
                             @error('bulkPrefix') <span class="text-[10px] text-rose-500 font-bold">{{ $message }}</span> @enderror
+                            @if(trim($bulkPrefix) !== '')
+                                <p class="text-[10px] font-bold text-electric-blue mt-1">Mã đầu tiên: {{ $this->nextBulkSku }} <span class="text-slate-400 font-normal">(tự nhảy tiến lên)</span></p>
+                            @endif
                         </div>
                         <div class="col-span-full md:col-span-3">
                             <label class="block text-[11px] font-bold text-slate-600 mb-1">Tên sản phẩm chung <span class="text-rose-500">*</span></label>
@@ -76,6 +79,28 @@
                             <input type="number" wire:model="bulkCommission" class="w-full bg-amber-50/50 border border-amber-200 rounded-xl px-3 py-2 text-sm font-bold text-amber-600 focus:outline-none focus:border-amber-400 focus:ring-2 focus:ring-amber-400/20">
                         </div>
                         @endif
+
+                        {{-- Ảnh chung: áp dụng cho tất cả sản phẩm trong lô --}}
+                        <div class="col-span-full">
+                            <label class="block text-[11px] font-bold text-slate-600 mb-1">Ảnh chung <span class="text-slate-400 font-normal">(áp dụng cho tất cả)</span></label>
+                            <div class="flex items-center gap-2 flex-wrap">
+                                @foreach($bulkImages as $i => $img)
+                                    <div class="relative w-14 h-14 rounded-lg overflow-hidden border border-slate-200 group/img">
+                                        @if(method_exists($img, 'temporaryUrl'))
+                                            <img src="{{ $img->temporaryUrl() }}" class="w-full h-full object-cover">
+                                        @endif
+                                        <button type="button" wire:click="removeBulkImage({{ $i }})"
+                                                class="absolute top-0.5 right-0.5 w-4 h-4 flex items-center justify-center rounded-full bg-rose-500 text-white text-[10px] leading-none">×</button>
+                                    </div>
+                                @endforeach
+                                <label class="w-14 h-14 rounded-lg border-2 border-dashed border-slate-200 flex items-center justify-center text-slate-400 cursor-pointer hover:border-electric-blue hover:text-electric-blue transition-colors">
+                                    <input type="file" wire:model="bulkImages" multiple accept="image/*" class="hidden">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="M12 5v14"/></svg>
+                                </label>
+                                <span wire:loading wire:target="bulkImages" class="text-[10px] text-slate-400">Đang tải ảnh...</span>
+                            </div>
+                            @error('bulkImages.*') <span class="text-[10px] text-rose-500 font-bold">{{ $message }}</span> @enderror
+                        </div>
                     </div>
                 </div>
 
@@ -103,13 +128,17 @@
                     <p class="mb-2 text-[10px] font-semibold text-slate-400">Nhập liên tiếp từng dòng trong bảng. Dòng không có màu/phân loại và không có vị trí sẽ tự bỏ qua khi lưu.</p>
 
                     <div class="glass-card overflow-x-auto border border-slate-200 rounded-xl flex-1">
-                        <table class="w-full text-left border-collapse min-w-[600px]">
+                        <table class="w-full text-left border-collapse min-w-[760px]">
                             <thead class="sticky top-0 bg-slate-50/95 backdrop-blur-md z-10">
                                 <tr class="border-b border-slate-200">
                                     <th class="w-12 px-3 py-2 text-center text-[10px] font-bold text-slate-400">#</th>
                                     <th class="px-3 py-2 text-[10px] font-bold text-slate-600 uppercase tracking-wider">Màu sắc / Phân loại</th>
-                                    <th class="w-40 px-3 py-2 text-[10px] font-bold text-slate-600 uppercase tracking-wider">Vị trí cất</th>
-                                    <th class="w-32 px-3 py-2 text-[10px] font-bold text-slate-600 uppercase tracking-wider">Tồn kho</th>
+                                    <th class="w-36 px-3 py-2 text-[10px] font-bold text-slate-600 uppercase tracking-wider">Vị trí cất</th>
+                                    <th class="w-32 px-3 py-2 text-[10px] font-bold text-slate-600 uppercase tracking-wider">Giá bán riêng</th>
+                                    @if(auth()->user()?->hasPermission('product.edit_commission'))
+                                    <th class="w-28 px-3 py-2 text-[10px] font-bold text-slate-600 uppercase tracking-wider">Hoa hồng riêng</th>
+                                    @endif
+                                    <th class="w-28 px-3 py-2 text-[10px] font-bold text-slate-600 uppercase tracking-wider">Tồn kho</th>
                                     <th class="w-12 px-3 py-2 text-center"></th>
                                 </tr>
                             </thead>
@@ -123,6 +152,14 @@
                                     <td class="px-3 py-1.5">
                                         <input type="text" wire:model="bulkProducts.{{ $index }}.location" list="bulk-location-suggestions" class="w-full bg-transparent border border-transparent hover:border-slate-200 focus:border-electric-blue focus:bg-white rounded-lg px-2 py-1.5 text-xs font-bold text-electric-blue focus:outline-none transition-all" placeholder="Gõ để chọn / thêm vị trí">
                                     </td>
+                                    <td class="px-3 py-1.5">
+                                        <input type="number" wire:model.live.debounce.500ms="bulkProducts.{{ $index }}.price" class="w-full bg-transparent border border-transparent hover:border-slate-200 focus:border-electric-blue focus:bg-white rounded-lg px-2 py-1.5 text-xs font-bold text-slate-900 focus:outline-none transition-all" placeholder="{{ $bulkSalePrice ? number_format($bulkSalePrice, 0, ',', '.') : 'Giá chung' }}">
+                                    </td>
+                                    @if(auth()->user()?->hasPermission('product.edit_commission'))
+                                    <td class="px-3 py-1.5">
+                                        <input type="number" wire:model="bulkProducts.{{ $index }}.commission" class="w-full bg-transparent border border-transparent hover:border-slate-200 focus:border-amber-400 focus:bg-white rounded-lg px-2 py-1.5 text-xs font-bold text-amber-600 focus:outline-none transition-all" placeholder="{{ $bulkCommission ? number_format($bulkCommission, 0, ',', '.') : 'HH chung' }}">
+                                    </td>
+                                    @endif
                                     <td class="px-3 py-1.5">
                                         <input type="number" wire:model="bulkProducts.{{ $index }}.stock" class="w-full bg-transparent border border-transparent hover:border-slate-200 focus:border-electric-blue focus:bg-white rounded-lg px-2 py-1.5 text-xs font-bold text-slate-900 focus:outline-none transition-all">
                                     </td>

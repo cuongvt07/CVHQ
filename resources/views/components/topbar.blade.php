@@ -66,6 +66,13 @@
                         ->latest()->take(10)->get()
                         ->map(fn($log) => $mapLog($log, 'stock_check', 'Phiếu kiểm kho'));
 
+                    // Gửi hàng (Chuyển hàng liên chi nhánh)
+                    $transferLogs = \App\Models\ActivityLog::with('user')
+                        ->where('model_type', \App\Models\StockTransfer::class)
+                        ->where('created_at', '>=', now()->subDays(3))
+                        ->latest()->take(10)->get()
+                        ->map(fn($log) => $mapLog($log, 'transfer', 'Phiếu gửi hàng'));
+
                     // Tồn kho (StockHistory)
                     $stockLogs = \App\Models\StockHistory::with(['product', 'user'])
                         ->where('created_at', '>=', now()->subDays(3))
@@ -115,7 +122,7 @@
                             'sort'  => now()->timestamp + 2,
                         ]);
 
-                    $__notifs = $invoiceLogs->concat($productLogs)->concat($stockCheckLogs)->concat($stockLogs)->concat($lowStock)->concat($outOfStock)
+                    $__notifs = $invoiceLogs->concat($productLogs)->concat($stockCheckLogs)->concat($transferLogs)->concat($stockLogs)->concat($lowStock)->concat($outOfStock)
                         ->sortByDesc('sort')
                         ->values();
                 } catch (\Throwable $e) {
@@ -129,6 +136,7 @@
                     'stock'       => ['label' => 'Tồn kho', 'count' => $__notifs->where('tab', 'stock')->count()],
                     'product'     => ['label' => 'Hàng hóa', 'count' => $__notifs->where('tab', 'product')->count()],
                     'stock_check' => ['label' => 'Kiểm kho', 'count' => $__notifs->where('tab', 'stock_check')->count()],
+                    'transfer'    => ['label' => 'Gửi hàng', 'count' => $__notifs->where('tab', 'transfer')->count()],
                     'import'      => ['label' => 'Nhập hàng', 'count' => $__notifs->where('tab', 'import')->count()],
                 ];
             @endphp

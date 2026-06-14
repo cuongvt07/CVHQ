@@ -321,6 +321,17 @@ class StockTransferIndex extends Component
             $this->editingId    = $transfer->id;
             $this->transferCode = $transfer->code;
             $this->createdBy    = $transfer->created_by;
+
+            // Ghi nhật ký mốc "tạo phiếu gửi hàng" (1 lần).
+            \App\Models\ActivityLog::create([
+                'user_id' => auth()->id(),
+                'action' => 'created',
+                'model_type' => StockTransfer::class,
+                'model_id' => $transfer->id,
+                'changes' => null,
+                'ip_address' => request()->ip(),
+                'user_agent' => request()->userAgent(),
+            ]);
         }
 
         $transfer->items()->delete();
@@ -434,8 +445,20 @@ class StockTransferIndex extends Component
             $this->dispatch('notify', message: 'Không thể xóa phiếu đã xác nhận.', type: 'error');
             return;
         }
+        $code = $transfer->code;
         $transfer->items()->delete();
         $transfer->delete();
+
+        \App\Models\ActivityLog::create([
+            'user_id' => auth()->id(),
+            'action' => 'deleted',
+            'model_type' => StockTransfer::class,
+            'model_id' => $id,
+            'changes' => ['after' => ['Mã phiếu' => $code], 'before' => ['Mã phiếu' => '']],
+            'ip_address' => request()->ip(),
+            'user_agent' => request()->userAgent(),
+        ]);
+
         $this->dispatch('notify', message: 'Đã xóa phiếu chuyển hàng.', type: 'success');
         $this->resetPage();
     }
