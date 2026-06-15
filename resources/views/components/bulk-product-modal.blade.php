@@ -51,7 +51,7 @@
                             <label class="block text-[11px] font-bold text-slate-600 mb-1">Tiền tố SKU <span class="text-rose-500">*</span></label>
                             <input type="text" wire:model.live.debounce.400ms="bulkPrefix" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:border-electric-blue focus:ring-2 focus:ring-electric-blue/10" placeholder="VD: GTS">
                             @error('bulkPrefix') <span class="text-[10px] text-rose-500 font-bold">{{ $message }}</span> @enderror
-                            @if(trim($bulkPrefix) !== '')
+                            @if(trim($this->bulkPrefix) !== '')
                                 <p class="text-[10px] font-bold text-electric-blue mt-1">Mã đầu tiên: {{ $this->nextBulkSku }} <span class="text-slate-400 font-normal">(tự nhảy tiến lên)</span></p>
                             @endif
                         </div>
@@ -84,7 +84,7 @@
                         <div class="col-span-full">
                             <label class="block text-[11px] font-bold text-slate-600 mb-1">Ảnh chung <span class="text-slate-400 font-normal">(áp dụng cho tất cả)</span></label>
                             <div class="flex items-center gap-2 flex-wrap">
-                                @foreach($bulkImages as $i => $img)
+                                @foreach($this->bulkImages as $i => $img)
                                     <div class="relative w-14 h-14 rounded-lg overflow-hidden border border-slate-200 group/img">
                                         @if(method_exists($img, 'temporaryUrl'))
                                             <img src="{{ $img->temporaryUrl() }}" class="w-full h-full object-cover">
@@ -153,11 +153,11 @@
                                         <input type="text" wire:model="bulkProducts.{{ $index }}.location" list="bulk-location-suggestions" class="w-full bg-transparent border border-transparent hover:border-slate-200 focus:border-electric-blue focus:bg-white rounded-lg px-2 py-1.5 text-xs font-bold text-electric-blue focus:outline-none transition-all" placeholder="Gõ để chọn / thêm vị trí">
                                     </td>
                                     <td class="px-3 py-1.5">
-                                        <input type="number" wire:model.live.debounce.500ms="bulkProducts.{{ $index }}.price" class="w-full bg-transparent border border-transparent hover:border-slate-200 focus:border-electric-blue focus:bg-white rounded-lg px-2 py-1.5 text-xs font-bold text-slate-900 focus:outline-none transition-all" placeholder="{{ $bulkSalePrice ? number_format($bulkSalePrice, 0, ',', '.') : 'Giá chung' }}">
+                                        <input type="number" wire:model.live.debounce.500ms="bulkProducts.{{ $index }}.price" class="w-full bg-transparent border border-transparent hover:border-slate-200 focus:border-electric-blue focus:bg-white rounded-lg px-2 py-1.5 text-xs font-bold text-slate-900 focus:outline-none transition-all" placeholder="{{ $this->bulkSalePrice ? number_format($this->bulkSalePrice, 0, ',', '.') : 'Giá chung' }}">
                                     </td>
                                     @if(auth()->user()?->hasPermission('product.edit_commission'))
                                     <td class="px-3 py-1.5">
-                                        <input type="number" wire:model="bulkProducts.{{ $index }}.commission" class="w-full bg-transparent border border-transparent hover:border-slate-200 focus:border-amber-400 focus:bg-white rounded-lg px-2 py-1.5 text-xs font-bold text-amber-600 focus:outline-none transition-all" placeholder="{{ $bulkCommission ? number_format($bulkCommission, 0, ',', '.') : 'HH chung' }}">
+                                        <input type="number" wire:model="bulkProducts.{{ $index }}.commission" class="w-full bg-transparent border border-transparent hover:border-slate-200 focus:border-amber-400 focus:bg-white rounded-lg px-2 py-1.5 text-xs font-bold text-amber-600 focus:outline-none transition-all" placeholder="{{ $this->bulkCommission ? number_format($this->bulkCommission, 0, ',', '.') : 'HH chung' }}">
                                     </td>
                                     @endif
                                     <td class="px-3 py-1.5">
