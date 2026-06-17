@@ -319,6 +319,17 @@ class InvoiceIndex extends Component
         ]);
 
         $invoice = Invoice::findOrFail($this->selectedInvoiceIdForCancel);
+
+        // Đã Trả hàng / đã Hủy => không cho hủy lại (tránh hoàn kho trùng).
+        if (in_array($invoice->status, ['Cancelled', 'Returned'], true)) {
+            $this->showCancelModal = false;
+            $this->selectedInvoiceIdForCancel = null;
+            $this->cancelReason = '';
+            $label = $invoice->status === 'Returned' ? 'đã trả hàng' : 'đã hủy';
+            $this->dispatch('notify', message: "Hóa đơn {$label}, không thể hủy lại.", type: 'error');
+            return;
+        }
+
         $invoice->cancel($this->cancelReason, auth()->id());
 
         $this->showCancelModal = false;
@@ -473,8 +484,19 @@ class InvoiceIndex extends Component
             return;
         }
 
-        $this->editingInvoiceId = $id;
         $invoice = Invoice::with('items')->find($id);
+        if (!$invoice) {
+            return;
+        }
+
+        // Đã trả hàng / đã hủy => KHÔNG cho sửa.
+        if (in_array($invoice->status, ['Returned', 'Cancelled'], true)) {
+            $label = $invoice->status === 'Returned' ? 'đã trả hàng' : 'đã hủy';
+            $this->dispatch('notify', message: "Hóa đơn {$label}, không thể sửa.", type: 'error');
+            return;
+        }
+
+        $this->editingInvoiceId = $id;
         $this->editCustomerId = $invoice->customer_id;
         $this->editCustomerSearch = $invoice->customer?->full_name ?? 'Khách lẻ';
         $this->editSalesChannel = $invoice->sales_channel ?? '';
@@ -518,7 +540,14 @@ class InvoiceIndex extends Component
         }
 
         $invoice = Invoice::findOrFail($this->editingInvoiceId);
-        
+
+        // Đã trả hàng / đã hủy => KHÔNG cho lưu sửa.
+        if (in_array($invoice->status, ['Returned', 'Cancelled'], true)) {
+            $this->dispatch('notify', message: 'Hóa đơn đã trả hàng/đã hủy, không thể sửa.', type: 'error');
+            $this->cancelEdit();
+            return;
+        }
+
         \DB::transaction(function () use ($invoice) {
             $totalAmount = 0;
             $seller = $invoice->user;

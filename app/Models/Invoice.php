@@ -119,7 +119,8 @@ class Invoice extends Model
 
     public function cancel(string $reason, int $userId): void
     {
-        if ($this->status === 'Cancelled') {
+        // Đã Hủy hoặc đã Trả hàng => tồn kho đã được hoàn rồi, KHÔNG hoàn lại lần nữa.
+        if (in_array($this->status, ['Cancelled', 'Returned'], true)) {
             return;
         }
 

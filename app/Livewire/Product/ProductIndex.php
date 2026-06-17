@@ -186,7 +186,8 @@ class ProductIndex extends Component
             $max = (int) ($range['max'] ?? 0);
             $amount = (int) ($range['amount'] ?? 0);
 
-            if ($price >= $min && ($max <= 0 || $price < $max)) {
+            // Mốc trên (max) tính BAO GỒM: nhập đúng số cuối mốc (190, 290…) vẫn khớp.
+            if ($price >= $min && ($max <= 0 || $price <= $max)) {
                 return $amount;
             }
         }

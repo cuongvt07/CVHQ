@@ -31,6 +31,12 @@ class Login extends Component
         }
 
         if (Auth::attempt(['email' => $this->email, 'password' => $this->password], $this->remember)) {
+            // Tài khoản đã ngừng hoạt động (nghỉ việc) -> không cho vào.
+            if (!auth()->user()->is_active) {
+                Auth::logout();
+                $this->addError('email', 'Tài khoản đã ngừng hoạt động. Vui lòng liên hệ quản trị.');
+                return;
+            }
             RateLimiter::clear($throttleKey);
             session()->regenerate();
             return redirect()->intended(route('dashboard'));

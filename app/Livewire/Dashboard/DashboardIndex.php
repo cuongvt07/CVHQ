@@ -49,14 +49,15 @@ class DashboardIndex extends Component
 
         $rows = InvoiceItem::query()
             ->join('invoices', 'invoices.id', '=', 'invoice_items.invoice_id')
-            ->where('invoices.status', '!=', 'Cancelled')
+            ->whereNotIn('invoices.status', ['Cancelled', 'Returned'])
             ->when($since, fn($q) => $q->where('invoices.created_at', '>=', $since))
             ->select(
                 'invoice_items.product_id',
                 'invoice_items.sku',
                 'invoice_items.product_name',
                 DB::raw('SUM(invoice_items.quantity) AS total_qty'),
-                DB::raw('SUM(invoice_items.final_price * invoice_items.quantity) AS total_revenue')
+                // final_price đã là thành tiền cả dòng (đơn giá × SL) -> KHÔNG nhân SL lần nữa
+                DB::raw('SUM(invoice_items.final_price) AS total_revenue')
             )
             ->groupBy('invoice_items.product_id', 'invoice_items.sku', 'invoice_items.product_name')
             ->orderByDesc('total_qty')
@@ -74,19 +75,26 @@ class DashboardIndex extends Component
     public function getStats()
     {
         $today = Carbon::today();
-        
+        $invoiceToday = fn() => Invoice::whereDate('created_at', $today);
+
         return [
-            'revenue_today' => Invoice::where('status', '!=', 'Cancelled')->whereDate('created_at', $today)->sum('final_amount'),
-            'orders_today' => Invoice::where('status', '!=', 'Cancelled')->whereDate('created_at', $today)->count(),
-            'total_customers' => Customer::count(),
-            'low_stock_count' => Product::whereRaw('stock_quantity < min_stock')->count(),
+            'revenue_today'    => $invoiceToday()->whereNotIn('status', ['Cancelled', 'Returned'])->sum('final_amount'),
+            // Chi tiết số đơn hôm nay
+            'orders_today'     => $invoiceToday()->count(),                                   // Tổng hóa đơn
+            'orders_completed' => $invoiceToday()->whereNotIn('status', ['Cancelled', 'Returned'])->count(), // Hoàn thành
+            'orders_returned'  => $invoiceToday()->where('status', 'Returned')->count(),      // Trả hàng
+            'orders_cancelled' => $invoiceToday()->where('status', 'Cancelled')->count(),     // Hủy
+            'orders_edited'    => $invoiceToday()->whereNotIn('status', ['Cancelled', 'Returned'])
+                                    ->whereColumn('updated_at', '>', 'created_at')->count(),  // Đã sửa
+            'total_customers'  => Customer::count(),
+            'low_stock_count'  => Product::whereRaw('stock_quantity < min_stock')->count(),
         ];
     }
 
     public function getRecentActivity()
     {
         return Invoice::with(['customer', 'user'])
-            ->where('status', '!=', 'Cancelled')
+            ->whereNotIn('status', ['Cancelled', 'Returned'])
             ->latest()
             ->take(5)
             ->get();
@@ -98,7 +106,7 @@ class DashboardIndex extends Component
         $start = $end->copy()->subDays(6); // 7 days inclusive
 
         $totalsByDay = Invoice::query()
-            ->where('status', '!=', 'Cancelled')
+            ->whereNotIn('status', ['Cancelled', 'Returned'])
             ->whereBetween('created_at', [$start->copy()->startOfDay(), $end->copy()->endOfDay()])
             ->selectRaw('DATE(created_at) as day, SUM(final_amount) as total')
             ->groupBy('day')

@@ -120,7 +120,10 @@
                                 @foreach($this->availablePermissions as $moduleKey => $module)
                                     <div class="bg-slate-50 border border-slate-100 rounded-[1.5rem] p-4 hover:border-electric-blue/20 transition-all group/card">
                                         <label class="flex items-center gap-3 cursor-pointer mb-3">
-                                            <input type="checkbox" wire:model="permissions" value="{{ $moduleKey }}" class="w-4 h-4 rounded border-slate-300 text-electric-blue focus:ring-electric-blue">
+                                            <input type="checkbox"
+                                                   @checked(in_array($moduleKey, (array) $this->permissions))
+                                                   wire:change="toggleModule('{{ $moduleKey }}', $event.target.checked)"
+                                                   class="w-4 h-4 rounded border-slate-300 text-electric-blue focus:ring-electric-blue">
                                             <span class="text-sm font-bold text-slate-700 group-hover/card:text-electric-blue transition-colors">{{ $module['label'] }}</span>
                                         </label>
 

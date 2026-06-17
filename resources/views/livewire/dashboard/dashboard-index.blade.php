@@ -16,23 +16,45 @@
 
     <!-- KPI Grid -->
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        <!-- Revenue Card -->
-        <div class="glass-card p-6 flex flex-col gap-2 group transition-all hover:border-electric-blue/30 relative overflow-hidden">
+        <!-- Revenue Card -> click ra danh sách hóa đơn hôm nay -->
+        <a href="{{ route('invoices', ['startDate' => now()->toDateString(), 'endDate' => now()->toDateString()]) }}"
+           class="glass-card p-6 flex flex-col gap-2 group transition-all hover:border-electric-blue/30 relative overflow-hidden cursor-pointer">
             <div class="absolute top-0 right-0 w-24 h-24 bg-electric-blue/5 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2 transition-all group-hover:bg-electric-blue/10"></div>
-            <span class="text-[10px] md:text-[14px] font-bold text-slate-400 uppercase tracking-widest">Doanh thu hôm nay</span>
+            <span class="text-[10px] md:text-[14px] font-bold text-slate-400 uppercase tracking-widest flex items-center gap-1">
+                Doanh thu hôm nay
+                <svg xmlns="http://www.w3.org/2000/svg" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="opacity-0 group-hover:opacity-60 transition-opacity"><path d="M7 7h10v10"/><path d="M7 17 17 7"/></svg>
+            </span>
             <div class="flex items-end gap-2 mt-1">
                 <span class="text-[22px] md:text-[26px] font-bold text-slate-900 text-glow">{{ number_format($stats['revenue_today'], 0, ',', '.') }}</span>
                 <span class="text-[10px] md:text-[14px] font-bold text-slate-400 mb-1">đ</span>
             </div>
-        </div>
+        </a>
 
-        <!-- Orders Card -->
+        <!-- Orders Card: tổng + chi tiết -->
         <div class="glass-card p-6 flex flex-col gap-2 group transition-all hover:border-purple-500/30 relative overflow-hidden">
             <div class="absolute top-0 right-0 w-24 h-24 bg-purple-500/5 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2 transition-all group-hover:bg-purple-500/10"></div>
             <span class="text-[10px] md:text-[14px] font-bold text-slate-400 uppercase tracking-widest">Số đơn giao dịch</span>
-            <div class="flex items-end gap-3 mt-1">
+            <div class="flex items-end gap-2">
                 <span class="text-[22px] md:text-[26px] font-bold text-slate-900">{{ $stats['orders_today'] }}</span>
-                <span class="text-[9px] md:text-[13px] text-emerald-600 font-bold mb-1.5 uppercase">Hóa đơn</span>
+                <span class="text-[9px] md:text-[13px] text-slate-400 font-bold mb-1.5 uppercase">Tổng HĐ</span>
+            </div>
+            <div class="grid grid-cols-2 gap-x-3 gap-y-1 mt-1 pt-2 border-t border-slate-100">
+                <div class="flex items-center justify-between text-[10px] md:text-[12px]">
+                    <span class="text-slate-500">Hoàn thành</span>
+                    <span class="font-bold text-emerald-600">{{ $stats['orders_completed'] }}</span>
+                </div>
+                <div class="flex items-center justify-between text-[10px] md:text-[12px]">
+                    <span class="text-slate-500">Đã sửa</span>
+                    <span class="font-bold text-amber-600">{{ $stats['orders_edited'] }}</span>
+                </div>
+                <div class="flex items-center justify-between text-[10px] md:text-[12px]">
+                    <span class="text-slate-500">Trả hàng</span>
+                    <span class="font-bold text-sky-600">{{ $stats['orders_returned'] }}</span>
+                </div>
+                <div class="flex items-center justify-between text-[10px] md:text-[12px]">
+                    <span class="text-slate-500">Đã hủy</span>
+                    <span class="font-bold text-rose-600">{{ $stats['orders_cancelled'] }}</span>
+                </div>
             </div>
         </div>
 
@@ -173,7 +195,7 @@
             <h3 class="text-[14px] md:text-[18px] font-bold tracking-tight text-slate-900">Giao dịch gần đây</h3>
             <div class="flex flex-col gap-5">
                 @foreach($activities as $activity)
-                    <div class="flex items-center gap-4 group cursor-pointer transition-all hover:translate-x-1">
+                    <a href="{{ route('invoices.detail', $activity->id) }}" class="flex items-center gap-4 group cursor-pointer transition-all hover:translate-x-1">
                         <div class="w-10 h-10 rounded-full bg-slate-50 border border-slate-200 flex items-center justify-center text-slate-400 group-hover:text-electric-blue group-hover:border-electric-blue/30 transition-all">
                             <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v20l2-1 2 1 2-1 2 1 2-1 2 1 2-1 2 1V2l-2 1-2-1-2 1-2-1-2 1-2-1-2 1-2-1Z"/></svg>
                         </div>
@@ -191,7 +213,7 @@
                                 <span class="truncate min-w-0 flex-1">Người tạo: <span class="font-bold text-slate-700">{{ $activity->user->name ?? $activity->seller_name ?? '—' }}</span></span>
                             </div>
                         </div>
-                    </div>
+                    </a>
                 @endforeach
             </div>
             

@@ -151,8 +151,13 @@
                             </td>
                             @if(in_array('info', $visibleColumns))
                             <td class="px-4 py-2">
-                                <div>
-                                    <div class="text-sm font-semibold text-slate-900">{{ $user->name }}</div>
+                                <div class="{{ $user->is_active ? '' : 'opacity-50' }}">
+                                    <div class="text-sm font-semibold text-slate-900 flex items-center gap-2">
+                                        {{ $user->name }}
+                                        @unless($user->is_active)
+                                            <span class="px-1.5 py-0.5 rounded-full bg-rose-50 text-rose-600 border border-rose-100 text-[8px] font-bold uppercase tracking-wider">Ngừng HĐ</span>
+                                        @endunless
+                                    </div>
                                     <div class="text-xs text-slate-400">{{ $user->email }}</div>
                                 </div>
                             </td>
@@ -194,6 +199,12 @@
                                     </button>
                                     <button wire:click="edit({{ $user->id }})" title="Sửa nhân viên" class="p-1.5 text-slate-400 hover:text-electric-blue transition-colors">
                                         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+                                    </button>
+                                    <button wire:click="toggleActive({{ $user->id }})"
+                                            wire:confirm="{{ $user->is_active ? 'Ngừng hoạt động tài khoản này? Nhân viên sẽ không đăng nhập được.' : 'Kích hoạt lại tài khoản này?' }}"
+                                            title="{{ $user->is_active ? 'Ngừng hoạt động' : 'Kích hoạt lại' }}"
+                                            class="p-1.5 transition-colors {{ auth()->id() === $user->id ? 'hidden' : '' }} {{ $user->is_active ? 'text-slate-400 hover:text-amber-500' : 'text-emerald-500 hover:text-emerald-600' }}">
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v10"/><path d="M18.4 6.6a9 9 0 1 1-12.77.04"/></svg>
                                     </button>
                                     <button wire:click="confirmDelete({{ $user->id }})" class="p-1.5 text-slate-400 hover:text-rose-500 transition-colors {{ auth()->id() === $user->id ? 'hidden' : '' }}">
                                         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/><line x1="10" x2="10" y1="11" y2="17"/><line x1="14" x2="14" y1="11" y2="17"/></svg>

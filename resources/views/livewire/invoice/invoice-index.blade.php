@@ -140,8 +140,6 @@
                         <option value="">-- H.thức t.toán --</option>
                         <option value="cash">Tiền mặt</option>
                         <option value="transfer">Chuyển khoản</option>
-                        <option value="card">Thẻ</option>
-                        <option value="wallet">Ví</option>
                     </select>
                 </div>
 
@@ -229,8 +227,6 @@
                     <option value="">Tất cả</option>
                     <option value="cash">Tiền mặt</option>
                     <option value="transfer">Chuyển khoản</option>
-                    <option value="card">Thẻ</option>
-                    <option value="wallet">Ví</option>
                 </select>
             </div>
 
@@ -445,7 +441,7 @@
                                             Hủy
                                         </button>
                                     @else
-                                        @if(auth()->user()->hasPermission('invoice.edit'))
+                                        @if(auth()->user()->hasPermission('invoice.edit') && !in_array($invoice->status, ['Returned','Cancelled']))
                                             <button wire:click="editInvoice({{ $invoice->id }})" class="flex items-center gap-1.5 px-2.5 py-1 bg-white border border-slate-200 text-slate-600 rounded-lg text-[9px] font-bold hover:bg-slate-50 transition-all">
                                                 <svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/><path d="m15 5 4 4"/></svg>
                                                 Sửa
@@ -457,7 +453,7 @@
                                                 Trả hàng
                                             </button>
                                         @endif
-                                        @if(auth()->user()->hasPermission('invoice.cancel'))
+                                        @if(auth()->user()->hasPermission('invoice.cancel') && !in_array($invoice->status, ['Returned','Cancelled']))
                                             <button wire:click="confirmCancel({{ $invoice->id }})" class="flex items-center gap-1.5 px-2.5 py-1 bg-rose-50 border border-rose-100 text-rose-500 rounded-lg text-[9px] font-bold uppercase tracking-wider hover:bg-rose-100 transition-all">
                                                 <svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
                                                 Hủy đơn
@@ -502,13 +498,13 @@
                                 @if($editingInvoiceId === $invoice->id)
                                     <div class="space-y-2">
                                         <!-- Customer Search -->
-                                        <div class="bg-slate-50 p-2.5 rounded-xl border border-slate-100 relative">
+                                        <div class="bg-slate-50 p-2.5 rounded-xl border border-slate-100 relative" x-data="{ open: false }" @click.outside="open = false">
                                             <label class="text-[8px] font-bold text-slate-400 tracking-widest mb-1 block">Khách hàng</label>
-                                            <input type="text" wire:model.live.debounce.400ms="editCustomerSearch" placeholder="Tìm tên/SĐT..." class="w-full bg-white border border-slate-200 rounded-lg py-1.5 px-2 text-xs focus:outline-none focus:border-electric-blue">
+                                            <input type="text" wire:model.live.debounce.400ms="editCustomerSearch" @focus="open = true" @input="open = true" placeholder="Tìm tên/SĐT..." class="w-full bg-white border border-slate-200 rounded-lg py-1.5 px-2 text-xs focus:outline-none focus:border-electric-blue">
                                             @if(!empty($this->customers))
-                                                <div class="absolute z-20 w-full left-0 mt-1 bg-white border border-slate-100 rounded-xl shadow-xl overflow-hidden max-h-32 overflow-y-auto">
+                                                <div x-show="open" x-cloak class="absolute z-20 w-full left-0 mt-1 bg-white border border-slate-100 rounded-xl shadow-xl overflow-hidden max-h-32 overflow-y-auto">
                                                     @foreach($this->customers as $customer)
-                                                        <button wire:click="selectEditCustomer({{ $customer->id }}, '{{ $customer->full_name }}')" class="w-full text-left px-3 py-1.5 text-xs hover:bg-slate-50 flex justify-between">
+                                                        <button wire:click="selectEditCustomer({{ $customer->id }}, '{{ $customer->full_name }}')" @click="open = false" class="w-full text-left px-3 py-1.5 text-xs hover:bg-slate-50 flex justify-between">
                                                             <span class="font-bold text-slate-700">{{ $customer->full_name }}</span>
                                                             <span class="text-slate-400">{{ $customer->phone }}</span>
                                                         </button>
@@ -740,7 +736,7 @@
                                     <div class="text-xs text-slate-400 font-mono">{{ $invoice->created_at->format('Y-m-d H:i') }}</div>
                                     
                                     <div class="flex items-center gap-2 opacity-0 group-hover/row:opacity-100 transition-opacity">
-                                        @if(auth()->user()->hasPermission('invoice.cancel'))
+                                        @if(auth()->user()->hasPermission('invoice.cancel') && !in_array($invoice->status, ['Returned','Cancelled']))
                                             <button wire:click="confirmCancel({{ $invoice->id }})" class="p-2 rounded-lg bg-rose-50 text-rose-600 hover:bg-rose-100 transition-colors" title="Hủy hóa đơn">
                                                 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
                                             </button>
@@ -776,7 +772,7 @@
                                                         Hủy
                                                     </button>
                                                 @else
-                                                    @if(auth()->user()->hasPermission('invoice.edit'))
+                                                    @if(auth()->user()->hasPermission('invoice.edit') && !in_array($invoice->status, ['Returned','Cancelled']))
                                                         <button wire:click="editInvoice({{ $invoice->id }})" class="flex items-center gap-2 px-3 py-1.5 bg-white border border-slate-200 text-slate-600 rounded-lg text-[9px] font-bold tracking-widest hover:bg-slate-50 transition-all">
                                                             <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/><path d="m15 5 4 4"/></svg>
                                                             Sửa
@@ -789,7 +785,7 @@
                                                         </button>
                                                     @endif
                                                     
-                                                    @if(auth()->user()->hasPermission('invoice.cancel'))
+                                                    @if(auth()->user()->hasPermission('invoice.cancel') && !in_array($invoice->status, ['Returned','Cancelled']))
                                                         <button wire:click="confirmCancel({{ $invoice->id }})" class="flex items-center gap-2 px-3 py-1.5 bg-rose-50 border border-rose-100 text-rose-500 rounded-lg text-[10px] font-bold uppercase tracking-widest hover:bg-rose-100 transition-all">
                                                             <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
                                                             Hủy đơn
@@ -809,13 +805,13 @@
                                                 @if($editingInvoiceId === $invoice->id)
                                                     <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
                                                         <!-- Customer Search -->
-                                                        <div class="bg-slate-50 p-3 rounded-xl border border-slate-100 relative">
+                                                        <div class="bg-slate-50 p-3 rounded-xl border border-slate-100 relative" x-data="{ open: false }" @click.outside="open = false">
                                                             <label class="text-[8px] font-bold text-slate-400 tracking-widest mb-1.5 block">Khách hàng</label>
-                                                            <input type="text" wire:model.live.debounce.400ms="editCustomerSearch" placeholder="Tìm tên/SĐT..." class="w-full bg-white border border-slate-200 rounded-lg py-2 px-3 text-xs focus:outline-none focus:border-electric-blue/40 transition-all">
+                                                            <input type="text" wire:model.live.debounce.400ms="editCustomerSearch" @focus="open = true" @input="open = true" placeholder="Tìm tên/SĐT..." class="w-full bg-white border border-slate-200 rounded-lg py-2 px-3 text-xs focus:outline-none focus:border-electric-blue/40 transition-all">
                                                             @if(!empty($this->customers))
-                                                                <div class="absolute z-20 w-full left-0 mt-1 bg-white border border-slate-100 rounded-xl shadow-xl overflow-hidden max-h-48 overflow-y-auto">
+                                                                <div x-show="open" x-cloak class="absolute z-20 w-full left-0 mt-1 bg-white border border-slate-100 rounded-xl shadow-xl overflow-hidden max-h-48 overflow-y-auto">
                                                                     @foreach($this->customers as $customer)
-                                                                        <button wire:click="selectEditCustomer({{ $customer->id }}, '{{ $customer->full_name }}')" class="w-full text-left px-4 py-2 text-xs hover:bg-slate-50 flex justify-between">
+                                                                        <button wire:click="selectEditCustomer({{ $customer->id }}, '{{ $customer->full_name }}')" @click="open = false" class="w-full text-left px-4 py-2 text-xs hover:bg-slate-50 flex justify-between">
                                                                             <span class="font-bold text-slate-700">{{ $customer->full_name }}</span>
                                                                             <span class="text-slate-400">{{ $customer->phone }}</span>
                                                                         </button>

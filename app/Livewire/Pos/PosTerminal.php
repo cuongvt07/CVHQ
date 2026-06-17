@@ -498,6 +498,7 @@ class PosTerminal extends Component
                 'id'                  => $product->id,
                 'sku'                 => $product->sku,
                 'name'                => $product->name,
+                'location'            => $product->location,
                 'sale_price'          => (int) $product->sale_price,
                 'original_price'      => (int) $product->sale_price,
                 'quantity'            => 1,

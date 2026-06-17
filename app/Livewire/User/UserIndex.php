@@ -43,6 +43,7 @@ class UserIndex extends Component
     // Form properties
     public $userId;
     public $name, $email, $password, $role = 'staff', $can_receive_commission = true, $work_branch = '', $permissions = [];
+    public $is_active = true;
 
     // Khi sao chép nhân viên: tên nhân viên nguồn (hiển thị nhắc trong form)
     public $copiedFromName = null;
@@ -67,6 +68,7 @@ class UserIndex extends Component
         $this->email = '';
         $this->password = '';
         $this->role = 'staff';
+        $this->is_active = true;
         $this->can_receive_commission = true;
         $this->work_branch = '';
         $this->permissions = [];
@@ -88,6 +90,7 @@ class UserIndex extends Component
         $this->name = $user->name;
         $this->email = $user->email;
         $this->role = $user->role;
+        $this->is_active = (bool) $user->is_active;
         $this->can_receive_commission = $user->can_receive_commission;
         $this->work_branch = $user->work_branch ?? '';
         $this->permissions = $user->permissions ?? [];
@@ -124,6 +127,7 @@ class UserIndex extends Component
             'name' => $this->name,
             'email' => $this->email,
             'role' => $this->role,
+            'is_active' => $this->is_active,
             'can_receive_commission' => $this->can_receive_commission,
             'work_branch' => $this->work_branch ?: null,
             'permissions' => $this->role === 'admin' ? null : $this->permissions,
@@ -159,10 +163,46 @@ class UserIndex extends Component
             return;
         }
 
+        // Xóa MỀM: giữ bản ghi để hóa đơn cũ vẫn liên kết được (user_id còn hợp lệ).
         User::find($this->userId)->delete();
         $this->dispatch('notify', message: 'Đã xóa tài khoản nhân viên!', type: 'success');
         $this->dispatch('close-delete-modal');
         $this->userId = null;
+    }
+
+    /**
+     * Ngừng hoạt động / kích hoạt lại tài khoản (nhân viên nghỉ việc).
+     * Không xóa — giữ nguyên dữ liệu, chỉ chặn đăng nhập.
+     */
+    public function toggleActive($id)
+    {
+        if ((int) $id === (int) auth()->id()) {
+            $this->dispatch('notify', message: 'Không thể tự ngừng hoạt động chính mình!', type: 'error');
+            return;
+        }
+
+        $user = User::find($id);
+        if (!$user) {
+            return;
+        }
+        $user->update(['is_active' => ! $user->is_active]);
+        $this->dispatch('notify', message: $user->is_active
+            ? 'Đã kích hoạt lại tài khoản.'
+            : 'Đã ngừng hoạt động tài khoản.', type: 'success');
+    }
+
+    /**
+     * Tick ô phân quyền tổng (module) -> tự tick/bỏ tick toàn bộ ô con (actions).
+     */
+    public function toggleModule($moduleKey, $checked)
+    {
+        $actions = array_keys($this->availablePermissions[$moduleKey]['actions'] ?? []);
+        $keys = array_merge([$moduleKey], $actions);
+        $perms = is_array($this->permissions) ? $this->permissions : [];
+
+        $this->permissions = $checked
+            ? array_values(array_unique(array_merge($perms, $keys)))
+            : array_values(array_diff($perms, $keys));
     }
 
     public function getUsers()
