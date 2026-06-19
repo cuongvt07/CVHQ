@@ -502,8 +502,10 @@
                                 <td class="px-3 py-2 text-right text-sm font-bold text-slate-500">{{ $line['to_stock'] }}</td>
                                 <td class="px-3 py-2 text-center">
                                     @if($this->canEdit)
+                                    @php $emptySend = $line['send_quantity'] === null || $line['send_quantity'] === ''; @endphp
                                     <input type="number" wire:model.live.debounce.400ms="lines.{{ $idx }}.send_quantity"
-                                           min="0" class="w-20 text-center border border-slate-200 rounded-lg px-2 py-1 text-sm font-bold text-electric-blue focus:outline-none focus:border-electric-blue bg-white">
+                                           min="0" placeholder="—"
+                                           class="w-20 text-center border rounded-lg px-2 py-1 text-sm font-bold focus:outline-none bg-white {{ $emptySend ? 'border-rose-400 bg-rose-50 text-rose-600 placeholder-rose-300 focus:border-rose-500' : 'border-slate-200 text-electric-blue focus:border-electric-blue' }}">
                                     @else
                                     <span class="text-sm font-bold text-slate-700">{{ $line['send_quantity'] }}</span>
                                     @endif

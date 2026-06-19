@@ -70,7 +70,8 @@
                         </div>
                         <div>
                             <label class="block text-[11px] font-bold text-slate-600 mb-1">Giá bán chung <span class="text-rose-500">*</span></label>
-                            <input type="number" wire:model.live.debounce.500ms="bulkSalePrice" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:border-electric-blue focus:ring-2 focus:ring-electric-blue/10">
+                            @php $emptyBulkPrice = $this->bulkSalePrice === null || $this->bulkSalePrice === '' || (int)$this->bulkSalePrice === 0; @endphp
+                            <input type="number" wire:model.live.debounce.500ms="bulkSalePrice" placeholder="—" class="w-full rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 border {{ $emptyBulkPrice ? 'border-rose-400 bg-rose-50 placeholder-rose-300 focus:border-rose-500 focus:ring-rose-500/10' : 'bg-slate-50 border-slate-200 focus:border-electric-blue focus:ring-electric-blue/10' }}">
                             @error('bulkSalePrice') <span class="text-[10px] text-rose-500 font-bold">{{ $message }}</span> @enderror
                         </div>
                         @if(auth()->user()?->hasPermission('product.edit_commission'))
@@ -153,7 +154,13 @@
                                         <input type="text" wire:model="bulkProducts.{{ $index }}.location" list="bulk-location-suggestions" class="w-full bg-transparent border border-transparent hover:border-slate-200 focus:border-electric-blue focus:bg-white rounded-lg px-2 py-1.5 text-xs font-bold text-electric-blue focus:outline-none transition-all" placeholder="Gõ để chọn / thêm vị trí">
                                     </td>
                                     <td class="px-3 py-1.5">
-                                        <input type="number" wire:model.live.debounce.500ms="bulkProducts.{{ $index }}.price" class="w-full bg-transparent border border-transparent hover:border-slate-200 focus:border-electric-blue focus:bg-white rounded-lg px-2 py-1.5 text-xs font-bold text-slate-900 focus:outline-none transition-all" placeholder="{{ $this->bulkSalePrice ? number_format($this->bulkSalePrice, 0, ',', '.') : 'Giá chung' }}">
+                                        @php
+                                            $rowPrice = $row['price'] ?? null;
+                                            $rowPriceEmpty = $rowPrice === null || $rowPrice === '' || (int)$rowPrice === 0;
+                                            // Đỏ chỉ khi CẢ giá chung lẫn giá riêng đều trống (không có giá nào để dùng).
+                                            $rowPriceInvalid = $rowPriceEmpty && $emptyBulkPrice;
+                                        @endphp
+                                        <input type="number" wire:model.live.debounce.500ms="bulkProducts.{{ $index }}.price" class="w-full rounded-lg px-2 py-1.5 text-xs font-bold focus:bg-white focus:outline-none transition-all border {{ $rowPriceInvalid ? 'border-rose-400 bg-rose-50 text-rose-600' : 'bg-transparent border-transparent hover:border-slate-200 focus:border-electric-blue text-slate-900' }}" placeholder="{{ $this->bulkSalePrice ? number_format($this->bulkSalePrice, 0, ',', '.') : 'Giá chung' }}">
                                     </td>
                                     @if(auth()->user()?->hasPermission('product.edit_commission'))
                                     <td class="px-3 py-1.5">

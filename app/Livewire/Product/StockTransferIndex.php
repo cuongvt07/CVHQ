@@ -345,7 +345,10 @@ class StockTransferIndex extends Component
                 'image'           => $line['image'] ?? null,
                 'from_stock'      => $line['from_stock'],
                 'to_stock'        => $line['to_stock'],
-                'send_quantity'   => max(0, (int) ($line['send_quantity'] ?? 1)),
+                // Để TRỐNG nếu chưa nhập (không tự về 0/1) -> mở lại phiếu vẫn trống + báo đỏ.
+                'send_quantity'   => ($line['send_quantity'] === null || $line['send_quantity'] === '')
+                    ? null
+                    : max(0, (int) $line['send_quantity']),
                 'actual_quantity' => isset($line['actual_quantity']) && $line['actual_quantity'] !== null
                     ? (int) $line['actual_quantity']
                     : null,

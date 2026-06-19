@@ -155,7 +155,8 @@ class StockCheckIndex extends Component
                 'unit' => $item->unit ?: 'Cái',
                 'location' => $locations[$item->product_id] ?? '',
                 'system_quantity' => (int) ($currentStocks[$item->product_id] ?? $item->system_quantity),
-                'actual_quantity' => (int) $item->actual_quantity,
+                // Giữ null nếu trước đó chưa nhập (không tự về 0)
+                'actual_quantity' => $item->actual_quantity === null ? null : (int) $item->actual_quantity,
                 'difference' => (int) $item->difference,
                 'difference_value' => (int) $item->difference_value,
             ])->values()->all();
@@ -314,7 +315,17 @@ class StockCheckIndex extends Component
             return;
         }
 
-        $actual = max(0, (int) ($this->lines[$index]['actual_quantity'] ?? 0));
+        $raw = $this->lines[$index]['actual_quantity'] ?? null;
+
+        // Xóa trắng ô -> để TRỐNG (null), KHÔNG tự về 0. Coi như "chưa kiểm".
+        if ($raw === null || $raw === '') {
+            $this->lines[$index]['actual_quantity'] = null;
+            $this->lines[$index]['difference'] = 0;
+            $this->lines[$index]['difference_value'] = 0;
+            return;
+        }
+
+        $actual = max(0, (int) $raw);
         $system = (int) ($this->lines[$index]['system_quantity'] ?? 0);
         $difference = $actual - $system;
         $this->lines[$index]['actual_quantity'] = $actual;
@@ -366,6 +377,11 @@ class StockCheckIndex extends Component
                 $balancedAt  = now();
 
                 foreach ($check->items as $item) {
+                    // Dòng chưa nhập thực tế (null) -> CHƯA kiểm -> không đụng tồn kho.
+                    if ($item->actual_quantity === null) {
+                        continue;
+                    }
+
                     $product = Product::find($item->product_id);
                     if (!$product) continue;
 
@@ -451,7 +467,9 @@ class StockCheckIndex extends Component
                 'product_name' => $line['name'],
                 'unit' => $line['unit'],
                 'system_quantity' => (int) $line['system_quantity'],
-                'actual_quantity' => (int) $line['actual_quantity'],
+                'actual_quantity' => ($line['actual_quantity'] === null || $line['actual_quantity'] === '')
+                    ? null
+                    : (int) $line['actual_quantity'],
                 'difference' => (int) $line['difference'],
                 'difference_value' => (int) $line['difference_value'],
             ]);

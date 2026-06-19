@@ -544,6 +544,12 @@ class PosTerminal extends Component
 
     public function setQuantity(int $productId, $value): void
     {
+        // Xóa trắng ô rồi rời đi -> KHÔNG tự về 0 / không xóa khỏi giỏ.
+        // Quay lại số cũ (re-render sẽ khôi phục value hiển thị).
+        if (trim((string) $value) === '') {
+            return;
+        }
+
         $qty = max(0, (int) $value);
         $tab = $this->getTab();
         foreach ($tab['cart'] as $i => &$item) {
@@ -599,6 +605,11 @@ class PosTerminal extends Component
 
     public function updateUnitPrice(int $productId, $value): void
     {
+        // Xóa trắng giá rồi rời đi -> giữ giá cũ, không tự về 0.
+        if (trim((string) $value) === '') {
+            return;
+        }
+
         $price = max(0, (int) $value);
         $tab = $this->getTab();
         foreach ($tab['cart'] as &$item) {

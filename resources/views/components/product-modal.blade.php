@@ -248,7 +248,8 @@
                                 <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">
                                     Giá bán (VNĐ)<span class="text-rose-500 ml-0.5">*</span>
                                 </label>
-                                <input type="number" wire:model.live.debounce.500ms="sale_price" class="w-full bg-slate-50 border border-slate-200 rounded-xl sm:rounded-2xl py-2 sm:py-3 px-3 sm:px-5 text-[13px] sm:text-sm focus:outline-none focus:border-electric-blue/40 focus:ring-2 sm:focus:ring-4 focus:ring-electric-blue/5 transition-all">
+                                @php $emptySalePrice = $this->sale_price === null || $this->sale_price === ''; @endphp
+                                <input type="number" wire:model.live.debounce.500ms="sale_price" placeholder="—" class="w-full rounded-xl sm:rounded-2xl py-2 sm:py-3 px-3 sm:px-5 text-[13px] sm:text-sm focus:outline-none focus:ring-2 sm:focus:ring-4 transition-all border {{ $emptySalePrice ? 'border-rose-400 bg-rose-50 placeholder-rose-300 focus:border-rose-500 focus:ring-rose-500/10' : 'bg-slate-50 border-slate-200 focus:border-electric-blue/40 focus:ring-electric-blue/5' }}">
                                 @error('sale_price') <span class="text-[10px] text-rose-500 font-bold ml-1">{{ $message }}</span> @enderror
                             </div>
 

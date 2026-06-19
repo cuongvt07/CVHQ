@@ -622,7 +622,10 @@
                                         @if($locked)
                                             <span class="inline-block w-20 text-xs text-center font-bold text-slate-900">{{ number_format($line['actual_quantity']) }}</span>
                                         @else
-                                            <input type="number" min="0" wire:model.live.debounce.250ms="lines.{{ $index }}.actual_quantity" class="w-20 h-7 border border-slate-200 rounded-lg text-xs text-center focus:outline-none focus:border-electric-blue">
+                                            @php $isEmptyActual = $line['actual_quantity'] === null || $line['actual_quantity'] === ''; @endphp
+                                            <input type="number" min="0" wire:model.live.debounce.250ms="lines.{{ $index }}.actual_quantity"
+                                                   placeholder="—"
+                                                   class="w-20 h-7 border rounded-lg text-xs text-center focus:outline-none {{ $isEmptyActual ? 'border-rose-400 bg-rose-50 text-rose-600 placeholder-rose-300 focus:border-rose-500' : 'border-slate-200 focus:border-electric-blue' }}">
                                         @endif
                                     </td>
                                     <td class="px-3 py-2 text-xs text-right font-bold {{ $line['difference'] < 0 ? 'text-rose-600' : ($line['difference'] > 0 ? 'text-emerald-600' : 'text-slate-500') }}">{{ number_format($line['difference']) }}</td>
