@@ -190,54 +190,44 @@
                             $__canEditCommission = auth()->user()->hasPermission('product.edit_commission') || !$this->productId;
                         @endphp
 
-                        <!-- Vị trí hàng hóa: nhiều ô; gợi ý hiện khi gõ; nút "+" thêm ô vị trí mới -->
+                        <!-- Vị trí hàng hóa: 1 ô duy nhất; gõ để gợi ý vị trí đã có; bấm "+" để dùng vị trí mới vừa gõ -->
                         <div class="space-y-2">
                             <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">
                                 Vị trí hàng hóa<span class="text-rose-500 ml-0.5">*</span>
                             </label>
-                            <div class="space-y-2">
-                                @foreach($this->locations as $index => $loc)
-                                    <div wire:key="loc-{{ $index }}"
-                                         x-data="{
-                                            open: false,
-                                            options: @js($this->locationOptions),
-                                            query: @entangle('locations.'.$index),
-                                            matches() {
-                                                const x = (this.query || '').toString().toLowerCase().trim();
-                                                if (x === '') return [];
-                                                return this.options.filter(o => o.toLowerCase().includes(x) && o.toLowerCase() !== x).slice(0, 8);
-                                            },
-                                            pick(o) { this.query = o; this.open = false; }
-                                         }"
-                                         @click.outside="open = false">
-                                        <div class="flex items-center gap-2">
-                                            <input type="text" x-model="query"
-                                                   @input="open = true" @focus="open = (query || '').trim() !== ''"
-                                                   class="flex-1 min-w-0 bg-slate-50 border border-slate-200 rounded-xl py-2 sm:py-2.5 px-3 sm:px-4 text-[13px] sm:text-sm focus:outline-none focus:border-electric-blue/40 focus:ring-2 focus:ring-electric-blue/5 transition-all"
-                                                   placeholder="VD: Kệ A1">
-                                            <button type="button" wire:click="addLocation" title="Thêm ô vị trí mới"
-                                                    class="shrink-0 w-9 h-9 flex items-center justify-center rounded-lg border border-electric-blue/40 text-electric-blue hover:bg-electric-blue hover:text-white transition-colors">
-                                                <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="M12 5v14"/></svg>
-                                            </button>
-                                            @if(count($this->locations) > 1)
-                                                <button type="button" wire:click="removeLocation({{ $index }})" title="Xóa ô này"
-                                                        class="shrink-0 w-9 h-9 flex items-center justify-center rounded-lg text-slate-300 hover:text-rose-500 hover:bg-rose-50 transition-colors">
-                                                    <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
-                                                </button>
-                                            @endif
-                                        </div>
-                                        {{-- Gợi ý CHỈ hiện khi đã gõ giá trị; hiển thị inline để không bị modal cắt --}}
-                                        <div x-show="open && matches().length" x-cloak
-                                             class="mt-1 max-h-40 overflow-y-auto bg-white border border-slate-200 rounded-lg shadow-lg custom-scrollbar">
-                                            <template x-for="opt in matches()" :key="opt">
-                                                <button type="button" @click="pick(opt)" x-text="opt"
-                                                        class="block w-full text-left px-3 py-1.5 text-[13px] text-slate-700 hover:bg-blue-50 transition-colors"></button>
-                                            </template>
-                                        </div>
-                                    </div>
-                                @endforeach
+                            <div x-data="{
+                                    open: false,
+                                    options: @js($this->locationOptions),
+                                    query: @entangle('location'),
+                                    matches() {
+                                        const x = (this.query || '').toString().toLowerCase().trim();
+                                        if (x === '') return [];
+                                        return this.options.filter(o => o.toLowerCase().includes(x) && o.toLowerCase() !== x).slice(0, 8);
+                                    },
+                                    pick(o) { this.query = o; this.open = false; },
+                                    addNew() { this.query = (this.query || '').toString().trim(); this.open = false; }
+                                 }"
+                                 @click.outside="open = false">
+                                <div class="flex items-center gap-2">
+                                    <input type="text" x-model="query"
+                                           @input="open = true" @focus="open = (query || '').trim() !== ''"
+                                           class="flex-1 min-w-0 bg-slate-50 border border-slate-200 rounded-xl py-2 sm:py-2.5 px-3 sm:px-4 text-[13px] sm:text-sm focus:outline-none focus:border-electric-blue/40 focus:ring-2 focus:ring-electric-blue/5 transition-all"
+                                           placeholder="VD: Kệ A1">
+                                    <button type="button" @click="addNew()" title="Dùng vị trí mới vừa nhập"
+                                            class="shrink-0 w-9 h-9 flex items-center justify-center rounded-lg border border-electric-blue/40 text-electric-blue hover:bg-electric-blue hover:text-white transition-colors">
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="M12 5v14"/></svg>
+                                    </button>
+                                </div>
+                                {{-- Gợi ý CHỈ hiện khi đã gõ giá trị; hiển thị inline để không bị modal cắt --}}
+                                <div x-show="open && matches().length" x-cloak
+                                     class="mt-1 max-h-40 overflow-y-auto bg-white border border-slate-200 rounded-lg shadow-lg custom-scrollbar">
+                                    <template x-for="opt in matches()" :key="opt">
+                                        <button type="button" @click="pick(opt)" x-text="opt"
+                                                class="block w-full text-left px-3 py-1.5 text-[13px] text-slate-700 hover:bg-blue-50 transition-colors"></button>
+                                    </template>
+                                </div>
                             </div>
-                            <p class="text-[10px] text-slate-400 ml-1">Gõ để xem gợi ý vị trí đã có; nhập giá trị mới để tạo vị trí mới. Bấm <span class="font-bold text-electric-blue">+</span> để thêm ô vị trí.</p>
+                            <p class="text-[10px] text-slate-400 ml-1">Gõ để xem gợi ý vị trí đã có; muốn dùng vị trí MỚI (chưa có) thì gõ rồi bấm <span class="font-bold text-electric-blue">+</span>.</p>
                             @error('location') <span class="text-[10px] text-rose-500 font-bold ml-1">{{ $message }}</span> @enderror
                         </div>
 

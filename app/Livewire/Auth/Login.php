@@ -14,7 +14,7 @@ class Login extends Component
     public $remember = false;
 
     protected $rules = [
-        'email' => 'required|email',
+        'email' => 'required|string', // chấp nhận cả username lẫn email
         'password' => 'required|min:6',
     ];
 
@@ -30,7 +30,10 @@ class Login extends Component
             return;
         }
 
-        if (Auth::attempt(['email' => $this->email, 'password' => $this->password], $this->remember)) {
+        // Đăng nhập được bằng email HOẶC username: tự nhận diện theo định dạng.
+        $loginField = filter_var($this->email, FILTER_VALIDATE_EMAIL) ? 'email' : 'username';
+
+        if (Auth::attempt([$loginField => $this->email, 'password' => $this->password], $this->remember)) {
             // Tài khoản đã ngừng hoạt động (nghỉ việc) -> không cho vào.
             if (!auth()->user()->is_active) {
                 Auth::logout();

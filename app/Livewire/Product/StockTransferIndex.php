@@ -40,6 +40,12 @@ class StockTransferIndex extends Component
     public function mount(): void
     {
         $this->resetDirectionFromUser();
+
+        // Điều hướng từ nhật ký/thông báo: /products/transfers?open=ID -> mở thẳng phiếu đó.
+        $openId = request()->query('open');
+        if ($openId) {
+            $this->editTransfer((int) $openId);
+        }
     }
 
     private function resetDirectionFromUser(): void

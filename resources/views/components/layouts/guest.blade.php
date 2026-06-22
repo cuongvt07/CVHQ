@@ -4,7 +4,7 @@
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <meta name="csrf-token" content="{{ csrf_token() }}">
-        <title>{{ $title ?? 'CVHA POS - Giải pháp Bán hàng Hiện đại' }}</title>
+        <title>{{ $title ?? 'CVHQ POS - Giải pháp Bán hàng Hiện đại' }}</title>
 
         <!-- Fonts -->
         <link rel="preconnect" href="https://fonts.googleapis.com">

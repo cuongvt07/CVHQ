@@ -24,6 +24,21 @@ class CommissionReport extends Component
     public $selectedUserId = null;
     public $selectedInvoiceId = null;
     public $dateRange = 'this_month';
+    public $customStart = null; // dùng khi dateRange = 'custom' (Y-m-d)
+    public $customEnd = null;
+
+    public function updatedDateRange(): void
+    {
+        // Mặc định ngày cho khoảng tùy chỉnh = đầu/cuối tháng hiện tại
+        if ($this->dateRange === 'custom') {
+            $this->customStart = $this->customStart ?: now()->startOfMonth()->toDateString();
+            $this->customEnd = $this->customEnd ?: now()->toDateString();
+        }
+        $this->resetPage();
+    }
+
+    public function updatedCustomStart(): void { $this->resetPage(); }
+    public function updatedCustomEnd(): void { $this->resetPage(); }
 
     protected function getDefaultVisibleColumns(): array
     {
@@ -141,6 +156,18 @@ class CommissionReport extends Component
             case 'last_month':
                 $start = now()->subMonth()->startOfMonth();
                 $end = now()->subMonth()->endOfMonth();
+                break;
+            case 'custom':
+                $start = $this->customStart
+                    ? Carbon::parse($this->customStart)->startOfDay()
+                    : now()->startOfMonth();
+                $end = $this->customEnd
+                    ? Carbon::parse($this->customEnd)->endOfDay()
+                    : now()->endOfDay();
+                // Nếu nhập ngược (đầu > cuối) thì hoán đổi cho an toàn
+                if ($start->gt($end)) {
+                    [$start, $end] = [$end->copy()->startOfDay(), $start->copy()->endOfDay()];
+                }
                 break;
         }
 

@@ -21,108 +21,96 @@
                 $__notifs = collect();
 
                 try {
-                    $actionMap = [
-                        'created' => 'tạo mới',
-                        'updated' => 'cập nhật',
-                        'deleted' => 'xóa',
-                        'cancelled' => 'hủy',
-                        'restored' => 'khôi phục',
-                    ];
-                    $mapLog = function($log, $tab, $modelNameLabel) use ($actionMap) {
-                        $type = match($log->action) {
-                            'created' => 'success',
-                            'deleted', 'cancelled' => 'error',
-                            'updated', 'restored' => 'info',
-                            default => 'info',
-                        };
+                    $P = \App\Support\LogPresenter::class;
+                    $since = now()->subDays(3);
+
+                    // Closure dựng thông báo từ ActivityLog (mã/code truyền vào, hành động cụ thể, URL chi tiết)
+                    $mapLog = function($log, $tab, $modelNameLabel, $code) use ($P) {
                         return [
                             'tab'   => $tab,
-                            'type'  => $type,
-                            'title' => $modelNameLabel . ' ' . ($actionMap[$log->action] ?? $log->action),
-                            'desc'  => ($log->user?->name ?? 'Hệ thống') . ' đã ' . ($actionMap[$log->action] ?? $log->action) . ' #' . $log->model_id,
+                            'type'  => $P::actionType($log->action),
+                            'title' => $modelNameLabel . ': ' . $code,
+                            'desc'  => ($log->user?->name ?? 'Hệ thống') . ' • ' . $P::actionLabel($log->model_type, $log->action, $log->changes),
                             'time'  => $log->created_at->diffForHumans(),
                             'sort'  => $log->created_at->timestamp,
+                            'url'   => $P::detailUrl($log->model_type, $log->model_id),
                         ];
                     };
 
-                    // Hóa đơn
-                    $invoiceLogs = \App\Models\ActivityLog::with('user')
-                        ->where('model_type', \App\Models\Invoice::class)
-                        ->where('created_at', '>=', now()->subDays(3))
-                        ->latest()->take(10)->get()
-                        ->map(fn($log) => $mapLog($log, 'invoice', 'Hóa đơn'));
+                    // Hóa đơn — kèm mã hóa đơn
+                    $invLogs  = \App\Models\ActivityLog::with('user')->where('model_type', \App\Models\Invoice::class)
+                        ->where('created_at', '>=', $since)->latest()->take(10)->get();
+                    $invCodes = \App\Models\Invoice::whereIn('id', $invLogs->pluck('model_id'))->pluck('invoice_code', 'id');
+                    $invoiceLogs = $invLogs->map(fn($l) => $mapLog($l, 'invoice', 'Hóa đơn',
+                        $invCodes[$l->model_id] ?? ($l->changes['snapshot']['invoice_code'] ?? '#' . $l->model_id)));
 
-                    // Hàng hóa
-                    $productLogs = \App\Models\ActivityLog::with('user')
-                        ->whereIn('model_type', [\App\Models\Product::class, \App\Models\Category::class])
-                        ->where('created_at', '>=', now()->subDays(3))
-                        ->latest()->take(10)->get()
-                        ->map(fn($log) => $mapLog($log, 'product', class_basename($log->model_type) === 'Product' ? 'Sản phẩm' : 'Danh mục'));
+                    // Hàng hóa — kèm SKU / tên danh mục
+                    $prodLogs = \App\Models\ActivityLog::with('user')->whereIn('model_type', [\App\Models\Product::class, \App\Models\Category::class])
+                        ->where('created_at', '>=', $since)->latest()->take(10)->get();
+                    $prodSkus = \App\Models\Product::withTrashed()->whereIn('id', $prodLogs->where('model_type', \App\Models\Product::class)->pluck('model_id'))->pluck('sku', 'id');
+                    $catNames = \App\Models\Category::whereIn('id', $prodLogs->where('model_type', \App\Models\Category::class)->pluck('model_id'))->pluck('name', 'id');
+                    $productLogs = $prodLogs->map(function($l) use ($mapLog, $prodSkus, $catNames) {
+                        $isProd = class_basename($l->model_type) === 'Product';
+                        $code = $isProd
+                            ? ($prodSkus[$l->model_id] ?? ($l->changes['snapshot']['sku'] ?? '#' . $l->model_id))
+                            : ($catNames[$l->model_id] ?? ($l->changes['snapshot']['name'] ?? '#' . $l->model_id));
+                        return $mapLog($l, 'product', $isProd ? 'Sản phẩm' : 'Danh mục', $code);
+                    });
 
-                    // Kiểm kho
-                    $stockCheckLogs = \App\Models\ActivityLog::with('user')
-                        ->where('model_type', \App\Models\StockCheck::class)
-                        ->where('created_at', '>=', now()->subDays(3))
-                        ->latest()->take(10)->get()
-                        ->map(fn($log) => $mapLog($log, 'stock_check', 'Phiếu kiểm kho'));
+                    // Kiểm kho — kèm mã phiếu
+                    $scLogs   = \App\Models\ActivityLog::with('user')->where('model_type', \App\Models\StockCheck::class)
+                        ->where('created_at', '>=', $since)->latest()->take(10)->get();
+                    $scCodes  = \App\Models\StockCheck::whereIn('id', $scLogs->pluck('model_id'))->pluck('code', 'id');
+                    $stockCheckLogs = $scLogs->map(fn($l) => $mapLog($l, 'stock_check', 'Phiếu kiểm',
+                        $scCodes[$l->model_id] ?? ($l->changes['snapshot']['code'] ?? '#' . $l->model_id)));
 
-                    // Gửi hàng (Chuyển hàng liên chi nhánh)
-                    $transferLogs = \App\Models\ActivityLog::with('user')
-                        ->where('model_type', \App\Models\StockTransfer::class)
-                        ->where('created_at', '>=', now()->subDays(3))
-                        ->latest()->take(10)->get()
-                        ->map(fn($log) => $mapLog($log, 'transfer', 'Phiếu gửi hàng'));
+                    // Gửi hàng — kèm mã phiếu
+                    $tfLogs   = \App\Models\ActivityLog::with('user')->where('model_type', \App\Models\StockTransfer::class)
+                        ->where('created_at', '>=', $since)->latest()->take(10)->get();
+                    $tfCodes  = \App\Models\StockTransfer::whereIn('id', $tfLogs->pluck('model_id'))->pluck('code', 'id');
+                    $transferLogs = $tfLogs->map(fn($l) => $mapLog($l, 'transfer', 'Phiếu gửi',
+                        $tfCodes[$l->model_id] ?? ($l->changes['snapshot']['code'] ?? '#' . $l->model_id)));
 
-                    // Tồn kho (StockHistory)
+                    $typeMap = ['Import' => 'Nhập hàng', 'Sale' => 'Bán hàng', 'Cancel' => 'Hủy đơn', 'Check' => 'Kiểm kho',
+                        'Manual' => 'Chỉnh tay', 'Adjustment' => 'Điều chỉnh', 'Transfer' => 'Chuyển hàng', 'Return' => 'Trả hàng',
+                        'Initial' => 'Khởi tạo', 'Delete' => 'Xóa hóa đơn', 'Purchase' => 'Nhập hàng'];
+
+                    // Tồn kho — SKU + tồn từ→thành
                     $stockLogs = \App\Models\StockHistory::with(['product', 'user'])
-                        ->where('created_at', '>=', now()->subDays(3))
-                        ->latest()->take(10)->get()
-                        ->map(function ($h) {
-                            $typeMap = [
-                                'Import' => 'Nhập hàng',
-                                'Sale' => 'Bán hàng',
-                                'Cancel' => 'Hủy đơn',
-                                'Check' => 'Kiểm kho',
-                                'Manual' => 'Chỉnh tay'
-                            ];
+                        ->where('created_at', '>=', $since)->latest()->take(10)->get()
+                        ->map(function ($h) use ($typeMap) {
+                            $change = (int) ($h->quantity_change ?? 0);
+                            $after  = (int) ($h->quantity_after ?? 0);
+                            $before = $h->quantity_before !== null ? (int) $h->quantity_before : ($after - $change);
                             return [
                                 'tab'   => 'stock',
-                                'type'  => 'info',
-                                'title' => 'Tồn kho: ' . mb_substr($h->product->name ?? 'SP', 0, 30),
-                                'desc'  => ($h->user?->name ?? 'Hệ thống') . ' ' . ($typeMap[$h->type] ?? $h->type) . ' (' . ($h->quantity_change > 0 ? '+' : '') . $h->quantity_change . ')',
+                                'type'  => $change >= 0 ? 'success' : 'error',
+                                'title' => ($h->product->sku ?? '—') . ' • ' . mb_substr($h->product->name ?? 'SP', 0, 26),
+                                'desc'  => ($h->user?->name ?? 'Hệ thống') . ' • ' . ($typeMap[$h->type] ?? $h->type) . ': ' . number_format($before) . ' → ' . number_format($after),
                                 'time'  => $h->created_at->diffForHumans(),
                                 'sort'  => $h->created_at->timestamp,
+                                'url'   => $h->product_id ? route('products', ['open' => $h->product_id]) : null,
                             ];
                         });
 
-                    // Nhập hàng (Low-stock + Out-of-stock)
-                    $lowStock = \App\Models\Product::where('is_active', true)
-                        ->where('stock_quantity', '>', 0)
-                        ->where('stock_quantity', '<=', 5)
-                        ->orderBy('stock_quantity')
-                        ->take(5)->get()
-                        ->map(fn($p) => [
-                            'tab'   => 'import',
-                            'type'  => 'warning',
-                            'title' => 'Sắp hết hàng',
-                            'desc'  => $p->name . ' còn ' . $p->stock_quantity . ' cái',
-                            'time'  => 'Hiện tại',
-                            'sort'  => now()->timestamp + 1,
-                        ]);
+                    // Nhập hàng — lịch sử nhập kho (type = Import): SKU + tồn hiện tại + người thao tác
+                    $importLogs = \App\Models\StockHistory::with(['product', 'user'])
+                        ->where('type', 'Import')->where('created_at', '>=', now()->subDays(7))->latest()->take(10)->get()
+                        ->map(function ($h) {
+                            $change = (int) ($h->quantity_change ?? 0);
+                            $after  = (int) ($h->quantity_after ?? 0);
+                            return [
+                                'tab'   => 'import',
+                                'type'  => 'success',
+                                'title' => ($h->product->sku ?? '—') . ' • ' . mb_substr($h->product->name ?? 'SP', 0, 26),
+                                'desc'  => ($h->user?->name ?? 'Hệ thống') . ' • Nhập +' . $change . ' • Tồn: ' . number_format($after),
+                                'time'  => $h->created_at->diffForHumans(),
+                                'sort'  => $h->created_at->timestamp,
+                                'url'   => $h->product_id ? route('products', ['open' => $h->product_id]) : null,
+                            ];
+                        });
 
-                    $outOfStock = \App\Models\Product::where('is_active', true)
-                        ->where('stock_quantity', '<=', 0)
-                        ->take(5)->get()
-                        ->map(fn($p) => [
-                            'tab'   => 'import',
-                            'type'  => 'error',
-                            'title' => 'Hết hàng',
-                            'desc'  => $p->name . ' đã hết kho',
-                            'time'  => 'Hiện tại',
-                            'sort'  => now()->timestamp + 2,
-                        ]);
-
-                    $__notifs = $invoiceLogs->concat($productLogs)->concat($stockCheckLogs)->concat($transferLogs)->concat($stockLogs)->concat($lowStock)->concat($outOfStock)
+                    $__notifs = $invoiceLogs->concat($productLogs)->concat($stockCheckLogs)->concat($transferLogs)->concat($stockLogs)->concat($importLogs)
                         ->sortByDesc('sort')
                         ->values();
                 } catch (\Throwable $e) {
@@ -185,7 +173,9 @@
                         </template>
 
                         <template x-for="noti in notifs.filter(n => activeTab === 'all' || n.tab === activeTab)" :key="noti.sort + noti.title">
-                            <div class="px-6 py-4 hover:bg-slate-50 transition-colors cursor-pointer group">
+                            <div @click="if (noti.url) { window.location.href = noti.url }"
+                                 :class="noti.url ? 'cursor-pointer' : 'cursor-default'"
+                                 class="px-6 py-4 hover:bg-slate-50 transition-colors group">
                                 <div class="flex gap-3">
                                     <div class="shrink-0 w-8 h-8 rounded-full flex items-center justify-center"
                                          :class="{
@@ -212,6 +202,9 @@
                                         <p class="text-[9px] text-slate-500 mt-0.5 line-clamp-2 leading-relaxed" x-text="noti.desc"></p>
                                         <span class="text-[8px] text-slate-400 font-mono mt-1 block" x-text="noti.time"></span>
                                     </div>
+                                    <template x-if="noti.url">
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="shrink-0 self-center text-slate-300 opacity-0 group-hover:opacity-100 transition-opacity"><path d="M7 7h10v10"/><path d="M7 17 17 7"/></svg>
+                                    </template>
                                 </div>
                             </div>
                         </template>

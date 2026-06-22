@@ -6,10 +6,12 @@
         </div>
         
         <div class="flex items-center gap-4">
+            @if(auth()->user()->hasPermission('user.create'))
             <button wire:click="create" class="btn-electric flex items-center gap-2 px-4 md:px-6 py-2.5 text-[9px] md:text-[13px] font-bold tracking-widest">
                 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><line x1="19" x2="19" y1="8" y2="14"/><line x1="16" x2="22" y1="11" y2="11"/></svg>
                 Thêm nhân viên
             </button>
+            @endif
         </div>
     </header>
 
@@ -158,7 +160,10 @@
                                             <span class="px-1.5 py-0.5 rounded-full bg-rose-50 text-rose-600 border border-rose-100 text-[8px] font-bold uppercase tracking-wider">Ngừng HĐ</span>
                                         @endunless
                                     </div>
-                                    <div class="text-xs text-slate-400">{{ $user->email }}</div>
+                                    <div class="text-xs text-slate-500 font-medium">&#64;{{ $user->username }}</div>
+                                    @if($user->email)
+                                        <div class="text-[11px] text-slate-400">{{ $user->email }}</div>
+                                    @endif
                                 </div>
                             </td>
                             @endif
@@ -194,9 +199,12 @@
                             @if(in_array('actions', $visibleColumns))
                             <td class="px-4 py-2">
                                 <div class="flex items-center gap-2">
+                                    @if(auth()->user()->hasPermission('user.create'))
                                     <button wire:click="copy({{ $user->id }})" title="Sao chép nhân viên (tạo nhân viên mới cùng quyền)" class="p-1.5 text-slate-400 hover:text-emerald-500 transition-colors">
                                         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg>
                                     </button>
+                                    @endif
+                                    @if(auth()->user()->hasPermission('user.edit'))
                                     <button wire:click="edit({{ $user->id }})" title="Sửa nhân viên" class="p-1.5 text-slate-400 hover:text-electric-blue transition-colors">
                                         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
                                     </button>
@@ -206,9 +214,12 @@
                                             class="p-1.5 transition-colors {{ auth()->id() === $user->id ? 'hidden' : '' }} {{ $user->is_active ? 'text-slate-400 hover:text-amber-500' : 'text-emerald-500 hover:text-emerald-600' }}">
                                         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v10"/><path d="M18.4 6.6a9 9 0 1 1-12.77.04"/></svg>
                                     </button>
+                                    @endif
+                                    @if(auth()->user()->hasPermission('user.delete'))
                                     <button wire:click="confirmDelete({{ $user->id }})" class="p-1.5 text-slate-400 hover:text-rose-500 transition-colors {{ auth()->id() === $user->id ? 'hidden' : '' }}">
                                         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/><line x1="10" x2="10" y1="11" y2="17"/><line x1="14" x2="14" y1="11" y2="17"/></svg>
                                     </button>
+                                    @endif
                                 </div>
                             </td>
                             @endif

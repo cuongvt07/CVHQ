@@ -174,7 +174,16 @@
                 <thead class="sticky top-0 z-10 bg-slate-50">
                     <tr class="bg-slate-50 border-b border-slate-200">
                         @if(in_array('time', $visibleColumns))
-                        <th class="px-4 py-3 text-[9px] font-bold text-slate-500 tracking-[0.2em] uppercase">Thời gian</th>
+                        <th class="px-4 py-3 text-[9px] font-bold text-slate-500 tracking-[0.2em] uppercase">
+                            <button wire:click="toggleSort" class="flex items-center gap-1 hover:text-electric-blue transition-colors uppercase tracking-[0.2em]">
+                                Thời gian
+                                @if($sortDir === 'asc')
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="m18 15-6-6-6 6"/></svg>
+                                @else
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
+                                @endif
+                            </button>
+                        </th>
                         @endif
                         @if(in_array('user', $visibleColumns))
                         <th class="px-4 py-3 text-[9px] font-bold text-slate-500 tracking-[0.2em] uppercase">Nhân viên</th>
@@ -193,7 +202,8 @@
                 <tbody class="divide-y divide-slate-100 bg-white/50">
                     @if(count($logs) > 0)
                     @foreach($logs as $log)
-                        <tr class="hover:bg-slate-50 transition-colors group">
+                        <tr @if($log->detail_url ?? null) onclick="window.location.href='{{ $log->detail_url }}'" @endif
+                            class="hover:bg-slate-50 transition-colors group {{ ($log->detail_url ?? null) ? 'cursor-pointer' : '' }}">
                             @if(in_array('time', $visibleColumns))
                             <td class="px-4 py-3">
                                 <div class="text-[11px] font-bold text-slate-900">{{ $log->created_at->format('H:i:s') }}</div>
@@ -202,44 +212,68 @@
                             @endif
                             @if(in_array('user', $visibleColumns))
                             <td class="px-4 py-3">
+                                @php $__uname = $log->user->name ?? 'Hệ thống'; @endphp
                                 <div class="flex items-center gap-2">
                                     <div class="w-7 h-7 rounded-full bg-slate-100 border border-slate-200 flex items-center justify-center text-[10px] font-bold text-slate-500 uppercase">
-                                        {{ substr($log->user->name, 0, 1) }}
+                                        {{ mb_substr($__uname, 0, 1) }}
                                     </div>
-                                    <span class="text-xs font-bold text-slate-700">{{ $log->user->name }}</span>
+                                    <span class="text-xs font-bold text-slate-700">{{ $__uname }}</span>
                                 </div>
                             </td>
                             @endif
                             @if(in_array('action', $visibleColumns))
                             <td class="px-4 py-3">
-                                <span class="px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-widest
-                                    {{ $log->action === 'created' ? 'bg-emerald-50 text-emerald-600 border border-emerald-100' : '' }}
-                                    {{ $log->action === 'updated' ? 'bg-blue-50 text-blue-600 border border-blue-100' : '' }}
-                                    {{ $log->action === 'deleted' ? 'bg-rose-50 text-rose-600 border border-rose-100' : '' }}">
-                                    {{ $log->action }}
+                                @php
+                                    $__bcolor = match($log->badge ?? 'info') {
+                                        'success' => 'bg-emerald-50 text-emerald-600 border border-emerald-100',
+                                        'error'   => 'bg-rose-50 text-rose-600 border border-rose-100',
+                                        default   => 'bg-blue-50 text-blue-600 border border-blue-100',
+                                    };
+                                @endphp
+                                <span class="px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-widest {{ $__bcolor }}">
+                                    {{ $log->action_label ?? $log->action }}
                                 </span>
                             </td>
                             @endif
                             @if(in_array('object', $visibleColumns))
                             <td class="px-4 py-3">
-                                <div class="text-xs font-bold text-slate-900">{{ $log->model_name ?? class_basename($log->model_type) }}</div>
-                                <div class="text-[10px] text-slate-400 font-mono">ID: #{{ $log->model_id }}</div>
+                                <div class="text-xs font-bold text-slate-900 flex items-center gap-1">
+                                    <span>{{ $log->entity_primary ?? ($log->model_name ?? class_basename($log->model_type)) }}</span>
+                                    @if($log->detail_url ?? null)
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="text-electric-blue opacity-0 group-hover:opacity-100 transition-opacity shrink-0"><path d="M7 7h10v10"/><path d="M7 17 17 7"/></svg>
+                                    @endif
+                                </div>
+                                @if($log->entity_secondary ?? null)
+                                    <div class="text-[10px] text-slate-500 truncate max-w-[280px]">{{ $log->entity_secondary }}</div>
+                                @endif
                             </td>
                             @endif
                             @if(in_array('details', $visibleColumns))
                             <td class="px-4 py-3">
+                                @php
+                                    $__fieldLabels = [
+                                        'sale_price' => 'Giá bán', 'commission_amount' => 'Hoa hồng', 'stock_quantity' => 'Tồn kho',
+                                        'base_name' => 'Tên SP', 'name' => 'Tên', 'sku' => 'Mã SP', 'location' => 'Vị trí',
+                                        'status' => 'Trạng thái', 'customer_id' => 'Khách hàng', 'sales_channel' => 'Kênh bán',
+                                        'total_commission' => 'Tổng HH', 'shared_commission_amount' => 'Chia sẻ HH',
+                                        'final_amount' => 'Phải trả', 'total_amount' => 'Tổng tiền', 'category_path' => 'Danh mục',
+                                        'brand' => 'Thương hiệu', 'notes' => 'Ghi chú', 'cancel_reason' => 'Lý do hủy',
+                                    ];
+                                    $__skip = ['updated_at', 'created_at', 'id'];
+                                @endphp
                                 @if(isset($log->custom_details))
                                     <div class="text-[10px] font-bold text-slate-600">{{ $log->custom_details }}</div>
-                                @elseif($log->changes)
+                                @elseif(is_array($log->changes) && !empty($log->changes['after']))
                                     <div class="space-y-1">
                                         @foreach($log->changes['after'] as $field => $newValue)
-                                            @php 
-                                                $oldValue = $log->changes['before'][$field] ?? 'N/A';
-                                                // Skip massive changes like images or descriptions for readability
-                                                if (is_array($newValue) || strlen((string)$newValue) > 50) continue;
+                                            @php
+                                                $oldValue = $log->changes['before'][$field] ?? '—';
+                                                // Bỏ qua trường nội bộ + giá trị mảng/quá dài cho dễ đọc
+                                                if (in_array($field, $__skip, true) || is_array($newValue) || strlen((string)$newValue) > 50) continue;
+                                                $__label = $__fieldLabels[$field] ?? $field;
                                             @endphp
                                             <div class="text-[10px] flex items-center gap-2">
-                                                <span class="font-black text-slate-400 uppercase tracking-tighter">{{ $field }}:</span>
+                                                <span class="font-black text-slate-400 uppercase tracking-tighter">{{ $__label }}:</span>
                                                 <span class="text-rose-500 line-through opacity-50">{{ $oldValue }}</span>
                                                 <svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" class="text-slate-300"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
                                                 <span class="text-emerald-600 font-bold">{{ $newValue }}</span>
@@ -247,7 +281,7 @@
                                         @endforeach
                                     </div>
                                 @else
-                                    <span class="text-[10px] text-slate-300 italic">Không có chi tiết thay đổi</span>
+                                    <span class="text-[10px] text-slate-300 italic">—</span>
                                 @endif
                             </td>
                             @endif

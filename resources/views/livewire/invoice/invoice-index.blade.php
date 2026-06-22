@@ -594,9 +594,32 @@
                                     @if(auth()->user()->hasPermission('invoice.view_commission'))
                                         <div class="flex justify-between text-rose-500 pt-1 border-t border-rose-100/50">
                                             <span>Tổng hoa hồng:</span>
-                                            <span>{{ number_format($invoice->total_commission, 0, ',', '.') }}đ</span>
+                                            @if($editingInvoiceId === $invoice->id)
+                                                <span>{{ number_format($this->editingTotalCommission, 0, ',', '.') }}đ</span>
+                                            @else
+                                                <span>{{ number_format($invoice->total_commission, 0, ',', '.') }}đ</span>
+                                            @endif
                                         </div>
-                                        @if($invoice->shared_to_user_id || (int) $invoice->shared_commission_amount > 0)
+                                        @if($editingInvoiceId === $invoice->id)
+                                            {{-- Sửa chia sẻ hoa hồng (mobile) --}}
+                                            <div class="mt-1 p-2 rounded-lg bg-amber-50/60 border border-amber-100 space-y-1.5">
+                                                <label class="text-[9px] font-bold text-amber-600 tracking-widest block uppercase">Chia sẻ hoa hồng</label>
+                                                <select wire:model="editSharedToUserId" class="w-full bg-white border border-amber-200 rounded-lg py-1.5 px-2 text-[11px] focus:outline-none focus:border-amber-400">
+                                                    <option value="">— Không chia sẻ —</option>
+                                                    @foreach($commissionUsers as $cu)
+                                                        @if($cu->id !== $invoice->user_id)
+                                                            <option value="{{ $cu->id }}">{{ $cu->name }}</option>
+                                                        @endif
+                                                    @endforeach
+                                                </select>
+                                                @if($editSharedToUserId)
+                                                    <input type="number" min="0" max="{{ $this->editingTotalCommission }}" wire:model="editSharedCommissionAmount"
+                                                           placeholder="Số tiền chia sẻ"
+                                                           class="w-full bg-white border border-amber-200 rounded-lg py-1.5 px-2 text-[11px] font-bold text-amber-600 focus:outline-none focus:border-amber-400">
+                                                    <p class="text-[9px] text-amber-500">Tối đa {{ number_format($this->editingTotalCommission, 0, ',', '.') }}đ (tổng HH đơn).</p>
+                                                @endif
+                                            </div>
+                                        @elseif($invoice->shared_to_user_id || (int) $invoice->shared_commission_amount > 0)
                                             <div class="flex justify-between text-amber-600">
                                                 <span>Chia sẻ HH{{ $invoice->sharedTo ? ' → ' . $invoice->sharedTo->name : '' }}:</span>
                                                 <span>{{ number_format($invoice->shared_commission_amount, 0, ',', '.') }}đ</span>
@@ -993,9 +1016,32 @@
                                                     @if(auth()->user()->hasPermission('invoice.view_commission'))
                                                         <div class="flex justify-between text-[11px] text-rose-500 pt-1 border-t border-rose-100/50">
                                                             <span>Tổng hoa hồng</span>
-                                                            <span>{{ number_format($invoice->total_commission, 0, ',', '.') }}đ</span>
+                                                            @if($editingInvoiceId === $invoice->id)
+                                                                <span>{{ number_format($this->editingTotalCommission, 0, ',', '.') }}đ</span>
+                                                            @else
+                                                                <span>{{ number_format($invoice->total_commission, 0, ',', '.') }}đ</span>
+                                                            @endif
                                                         </div>
-                                                        @if($invoice->shared_to_user_id || (int) $invoice->shared_commission_amount > 0)
+                                                        @if($editingInvoiceId === $invoice->id)
+                                                            {{-- Sửa chia sẻ hoa hồng --}}
+                                                            <div class="mt-1 p-2 rounded-lg bg-amber-50/60 border border-amber-100 space-y-1.5">
+                                                                <label class="text-[8px] font-bold text-amber-600 tracking-widest block uppercase">Chia sẻ hoa hồng</label>
+                                                                <select wire:model="editSharedToUserId" class="w-full bg-white border border-amber-200 rounded-lg py-1 px-2 text-[11px] focus:outline-none focus:border-amber-400 cursor-pointer">
+                                                                    <option value="">— Không chia sẻ —</option>
+                                                                    @foreach($commissionUsers as $cu)
+                                                                        @if($cu->id !== $invoice->user_id)
+                                                                            <option value="{{ $cu->id }}">{{ $cu->name }}</option>
+                                                                        @endif
+                                                                    @endforeach
+                                                                </select>
+                                                                @if($editSharedToUserId)
+                                                                    <input type="number" min="0" max="{{ $this->editingTotalCommission }}" wire:model="editSharedCommissionAmount"
+                                                                           placeholder="Số tiền chia sẻ"
+                                                                           class="w-full bg-white border border-amber-200 rounded-lg py-1 px-2 text-[11px] font-bold text-amber-600 focus:outline-none focus:border-amber-400">
+                                                                    <p class="text-[8px] text-amber-500">Tối đa {{ number_format($this->editingTotalCommission, 0, ',', '.') }}đ (tổng HH đơn).</p>
+                                                                @endif
+                                                            </div>
+                                                        @elseif($invoice->shared_to_user_id || (int) $invoice->shared_commission_amount > 0)
                                                             <div class="flex justify-between text-[11px] text-amber-600">
                                                                 <span>Chia sẻ HH{{ $invoice->sharedTo ? ' → ' . $invoice->sharedTo->name : '' }}</span>
                                                                 <span>{{ number_format($invoice->shared_commission_amount, 0, ',', '.') }}đ</span>

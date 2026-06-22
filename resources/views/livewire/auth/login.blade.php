@@ -15,20 +15,20 @@
             <div class="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-electric-blue shadow-[0_8px_30px_rgba(0,136,204,0.3)] mb-6 transition-transform group-hover:scale-110 duration-500">
                 <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="text-white"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
             </div>
-            <h1 class="text-3xl font-black tracking-tighter text-slate-900 uppercase">CVHA <span class="text-electric-blue">POS</span></h1>
+            <h1 class="text-3xl font-black tracking-tighter text-slate-900 uppercase">CVHQ <span class="text-electric-blue">POS</span></h1>
         </div>
 
         <!-- Login Card -->
         <div class="glass-card p-10 border border-white/50 shadow-[0_20px_50px_rgba(0,0,0,0.05)] bg-white/40 backdrop-blur-2xl rounded-[2.5rem]">
             <form wire:submit="login" class="space-y-6">
-                <!-- Email -->
+                <!-- Tên đăng nhập / Email -->
                 <div class="space-y-2">
-                    <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Địa chỉ Email</label>
+                    <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Tên đăng nhập hoặc Email</label>
                     <div class="relative group">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="absolute left-4 top-1/2 -translate-y-1/2 text-slate-300 group-focus-within:text-electric-blue transition-colors"><rect width="20" height="16" x="2" y="4" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg>
-                        <input type="email" wire:model="email" 
-                               class="w-full bg-white/50 border border-slate-200 rounded-2xl py-3.5 pl-12 pr-6 text-sm focus:outline-none focus:border-electric-blue/40 focus:ring-4 focus:ring-electric-blue/5 transition-all text-slate-900" 
-                               placeholder="admin@cvhq.com">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="absolute left-4 top-1/2 -translate-y-1/2 text-slate-300 group-focus-within:text-electric-blue transition-colors"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                        <input type="text" wire:model="email" autocomplete="username"
+                               class="w-full bg-white/50 border border-slate-200 rounded-2xl py-3.5 pl-12 pr-6 text-sm focus:outline-none focus:border-electric-blue/40 focus:ring-4 focus:ring-electric-blue/5 transition-all text-slate-900"
+                               placeholder="Tên đăng nhập hoặc email">
                     </div>
                     @error('email') <span class="text-[10px] text-rose-500 font-bold ml-1">{{ $message }}</span> @enderror
                 </div>

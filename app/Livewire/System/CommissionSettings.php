@@ -12,7 +12,8 @@ class CommissionSettings extends Component
 
     protected function getModuleKey(): string
     {
-        return 'commissions';
+        // Trang cấu hình hoa hồng tự động yêu cầu quyền chi tiết riêng.
+        return 'commission.settings';
     }
 
     public bool $auto_commission_enabled = false;
@@ -28,8 +29,18 @@ class CommissionSettings extends Component
 
     public function addCommissionRange(): void
     {
-        $lastMax = collect($this->commission_ranges)->max(fn($range) => (int) ($range['max'] ?? 0));
-        $this->commission_ranges[] = ['min' => (int) $lastMax, 'max' => 0, 'amount' => 0];
+        // "Bước giá" của dòng cuối dùng để TỰ GỢI Ý mốc giá dòng mới (không tham gia tính HH).
+        $last = collect($this->commission_ranges)->last();
+        $newMin = (int) ($last['max'] ?? 0);
+        $step = (int) ($last['step'] ?? 0);
+        $newMax = $step > 0 ? $newMin + $step : 0;
+
+        $this->commission_ranges[] = [
+            'min' => $newMin,
+            'max' => $newMax,
+            'amount' => (int) ($last['amount'] ?? 0),
+            'step' => $step,
+        ];
     }
 
     public function removeCommissionRange($index): void
@@ -39,6 +50,39 @@ class CommissionSettings extends Component
     }
 
     public function save(): void
+    {
+        $this->persistRanges();
+        $this->dispatch('notify', message: 'Đã lưu cấu hình hoa hồng tự động!', type: 'success');
+    }
+
+    /**
+     * Hiệu chỉnh hoa hồng HÀNG LOẠT: tính lại commission_amount cho TẤT CẢ sản phẩm
+     * theo bảng khoảng giá hiện tại (ghi đè giá trị cũ).
+     */
+    public function applyToAllProducts(): void
+    {
+        $ranges = $this->persistRanges(); // lưu cấu hình mới trước, rồi áp dụng
+
+        $updated = 0;
+        \App\Models\Product::query()
+            ->select('id', 'sale_price', 'commission_amount')
+            ->chunkById(500, function ($products) use (&$updated, $ranges) {
+                foreach ($products as $p) {
+                    $new = $this->commissionForPrice((int) $p->sale_price, $ranges);
+                    if ((int) $p->commission_amount !== $new) {
+                        \App\Models\Product::where('id', $p->id)->update(['commission_amount' => $new]);
+                        $updated++;
+                    }
+                }
+            });
+
+        $this->dispatch('notify', message: "Đã hiệu chỉnh hoa hồng cho {$updated} sản phẩm theo bảng cấu hình.", type: 'success');
+    }
+
+    /**
+     * Chuẩn hóa + lưu bảng khoảng giá. Trả về mảng đã chuẩn hóa.
+     */
+    private function persistRanges(): array
     {
         $this->validate([
             'auto_commission_enabled' => 'boolean',
@@ -50,6 +94,7 @@ class CommissionSettings extends Component
                 'min' => max(0, (int) ($range['min'] ?? 0)),
                 'max' => max(0, (int) ($range['max'] ?? 0)),
                 'amount' => max(0, (int) ($range['amount'] ?? 0)),
+                'step' => max(0, (int) ($range['step'] ?? 0)),
             ])
             ->filter(fn($range) => $range['amount'] > 0 || $range['min'] > 0 || $range['max'] > 0)
             ->sortBy('min')
@@ -60,7 +105,23 @@ class CommissionSettings extends Component
         SystemSetting::set('commission_ranges', $ranges);
         $this->commission_ranges = $ranges;
 
-        $this->dispatch('notify', message: 'Đã lưu cấu hình hoa hồng tự động!', type: 'success');
+        return $ranges;
+    }
+
+    /**
+     * Tra mức hoa hồng theo giá (mốc trên BAO GỒM). Đồng bộ với ProductIndex::commissionForPrice().
+     */
+    private function commissionForPrice(int $price, array $ranges): int
+    {
+        foreach ($ranges as $range) {
+            $min = (int) ($range['min'] ?? 0);
+            $max = (int) ($range['max'] ?? 0);
+            $amount = (int) ($range['amount'] ?? 0);
+            if ($price >= $min && ($max <= 0 || $price <= $max)) {
+                return $amount;
+            }
+        }
+        return 0;
     }
 
     public function render()

@@ -14,7 +14,7 @@
             <div class="w-8 h-8 rounded-lg bg-electric-blue flex items-center justify-center shadow-[0_4px_15px_rgba(0,136,204,0.3)] shrink-0">
                 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="text-white"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
             </div>
-            <span class="text-base font-bold tracking-tight text-slate-900 whitespace-nowrap truncate">CVHA POS</span>
+            <span class="text-base font-bold tracking-tight text-slate-900 whitespace-nowrap truncate">CVHQ POS</span>
         </div>
 
         <button @click="sidebarHidden = true"

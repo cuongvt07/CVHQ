@@ -23,7 +23,8 @@ class ActivityLog extends Model
 
     public function user(): BelongsTo
     {
-        return $this->belongsTo(User::class);
+        // Lấy cả nhân viên đã xóa mềm để nhật ký vẫn hiển thị đúng tên người thao tác.
+        return $this->belongsTo(User::class)->withTrashed();
     }
 
     /**

@@ -39,10 +39,12 @@ class InvoiceIndex extends Component
     public $itemsToDelete = [];
     public $editSalesChannel = '';
     public $editPaymentMethod = 'cash';
+    public $editSharedToUserId = null;       // Chia sẻ hoa hồng: người nhận
+    public $editSharedCommissionAmount = 0;  // Chia sẻ hoa hồng: số tiền
 
     protected function getDefaultVisibleColumns(): array
     {
-        return ['code', 'time', 'customer', 'amount', 'channel', 'method', 'status', 'actions'];
+        return ['code', 'date', 'customer', 'amount', 'channel', 'method', 'status', 'actions'];
     }
 
 
@@ -501,6 +503,8 @@ class InvoiceIndex extends Component
         $this->editCustomerSearch = $invoice->customer?->full_name ?? 'Khách lẻ';
         $this->editSalesChannel = $invoice->sales_channel ?? '';
         $this->editPaymentMethod = $invoice->getPaymentMethodKey();
+        $this->editSharedToUserId = $invoice->shared_to_user_id;
+        $this->editSharedCommissionAmount = (int) $invoice->shared_commission_amount;
         $this->itemsToDelete = [];
         
         $this->editingItems = $invoice->items->map(fn($item) => [
@@ -530,6 +534,8 @@ class InvoiceIndex extends Component
         $this->editCustomerSearch = '';
         $this->editSalesChannel = '';
         $this->editPaymentMethod = 'cash';
+        $this->editSharedToUserId = null;
+        $this->editSharedCommissionAmount = 0;
     }
 
     public function updateInvoice()
@@ -637,12 +643,26 @@ class InvoiceIndex extends Component
             ];
             $paymentColumns[$this->editPaymentMethod . '_amount'] = $finalAmount;
 
+            // Chia sẻ hoa hồng: chỉ lưu khi có người nhận hợp lệ (khác người bán) và số tiền > 0.
+            // Số tiền chia sẻ không vượt quá tổng hoa hồng của đơn.
+            $sharedTo = (int) $this->editSharedToUserId ?: null;
+            $sharedAmount = max(0, min((int) $this->editSharedCommissionAmount, (int) $totalCommission));
+            if ($sharedTo === $invoice->user_id) {
+                $sharedTo = null; // không tự chia sẻ cho chính mình
+            }
+            if (!$sharedTo || $sharedAmount <= 0) {
+                $sharedTo = null;
+                $sharedAmount = 0;
+            }
+
             $invoice->update(array_merge([
                 'customer_id' => $this->editCustomerId,
                 'sales_channel' => $this->editSalesChannel ?: null,
                 'total_amount' => $totalAmount,
                 'total_commission' => $totalCommission,
                 'final_amount' => $finalAmount,
+                'shared_to_user_id' => $sharedTo,
+                'shared_commission_amount' => $sharedAmount,
             ], $paymentColumns));
         });
 
@@ -653,13 +673,21 @@ class InvoiceIndex extends Component
         $this->editProductSearch = '';
         $this->editSalesChannel = '';
         $this->editPaymentMethod = 'cash';
-        
+        $this->editSharedToUserId = null;
+        $this->editSharedCommissionAmount = 0;
+
         $this->dispatch('notify', message: 'Hóa đơn đã được cập nhật thành công!', type: 'success');
     }
 
     public function getEditingTotalProperty()
     {
         return collect($this->editingItems)->sum(fn($item) => $item['unit_price'] * $item['quantity']);
+    }
+
+    public function getEditingTotalCommissionProperty()
+    {
+        return (int) collect($this->editingItems)
+            ->sum(fn($item) => (int) ($item['commission_amount'] ?? 0) * (int) $item['quantity']);
     }
 
     protected function getRecordsForBulk()
@@ -674,8 +702,14 @@ class InvoiceIndex extends Component
 
     public function render()
     {
+        // Danh sách nhân viên được nhận hoa hồng (để chọn khi chia sẻ HH lúc sửa đơn)
+        $commissionUsers = \App\Models\User::where('can_receive_commission', true)
+            ->orderBy('name')
+            ->get(['id', 'name']);
+
         return view('livewire.invoice.invoice-index', [
-            'invoices' => $this->getInvoices()
+            'invoices' => $this->getInvoices(),
+            'commissionUsers' => $commissionUsers,
         ])->layout('layouts.app');
     }
 }

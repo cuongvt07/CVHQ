@@ -42,7 +42,7 @@ class UserIndex extends Component
 
     // Form properties
     public $userId;
-    public $name, $email, $password, $role = 'staff', $can_receive_commission = true, $work_branch = '', $permissions = [];
+    public $name, $username, $email, $password, $role = 'staff', $can_receive_commission = true, $work_branch = '', $permissions = [];
     public $is_active = true;
 
     // Khi sao chép nhân viên: tên nhân viên nguồn (hiển thị nhắc trong form)
@@ -52,7 +52,8 @@ class UserIndex extends Component
     {
         return [
             'name' => 'required|min:3',
-            'email' => 'required|email|unique:users,email,' . $this->userId,
+            'username' => 'required|min:3|unique:users,username,' . $this->userId,
+            'email' => 'nullable|email|unique:users,email,' . $this->userId,
             'password' => $this->userId ? 'nullable|min:6' : 'required|min:6',
             'role' => 'required|in:admin,staff',
             'can_receive_commission' => 'boolean',
@@ -65,6 +66,7 @@ class UserIndex extends Component
     {
         $this->userId = null;
         $this->name = '';
+        $this->username = '';
         $this->email = '';
         $this->password = '';
         $this->role = 'staff';
@@ -76,18 +78,31 @@ class UserIndex extends Component
         $this->resetErrorBag();
     }
 
+    /** Chặn thao tác nếu thiếu quyền chi tiết (admin luôn vượt qua). */
+    private function ensure(string $perm): bool
+    {
+        if (auth()->user()->hasPermission($perm)) {
+            return true;
+        }
+        $this->dispatch('notify', message: 'Bạn không có quyền thực hiện thao tác này!', type: 'error');
+        return false;
+    }
+
     public function create()
     {
+        if (!$this->ensure('user.create')) return;
         $this->resetForm();
         $this->dispatch('open-user-modal');
     }
 
     public function edit($id)
     {
+        if (!$this->ensure('user.edit')) return;
         $this->resetForm();
         $user = User::findOrFail($id);
         $this->userId = $user->id;
         $this->name = $user->name;
+        $this->username = $user->username;
         $this->email = $user->email;
         $this->role = $user->role;
         $this->is_active = (bool) $user->is_active;
@@ -105,6 +120,7 @@ class UserIndex extends Component
      */
     public function copy($id)
     {
+        if (!$this->ensure('user.create')) return;
         $source = User::findOrFail($id);
 
         $this->resetForm();
@@ -121,11 +137,13 @@ class UserIndex extends Component
 
     public function save()
     {
+        if (!$this->ensure($this->userId ? 'user.edit' : 'user.create')) return;
         $this->validate();
 
         $data = [
             'name' => $this->name,
-            'email' => $this->email,
+            'username' => $this->username,
+            'email' => $this->email ?: null,
             'role' => $this->role,
             'is_active' => $this->is_active,
             'can_receive_commission' => $this->can_receive_commission,
@@ -151,12 +169,14 @@ class UserIndex extends Component
 
     public function confirmDelete($id)
     {
+        if (!$this->ensure('user.delete')) return;
         $this->userId = $id;
         $this->dispatch('open-delete-modal');
     }
 
     public function delete()
     {
+        if (!$this->ensure('user.delete')) return;
         if ($this->userId === auth()->id()) {
             $this->dispatch('notify', message: 'Bạn không thể tự xóa chính mình!', type: 'error');
             $this->dispatch('close-delete-modal');
@@ -176,6 +196,7 @@ class UserIndex extends Component
      */
     public function toggleActive($id)
     {
+        if (!$this->ensure('user.edit')) return;
         if ((int) $id === (int) auth()->id()) {
             $this->dispatch('notify', message: 'Không thể tự ngừng hoạt động chính mình!', type: 'error');
             return;
@@ -196,6 +217,7 @@ class UserIndex extends Component
      */
     public function toggleModule($moduleKey, $checked)
     {
+        if (!$this->ensure('user.permissions')) return;
         $actions = array_keys($this->availablePermissions[$moduleKey]['actions'] ?? []);
         $keys = array_merge([$moduleKey], $actions);
         $perms = is_array($this->permissions) ? $this->permissions : [];
@@ -210,6 +232,7 @@ class UserIndex extends Component
         return User::query()
             ->when($this->search, function($query) {
                 $query->where('name', 'like', "%{$this->search}%")
+                      ->orWhere('username', 'like', "%{$this->search}%")
                       ->orWhere('email', 'like', "%{$this->search}%");
             })
             ->when($this->roleFilter !== 'All', fn($q) => $q->where('role', $this->roleFilter))
@@ -233,9 +256,26 @@ class UserIndex extends Component
                 ]
             ],
             'categories' => ['label' => 'Danh mục', 'actions' => []],
-            'commissions' => ['label' => 'Bảng hoa hồng', 'actions' => []],
+            'commissions' => [
+                'label' => 'Bảng hoa hồng',
+                'actions' => [
+                    'commission.edit' => 'Sửa hoa hồng',
+                    'commission.sync' => 'Đồng bộ hoa hồng',
+                    'commission.import' => 'Nhập Excel',
+                    'commission.export' => 'Xuất Excel',
+                    'commission.settings' => 'Cấu hình hoa hồng tự động',
+                ]
+            ],
             'customers' => ['label' => 'Khách hàng', 'actions' => []],
-            'users' => ['label' => 'Nhân viên', 'actions' => []],
+            'users' => [
+                'label' => 'Nhân viên',
+                'actions' => [
+                    'user.create' => 'Thêm nhân viên',
+                    'user.edit' => 'Sửa nhân viên',
+                    'user.delete' => 'Xóa nhân viên',
+                    'user.permissions' => 'Phân quyền nhân viên',
+                ]
+            ],
             'invoices' => [
                 'label' => 'Hóa đơn',
                 'actions' => [

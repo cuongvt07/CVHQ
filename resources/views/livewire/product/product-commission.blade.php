@@ -3,6 +3,7 @@
     <header class="px-3 md:px-6 py-2 md:py-4 flex items-center justify-between gap-2 md:justify-end border-b border-slate-200 bg-slate-50/50">
         <h1 class="text-base font-black tracking-tight text-slate-900 md:hidden">Bảng hoa hồng</h1>
         <div class="flex items-center gap-2">
+            @if(auth()->user()->hasPermission('commission.sync'))
             <button wire:click="syncCommissions" wire:loading.attr="disabled" class="flex items-center gap-1.5 px-3 py-2 bg-rose-500 text-white rounded-lg text-[12px] font-bold hover:bg-rose-600 transition-all shadow-sm shadow-rose-500/20">
                 <span wire:loading.remove wire:target="syncCommissions">
                     <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="inline-block"><path d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/><path d="M3 12a9 9 0 0 0 9 9 9.75 9.75 0 0 0 6.74-2.74L21 16"/><path d="M16 16h5v5"/></svg>
@@ -13,14 +14,19 @@
                     <span class="hidden sm:inline">Đang xử lý...</span>
                 </span>
             </button>
+            @endif
+            @if(auth()->user()->hasPermission('commission.import'))
             <button @click="$dispatch('open-import-commissions')" class="flex items-center gap-1.5 px-3 py-2 bg-white border border-slate-200 text-slate-600 rounded-lg text-[12px] font-bold hover:bg-slate-50 transition-all shadow-sm">
                 <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" x2="12" y1="3" y2="15"/></svg>
                 Import
             </button>
+            @endif
+            @if(auth()->user()->hasPermission('commission.export'))
             <button wire:click="export" class="flex items-center gap-1.5 px-3 py-2 bg-white border border-slate-200 text-slate-600 rounded-lg text-[12px] font-bold hover:bg-slate-50 transition-all shadow-sm">
                 <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" x2="12" y1="15" y2="3"/></svg>
                 <span class="hidden sm:inline">Xuất file</span>
             </button>
+            @endif
         </div>
     </header>
 
@@ -138,6 +144,7 @@
                     <input type="number"
                            wire:blur="updateCommission({{ $product->id }}, $event.target.value)"
                            value="{{ (int)$product->commission_amount }}"
+                           @readonly(!auth()->user()->hasPermission('commission.edit'))
                            class="w-full bg-transparent text-center text-xs font-black text-emerald-700 focus:outline-none focus:ring-0 border-0 p-0">
                 </div>
             </div>
@@ -248,9 +255,10 @@
                             @if(in_array('commission', $visibleColumns))
                             <td class="px-4 py-2 text-right bg-slate-50/30">
                                 <div class="flex justify-end">
-                                    <input type="number" 
+                                    <input type="number"
                                            wire:blur="updateCommission({{ $product->id }}, $event.target.value)"
                                            value="{{ (int)$product->commission_amount }}"
+                                           @readonly(!auth()->user()->hasPermission('commission.edit'))
                                            class="w-24 bg-white border border-slate-200 rounded-lg px-3 py-1.5 text-xs text-right font-bold text-slate-700 focus:outline-none focus:border-electric-blue transition-all">
                                 </div>
                             </td>

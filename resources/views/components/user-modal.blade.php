@@ -54,10 +54,17 @@
                             @error('name') <span class="text-[10px] text-rose-500 font-bold ml-1">{{ $message }}</span> @enderror
                         </div>
 
-                        <!-- Email -->
+                        <!-- Tên đăng nhập -->
                         <div class="space-y-2">
-                            <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Địa chỉ Email</label>
-                            <input type="email" wire:model="email" class="w-full bg-slate-50 border border-slate-200 rounded-2xl py-2.5 px-4 md:py-3 md:px-5 text-sm focus:outline-none focus:border-electric-blue/40 focus:ring-4 focus:ring-electric-blue/5 transition-all" placeholder="email@example.com">
+                            <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Tên đăng nhập <span class="text-rose-500">*</span></label>
+                            <input type="text" wire:model="username" autocomplete="off" class="w-full bg-slate-50 border border-slate-200 rounded-2xl py-2.5 px-4 md:py-3 md:px-5 text-sm focus:outline-none focus:border-electric-blue/40 focus:ring-4 focus:ring-electric-blue/5 transition-all" placeholder="Ví dụ: nguyenvana">
+                            @error('username') <span class="text-[10px] text-rose-500 font-bold ml-1">{{ $message }}</span> @enderror
+                        </div>
+
+                        <!-- Email (tùy chọn) -->
+                        <div class="space-y-2">
+                            <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Email <span class="text-slate-300 font-normal normal-case">(tùy chọn)</span></label>
+                            <input type="email" wire:model="email" class="w-full bg-slate-50 border border-slate-200 rounded-2xl py-2.5 px-4 md:py-3 md:px-5 text-sm focus:outline-none focus:border-electric-blue/40 focus:ring-4 focus:ring-electric-blue/5 transition-all" placeholder="email@example.com (không bắt buộc)">
                             @error('email') <span class="text-[10px] text-rose-500 font-bold ml-1">{{ $message }}</span> @enderror
                         </div>
 
@@ -109,7 +116,8 @@
                             </button>
                         </div>
 
-                        <!-- Permissions Grid -->
+                        <!-- Permissions Grid (chỉ người có quyền 'Phân quyền nhân viên' mới thấy/sửa) -->
+                        @if(auth()->user()->hasPermission('user.permissions'))
                         <div class="space-y-4 pt-6 border-t border-slate-100" x-show="$wire.role === 'staff'">
                             <div class="flex items-center justify-between mb-2">
                                 <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Phân quyền chi tiết</label>
@@ -141,6 +149,7 @@
                                 @endforeach
                             </div>
                         </div>
+                        @endif
                     </form>
                 </div>
 

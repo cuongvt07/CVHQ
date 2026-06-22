@@ -44,7 +44,20 @@
                         <option value="this_week">Tuần này</option>
                         <option value="this_month">Tháng này</option>
                         <option value="last_month">Tháng trước</option>
+                        <option value="custom">Tùy chỉnh…</option>
                     </select>
+                    @if($dateRange === 'custom')
+                        <div class="mt-2 grid grid-cols-2 gap-2">
+                            <div>
+                                <div class="text-[8px] font-bold text-slate-400 uppercase mb-0.5">Từ ngày</div>
+                                <input type="date" wire:model.live="customStart" class="w-full bg-white border border-slate-200 rounded px-2 py-1 text-[11px] focus:outline-none focus:border-electric-blue text-slate-900">
+                            </div>
+                            <div>
+                                <div class="text-[8px] font-bold text-slate-400 uppercase mb-0.5">Đến ngày</div>
+                                <input type="date" wire:model.live="customEnd" class="w-full bg-white border border-slate-200 rounded px-2 py-1 text-[11px] focus:outline-none focus:border-electric-blue text-slate-900">
+                            </div>
+                        </div>
+                    @endif
                 </div>
 
                 @if($view === 'summary')
@@ -74,7 +87,16 @@
                     <option value="this_week">Tuần này</option>
                     <option value="this_month">Tháng này</option>
                     <option value="last_month">Tháng trước</option>
+                    <option value="custom">Tùy chỉnh…</option>
                 </select>
+
+                @if($dateRange === 'custom')
+                    <div class="flex items-center gap-2">
+                        <input type="date" wire:model.live="customStart" class="bg-slate-50 border border-slate-200 rounded-lg px-2 py-1.5 text-xs font-bold text-slate-600 focus:outline-none focus:border-electric-blue">
+                        <span class="text-slate-400 text-xs font-bold">→</span>
+                        <input type="date" wire:model.live="customEnd" class="bg-slate-50 border border-slate-200 rounded-lg px-2 py-1.5 text-xs font-bold text-slate-600 focus:outline-none focus:border-electric-blue">
+                    </div>
+                @endif
 
                 @if($view === 'summary')
                     <div class="h-8 w-px bg-slate-100 mx-1"></div>

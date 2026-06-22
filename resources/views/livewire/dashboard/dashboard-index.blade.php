@@ -3,7 +3,7 @@
     <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
             <h1 class="text-[22px] md:text-[26px] font-bold tracking-tight heading-gradient">Trung tâm Điều hành</h1>
-            <p class="text-slate-500 text-[10px] md:text-[14px] font-light mt-1 uppercase tracking-[0.2em]">Hệ thống Quản trị Thông minh CVHA POS</p>
+            <p class="text-slate-500 text-[10px] md:text-[14px] font-light mt-1 uppercase tracking-[0.2em]">Hệ thống Quản trị Thông minh CVHQ POS</p>
         </div>
         <div class="flex items-center gap-3">
             <span class="text-[9px] md:text-[13px] font-bold text-slate-500 uppercase tracking-widest bg-slate-50 border border-slate-200 px-3 py-1.5 rounded-lg">Cập nhật: Vừa xong</span>

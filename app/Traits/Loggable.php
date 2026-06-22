@@ -23,7 +23,10 @@ trait Loggable
         });
 
         static::deleted(function ($model) {
-            $model->logActivity('deleted');
+            // Lưu lại các trường định danh để nhật ký vẫn hiện được mã/SKU/tên SAU khi đã xóa.
+            $keys = ['invoice_code', 'code', 'sku', 'name', 'base_name', 'product_name'];
+            $snap = array_intersect_key($model->getAttributes(), array_flip($keys));
+            $model->logActivity('deleted', $snap ? ['snapshot' => $snap] : null);
         });
     }
 

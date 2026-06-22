@@ -56,13 +56,17 @@ class ProductCommission extends Component
 
     public function updateCommission($productId, $amount)
     {
+        if (!auth()->user()->hasPermission('commission.edit')) {
+            $this->dispatch('notify', message: 'Bạn không có quyền sửa hoa hồng!', type: 'error');
+            return;
+        }
         Product::where('id', $productId)->update(['commission_amount' => $amount]);
         $this->dispatch('notify', message: 'Cập nhật hoa hồng thành công!', type: 'success');
     }
 
     public function syncCommissions()
     {
-        if (!auth()->user()->hasPermission('invoice.edit')) {
+        if (!auth()->user()->hasPermission('commission.sync')) {
             $this->dispatch('notify', message: 'Bạn không có quyền đồng bộ dữ liệu!', type: 'error');
             return;
         }
@@ -130,6 +134,10 @@ class ProductCommission extends Component
 
     public function import()
     {
+        if (!auth()->user()->hasPermission('commission.import')) {
+            $this->dispatch('notify', message: 'Bạn không có quyền nhập Excel!', type: 'error');
+            return;
+        }
         set_time_limit(300);
 
         $this->validate([
@@ -221,6 +229,10 @@ class ProductCommission extends Component
 
     public function export()
     {
+        if (!auth()->user()->hasPermission('commission.export')) {
+            $this->dispatch('notify', message: 'Bạn không có quyền xuất file!', type: 'error');
+            return;
+        }
         return Excel::download(new CommissionExport, 'bang-hoa-hong-' . date('Y-m-d') . '.xlsx');
     }
 
