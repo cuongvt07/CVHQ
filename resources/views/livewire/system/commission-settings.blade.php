@@ -1,4 +1,4 @@
-<div class="max-w-2xl mx-auto py-8 px-4">
+<div class="max-w-5xl mx-auto py-8 px-4 md:px-6">
     <div class="mb-6">
         <h1 class="text-xl font-bold text-slate-900">Cấu hình Hoa hồng tự động</h1>
         <p class="text-sm text-slate-500 mt-1">Thiết lập mức hoa hồng tự nhảy theo giá bán khi thêm sản phẩm</p>
