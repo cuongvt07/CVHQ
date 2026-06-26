@@ -28,7 +28,7 @@ class SalesDayDetail extends Component
     public string $sellerId = '';
     public string $channel = '';
 
-    public array $exportColumns = [];
+    public array $visibleColumns = [];
 
     protected $queryString = [
         'fromDate' => ['except' => ''],
@@ -42,8 +42,8 @@ class SalesDayDetail extends Component
     {
         abort_unless(auth()->user()?->hasPermission('reports'), 403);
         $this->date = $date;
-        if (empty($this->exportColumns)) {
-            $this->exportColumns = array_keys($this->columns());
+        if (empty($this->visibleColumns)) {
+            $this->visibleColumns = array_keys($this->columns());
         }
     }
 
@@ -53,16 +53,39 @@ class SalesDayDetail extends Component
             'code' => 'Mã đơn',
             'time' => 'Giờ',
             'customer' => 'Khách hàng',
+            'phone' => 'SĐT',
             'seller' => 'NV bán',
             'channel' => 'Kênh',
             'branch' => 'Chi nhánh',
+            'payment' => 'Thanh toán',
             'qty' => 'SL',
             'goods' => 'Tiền hàng',
             'discount' => 'Giảm giá',
+            'fee' => 'Phụ phí',
             'revenue' => 'Khách trả',
+            'cogs' => 'Giá vốn',
             'commission' => 'Hoa hồng',
             'profit' => 'Lợi nhuận tạm tính',
         ];
+    }
+
+    /** Cột dạng số (căn phải + format nghìn). */
+    public const NUMERIC_KEYS = ['qty', 'goods', 'discount', 'fee', 'revenue', 'cogs', 'commission', 'profit'];
+
+    /** Bật/tắt cột hiển thị (cũng áp dụng cho file Excel xuất ra). */
+    public function toggleColumn($col): void
+    {
+        if (in_array($col, $this->visibleColumns, true)) {
+            $this->visibleColumns = array_values(array_diff($this->visibleColumns, [$col]));
+        } elseif (array_key_exists($col, $this->columns())) {
+            $this->visibleColumns[] = $col;
+        }
+    }
+
+    /** Cột đang hiển thị, giữ đúng thứ tự gốc. */
+    public function shownColumns(): array
+    {
+        return array_filter($this->columns(), fn ($k) => in_array($k, $this->visibleColumns, true), ARRAY_FILTER_USE_KEY);
     }
 
     protected function invoiceQuery()
@@ -78,7 +101,7 @@ class SalesDayDetail extends Component
     public function rows(): array
     {
         $invoices = $this->invoiceQuery()
-            ->with('customer:id,full_name')
+            ->with('customer:id,full_name,phone')
             ->orderBy('created_at')
             ->get();
 
@@ -106,17 +129,29 @@ class SalesDayDetail extends Component
             $goods = (int) $inv->total_amount;
             $discount = (int) $inv->discount_amount;
             $commission = (int) $inv->total_commission;
+            $cash = (int) $inv->cash_amount;
+            $transfer = (int) $inv->transfer_amount;
+            $payment = match (true) {
+                $cash > 0 && $transfer > 0 => 'TM + CK',
+                $transfer > 0 => 'Chuyển khoản',
+                $cash > 0 => 'Tiền mặt',
+                default => '—',
+            };
             return [
                 'code' => $inv->invoice_code,
                 'time' => optional($inv->created_at)->format('H:i'),
                 'customer' => $inv->customer?->full_name ?: 'Khách lẻ',
+                'phone' => $inv->customer?->phone ?: '—',
                 'seller' => $inv->seller_name ?: '—',
                 'channel' => $inv->sales_channel ?: '—',
                 'branch' => Branch::nameOf($inv->branch),
+                'payment' => $payment,
                 'qty' => $qty,
                 'goods' => $goods,
                 'discount' => $discount,
+                'fee' => (int) $inv->extra_fee,
                 'revenue' => (int) $inv->final_amount,
+                'cogs' => $cogs,
                 'commission' => $commission,
                 'profit' => $goods - $discount - $cogs - $commission,
             ];
@@ -142,8 +177,8 @@ class SalesDayDetail extends Component
             return;
         }
         $all = $this->columns();
-        $selected = !empty($this->exportColumns)
-            ? array_intersect_key($all, array_flip($this->exportColumns))
+        $selected = !empty($this->visibleColumns)
+            ? array_intersect_key($all, array_flip($this->visibleColumns))
             : $all;
         if (empty($selected)) {
             $selected = $all;

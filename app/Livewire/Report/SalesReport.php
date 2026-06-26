@@ -28,7 +28,7 @@ class SalesReport extends Component
     public string $sellerId = '';
     public string $channel = '';
     public string $groupBy = 'day'; // day | seller | channel | branch | product
-    public array $exportColumns = []; // cột được chọn để xuất (mặc định = tất cả cột hiển thị)
+    public array $visibleColumns = []; // cột được chọn để xuất (mặc định = tất cả cột hiển thị)
 
     protected $queryString = [
         'fromDate' => ['except' => ''],
@@ -47,8 +47,8 @@ class SalesReport extends Component
         if ($this->toDate === '') {
             $this->toDate = now()->toDateString();
         }
-        if (empty($this->exportColumns)) {
-            $this->exportColumns = array_keys($this->columnsFor());
+        if (empty($this->visibleColumns)) {
+            $this->visibleColumns = array_keys($this->columnsFor());
         }
     }
 
@@ -57,7 +57,7 @@ class SalesReport extends Component
     {
         $mode ??= $this->groupBy;
         if ($mode === 'product') {
-            return ['label' => 'Sản phẩm', 'qty' => 'SL bán', 'revenue' => 'Doanh thu', 'profit' => 'Lợi nhuận tạm tính'];
+            return ['label' => 'Sản phẩm', 'qty' => 'SL bán', 'revenue' => 'Doanh thu', 'cogs' => 'Giá vốn', 'profit' => 'Lợi nhuận tạm tính'];
         }
         $labelHead = match ($mode) {
             'seller' => 'Nhân viên',
@@ -65,13 +65,37 @@ class SalesReport extends Component
             'branch' => 'Chi nhánh',
             default => 'Ngày',
         };
-        return ['label' => $labelHead, 'orders' => 'Số đơn', 'revenue' => 'Doanh thu', 'commission' => 'Hoa hồng'];
+        return [
+            'label' => $labelHead,
+            'orders' => 'Số đơn',
+            'qty' => 'SL bán',
+            'revenue' => 'Doanh thu',
+            'cogs' => 'Giá vốn',
+            'commission' => 'Hoa hồng',
+            'profit' => 'Lợi nhuận tạm tính',
+        ];
     }
 
     /** Đổi chế độ nhóm -> reset chọn cột về tất cả cột hiển thị. */
     public function updatedGroupBy(): void
     {
-        $this->exportColumns = array_keys($this->columnsFor());
+        $this->visibleColumns = array_keys($this->columnsFor());
+    }
+
+    /** Bật/tắt cột hiển thị (cũng áp dụng cho file Excel xuất ra). */
+    public function toggleColumn($col): void
+    {
+        if (in_array($col, $this->visibleColumns, true)) {
+            $this->visibleColumns = array_values(array_diff($this->visibleColumns, [$col]));
+        } elseif (array_key_exists($col, $this->columnsFor())) {
+            $this->visibleColumns[] = $col;
+        }
+    }
+
+    /** Cột đang hiển thị, giữ đúng thứ tự gốc. */
+    public function shownColumns(): array
+    {
+        return array_filter($this->columnsFor(), fn ($k) => in_array($k, $this->visibleColumns, true), ARRAY_FILTER_USE_KEY);
     }
 
     /** Đặt nhanh khoảng thời gian. */
@@ -179,43 +203,65 @@ class SalesReport extends Component
                     'label' => $r->sku ? ($r->sku . ' — ' . $r->label) : $r->label,
                     'qty' => (int) $r->qty,
                     'revenue' => (int) $r->revenue,
+                    'cogs' => (int) $r->cogs,
                     'profit' => (int) $r->revenue - (int) $r->cogs,
                 ])->all(),
             ];
         }
 
-        [$col, $select] = match ($this->groupBy) {
-            'seller' => ['seller', "COALESCE(NULLIF(seller_name,''), 'Không rõ')"],
-            'channel' => ['channel', "COALESCE(NULLIF(sales_channel,''), 'Không rõ')"],
-            'branch' => ['branch', "COALESCE(NULLIF(branch,''), 'Không rõ')"],
-            default => ['day', "DATE(created_at)"],
+        // Biểu thức nhóm: trên bảng invoices và trên bảng item (join) phải khớp nhau.
+        [$invSelect, $itemSelect] = match ($this->groupBy) {
+            'seller' => ["COALESCE(NULLIF(seller_name,''), 'Không rõ')", "COALESCE(NULLIF(invoices.seller_name,''), 'Không rõ')"],
+            'channel' => ["COALESCE(NULLIF(sales_channel,''), 'Không rõ')", "COALESCE(NULLIF(invoices.sales_channel,''), 'Không rõ')"],
+            'branch' => ["COALESCE(NULLIF(branch,''), 'Không rõ')", "COALESCE(NULLIF(invoices.branch,''), 'Không rõ')"],
+            default => ["DATE(created_at)", "DATE(invoices.created_at)"],
         };
 
-        $rows = $this->invoiceQuery()
-            ->selectRaw("$select AS label,
+        $invAgg = $this->invoiceQuery()
+            ->selectRaw("$invSelect AS label,
                 COUNT(*) AS orders,
+                COALESCE(SUM(total_amount),0) AS goods,
+                COALESCE(SUM(discount_amount),0) AS discount,
                 COALESCE(SUM(final_amount),0) AS revenue,
                 COALESCE(SUM(total_commission),0) AS commission")
             ->groupBy('label')
-            ->orderByRaw($this->groupBy === 'day' ? 'label ASC' : 'revenue DESC')
-            ->get();
+            ->get()
+            ->keyBy('label');
 
-        // Map nhãn chi nhánh sang tên hiển thị.
-        if ($this->groupBy === 'branch') {
-            $rows->transform(function ($r) {
-                $r->label = Branch::nameOf($r->label) ?: $r->label;
-                return $r;
-            });
-        }
+        // Số lượng + giá vốn theo cùng chiều nhóm.
+        $itemAgg = $this->itemQuery()
+            ->selectRaw("$itemSelect AS label,
+                SUM(invoice_items.quantity) AS qty,
+                SUM(COALESCE(products.cost_price,0) * invoice_items.quantity) AS cogs")
+            ->groupBy('label')
+            ->get()
+            ->keyBy('label');
+
+        $rows = $invAgg->map(function ($r, $key) use ($itemAgg) {
+            $it = $itemAgg->get($key);
+            $goods = (int) $r->goods;
+            $discount = (int) $r->discount;
+            $cogs = (int) ($it->cogs ?? 0);
+            $commission = (int) $r->commission;
+            return [
+                'label' => $this->groupBy === 'branch' ? (Branch::nameOf((string) $key) ?: (string) $key) : (string) $key,
+                'orders' => (int) $r->orders,
+                'qty' => (int) ($it->qty ?? 0),
+                'revenue' => (int) $r->revenue,
+                'cogs' => $cogs,
+                'commission' => $commission,
+                'profit' => $goods - $discount - $cogs - $commission,
+            ];
+        })->values();
+
+        // Sắp xếp: ngày tăng dần, còn lại theo doanh thu giảm dần.
+        $rows = $this->groupBy === 'day'
+            ? $rows->sortBy('label')->values()
+            : $rows->sortByDesc('revenue')->values();
 
         return [
             'mode' => $this->groupBy,
-            'rows' => $rows->map(fn ($r) => [
-                'label' => (string) $r->label,
-                'orders' => (int) $r->orders,
-                'revenue' => (int) $r->revenue,
-                'commission' => (int) $r->commission,
-            ])->all(),
+            'rows' => $rows->all(),
         ];
     }
 
@@ -229,8 +275,8 @@ class SalesReport extends Component
 
         // Cột xuất: giữ thứ tự gốc, chỉ lấy cột được chọn (mặc định tất cả).
         $all = $this->columnsFor($bd['mode']);
-        $selected = !empty($this->exportColumns)
-            ? array_intersect_key($all, array_flip($this->exportColumns))
+        $selected = !empty($this->visibleColumns)
+            ? array_intersect_key($all, array_flip($this->visibleColumns))
             : $all;
         if (empty($selected)) {
             $selected = $all;
