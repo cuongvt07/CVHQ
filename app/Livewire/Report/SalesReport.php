@@ -256,106 +256,17 @@ class SalesReport extends Component
         ];
     }
 
-    /* ===== Drill-down chi tiết theo 1 ngày ===== */
-
-    public ?string $detailDate = null;
-    public array $detailExportColumns = [];
-
-    public function detailColumns(): array
+    /** URL trang chi tiết theo ngày (giữ bộ lọc hiện tại). */
+    public function dayDetailUrl(string $date): string
     {
-        return [
-            'code' => 'Mã đơn',
-            'time' => 'Giờ',
-            'customer' => 'Khách hàng',
-            'seller' => 'NV bán',
-            'channel' => 'Kênh',
-            'branch' => 'Chi nhánh',
-            'qty' => 'SL',
-            'goods' => 'Tiền hàng',
-            'discount' => 'Giảm giá',
-            'revenue' => 'Khách trả',
-            'commission' => 'Hoa hồng',
-            'profit' => 'Lợi nhuận tạm tính',
-        ];
-    }
-
-    public function viewDetail(string $date): void
-    {
-        $this->detailDate = $date;
-        $this->detailExportColumns = array_keys($this->detailColumns());
-    }
-
-    public function closeDetail(): void
-    {
-        $this->detailDate = null;
-    }
-
-    /** Danh sách đơn của ngày $detailDate (theo bộ lọc hiện tại). */
-    public function detailRows(): array
-    {
-        if (!$this->detailDate) {
-            return [];
-        }
-
-        $invoices = $this->invoiceQuery()
-            ->whereDate('created_at', $this->detailDate)
-            ->with('customer:id,full_name')
-            ->orderBy('created_at')
-            ->get();
-
-        // Giá vốn + số lượng theo từng đơn.
-        $agg = $this->itemQuery()
-            ->whereDate('invoices.created_at', $this->detailDate)
-            ->selectRaw('invoice_items.invoice_id AS iid,
-                SUM(invoice_items.quantity) AS qty,
-                SUM(COALESCE(products.cost_price,0) * invoice_items.quantity) AS cogs')
-            ->groupBy('invoice_items.invoice_id')
-            ->get()
-            ->keyBy('iid');
-
-        return $invoices->map(function ($inv) use ($agg) {
-            $a = $agg->get($inv->id);
-            $qty = (int) ($a->qty ?? 0);
-            $cogs = (int) ($a->cogs ?? 0);
-            $goods = (int) $inv->total_amount;
-            $discount = (int) $inv->discount_amount;
-            $commission = (int) $inv->total_commission;
-            return [
-                'code' => $inv->invoice_code,
-                'time' => optional($inv->created_at)->format('H:i'),
-                'customer' => $inv->customer?->full_name ?: 'Khách lẻ',
-                'seller' => $inv->seller_name ?: '—',
-                'channel' => $inv->sales_channel ?: '—',
-                'branch' => \App\Models\Branch::nameOf($inv->branch),
-                'qty' => $qty,
-                'goods' => $goods,
-                'discount' => $discount,
-                'revenue' => (int) $inv->final_amount,
-                'commission' => $commission,
-                'profit' => $goods - $discount - $cogs - $commission,
-            ];
-        })->all();
-    }
-
-    public function exportDetail()
-    {
-        if (!auth()->user()?->hasPermission('reports') || !$this->detailDate) {
-            return;
-        }
-        $all = $this->detailColumns();
-        $selected = !empty($this->detailExportColumns)
-            ? array_intersect_key($all, array_flip($this->detailExportColumns))
-            : $all;
-        if (empty($selected)) {
-            $selected = $all;
-        }
-
-        $rows = $this->detailRows();
-        $header = [['CHI TIẾT ĐƠN HÀNG', 'Ngày ' . $this->detailDate], ['Tổng số đơn', count($rows)]];
-        return Excel::download(
-            new SalesReportExport($rows, $selected, $header),
-            'chi-tiet-don-hang_' . $this->detailDate . '.xlsx'
-        );
+        return route('reports.sales.day', array_filter([
+            'date' => $date,
+            'fromDate' => $this->fromDate,
+            'toDate' => $this->toDate,
+            'branch' => $this->branch,
+            'sellerId' => $this->sellerId,
+            'channel' => $this->channel,
+        ], fn ($v) => $v !== '' && $v !== null));
     }
 
     public function render()
