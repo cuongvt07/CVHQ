@@ -51,9 +51,12 @@
 
         <!-- Hàng hóa -->
         @if(auth()->user()?->hasPermission('products') || auth()->user()?->hasPermission('categories') || auth()->user()?->hasPermission('commissions') || auth()->user()?->hasPermission('reports'))
-        <div>
-            <h3 class="px-4 text-[9px] font-bold tracking-[0.3em] text-slate-500 mb-3 whitespace-nowrap">Hàng hóa</h3>
-            <div class="flex flex-col gap-1">
+        <div x-data="{ open: @js(request()->routeIs('products*') || request()->routeIs('categories') || request()->routeIs('commissions') || request()->routeIs('reports.commissions')) }">
+            <button type="button" @click="open = !open" class="w-full flex items-center justify-between px-4 mb-2">
+                <h3 class="text-[9px] font-bold tracking-[0.3em] text-slate-500 whitespace-nowrap">Hàng hóa</h3>
+                <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="text-slate-400 transition-transform" :class="open ? 'rotate-180' : ''"><path d="m6 9 6 6 6-6"/></svg>
+            </button>
+            <div x-show="open" x-transition.opacity.duration.150ms class="flex flex-col gap-1">
                 @if(auth()->user()?->hasPermission('products'))
                 <a href="{{ route('products') }}" class="flex items-center gap-3 px-4 py-2.5 rounded-xl transition-all {{ request()->routeIs('products') ? 'bg-electric-blue/10 text-electric-blue border border-electric-blue/20' : 'text-slate-500 hover:text-slate-900 hover:bg-slate-200/50 border border-transparent' }}">
                     <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="shrink-0"><path d="m7.5 4.27 9 5.15"/><path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"/><path d="m3.3 7 8.7 5 8.7-5"/><path d="M12 22V12"/></svg>
@@ -102,9 +105,12 @@
 
         <!-- Giao dịch -->
         @if(auth()->user()?->hasPermission('pos') || auth()->user()?->hasPermission('invoices'))
-        <div>
-            <h3 class="px-4 text-[9px] font-bold tracking-[0.3em] text-slate-500 mb-3 whitespace-nowrap">Giao dịch</h3>
-            <div class="flex flex-col gap-1">
+        <div x-data="{ open: @js(request()->routeIs('pos') || request()->routeIs('invoices*')) }">
+            <button type="button" @click="open = !open" class="w-full flex items-center justify-between px-4 mb-2">
+                <h3 class="text-[9px] font-bold tracking-[0.3em] text-slate-500 whitespace-nowrap">Giao dịch</h3>
+                <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="text-slate-400 transition-transform" :class="open ? 'rotate-180' : ''"><path d="m6 9 6 6 6-6"/></svg>
+            </button>
+            <div x-show="open" x-transition.opacity.duration.150ms class="flex flex-col gap-1">
                 @if(auth()->user()?->hasPermission('pos'))
                 <a href="{{ route('pos') }}" class="flex items-center gap-3 px-4 py-2.5 rounded-xl transition-all {{ request()->routeIs('pos') ? 'bg-electric-blue/10 text-electric-blue border border-electric-blue/20' : 'text-slate-500 hover:text-slate-900 hover:bg-slate-200/50 border border-transparent' }}">
                     <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="shrink-0"><circle cx="8" cy="21" r="1"/><circle cx="19" cy="21" r="1"/><path d="M2.05 2.05h2l2.66 12.42a2 2 0 0 0 2 1.58h9.78a2 2 0 0 0 1.95-1.57l1.65-7.43H5.12"/></svg>
@@ -129,9 +135,12 @@
 
         <!-- Đối tác -->
         @if(auth()->user()?->hasPermission('customers'))
-        <div>
-            <h3 class="px-4 text-[9px] font-bold tracking-[0.3em] text-slate-500 mb-3 whitespace-nowrap">Đối tác</h3>
-            <div class="flex flex-col gap-1">
+        <div x-data="{ open: @js(request()->routeIs('customers')) }">
+            <button type="button" @click="open = !open" class="w-full flex items-center justify-between px-4 mb-2">
+                <h3 class="text-[9px] font-bold tracking-[0.3em] text-slate-500 whitespace-nowrap">Đối tác</h3>
+                <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="text-slate-400 transition-transform" :class="open ? 'rotate-180' : ''"><path d="m6 9 6 6 6-6"/></svg>
+            </button>
+            <div x-show="open" x-transition.opacity.duration.150ms class="flex flex-col gap-1">
                 <a href="{{ route('customers') }}" class="flex items-center gap-3 px-4 py-2.5 rounded-xl transition-all {{ request()->routeIs('customers') ? 'bg-electric-blue/10 text-electric-blue border border-electric-blue/20' : 'text-slate-500 hover:text-slate-900 hover:bg-slate-200/50 border border-transparent' }}">
                     <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="shrink-0"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
                     <span class="text-sm font-medium whitespace-nowrap">Khách hàng</span>
@@ -142,9 +151,12 @@
 
         <!-- Hệ thống -->
         @if(auth()->user()?->hasPermission('users'))
-        <div>
-            <h3 class="px-4 text-[9px] font-bold tracking-[0.3em] text-slate-500 mb-3 whitespace-nowrap">Hệ thống</h3>
-            <div class="flex flex-col gap-1">
+        <div x-data="{ open: @js(request()->routeIs('users') || request()->routeIs('system.*') || request()->routeIs('branches')) }">
+            <button type="button" @click="open = !open" class="w-full flex items-center justify-between px-4 mb-2">
+                <h3 class="text-[9px] font-bold tracking-[0.3em] text-slate-500 whitespace-nowrap">Hệ thống</h3>
+                <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="text-slate-400 transition-transform" :class="open ? 'rotate-180' : ''"><path d="m6 9 6 6 6-6"/></svg>
+            </button>
+            <div x-show="open" x-transition.opacity.duration.150ms class="flex flex-col gap-1">
                 <a href="{{ route('users') }}" class="flex items-center gap-3 px-4 py-2.5 rounded-xl transition-all {{ request()->routeIs('users') ? 'bg-electric-blue/10 text-electric-blue border border-electric-blue/20' : 'text-slate-500 hover:text-slate-900 hover:bg-slate-200/50 border border-transparent' }}">
                     <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="shrink-0"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 10V6a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2v4"/><path d="m22 10-10 7L2 10"/></svg>
                     <span class="text-sm font-medium whitespace-nowrap">Nhân viên</span>
@@ -170,9 +182,12 @@
 
         {{-- Cấu hình group --}}
         @if(auth()->user()?->hasPermission('commissions') || auth()->user()?->hasPermission('users'))
-        <div>
-            <h3 class="px-4 text-[9px] font-bold tracking-[0.3em] text-slate-500 mb-3 whitespace-nowrap">Cấu hình</h3>
-            <div class="flex flex-col gap-1">
+        <div x-data="{ open: @js(request()->routeIs('commissions.settings')) }">
+            <button type="button" @click="open = !open" class="w-full flex items-center justify-between px-4 mb-2">
+                <h3 class="text-[9px] font-bold tracking-[0.3em] text-slate-500 whitespace-nowrap">Cấu hình</h3>
+                <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="text-slate-400 transition-transform" :class="open ? 'rotate-180' : ''"><path d="m6 9 6 6 6-6"/></svg>
+            </button>
+            <div x-show="open" x-transition.opacity.duration.150ms class="flex flex-col gap-1">
                 @if(auth()->user()?->hasPermission('commissions'))
                 <a href="{{ route('commissions.settings') }}" class="flex items-center gap-3 px-4 py-2.5 rounded-xl transition-all {{ request()->routeIs('commissions.settings') ? 'bg-electric-blue/10 text-electric-blue border border-electric-blue/20' : 'text-slate-500 hover:text-slate-900 hover:bg-slate-200/50 border border-transparent' }}">
                     <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="shrink-0"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
