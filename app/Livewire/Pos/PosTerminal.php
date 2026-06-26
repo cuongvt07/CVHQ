@@ -141,9 +141,9 @@ class PosTerminal extends Component
             'customer_id'          => null,
             'discount'             => 0,
             'global_discount_type' => 'vnd',
-            'global_discount_value'=> 0,
+            'global_discount_value'=> '',
             'extra_fees'           => [],
-            'paid_amount'          => 0,
+            'paid_amount'          => '',
             'sales_channel'        => self::SALES_CHANNELS[0]['name'],
             'payment_method'       => self::PAYMENT_METHODS[0]['key'],
         ];
@@ -361,9 +361,12 @@ class PosTerminal extends Component
                 'customer_id' => $t['customer_id'] ?? null,
                 'discount' => (int) ($t['discount'] ?? 0),
                 'global_discount_type' => $t['global_discount_type'] ?? 'vnd',
-                'global_discount_value' => (float) ($t['global_discount_value'] ?? 0),
+                // Giữ rỗng khi = 0 để ô input hiển thị placeholder thay vì "0".
+                'global_discount_value' => (!isset($t['global_discount_value']) || $t['global_discount_value'] === '' || (float) $t['global_discount_value'] == 0.0)
+                                            ? '' : (float) $t['global_discount_value'],
                 'extra_fees' => $t['extra_fees'] ?? [],
-                'paid_amount' => (int) ($t['paid_amount'] ?? 0),
+                'paid_amount' => (!isset($t['paid_amount']) || $t['paid_amount'] === '' || (int) $t['paid_amount'] == 0)
+                                            ? '' : (int) $t['paid_amount'],
                 'sales_channel' => isset($t['sales_channel']) && in_array($t['sales_channel'], array_column(self::SALES_CHANNELS, 'name'), true)
                                     ? $t['sales_channel']
                                     : self::SALES_CHANNELS[0]['name'],
@@ -433,7 +436,7 @@ class PosTerminal extends Component
     public function addExtraFee(): void
     {
         $tab = $this->getTab();
-        $tab['extra_fees'][] = ['name' => '', 'amount' => 0];
+        $tab['extra_fees'][] = ['name' => '', 'amount' => ''];
         $this->setTab($tab);
     }
 
@@ -916,7 +919,8 @@ class PosTerminal extends Component
             // Reset the current tab (keep label)
             $label = $tab['label'];
             $this->tabs[$this->activeTab] = $this->makeNewTab($label);
-            $this->sharedToUserId = null;
+            // Giữ nguyên NV bán đã chọn (sharedToUserId) cho cả ca làm việc,
+            // chỉ reset số tiền chia hoa hồng theo từng đơn.
             $this->sharedCommissionAmount = '';
 
             $this->dispatch('notify', message: 'Thanh toán thành công! 🎉', type: 'success');

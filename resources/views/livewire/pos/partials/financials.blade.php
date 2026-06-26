@@ -17,7 +17,7 @@
                 <button wire:click="setGlobalDiscountType('%')"
                         class="px-1.5 py-0.5 rounded text-[9px] font-black transition-all {{ $global_discount_type === '%' ? 'bg-white text-electric-blue shadow-sm' : 'text-slate-400' }}">%</button>
             </div>
-            <input type="number"
+            <input type="number" inputmode="numeric" onfocus="this.select()"
                    wire:model.live.debounce.400ms="tabs.{{ $activeTab }}.global_discount_value"
                    class="w-20 bg-transparent text-right px-1 py-0 text-[11px] font-bold text-slate-900 focus:outline-none"
                    placeholder="0">
@@ -41,7 +41,7 @@
                        wire:model.blur="tabs.{{ $activeTab }}.extra_fees.{{ $fi }}.name"
                        placeholder="Tên phí..."
                        class="flex-1 min-w-0 bg-slate-50 border border-slate-200 rounded px-1.5 py-1 text-[10px] font-medium text-slate-700 focus:outline-none focus:border-electric-blue">
-                <input type="number"
+                <input type="number" inputmode="numeric" onfocus="this.select()"
                        wire:model.live.debounce.400ms="tabs.{{ $activeTab }}.extra_fees.{{ $fi }}.amount"
                        placeholder="0"
                        class="w-20 shrink-0 bg-slate-50 border border-slate-200 rounded px-1.5 py-1 text-[10px] font-bold text-amber-600 text-right focus:outline-none focus:border-amber-400">
@@ -71,7 +71,7 @@
                 <option value="{{ $staff->id }}">{{ $staff->name }}</option>
             @endforeach
         </select>
-        <input type="number" wire:model.live.debounce.400ms="sharedCommissionAmount"
+        <input type="number" inputmode="numeric" onfocus="this.select()" wire:model.live.debounce.400ms="sharedCommissionAmount"
                min="0" max="{{ $totalCommission }}"
                placeholder="0"
                class="w-20 shrink-0 border border-emerald-200 rounded-lg px-1.5 py-1 text-[10px] font-black text-emerald-700 text-right focus:outline-none focus:border-emerald-400 bg-emerald-50">
@@ -94,7 +94,7 @@
 
         <div class="flex items-center gap-2 bg-slate-50 border border-slate-200 rounded-lg px-2 py-1 shadow-[inset_0_1px_2px_rgba(0,0,0,0.06)]">
             <span class="text-[10px] font-bold text-slate-400 whitespace-nowrap">Tiền nhận</span>
-            <input type="number"
+            <input type="number" inputmode="numeric" onfocus="this.select()"
                    wire:model.live.debounce.400ms="tabs.{{ $activeTab }}.paid_amount"
                    class="flex-1 bg-transparent text-right text-xs font-black text-slate-900 focus:outline-none"
                    placeholder="{{ $finalAmount }}">

@@ -58,7 +58,7 @@
                         <button wire:click="updateQuantity({{ $item['id'] }}, -1)" class="w-5 h-5 flex items-center justify-center text-slate-400 hover:text-red-500 transition-all">
                             <svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/></svg>
                         </button>
-                        <input type="number"
+                        <input type="number" inputmode="numeric" onfocus="this.select()"
                                value="{{ $item['quantity'] }}"
                                x-on:blur="$wire.setQuantity({{ $item['id'] }}, $event.target.value)"
                                x-on:keydown.enter="$event.target.blur()"
@@ -88,7 +88,7 @@
                             </button>
                         @endif
                         <input x-show="editPrice" x-ref="priceInput" x-cloak
-                               type="number"
+                               type="number" inputmode="numeric" onfocus="this.select()"
                                value="{{ $item['sale_price'] }}"
                                @blur="$wire.updateUnitPrice({{ $item['id'] }}, $event.target.value); editPrice = false"
                                @keydown.enter="$event.target.blur()"
