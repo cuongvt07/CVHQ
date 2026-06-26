@@ -51,7 +51,7 @@
 
         <!-- Hàng hóa -->
         @if(auth()->user()?->hasPermission('products') || auth()->user()?->hasPermission('categories') || auth()->user()?->hasPermission('commissions') || auth()->user()?->hasPermission('reports'))
-        <div x-data="{ open: @js(request()->routeIs('products*') || request()->routeIs('categories') || request()->routeIs('commissions') || request()->routeIs('reports.commissions')) }">
+        <div x-data="{ open: @js(request()->routeIs('products*') || request()->routeIs('categories') || request()->routeIs('commissions') || request()->routeIs('reports.*')) }">
             <button type="button" @click="open = !open" class="w-full flex items-center justify-between px-4 mb-2">
                 <h3 class="text-[9px] font-bold tracking-[0.3em] text-slate-500 whitespace-nowrap">Hàng hóa</h3>
                 <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="text-slate-400 transition-transform" :class="open ? 'rotate-180' : ''"><path d="m6 9 6 6 6-6"/></svg>
