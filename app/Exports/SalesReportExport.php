@@ -5,32 +5,30 @@ namespace App\Exports;
 use Maatwebsite\Excel\Concerns\FromArray;
 
 /**
- * Xuất báo cáo bán hàng — chỉ các cột được chọn (mặc định tất cả cột hiển thị),
- * kèm khối tổng quan ở đầu file.
+ * Xuất Excel cho báo cáo bán hàng (tổng hợp HOẶC chi tiết theo ngày).
+ * - $headerLines: các dòng tiêu đề/tổng quan ở đầu file (mảng các mảng).
+ * - $columns: [key => heading] đã lọc theo cột người dùng chọn.
+ * - $rows: mảng các dòng dữ liệu (mỗi dòng là mảng theo key).
  */
 class SalesReportExport implements FromArray
 {
     public function __construct(
         protected array $rows,
-        protected array $columns,   // [key => heading] đã lọc theo lựa chọn
-        protected array $summary,
+        protected array $columns,
+        protected array $headerLines = [],
     ) {
     }
 
     public function array(): array
     {
         $out = [];
-        $out[] = ['BÁO CÁO BÁN HÀNG'];
-        $out[] = ['Số đơn', $this->summary['orders'] ?? 0];
-        $out[] = ['Tiền hàng', $this->summary['goods'] ?? 0];
-        $out[] = ['Giảm giá', $this->summary['discount'] ?? 0];
-        $out[] = ['Doanh thu (khách trả)', $this->summary['revenue'] ?? 0];
-        $out[] = ['Giá vốn', $this->summary['cogs'] ?? 0];
-        $out[] = ['Hoa hồng', $this->summary['commission'] ?? 0];
-        $out[] = ['Lợi nhuận tạm tính', $this->summary['profit'] ?? 0];
-        $out[] = []; // dòng trống
+        foreach ($this->headerLines as $line) {
+            $out[] = $line;
+        }
+        if (!empty($this->headerLines)) {
+            $out[] = []; // dòng trống ngăn cách
+        }
 
-        // Header bảng + dữ liệu (chỉ cột được chọn)
         $keys = array_keys($this->columns);
         $out[] = array_values($this->columns);
         foreach ($this->rows as $row) {
