@@ -140,13 +140,36 @@
                     <div class="text-xs font-bold text-slate-900">{{ number_format($product->cost_price, 0, ',', '.') }}</div>
                 </div>
                 <div class="bg-emerald-50 rounded-lg py-1.5">
-                    <div class="text-[9px] text-emerald-500 font-bold uppercase">Hoa hồng</div>
-                    <input type="number"
-                           wire:blur="updateCommission({{ $product->id }}, $event.target.value)"
-                           value="{{ (int)$product->commission_amount }}"
-                           @readonly(!auth()->user()->hasPermission('commission.edit'))
-                           class="w-full bg-transparent text-center text-xs font-black text-emerald-700 focus:outline-none focus:ring-0 border-0 p-0">
+                    @php $__isPercentC = $product->commission_type === 'percent'; @endphp
+                    <div class="text-[9px] text-emerald-500 font-bold uppercase flex items-center justify-center gap-1">
+                        Hoa hồng
+                        <button type="button" wire:click="updateCommissionType({{ $product->id }}, '{{ $__isPercentC ? 'amount' : 'percent' }}')"
+                                @disabled(!auth()->user()->hasPermission('commission.edit'))
+                                class="px-1 rounded bg-emerald-100 text-emerald-600">{{ $__isPercentC ? '%' : 'đ' }}</button>
+                    </div>
+                    @if($__isPercentC)
+                        <input type="number" step="0.01" min="0" max="100"
+                               wire:blur="updateCommissionPercent({{ $product->id }}, $event.target.value)"
+                               value="{{ rtrim(rtrim(number_format((float)$product->commission_percent, 2, '.', ''), '0'), '.') }}"
+                               @readonly(!auth()->user()->hasPermission('commission.edit'))
+                               class="w-full bg-transparent text-center text-xs font-black text-emerald-700 focus:outline-none focus:ring-0 border-0 p-0">
+                        <div class="text-[9px] text-emerald-500">≈{{ number_format($product->commission_value, 0, ',', '.') }}đ</div>
+                    @else
+                        <input type="number"
+                               wire:blur="updateCommission({{ $product->id }}, $event.target.value)"
+                               value="{{ (int)$product->commission_amount }}"
+                               @readonly(!auth()->user()->hasPermission('commission.edit'))
+                               class="w-full bg-transparent text-center text-xs font-black text-emerald-700 focus:outline-none focus:ring-0 border-0 p-0">
+                    @endif
                 </div>
+            </div>
+            @php $__profitC = $product->temp_profit; @endphp
+            <div class="flex items-center justify-between px-1 text-[11px]">
+                <span class="text-slate-400 font-bold uppercase">Lợi nhuận tạm tính</span>
+                <span class="font-black {{ $__profitC < 0 ? 'text-rose-600' : 'text-slate-900' }}">
+                    {{ number_format($__profitC, 0, ',', '.') }}
+                    @if((int)$product->cost_price <= 0)<span class="text-[9px] text-amber-500 font-medium">(= HH)</span>@endif
+                </span>
             </div>
         </div>
         @endforeach
@@ -249,17 +272,43 @@
                             @endif
                             @if(in_array('profit', $visibleColumns))
                             <td class="px-4 py-2 text-right">
-                                <span class="text-xs font-bold text-slate-900">{{ number_format($product->sale_price - $product->cost_price, 0, ',', '.') }}</span>
+                                @php $__profit = $product->temp_profit; @endphp
+                                <span class="text-xs font-bold {{ $__profit < 0 ? 'text-rose-600' : 'text-slate-900' }}">{{ number_format($__profit, 0, ',', '.') }}</span>
+                                @if((int)$product->cost_price <= 0)
+                                    <span class="block text-[10px] text-amber-500 font-medium">= hoa hồng (chưa có giá gốc)</span>
+                                @endif
                             </td>
                             @endif
                             @if(in_array('commission', $visibleColumns))
                             <td class="px-4 py-2 text-right bg-slate-50/30">
-                                <div class="flex justify-end">
-                                    <input type="number"
-                                           wire:blur="updateCommission({{ $product->id }}, $event.target.value)"
-                                           value="{{ (int)$product->commission_amount }}"
-                                           @readonly(!auth()->user()->hasPermission('commission.edit'))
-                                           class="w-24 bg-white border border-slate-200 rounded-lg px-3 py-1.5 text-xs text-right font-bold text-slate-700 focus:outline-none focus:border-electric-blue transition-all">
+                                @php $__isPercent = $product->commission_type === 'percent'; @endphp
+                                <div class="flex justify-end items-center gap-1.5">
+                                    {{-- Toggle loại: tiền / % --}}
+                                    <div class="inline-flex rounded-md border border-slate-200 overflow-hidden text-[10px] font-bold shrink-0">
+                                        <button type="button" wire:click="updateCommissionType({{ $product->id }}, 'amount')"
+                                                @disabled(!auth()->user()->hasPermission('commission.edit'))
+                                                class="px-1.5 py-1 transition-colors {{ !$__isPercent ? 'bg-electric-blue text-white' : 'bg-white text-slate-400' }}">đ</button>
+                                        <button type="button" wire:click="updateCommissionType({{ $product->id }}, 'percent')"
+                                                @disabled(!auth()->user()->hasPermission('commission.edit'))
+                                                class="px-1.5 py-1 transition-colors {{ $__isPercent ? 'bg-electric-blue text-white' : 'bg-white text-slate-400' }}">%</button>
+                                    </div>
+                                    @if($__isPercent)
+                                        <div class="relative">
+                                            <input type="number" step="0.01" min="0" max="100"
+                                                   wire:blur="updateCommissionPercent({{ $product->id }}, $event.target.value)"
+                                                   value="{{ rtrim(rtrim(number_format((float)$product->commission_percent, 2, '.', ''), '0'), '.') }}"
+                                                   @readonly(!auth()->user()->hasPermission('commission.edit'))
+                                                   class="w-20 bg-white border border-slate-200 rounded-lg pl-3 pr-6 py-1.5 text-xs text-right font-bold text-slate-700 focus:outline-none focus:border-electric-blue transition-all">
+                                            <span class="absolute right-2 top-1/2 -translate-y-1/2 text-[10px] text-slate-400 font-bold">%</span>
+                                        </div>
+                                        <span class="text-[10px] text-slate-400 w-16 text-right">≈{{ number_format($product->commission_value, 0, ',', '.') }}đ</span>
+                                    @else
+                                        <input type="number"
+                                               wire:blur="updateCommission({{ $product->id }}, $event.target.value)"
+                                               value="{{ (int)$product->commission_amount }}"
+                                               @readonly(!auth()->user()->hasPermission('commission.edit'))
+                                               class="w-24 bg-white border border-slate-200 rounded-lg px-3 py-1.5 text-xs text-right font-bold text-slate-700 focus:outline-none focus:border-electric-blue transition-all">
+                                    @endif
                                 </div>
                             </td>
                             @endif

@@ -461,7 +461,7 @@ class InvoiceIndex extends Component
             'product_name' => $product->name,
             'sku' => $product->sku,
             'unit_price' => $product->sale_price,
-            'commission_amount' => $product->commission_amount,
+            'commission_amount' => $product->commission_value,
             'quantity' => 1,
             'original_quantity' => 0,
         ];

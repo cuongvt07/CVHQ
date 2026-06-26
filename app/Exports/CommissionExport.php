@@ -19,16 +19,25 @@ class CommissionExport implements FromCollection, WithHeadings, WithMapping
         return [
             'Mã hàng',
             'Tên sản phẩm',
-            'Hoa hồng'
+            'Giá bán chung',
+            'Giá gốc',
+            'Loại hoa hồng',     // "tiền" | "%"
+            'Hoa hồng',          // số tiền hoặc số % tùy loại
+            'Hoa hồng (tiền)',   // giá trị đã quy đổi ra tiền
         ];
     }
 
     public function map($product): array
     {
+        $isPercent = $product->commission_type === 'percent';
         return [
             $product->sku,
             $product->name,
-            $product->commission_amount
+            $product->sale_price,
+            $product->cost_price,
+            $isPercent ? '%' : 'tiền',
+            $isPercent ? $product->commission_percent : $product->commission_amount,
+            $product->commission_value,
         ];
     }
 }

@@ -56,12 +56,59 @@ class ProductCommission extends Component
 
     public function updateCommission($productId, $amount)
     {
-        if (!auth()->user()->hasPermission('commission.edit')) {
-            $this->dispatch('notify', message: 'Bạn không có quyền sửa hoa hồng!', type: 'error');
+        if (!$this->guardCommissionEdit()) {
             return;
         }
-        Product::where('id', $productId)->update(['commission_amount' => $amount]);
+        Product::where('id', $productId)->update([
+            'commission_type'   => 'amount',
+            'commission_amount' => (int) $amount,
+            'commission_percent' => 0,
+        ]);
         $this->dispatch('notify', message: 'Cập nhật hoa hồng thành công!', type: 'success');
+    }
+
+    /** Đổi loại hoa hồng (amount|percent) cho 1 sản phẩm. */
+    public function updateCommissionType($productId, $type)
+    {
+        if (!$this->guardCommissionEdit()) {
+            return;
+        }
+        $type = in_array($type, ['amount', 'percent'], true) ? $type : 'amount';
+        $product = Product::find($productId);
+        if (!$product) {
+            return;
+        }
+        $product->commission_type = $type;
+        // Đồng bộ commission_amount (tiền) để các nơi đọc trực tiếp vẫn đúng.
+        $product->commission_amount = (int) $product->commission_value;
+        $product->save();
+    }
+
+    /** Cập nhật % hoa hồng (loại percent) cho 1 sản phẩm. */
+    public function updateCommissionPercent($productId, $percent)
+    {
+        if (!$this->guardCommissionEdit()) {
+            return;
+        }
+        $percent = max(0, min(100, (float) $percent));
+        $product = Product::find($productId);
+        if (!$product) {
+            return;
+        }
+        $product->commission_type = 'percent';
+        $product->commission_percent = $percent;
+        $product->commission_amount = (int) round(((float) $product->sale_price) * $percent / 100);
+        $product->save();
+        $this->dispatch('notify', message: 'Cập nhật hoa hồng (%) thành công!', type: 'success');
+    }
+
+    protected function guardCommissionEdit(): bool
+    {
+        if (!auth()->user()->hasPermission('commission.edit')) {
+            $this->dispatch('notify', message: 'Bạn không có quyền sửa hoa hồng!', type: 'error');
+            return false;
+        }
+        return true;
     }
 
     public function syncCommissions()
@@ -101,8 +148,8 @@ class ProductCommission extends Component
                     
                     if ($product) {
                         $matchCount++;
-                        // Lấy giá trị hoa hồng chuẩn từ "Bảng hoa hồng chung"
-                        $standardRate = (float)$product->commission_amount;
+                        // Lấy giá trị hoa hồng chuẩn từ "Bảng hoa hồng chung" (đã quy đổi ra tiền nếu là %)
+                        $standardRate = (float)$product->commission_value;
                         $targetRate = $canReceiveCommission ? $standardRate : 0;
 
                         if (round((float)$item->commission_amount, 2) !== round((float)$targetRate, 2)) {

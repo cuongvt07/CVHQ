@@ -21,8 +21,12 @@ class CommissionImport implements ToCollection, WithStartRow
         foreach ($rows as $row) {
             // Cột A (0) = Mã hàng (SKU)
             $sku = $row[0] ?? null;
-            // Cột G (6) = Bảng hoa hồng chung
-            $commission = $row[6] ?? 0;
+
+            // Định dạng mới (export của hệ thống): E(4)=Loại hoa hồng, F(5)=Hoa hồng.
+            // Định dạng cũ (KiotViet): G(6)=Bảng hoa hồng chung (tiền).
+            $typeCell = strtolower(trim((string)($row[4] ?? '')));
+            $isPercent = in_array($typeCell, ['%', 'percent', 'phan tram', 'phần trăm'], true);
+            $isAmount  = in_array($typeCell, ['tien', 'tiền', 'amount', 'vnd', 'vnđ'], true);
 
             if (!$sku || trim((string)$sku) === '') {
                 continue;
@@ -32,10 +36,21 @@ class CommissionImport implements ToCollection, WithStartRow
                 $product = Product::where('sku', trim((string)$sku))->first();
 
                 if ($product) {
-                    $cleanCommission = str_replace([',', '.'], '', (string)$commission);
-                    $product->update([
-                        'commission_amount' => (float) $cleanCommission
-                    ]);
+                    if ($isPercent) {
+                        // Giá trị % ở cột F (5)
+                        $pct = max(0, min(100, (float) str_replace(',', '.', (string)($row[5] ?? 0))));
+                        $product->commission_type = 'percent';
+                        $product->commission_percent = $pct;
+                        $product->commission_amount = (int) round(((float) $product->sale_price) * $pct / 100);
+                    } else {
+                        // Tiền: ưu tiên cột F (5) ở định dạng mới, fallback cột G (6) định dạng cũ.
+                        $raw = $isAmount ? ($row[5] ?? 0) : ($row[6] ?? ($row[5] ?? 0));
+                        $cleanCommission = str_replace([',', '.'], '', (string)$raw);
+                        $product->commission_type = 'amount';
+                        $product->commission_amount = (int) $cleanCommission;
+                        $product->commission_percent = 0;
+                    }
+                    $product->save();
                     $this->updatedCount++;
                 } else {
                     $this->skippedCount++;

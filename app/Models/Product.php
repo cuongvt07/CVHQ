@@ -40,7 +40,9 @@ class Product extends Model
         'note_template',
         'location',
         'is_combo',
-        'commission_amount'
+        'commission_amount',
+        'commission_type',
+        'commission_percent',
     ];
 
     protected static function boot()
@@ -84,7 +86,46 @@ class Product extends Model
         'cost_price' => 'integer',
         'sale_price' => 'integer',
         'stock_quantity' => 'integer',
+        'commission_amount' => 'integer',
+        'commission_percent' => 'float',
     ];
+
+    /**
+     * Giá trị hoa hồng đã quy đổi ra TIỀN (VNĐ) cho 1 đơn vị sản phẩm.
+     * - Loại 'percent': commission = giá bán chung × % (làm tròn).
+     * - Loại 'amount' : commission = commission_amount.
+     * Đây là giá trị dùng thống nhất ở POS / hóa đơn / báo cáo.
+     */
+    public function getCommissionValueAttribute(): int
+    {
+        if ($this->commission_type === 'percent') {
+            return (int) round(((float) $this->sale_price) * ((float) $this->commission_percent) / 100);
+        }
+        return (int) $this->commission_amount;
+    }
+
+    /**
+     * Lợi nhuận tạm tính = giá bán chung − hoa hồng − giá gốc.
+     * Nếu CHƯA có giá gốc (cost_price <= 0): không đủ dữ liệu →
+     * lợi nhuận tạm tính mặc định = hoa hồng của SP (hoặc theo dải giá cấu hình chung).
+     */
+    public function getTempProfitAttribute(): int
+    {
+        $commission = $this->commission_value;
+
+        // Chưa đặt hoa hồng cho SP -> lấy theo dải giá ở cấu hình chung.
+        if ($commission <= 0) {
+            $commission = SystemSetting::commissionForPrice((int) $this->sale_price);
+        }
+
+        $cost = (int) $this->cost_price;
+        if ($cost > 0) {
+            return (int) $this->sale_price - $commission - $cost;
+        }
+
+        // Thiếu giá gốc -> lợi nhuận tạm tính = hoa hồng.
+        return $commission;
+    }
 
     public function invoiceItems(): HasMany
     {

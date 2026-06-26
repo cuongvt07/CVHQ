@@ -19,12 +19,33 @@ class CommissionSettings extends Component
     public bool $auto_commission_enabled = false;
     public array $commission_ranges = [];
 
+    // Loại hoa hồng mặc định chung khi tạo sản phẩm mới.
+    public string $commission_default_type = 'amount';   // 'amount' | 'percent'
+    public float $commission_default_percent = 0;
+
     public function mount(): void
     {
         // get() trả về JSON đã decode (bool true, không phải chuỗi 'true') nên dùng filter_var.
         $this->auto_commission_enabled = filter_var(SystemSetting::get('auto_commission_enabled', false), FILTER_VALIDATE_BOOLEAN);
         $ranges = SystemSetting::get('commission_ranges', []);
         $this->commission_ranges = is_array($ranges) ? $ranges : [];
+
+        $type = SystemSetting::get('commission_default_type', 'amount');
+        $this->commission_default_type = in_array($type, ['amount', 'percent'], true) ? $type : 'amount';
+        $this->commission_default_percent = (float) SystemSetting::get('commission_default_percent', 0);
+    }
+
+    public function saveDefaultType(): void
+    {
+        $this->validate([
+            'commission_default_type' => 'required|in:amount,percent',
+            'commission_default_percent' => 'nullable|numeric|min:0|max:100',
+        ]);
+
+        SystemSetting::set('commission_default_type', $this->commission_default_type);
+        SystemSetting::set('commission_default_percent', (string) ($this->commission_default_percent ?: 0));
+
+        $this->dispatch('notify', message: 'Đã lưu loại hoa hồng mặc định!', type: 'success');
     }
 
     public function addCommissionRange(): void

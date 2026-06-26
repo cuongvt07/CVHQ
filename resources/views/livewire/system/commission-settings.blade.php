@@ -4,6 +4,35 @@
         <p class="text-sm text-slate-500 mt-1">Thiết lập mức hoa hồng tự nhảy theo giá bán khi thêm sản phẩm</p>
     </div>
 
+    {{-- Loại hoa hồng mặc định chung --}}
+    <div class="bg-white border border-slate-200 rounded-2xl shadow-sm mb-6 p-6">
+        <h3 class="text-xs font-bold text-slate-600 uppercase tracking-widest mb-3">Loại hoa hồng mặc định khi tạo sản phẩm</h3>
+        <div class="flex flex-col sm:flex-row sm:items-end gap-4">
+            <div class="inline-flex rounded-xl border border-slate-200 overflow-hidden text-sm font-bold w-fit">
+                <button type="button" wire:click="$set('commission_default_type','amount')"
+                        class="px-4 py-2 transition-colors {{ $commission_default_type !== 'percent' ? 'bg-electric-blue text-white' : 'bg-white text-slate-500' }}">Tiền (VNĐ)</button>
+                <button type="button" wire:click="$set('commission_default_type','percent')"
+                        class="px-4 py-2 transition-colors {{ $commission_default_type === 'percent' ? 'bg-electric-blue text-white' : 'bg-white text-slate-500' }}">% giá bán</button>
+            </div>
+            @if($commission_default_type === 'percent')
+                <div>
+                    <label class="block text-[11px] font-semibold text-slate-500 mb-1">% mặc định</label>
+                    <div class="relative w-32">
+                        <input type="number" step="0.01" min="0" max="100" wire:model="commission_default_percent"
+                               class="w-full bg-white border border-slate-200 rounded-lg pl-3 pr-7 py-2 text-sm font-bold text-electric-blue focus:outline-none focus:border-electric-blue">
+                        <span class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 font-bold text-sm">%</span>
+                    </div>
+                    @error('commission_default_percent') <span class="text-[10px] text-rose-500 font-bold">{{ $message }}</span> @enderror
+                </div>
+            @endif
+            <button wire:click="saveDefaultType"
+                    class="px-5 py-2 bg-electric-blue text-white rounded-xl text-sm font-bold hover:bg-electric-blue/90 transition-colors shadow-sm w-fit">
+                Lưu mặc định
+            </button>
+        </div>
+        <p class="text-[11px] text-slate-400 mt-3">Áp dụng cho sản phẩm <b>tạo mới</b>. Từng sản phẩm vẫn có thể đổi tiền/% riêng trong Bảng hoa hồng hoặc form sản phẩm. Khi là %, hoa hồng = % × giá bán chung.</p>
+    </div>
+
     <div class="bg-white border border-slate-200 rounded-2xl shadow-sm">
         <div class="p-6">
             <label class="flex items-center gap-2 cursor-pointer mb-4">

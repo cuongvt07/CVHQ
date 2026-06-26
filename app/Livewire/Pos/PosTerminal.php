@@ -502,7 +502,7 @@ class PosTerminal extends Component
                 'sale_price'          => (int) $product->sale_price,
                 'original_price'      => (int) $product->sale_price,
                 'quantity'            => 1,
-                'commission_amount'   => (int) ($product->commission_amount ?? 0),
+                'commission_amount'   => (int) $product->commission_value,
                 'image'               => $product->image_url,
                 'discount'            => 0,
                 'calculated_discount' => 0,

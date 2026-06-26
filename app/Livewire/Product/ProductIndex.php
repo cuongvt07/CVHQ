@@ -148,7 +148,8 @@ class ProductIndex extends Component
 
     public function updatedSalePrice()
     {
-        if (!$this->isAutoCommissionEnabled()) {
+        // Hoa hồng tự động theo dải giá CHỈ áp dụng cho loại "tiền".
+        if ($this->commission_type === 'percent' || !$this->isAutoCommissionEnabled()) {
             return;
         }
 
@@ -158,6 +159,19 @@ class ProductIndex extends Component
     protected function isAutoCommissionEnabled(): bool
     {
         return filter_var(\App\Models\SystemSetting::get('auto_commission_enabled', false), FILTER_VALIDATE_BOOLEAN);
+    }
+
+    /** Loại hoa hồng mặc định chung (amount|percent) cho sản phẩm tạo mới. */
+    protected function defaultCommissionType(): string
+    {
+        $type = \App\Models\SystemSetting::get('commission_default_type', 'amount');
+        return in_array($type, ['amount', 'percent'], true) ? $type : 'amount';
+    }
+
+    /** % hoa hồng mặc định chung khi loại mặc định là percent. */
+    protected function defaultCommissionPercent(): float
+    {
+        return (float) \App\Models\SystemSetting::get('commission_default_percent', 0);
     }
 
     /**
@@ -238,7 +252,9 @@ class ProductIndex extends Component
 
     // Form properties
     public $productId;
-    public $sku, $base_name, $category_path, $brand, $sale_price, $commission_amount, $stock_quantity, $location;
+    public $sku, $base_name, $category_path, $brand, $sale_price, $cost_price, $commission_amount, $stock_quantity, $location;
+    public $commission_type = 'amount';   // 'amount' (tiền) | 'percent' (%)
+    public $commission_percent = 0;       // dùng khi commission_type = 'percent'
     public $is_active = true;
     public $newImages = []; // Array of UploadedFile objects
     public $existingImages = []; // Array of strings (paths)
@@ -253,6 +269,9 @@ class ProductIndex extends Component
         'category_path' => 'nullable',
         'brand' => 'nullable',
         'sale_price' => 'required|numeric|min:0',
+        'cost_price' => 'nullable|numeric|min:0',
+        'commission_type' => 'nullable|in:amount,percent',
+        'commission_percent' => 'nullable|numeric|min:0|max:100',
         'stock_quantity' => 'nullable|numeric|min:0',
         'location' => 'nullable|string|max:255',
         'is_active' => 'boolean',
@@ -331,7 +350,10 @@ class ProductIndex extends Component
         $this->category_path = '';
         $this->brand = '';
         $this->sale_price = 0;
+        $this->cost_price = 0;
         $this->commission_amount = 0;
+        $this->commission_type = $this->defaultCommissionType();
+        $this->commission_percent = $this->defaultCommissionPercent();
         $this->stock_quantity = 999;
         $this->location = '';
         $this->is_active = true;
@@ -524,7 +546,10 @@ class ProductIndex extends Component
         $this->category_path = $product->category_path;
         $this->brand = $product->brand;
         $this->sale_price = $product->sale_price;
+        $this->cost_price = $product->cost_price;
         $this->commission_amount = $product->commission_amount;
+        $this->commission_type = $product->commission_type ?: 'amount';
+        $this->commission_percent = $product->commission_percent;
         $this->stock_quantity = $product->stock_quantity;
         $this->location = $product->location;
         $this->is_active = $product->is_active;
@@ -569,6 +594,7 @@ class ProductIndex extends Component
             'category_path' => $this->category_path,
             'brand' => $this->brand,
             'sale_price' => $this->sale_price,
+            'cost_price' => $this->cost_price === '' || $this->cost_price === null ? 0 : $this->cost_price,
             'stock_quantity' => $this->stock_quantity === '' || $this->stock_quantity === null ? 999 : $this->stock_quantity,
             'location' => $this->location,
             'is_active' => $this->is_active,
@@ -577,11 +603,21 @@ class ProductIndex extends Component
 
         // Hoa hồng: nhân viên có quyền edit_commission có thể sửa luôn; nhân viên không có quyền chỉ được nhập khi TẠO MỚI.
         $canEditCommission = auth()->user()?->hasPermission('product.edit_commission');
-        if ($this->isAutoCommissionEnabled()) {
+        $this->commission_type = in_array($this->commission_type, ['amount', 'percent'], true) ? $this->commission_type : 'amount';
+        // Hoa hồng tự động theo dải giá chỉ áp dụng cho loại "tiền".
+        if ($this->commission_type === 'amount' && $this->isAutoCommissionEnabled()) {
             $this->commission_amount = $this->commissionForPrice((int) $this->sale_price);
         }
         if ($canEditCommission || !$this->productId || $this->isAutoCommissionEnabled()) {
-            $productData['commission_amount'] = $this->commission_amount;
+            $productData['commission_type'] = $this->commission_type;
+            if ($this->commission_type === 'percent') {
+                $productData['commission_percent'] = (float) ($this->commission_percent ?: 0);
+                // Quy đổi ra tiền để các nơi đọc commission_amount trực tiếp vẫn đúng.
+                $productData['commission_amount'] = (int) round(((float) $this->sale_price) * ((float) $this->commission_percent) / 100);
+            } else {
+                $productData['commission_amount'] = (int) ($this->commission_amount ?: 0);
+                $productData['commission_percent'] = 0;
+            }
         }
 
         // Process Images

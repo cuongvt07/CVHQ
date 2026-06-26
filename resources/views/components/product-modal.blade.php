@@ -231,26 +231,25 @@
                             @error('location') <span class="text-[10px] text-rose-500 font-bold ml-1">{{ $message }}</span> @enderror
                         </div>
 
-                        <!-- Price / Commission / Stock -->
-                        <div class="grid {{ $__canEditCommission ? 'grid-cols-2 sm:grid-cols-3' : 'grid-cols-1 sm:grid-cols-2' }} gap-3 sm:gap-6">
-                            <!-- Price -->
+                        <!-- Price / Cost / Stock -->
+                        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-6">
+                            <!-- Sale price (giá bán chung) -->
                             <div class="space-y-2">
                                 <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">
-                                    Giá bán (VNĐ)<span class="text-rose-500 ml-0.5">*</span>
+                                    Giá bán chung (VNĐ)<span class="text-rose-500 ml-0.5">*</span>
                                 </label>
                                 @php $emptySalePrice = $this->sale_price === null || $this->sale_price === ''; @endphp
                                 <input type="number" wire:model.live.debounce.500ms="sale_price" placeholder="—" class="w-full rounded-xl sm:rounded-2xl py-2 sm:py-3 px-3 sm:px-5 text-[13px] sm:text-sm focus:outline-none focus:ring-2 sm:focus:ring-4 transition-all border {{ $emptySalePrice ? 'border-rose-400 bg-rose-50 placeholder-rose-300 focus:border-rose-500 focus:ring-rose-500/10' : 'bg-slate-50 border-slate-200 focus:border-electric-blue/40 focus:ring-electric-blue/5' }}">
                                 @error('sale_price') <span class="text-[10px] text-rose-500 font-bold ml-1">{{ $message }}</span> @enderror
                             </div>
 
-                            @if($__canEditCommission)
-                                <!-- Commission -->
-                                <div class="space-y-2">
-                                    <label class="text-[10px] font-bold text-rose-400 uppercase tracking-widest ml-1">Hoa hồng (VNĐ)</label>
-                                    <input type="number" wire:model="commission_amount" class="w-full bg-rose-50/30 border border-rose-100 rounded-2xl py-3 px-5 text-sm focus:outline-none focus:border-rose-300/40 focus:ring-4 focus:ring-rose-500/5 transition-all font-bold text-rose-600">
-                                    @error('commission_amount') <span class="text-[10px] text-rose-500 font-bold ml-1">{{ $message }}</span> @enderror
-                                </div>
-                            @endif
+                            <!-- Cost price (giá gốc) -->
+                            <div class="space-y-2">
+                                <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Giá gốc / giá vốn (VNĐ)</label>
+                                <input type="number" wire:model.live.debounce.500ms="cost_price" placeholder="Để trống nếu chưa có" class="w-full bg-slate-50 border border-slate-200 rounded-xl sm:rounded-2xl py-2 sm:py-3 px-3 sm:px-5 text-[13px] sm:text-sm focus:outline-none focus:border-electric-blue/40 focus:ring-2 sm:focus:ring-4 focus:ring-electric-blue/5 transition-all">
+                                <p class="text-[10px] text-slate-400 ml-1">Bỏ trống ⇒ lợi nhuận tạm tính = hoa hồng.</p>
+                                @error('cost_price') <span class="text-[10px] text-rose-500 font-bold ml-1">{{ $message }}</span> @enderror
+                            </div>
 
                             <!-- Stock -->
                             <div class="space-y-2">
@@ -261,6 +260,36 @@
                                 @error('stock_quantity') <span class="text-[10px] text-rose-500 font-bold ml-1">{{ $message }}</span> @enderror
                             </div>
                         </div>
+
+                        @if($__canEditCommission)
+                            <!-- Commission: chọn tiền cố định hoặc % của giá bán chung -->
+                            <div class="space-y-2 p-3 sm:p-4 rounded-2xl border border-rose-100 bg-rose-50/30">
+                                <div class="flex items-center justify-between gap-3 flex-wrap">
+                                    <label class="text-[10px] font-bold text-rose-400 uppercase tracking-widest ml-1">Hoa hồng</label>
+                                    <div class="inline-flex rounded-xl border border-rose-200 overflow-hidden text-[11px] font-bold">
+                                        <button type="button" wire:click="$set('commission_type','amount')"
+                                                class="px-3 py-1.5 transition-colors {{ $this->commission_type !== 'percent' ? 'bg-rose-500 text-white' : 'bg-white text-rose-500' }}">Tiền (VNĐ)</button>
+                                        <button type="button" wire:click="$set('commission_type','percent')"
+                                                class="px-3 py-1.5 transition-colors {{ $this->commission_type === 'percent' ? 'bg-rose-500 text-white' : 'bg-white text-rose-500' }}">% giá bán</button>
+                                    </div>
+                                </div>
+
+                                @if($this->commission_type === 'percent')
+                                    <div class="relative">
+                                        <input type="number" step="0.01" min="0" max="100" wire:model.live.debounce.500ms="commission_percent"
+                                               class="w-full bg-white border border-rose-100 rounded-2xl py-2.5 sm:py-3 px-5 pr-10 text-sm focus:outline-none focus:border-rose-300/40 focus:ring-4 focus:ring-rose-500/5 transition-all font-bold text-rose-600">
+                                        <span class="absolute right-4 top-1/2 -translate-y-1/2 text-rose-400 font-bold text-sm">%</span>
+                                    </div>
+                                    @php $__pct = (float) ($this->commission_percent ?: 0); $__sale = (float) ($this->sale_price ?: 0); @endphp
+                                    <p class="text-[11px] text-rose-500 ml-1">≈ {{ number_format(round($__sale * $__pct / 100), 0, ',', '.') }} đ / sản phẩm (theo giá bán hiện tại).</p>
+                                    @error('commission_percent') <span class="text-[10px] text-rose-500 font-bold ml-1">{{ $message }}</span> @enderror
+                                @else
+                                    <input type="number" wire:model="commission_amount"
+                                           class="w-full bg-white border border-rose-100 rounded-2xl py-2.5 sm:py-3 px-5 text-sm focus:outline-none focus:border-rose-300/40 focus:ring-4 focus:ring-rose-500/5 transition-all font-bold text-rose-600">
+                                    @error('commission_amount') <span class="text-[10px] text-rose-500 font-bold ml-1">{{ $message }}</span> @enderror
+                                @endif
+                            </div>
+                        @endif
 
                         <!-- Attributes Management -->
                         <div class="space-y-4">
