@@ -9,12 +9,20 @@
     class="w-64 fixed inset-y-0 left-0 z-[60] lg:static flex flex-col border-r border-slate-200 bg-slate-50/80 backdrop-blur-2xl shrink-0 h-dvh overflow-y-auto custom-scrollbar overflow-x-hidden">
 
     <!-- Brand + Close button -->
+    @php
+        $__appName = \App\Models\SystemSetting::get('app_name', 'CVHQ POS');
+        $__appLogo = \App\Models\SystemSetting::logoUrl();
+    @endphp
     <div class="h-14 flex items-center justify-between gap-2 px-3 border-b border-slate-200 mb-3 shrink-0">
         <div class="flex items-center gap-2 overflow-hidden min-w-0">
-            <div class="w-8 h-8 rounded-lg bg-electric-blue flex items-center justify-center shadow-[0_4px_15px_rgba(0,136,204,0.3)] shrink-0">
-                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="text-white"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
+            <div class="w-8 h-8 rounded-lg {{ $__appLogo ? 'overflow-hidden border border-slate-200' : 'bg-electric-blue flex items-center justify-center shadow-[0_4px_15px_rgba(0,136,204,0.3)]' }} shrink-0">
+                @if($__appLogo)
+                    <img src="{{ $__appLogo }}" alt="{{ $__appName }}" class="w-full h-full object-cover">
+                @else
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="text-white"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
+                @endif
             </div>
-            <span class="text-base font-bold tracking-tight text-slate-900 whitespace-nowrap truncate">CVHQ POS</span>
+            <span class="text-base font-bold tracking-tight text-slate-900 whitespace-nowrap truncate">{{ $__appName }}</span>
         </div>
 
         <button @click="sidebarHidden = true"

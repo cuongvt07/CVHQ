@@ -3,10 +3,26 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Str;
 
 class SystemSetting extends Model
 {
     protected $fillable = ['key', 'value', 'description'];
+
+    /**
+     * URL logo hệ thống đã resolve sang /storage/... (null nếu chưa cấu hình).
+     */
+    public static function logoUrl(): ?string
+    {
+        $path = self::get('app_logo');
+        if (empty($path)) {
+            return null;
+        }
+        if (Str::startsWith($path, ['http://', 'https://', '/'])) {
+            return $path;
+        }
+        return asset('storage/' . ltrim($path, '/'));
+    }
 
     public static function get($key, $default = null)
     {
