@@ -21,3 +21,10 @@
 Homestead.json
 Homestead.yaml
 Thumbs.db
+
+# Docker / deploy (giữ local + scp lên server, KHÔNG commit — chứa secrets)
+/.env.docker
+/Dockerfile
+/docker-compose.yml
+/.dockerignore
+/docker/
