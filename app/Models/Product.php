@@ -104,26 +104,47 @@ class Product extends Model
         return (int) $this->commission_amount;
     }
 
+    protected static $autoCommissionCache = null;
+
+    /** Có đang bật hoa hồng tự động theo dải giá hay không (cache theo request). */
+    protected static function autoCommissionEnabled(): bool
+    {
+        if (self::$autoCommissionCache === null) {
+            self::$autoCommissionCache = filter_var(
+                SystemSetting::get('auto_commission_enabled', false),
+                FILTER_VALIDATE_BOOLEAN
+            );
+        }
+        return self::$autoCommissionCache;
+    }
+
     /**
-     * Lợi nhuận tạm tính = giá bán chung − hoa hồng − giá gốc.
+     * Hoa hồng HIỆU LỰC (tiền) — nguồn duy nhất cho hiển thị & tính lợi nhuận.
+     * = hoa hồng của SP (tiền hoặc % đã quy đổi).
+     * Nếu SP chưa đặt (=0) VÀ đang bật hoa hồng tự động → lấy theo dải giá cấu hình chung.
+     * Tắt hoa hồng tự động → 0 là 0 thật.
+     */
+    public function getEffectiveCommissionAttribute(): int
+    {
+        $commission = $this->commission_value;
+        if ($commission <= 0 && self::autoCommissionEnabled()) {
+            $commission = SystemSetting::commissionForPrice((int) $this->sale_price);
+        }
+        return (int) $commission;
+    }
+
+    /**
+     * Lợi nhuận tạm tính = giá bán chung − hoa hồng hiệu lực − giá gốc.
      * Nếu CHƯA có giá gốc (cost_price <= 0): không đủ dữ liệu →
-     * lợi nhuận tạm tính mặc định = hoa hồng của SP (hoặc theo dải giá cấu hình chung).
+     * lợi nhuận tạm tính = hoa hồng hiệu lực.
      */
     public function getTempProfitAttribute(): int
     {
-        $commission = $this->commission_value;
-
-        // Chưa đặt hoa hồng cho SP -> lấy theo dải giá ở cấu hình chung.
-        if ($commission <= 0) {
-            $commission = SystemSetting::commissionForPrice((int) $this->sale_price);
-        }
-
+        $commission = $this->effective_commission;
         $cost = (int) $this->cost_price;
         if ($cost > 0) {
             return (int) $this->sale_price - $commission - $cost;
         }
-
-        // Thiếu giá gốc -> lợi nhuận tạm tính = hoa hồng.
         return $commission;
     }
 

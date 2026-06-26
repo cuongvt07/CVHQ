@@ -29,13 +29,16 @@ class SystemSetting extends Model
      * trong cấu hình chung. Mốc trên (max) tính BAO GỒM. Trả 0 nếu không khớp dải nào.
      * Dùng chung cho ProductIndex / CommissionSettings / Product::tempProfit.
      */
+    /** Cache dải giá trong 1 request để tránh N+1 khi tính cho nhiều sản phẩm. */
+    protected static $commissionRangesCache = null;
+
     public static function commissionForPrice(int $price): int
     {
-        $ranges = self::get('commission_ranges', []);
-        if (!is_array($ranges)) {
-            return 0;
+        if (self::$commissionRangesCache === null) {
+            $ranges = self::get('commission_ranges', []);
+            self::$commissionRangesCache = is_array($ranges) ? $ranges : [];
         }
-        foreach ($ranges as $range) {
+        foreach (self::$commissionRangesCache as $range) {
             $min = (int) ($range['min'] ?? 0);
             $max = (int) ($range['max'] ?? 0);
             $amount = (int) ($range['amount'] ?? 0);
@@ -60,6 +63,11 @@ class SystemSetting extends Model
 
     public static function set($key, $value, $description = null)
     {
+        // Reset cache dải giá nếu thay đổi cấu hình hoa hồng.
+        if ($key === 'commission_ranges') {
+            self::$commissionRangesCache = null;
+        }
+
         if (is_array($value) || is_object($value)) {
             $value = json_encode($value);
         }

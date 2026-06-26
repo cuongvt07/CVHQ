@@ -160,6 +160,9 @@
                                value="{{ (int)$product->commission_amount }}"
                                @readonly(!auth()->user()->hasPermission('commission.edit'))
                                class="w-full bg-transparent text-center text-xs font-black text-emerald-700 focus:outline-none focus:ring-0 border-0 p-0">
+                        @if((int)$product->commission_amount <= 0 && $product->effective_commission > 0)
+                            <div class="text-[9px] text-amber-500">tự động {{ number_format($product->effective_commission, 0, ',', '.') }}</div>
+                        @endif
                     @endif
                 </div>
             </div>
@@ -303,11 +306,16 @@
                                         </div>
                                         <span class="text-[10px] text-slate-400 w-16 text-right">≈{{ number_format($product->commission_value, 0, ',', '.') }}đ</span>
                                     @else
-                                        <input type="number"
-                                               wire:blur="updateCommission({{ $product->id }}, $event.target.value)"
-                                               value="{{ (int)$product->commission_amount }}"
-                                               @readonly(!auth()->user()->hasPermission('commission.edit'))
-                                               class="w-24 bg-white border border-slate-200 rounded-lg px-3 py-1.5 text-xs text-right font-bold text-slate-700 focus:outline-none focus:border-electric-blue transition-all">
+                                        <div class="flex flex-col items-end">
+                                            <input type="number"
+                                                   wire:blur="updateCommission({{ $product->id }}, $event.target.value)"
+                                                   value="{{ (int)$product->commission_amount }}"
+                                                   @readonly(!auth()->user()->hasPermission('commission.edit'))
+                                                   class="w-24 bg-white border border-slate-200 rounded-lg px-3 py-1.5 text-xs text-right font-bold text-slate-700 focus:outline-none focus:border-electric-blue transition-all">
+                                            @if((int)$product->commission_amount <= 0 && $product->effective_commission > 0)
+                                                <span class="text-[10px] text-amber-500 font-medium mt-0.5">tự động: {{ number_format($product->effective_commission, 0, ',', '.') }}</span>
+                                            @endif
+                                        </div>
                                     @endif
                                 </div>
                             </td>
