@@ -120,14 +120,16 @@ class ProductRowImporter
 
         $product->fill($data);
 
-        if ($product->isDirty('stock_quantity')) {
-            $before = (int) $product->getOriginal('stock_quantity', 0);
-            $change = (int) $product->stock_quantity - $before;
-            if ($change !== 0) {
-                $product->recordStockHistory('Import', $change, null, null, 'Nhập từ file Excel', $before);
-            }
-        }
+        // Tính chênh lệch tồn TRƯỚC khi save (getOriginal = 0 cho SP mới).
+        $stockChanged = $product->isDirty('stock_quantity');
+        $before = (int) $product->getOriginal('stock_quantity', 0);
+        $change = (int) $product->stock_quantity - $before;
 
+        // Phải save trước để có id, nếu không ghi thẻ kho sẽ lỗi product_id null.
         $product->save();
+
+        if ($stockChanged && $change !== 0) {
+            $product->recordStockHistory('Import', $change, null, null, 'Nhập từ file Excel', $before);
+        }
     }
 }
