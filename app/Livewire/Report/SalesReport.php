@@ -299,7 +299,7 @@ class SalesReport extends Component
 
         $invoices = $this->invoiceQuery()
             ->whereDate('created_at', $this->detailDate)
-            ->with('customer:id,name')
+            ->with('customer:id,full_name')
             ->orderBy('created_at')
             ->get();
 
@@ -323,7 +323,7 @@ class SalesReport extends Component
             return [
                 'code' => $inv->invoice_code,
                 'time' => optional($inv->created_at)->format('H:i'),
-                'customer' => $inv->customer?->name ?: 'Khách lẻ',
+                'customer' => $inv->customer?->full_name ?: 'Khách lẻ',
                 'seller' => $inv->seller_name ?: '—',
                 'channel' => $inv->sales_channel ?: '—',
                 'branch' => \App\Models\Branch::nameOf($inv->branch),
