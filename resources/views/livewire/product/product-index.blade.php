@@ -28,7 +28,7 @@
         </div>
     </header>
 
-    <x-import-modal id="products" title="Nhập danh sách sản phẩm" model="importFile" />
+    <x-import-modal id="products" title="Nhập danh sách sản phẩm" model="importFile" :chunked="true" :template="true" />
     <x-product-modal id="product-form" />
     <x-bulk-product-modal />
     <x-delete-modal />

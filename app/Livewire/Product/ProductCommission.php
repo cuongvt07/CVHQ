@@ -17,10 +17,12 @@ use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Str;
 use App\Traits\WithColumnVisibility;
 use App\Traits\WithUserPreferences;
+use App\Traits\WithChunkedImport;
+use App\Exports\CommissionTemplateExport;
 
 class ProductCommission extends Component
 {
-    use WithPagination, WithFileUploads, WithBulkActions, HasPermissions, WithColumnVisibility, WithUserPreferences;
+    use WithPagination, WithFileUploads, WithBulkActions, HasPermissions, WithColumnVisibility, WithUserPreferences, WithChunkedImport;
 
     protected function getModuleKey(): string
     {
@@ -29,20 +31,14 @@ class ProductCommission extends Component
 
     public $search = '';
     public $perPage = 15;
-    public $importFile;
+
+    // Cột chọn khi export (mặc định = tất cả).
+    public array $exportColumns = ['sku', 'name', 'sale_price', 'cost_price', 'commission_type', 'commission', 'commission_value'];
 
     protected function getDefaultVisibleColumns(): array
     {
         return ['sku', 'name', 'unit', 'sale_price', 'cost_price', 'profit', 'commission'];
     }
-
-    // Import Properties (for modal compatibility)
-    public $importing = false;
-    public $importProgress = 0;
-    public $importTotal = 0;
-    public $importCurrent = 0;
-    public $importErrors = [];
-    public $importBatchId;
 
     protected $queryString = [
         'search' => ['except' => ''],
@@ -179,99 +175,104 @@ class ProductCommission extends Component
         });
     }
 
-    public function import()
+    /* ===== Import hoa hồng đồng bộ theo chunk (WithChunkedImport) ===== */
+
+    protected function authorizeImport(): bool
     {
         if (!auth()->user()->hasPermission('commission.import')) {
             $this->dispatch('notify', message: 'Bạn không có quyền nhập Excel!', type: 'error');
-            return;
+            return false;
         }
-        set_time_limit(300);
+        return true;
+    }
 
-        $this->validate([
-            'importFile' => 'required',
-        ]);
+    protected function importFinishedId(): string
+    {
+        return 'commissions';
+    }
 
-        $this->importing = true;
-        $this->importProgress = 0;
-        $this->importErrors = [];
+    protected function importChunkSize(): int
+    {
+        return 50;
+    }
 
+    /** Đọc file hoa hồng: chuẩn hoá (fix KiotViet) rồi đọc từ dòng 3 (không heading). */
+    protected function readImportRows(string $absolutePath): array
+    {
+        $normalizedPath = $this->normalizeExcelFile($absolutePath);
         try {
-            // Lấy đường dẫn file tạm từ upload
-            $tempPath = $this->importFile->getRealPath();
+            $reader = new class implements \Maatwebsite\Excel\Concerns\ToArray, \Maatwebsite\Excel\Concerns\WithStartRow {
+                public function array(array $array)
+                {
+                    return $array;
+                }
 
-            // Chuẩn hóa file Excel (fix định dạng KiotViet không chuẩn)
-            $normalizedPath = $this->normalizeExcelFile($tempPath);
-
-            // Import đồng bộ (file hoa hồng nhỏ, không cần queue)
-            $import = new CommissionImport();
-            Excel::import($import, $normalizedPath, null, \Maatwebsite\Excel\Excel::XLSX);
-
-            $this->importing = false;
-            $this->importProgress = 100;
-
-            $updated = $import->getUpdatedCount();
-            $skipped = $import->getSkippedCount();
-            $this->importErrors = $import->getErrors();
-
-            $this->dispatch('notify', message: "Import hoàn tất! Cập nhật: {$updated}, Bỏ qua: {$skipped}", type: 'success');
-            $this->dispatch('import-finished', id: 'commissions');
-            $this->importFile = null;
-
-            // Dọn file chuẩn hóa
-            if ($normalizedPath !== $tempPath) {
+                public function startRow(): int
+                {
+                    return 3;
+                }
+            };
+            $data = Excel::toArray($reader, $normalizedPath);
+            return $data[0] ?? [];
+        } finally {
+            if ($normalizedPath !== $absolutePath) {
                 @unlink($normalizedPath);
             }
-        } catch (\Exception $e) {
-            $this->importing = false;
-            $this->dispatch('notify', message: 'Lỗi import: ' . $e->getMessage(), type: 'error');
         }
     }
 
-    /**
-     * Chuẩn hóa file Excel bằng cách load rồi save lại
-     * Giải quyết vấn đề file KiotViet có cấu trúc XML không chuẩn
-     */
+    /** Cập nhật hoa hồng 1 sản phẩm theo 1 dòng (cột số: A=SKU, E=loại, F=giá trị, G=tiền cũ). */
+    protected function importOneRow(array $row, int $rowNumber): void
+    {
+        $sku = trim((string) ($row[0] ?? ''));
+        if ($sku === '') {
+            throw new \RuntimeException('Thiếu mã hàng.');
+        }
+
+        $product = Product::where('sku', $sku)->first();
+        if (!$product) {
+            throw new \RuntimeException("SKU \"{$sku}\" không tồn tại.");
+        }
+
+        $typeCell = strtolower(trim((string) ($row[4] ?? '')));
+        $isPercent = in_array($typeCell, ['%', 'percent', 'phan tram', 'phần trăm'], true);
+        $isAmount = in_array($typeCell, ['tien', 'tiền', 'amount', 'vnd', 'vnđ'], true);
+
+        if ($isPercent) {
+            $pct = max(0, min(100, (float) str_replace(',', '.', (string) ($row[5] ?? 0))));
+            $product->commission_type = 'percent';
+            $product->commission_percent = $pct;
+            $product->commission_amount = (int) round(((float) $product->sale_price) * $pct / 100);
+        } else {
+            $raw = $isAmount ? ($row[5] ?? 0) : ($row[6] ?? ($row[5] ?? 0));
+            $clean = str_replace([',', '.'], '', (string) $raw);
+            $product->commission_type = 'amount';
+            $product->commission_amount = (int) $clean;
+            $product->commission_percent = 0;
+        }
+        $product->save();
+    }
+
+    /** Chuẩn hóa file Excel (load + save lại) để fix XML không chuẩn của KiotViet. */
     private function normalizeExcelFile(string $path): string
     {
         try {
             $spreadsheet = \PhpOffice\PhpSpreadsheet\IOFactory::load($path);
-            $normalizedPath = str_replace('.xlsx', '_normalized.xlsx', $path);
+            $normalizedPath = $path . '_normalized.xlsx';
             $writer = new \PhpOffice\PhpSpreadsheet\Writer\Xlsx($spreadsheet);
             $writer->save($normalizedPath);
             $spreadsheet->disconnectWorksheets();
             unset($spreadsheet);
             return $normalizedPath;
-        } catch (\Exception $e) {
+        } catch (\Throwable $e) {
             \Illuminate\Support\Facades\Log::warning('Could not normalize Excel file: ' . $e->getMessage());
             return $path;
         }
     }
 
-    public function pollImportProgress()
+    public function downloadTemplate()
     {
-        if (!$this->importing) return;
-
-        $progress = Cache::get("import_progress_{$this->importBatchId}");
-
-        if ($progress) {
-            $this->importTotal = $progress['total'];
-            $this->importCurrent = $progress['current'];
-            
-            if ($this->importTotal > 0) {
-                $this->importProgress = min(100, round(($this->importCurrent / $this->importTotal) * 100));
-            }
-
-            if ($this->importCurrent >= $this->importTotal || $progress['status'] === 'failed' || $progress['status'] === 'finished') {
-                $this->importing = false;
-                $this->importErrors = array_merge($this->importErrors, $progress['errors']);
-                
-                if (empty($this->importErrors)) {
-                    $this->dispatch('notify', message: 'Import hoa hồng hoàn tất!', type: 'success');
-                }
-                
-                $this->dispatch('import-finished', id: 'commissions');
-            }
-        }
+        return Excel::download(new CommissionTemplateExport, 'mau-bang-hoa-hong.xlsx');
     }
 
     public function export()
@@ -280,7 +281,8 @@ class ProductCommission extends Component
             $this->dispatch('notify', message: 'Bạn không có quyền xuất file!', type: 'error');
             return;
         }
-        return Excel::download(new CommissionExport, 'bang-hoa-hong-' . date('Y-m-d') . '.xlsx');
+        $columns = !empty($this->exportColumns) ? array_values($this->exportColumns) : null;
+        return Excel::download(new CommissionExport($columns), 'bang-hoa-hong-' . date('Y-m-d') . '.xlsx');
     }
 
     protected function getRecordsForBulk()

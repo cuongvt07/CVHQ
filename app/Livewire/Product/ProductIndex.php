@@ -15,10 +15,13 @@ use App\Traits\WithBulkActions;
 use App\Traits\HasPermissions;
 use App\Traits\WithColumnVisibility;
 use App\Traits\WithUserPreferences;
+use App\Traits\WithChunkedImport;
+use App\Support\ProductRowImporter;
+use App\Exports\ProductsTemplateExport;
 
 class ProductIndex extends Component
 {
-    use WithPagination, WithFileUploads, WithBulkActions, HasPermissions, WithColumnVisibility, WithUserPreferences;
+    use WithPagination, WithFileUploads, WithBulkActions, HasPermissions, WithColumnVisibility, WithUserPreferences, WithChunkedImport;
 
     protected function getModuleKey(): string
     {
@@ -41,20 +44,11 @@ class ProductIndex extends Component
     public $boxCode = '';
     public $brandFilter = '';
     public $stockStatus = 'all';
-    public $importFile;
     public $perPage = 10;
     public $branch = 'all';
     public $quickEditMode = false;
     public $sortField = 'created_at';
     public $sortDirection = 'desc';
-
-    // Import Progress
-    public $importing = false;
-    public $importProgress = 0;
-    public $importTotal = 0;
-    public $importCurrent = 0;
-    public $importErrors = [];
-    public $importBatchId;
 
     // Bulk Add Feature
     public $bulkPrefix = '';
@@ -278,68 +272,47 @@ class ProductIndex extends Component
         'newImages.*' => 'nullable|image|max:5120',
     ];
 
-    public function import()
+    /* ===== Import Excel đồng bộ theo chunk (WithChunkedImport) ===== */
+
+    protected function importChunkSize(): int
     {
-        // Tăng thời gian thực thi ngay từ đầu để tránh lỗi timeout trong quá trình validate và đọc file
-        set_time_limit(300);
-
-        $this->validate([
-            'importFile' => 'required', // Chỉ yêu cầu có file, bỏ qua mimes/max để tránh lỗi metadata trên server
-        ]);
-
-        $this->importBatchId = Str::random(10);
-        $this->importing = true;
-        $this->importProgress = 0;
-        $this->importErrors = [];
-
-        try {
-            $import = new ProductsImport();
-            $import->setImportKey($this->importBatchId);
-
-            // Store the file to ensure it's available for the queue worker
-            $filePath = $this->importFile->store('imports');
-
-            Excel::queueImport($import, $filePath);
-
-            $this->importFile = null;
-        } catch (\Maatwebsite\Excel\Validators\ValidationException $e) {
-            $this->importing = false;
-            $failures = $e->failures();
-            foreach ($failures as $failure) {
-                $this->importErrors[] = "Dòng {$failure->row()}: " . implode(', ', $failure->errors());
-            }
-        } catch (\Exception $e) {
-            $this->importing = false;
-            $this->importErrors[] = $e->getMessage();
-        }
+        // Mỗi dòng có thể tải ảnh từ URL nên để chunk nhỏ cho request ngắn.
+        return 20;
     }
 
-    public function pollImportProgress()
+    protected function importFinishedId(): string
     {
-        if (!$this->importing)
-            return;
+        return 'products';
+    }
 
-        $progress = Cache::get("import_progress_{$this->importBatchId}");
-
-        if ($progress) {
-            $this->importTotal = $progress['total'];
-            $this->importCurrent = $progress['current'];
-
-            if ($this->importTotal > 0) {
-                $this->importProgress = min(100, round(($this->importCurrent / $this->importTotal) * 100));
+    /** Đọc file Excel sản phẩm thành mảng (dùng heading-row snake_case). */
+    protected function readImportRows(string $absolutePath): array
+    {
+        $reader = new class implements \Maatwebsite\Excel\Concerns\ToArray, \Maatwebsite\Excel\Concerns\WithHeadingRow {
+            public function array(array $array)
+            {
+                return $array;
             }
+        };
+        $data = Excel::toArray($reader, $absolutePath);
+        return $data[0] ?? [];
+    }
 
-            if ($this->importCurrent >= $this->importTotal || $progress['status'] === 'failed' || $progress['status'] === 'finished') {
-                $this->importing = false;
-                $this->importErrors = array_merge($this->importErrors, $progress['errors']);
+    /** Upsert 1 sản phẩm từ 1 dòng dữ liệu. */
+    protected function importOneRow(array $row, int $rowNumber): void
+    {
+        ProductRowImporter::import($row);
+    }
 
-                if (empty($this->importErrors)) {
-                    $this->dispatch('notify', message: 'Import hoàn tất thành công!', type: 'success');
-                }
+    protected function finalizeImport(): void
+    {
+        \Cache::forget('product_filter_lists');
+    }
 
-                $this->dispatch('import-finished', id: 'products');
-            }
-        }
+    /** Tải file Excel mẫu cho import sản phẩm. */
+    public function downloadTemplate()
+    {
+        return Excel::download(new ProductsTemplateExport, 'mau-nhap-san-pham.xlsx');
     }
 
     public function resetForm()
