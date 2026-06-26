@@ -1,4 +1,4 @@
-<div class="h-full min-h-0 flex flex-col" wire:poll.3s>
+<div class="h-full min-h-0 flex flex-col" wire:poll.30s>
     <!-- Dashboard Header — compact (dày 36px desktop) -->
     <header class="px-3 md:px-6 py-1.5 md:py-2 flex items-center justify-between gap-2 border-b border-slate-200 bg-slate-50/50">
         <h1 class="text-base md:text-lg font-black tracking-tight text-slate-900 shrink truncate">Kho hàng</h1>

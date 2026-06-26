@@ -1204,11 +1204,21 @@ class ProductIndex extends Component
 
     public function render()
     {
+        // 3 danh sách filter ít đổi -> cache để không quét bảng mỗi nhịp poll/keystroke.
+        // Cache bị xóa khi sản phẩm được lưu/xóa (xem Product::booted).
+        $filters = \Cache::remember('product_filter_lists', 600, function () {
+            return [
+                'categories' => Product::whereNotNull('category_path')->distinct()->pluck('category_path'),
+                'brands' => Product::whereNotNull('brand')->distinct()->pluck('brand'),
+                'box_codes' => Product::whereNotNull('location')->distinct()->pluck('location'),
+            ];
+        });
+
         return view('livewire.product.product-index', [
             'products' => $this->getProducts(),
-            'categories_list' => Product::whereNotNull('category_path')->distinct()->pluck('category_path'),
-            'brands_list' => Product::whereNotNull('brand')->distinct()->pluck('brand'),
-            'box_codes_list' => Product::whereNotNull('location')->distinct()->pluck('location'),
+            'categories_list' => $filters['categories'],
+            'brands_list' => $filters['brands'],
+            'box_codes_list' => $filters['box_codes'],
         ])->layout('layouts.app');
     }
 }

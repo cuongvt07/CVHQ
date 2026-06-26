@@ -52,6 +52,12 @@ class Product extends Model
         static::saving(function ($product) {
             $product->name = $product->generateFullName();
         });
+
+        // Danh sách filter (danh mục/thương hiệu/vị trí) được cache ở ProductIndex
+        // -> xóa cache khi dữ liệu sản phẩm thay đổi để filter luôn cập nhật.
+        $forget = fn () => \Cache::forget('product_filter_lists');
+        static::saved($forget);
+        static::deleted($forget);
     }
 
     public function generateFullName()
