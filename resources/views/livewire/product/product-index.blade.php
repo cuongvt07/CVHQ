@@ -45,9 +45,7 @@
 
             {{-- Branch dropdown — hiện chi nhánh đang active, tap để đổi --}}
             @php
-                $__branchMap = ['all' => ['label' => 'Tất cả', 'color' => 'text-slate-600 border-slate-200', 'dot' => 'bg-slate-400'],
-                                'sg'  => ['label' => 'Sài Gòn', 'color' => 'text-emerald-700 border-emerald-300', 'dot' => 'bg-emerald-500'],
-                                'hn'  => ['label' => 'Hà Nội', 'color' => 'text-rose-700 border-rose-300', 'dot' => 'bg-rose-500']];
+                $__branchMap = \App\Models\Branch::uiMap();
                 $__currentBranch = $__branchMap[$branch] ?? $__branchMap['all'];
             @endphp
             <div class="relative shrink-0" @click.away="branchOpen = false">

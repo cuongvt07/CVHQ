@@ -196,6 +196,8 @@
         default => $invoice->user?->work_branch ?: 'hn',
     };
 
+    // Ưu tiên lấy thông tin từ bảng chi nhánh (Quản lý chi nhánh); fallback cấu hình shop_* cũ.
+    $branchModel = \App\Models\Branch::byCode($branchKey);
     $branchProfiles = [
         'hn' => [
             'address' => \App\Models\SystemSetting::get('shop_hn_address', '20 ngõ 30 Trần Quý Kiên, Cầu Giấy, Hà Nội'),
@@ -206,7 +208,10 @@
             'phone' => \App\Models\SystemSetting::get('shop_sg_phone', \App\Models\SystemSetting::get('shop_phone', '')),
         ],
     ];
-    $branchInfo = $branchProfiles[$branchKey] ?? $branchProfiles['hn'];
+    $branchInfo = [
+        'address' => ($branchModel && $branchModel->address) ? $branchModel->address : ($branchProfiles[$branchKey]['address'] ?? $branchProfiles['hn']['address']),
+        'phone' => ($branchModel && $branchModel->phone) ? $branchModel->phone : ($branchProfiles[$branchKey]['phone'] ?? $branchProfiles['hn']['phone']),
+    ];
 
     $sellerName = $invoice->user?->name ?: ($invoice->seller_name ?: '');
     $customerName = $invoice->customer?->full_name ?: 'Khách lẻ';

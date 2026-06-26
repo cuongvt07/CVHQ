@@ -57,7 +57,7 @@ class UserIndex extends Component
             'password' => $this->userId ? 'nullable|min:6' : 'required|min:6',
             'role' => 'required|in:admin,staff',
             'can_receive_commission' => 'boolean',
-            'work_branch' => 'nullable|in:sg,hn',
+            'work_branch' => 'nullable|in:' . implode(',', array_keys(\App\Models\Branch::options())),
             'permissions' => 'nullable|array',
         ];
     }

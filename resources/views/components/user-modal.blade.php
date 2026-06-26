@@ -91,8 +91,9 @@
                                 <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Chi nhánh làm việc</label>
                                 <select wire:model="work_branch" class="w-full bg-slate-50 border border-slate-200 rounded-2xl py-2.5 px-4 md:py-3 md:px-5 text-sm focus:outline-none focus:border-electric-blue/40 focus:ring-4 focus:ring-electric-blue/5 transition-all cursor-pointer">
                                     <option value="">Chưa gán</option>
-                                    <option value="sg">Sài Gòn</option>
-                                    <option value="hn">Hà Nội</option>
+                                    @foreach(\App\Models\Branch::options() as $bCode => $bName)
+                                        <option value="{{ $bCode }}">{{ $bName }}</option>
+                                    @endforeach
                                 </select>
                                 @error('work_branch') <span class="text-[10px] text-rose-500 font-bold ml-1">{{ $message }}</span> @enderror
                             </div>

@@ -176,15 +176,11 @@
                             @endif
                             @if(in_array('work_branch', $visibleColumns))
                             <td class="px-4 py-2">
-                                @if($user->work_branch === 'sg')
-                                    <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-100 text-[9px] font-bold tracking-widest">
-                                        <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
-                                        Sài Gòn
-                                    </span>
-                                @elseif($user->work_branch === 'hn')
-                                    <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-rose-50 text-rose-700 border border-rose-100 text-[9px] font-bold tracking-widest">
-                                        <span class="w-1.5 h-1.5 rounded-full bg-rose-500"></span>
-                                        Hà Nội
+                                @if($user->work_branch)
+                                    @php $__ub = \App\Models\Branch::uiMap(false)[$user->work_branch] ?? null; @endphp
+                                    <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full border text-[9px] font-bold tracking-widest {{ $__ub['color'] ?? 'text-slate-600 border-slate-200' }}">
+                                        <span class="w-1.5 h-1.5 rounded-full {{ $__ub['dot'] ?? 'bg-slate-400' }}"></span>
+                                        {{ $__ub['label'] ?? \App\Models\Branch::nameOf($user->work_branch) }}
                                     </span>
                                 @else
                                     <span class="text-[10px] font-bold text-slate-300">Chưa gán</span>
