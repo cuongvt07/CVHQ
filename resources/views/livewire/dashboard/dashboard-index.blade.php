@@ -1,305 +1,272 @@
-<div class="p-4 md:p-6 flex flex-col gap-6">
-    <!-- Header Section -->
-    <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
-        <div>
-            <h1 class="text-[22px] md:text-[26px] font-bold tracking-tight heading-gradient">Trung tâm Điều hành</h1>
-            <p class="text-slate-500 text-[10px] md:text-[14px] font-light mt-1 uppercase tracking-[0.2em]">Hệ thống Quản trị Thông minh CVHQ POS</p>
-        </div>
-        <div class="flex items-center gap-3">
-            <span class="text-[9px] md:text-[13px] font-bold text-slate-500 uppercase tracking-widest bg-slate-50 border border-slate-200 px-3 py-1.5 rounded-lg">Cập nhật: Vừa xong</span>
-            <a href="{{ route('pos') }}" class="btn-electric flex items-center gap-2 px-6 py-2.5 text-[10px] md:text-[14px] font-bold uppercase tracking-widest">
-                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="M12 5v14"/></svg>
-                Bán hàng nhanh
-            </a>
-        </div>
-    </div>
-
-    <!-- KPI Grid -->
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        <!-- Revenue Card -> click ra danh sách hóa đơn hôm nay -->
-        <a href="{{ route('invoices', ['startDate' => now()->toDateString(), 'endDate' => now()->toDateString()]) }}"
-           class="glass-card p-6 flex flex-col gap-2 group transition-all hover:border-electric-blue/30 relative overflow-hidden cursor-pointer">
-            <div class="absolute top-0 right-0 w-24 h-24 bg-electric-blue/5 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2 transition-all group-hover:bg-electric-blue/10"></div>
-            <span class="text-[10px] md:text-[14px] font-bold text-slate-400 uppercase tracking-widest flex items-center gap-1">
-                Doanh thu hôm nay
-                <svg xmlns="http://www.w3.org/2000/svg" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="opacity-0 group-hover:opacity-60 transition-opacity"><path d="M7 7h10v10"/><path d="M7 17 17 7"/></svg>
-            </span>
-            <div class="flex items-end gap-2 mt-1">
-                <span class="text-[22px] md:text-[26px] font-bold text-slate-900 text-glow">{{ number_format($stats['revenue_today'], 0, ',', '.') }}</span>
-                <span class="text-[10px] md:text-[14px] font-bold text-slate-400 mb-1">đ</span>
-            </div>
-        </a>
-
-        <!-- Orders Card: tổng + chi tiết -->
-        <div class="glass-card p-6 flex flex-col gap-2 group transition-all hover:border-purple-500/30 relative overflow-hidden">
-            <div class="absolute top-0 right-0 w-24 h-24 bg-purple-500/5 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2 transition-all group-hover:bg-purple-500/10"></div>
-            <span class="text-[10px] md:text-[14px] font-bold text-slate-400 uppercase tracking-widest">Số đơn giao dịch</span>
-            <div class="flex items-end gap-2">
-                <span class="text-[22px] md:text-[26px] font-bold text-slate-900">{{ $stats['orders_today'] }}</span>
-                <span class="text-[9px] md:text-[13px] text-slate-400 font-bold mb-1.5 uppercase">Tổng HĐ</span>
-            </div>
-            <div class="grid grid-cols-2 gap-x-3 gap-y-1 mt-1 pt-2 border-t border-slate-100">
-                <div class="flex items-center justify-between text-[10px] md:text-[12px]">
-                    <span class="text-slate-500">Hoàn thành</span>
-                    <span class="font-bold text-emerald-600">{{ $stats['orders_completed'] }}</span>
-                </div>
-                <div class="flex items-center justify-between text-[10px] md:text-[12px]">
-                    <span class="text-slate-500">Đã sửa</span>
-                    <span class="font-bold text-amber-600">{{ $stats['orders_edited'] }}</span>
-                </div>
-                <div class="flex items-center justify-between text-[10px] md:text-[12px]">
-                    <span class="text-slate-500">Trả hàng</span>
-                    <span class="font-bold text-sky-600">{{ $stats['orders_returned'] }}</span>
-                </div>
-                <div class="flex items-center justify-between text-[10px] md:text-[12px]">
-                    <span class="text-slate-500">Đã hủy</span>
-                    <span class="font-bold text-rose-600">{{ $stats['orders_cancelled'] }}</span>
-                </div>
-            </div>
-        </div>
-
-        <!-- Customers Card -->
-        <div class="glass-card p-6 flex flex-col gap-2 group transition-all hover:border-electric-blue/30 relative overflow-hidden">
-            <div class="absolute top-0 right-0 w-24 h-24 bg-electric-blue/5 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2 transition-all group-hover:bg-electric-blue/10"></div>
-            <span class="text-[10px] md:text-[14px] font-bold text-slate-400 uppercase tracking-widest">Tổng khách hàng</span>
-            <div class="flex items-end gap-3 mt-1">
-                <span class="text-[22px] md:text-[26px] font-bold text-slate-900">{{ $stats['total_customers'] }}</span>
-                <span class="text-[9px] md:text-[13px] text-slate-300 font-bold mb-1.5 uppercase tracking-widest">Hội viên</span>
-            </div>
-        </div>
-
-        <!-- Stock Alert Card -->
-        <div class="glass-card p-6 flex flex-col gap-2 group transition-all hover:border-red-500/30 relative overflow-hidden">
-            <div class="absolute top-0 right-0 w-24 h-24 bg-red-500/5 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2 transition-all group-hover:bg-red-500/10"></div>
-            <span class="text-[10px] md:text-[14px] font-bold text-slate-400 uppercase tracking-widest">Hàng sắp hết</span>
-            <div class="flex items-end gap-3 mt-1">
-                <span class="text-[22px] md:text-[26px] font-bold {{ $stats['low_stock_count'] > 0 ? 'text-red-500 font-glow' : 'text-slate-900' }}">{{ $stats['low_stock_count'] }}</span>
-                <span class="text-[9px] md:text-[13px] text-slate-300 font-bold mb-1.5 uppercase tracking-widest">Cảnh báo</span>
-            </div>
-        </div>
-    </div>
-
-    <!-- Analytics & Activity Section -->
-    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        
-        <!-- Big Sales Chart -->
-        @php
-            $vals = collect($chartData)->pluck('val')->all();
-            $maxVal = max(max($vals), 1); // floor 1 to avoid div-by-zero / flat-zero collapse
-            $sumVal = array_sum($vals);
-            $avgVal = (int) round($sumVal / max(count($vals), 1));
-
-            $padT = 24; $padR = 28; $padB = 40; $padL = 70;
-            $vbW = 720; $vbH = 300;
-            $chartW = $vbW - $padL - $padR;
-            $chartH = $vbH - $padT - $padB;
-
-            $count = count($chartData);
-            $points = [];
-            foreach ($chartData as $i => $d) {
-                $x = $padL + ($count > 1 ? $i * $chartW / ($count - 1) : $chartW / 2);
-                $y = $padT + (1 - $d['val'] / $maxVal) * $chartH;
-                $points[] = [
-                    'x'    => round($x, 2),
-                    'y'    => round($y, 2),
-                    'val'  => (int) $d['val'],
-                    'day'  => $d['day'],
-                    'date' => $d['date'],
-                ];
-            }
-            $bottomY  = $padT + $chartH;
-
-            // 4 Y-axis ticks: 0, max/3, 2max/3, max
-            $ticks = [];
-            for ($t = 0; $t <= 3; $t++) {
-                $tickVal = $maxVal * $t / 3;
-                $ticks[] = [
-                    'y'    => round($padT + (1 - $t / 3) * $chartH, 2),
-                    'val'  => $tickVal,
-                    'label'=> $tickVal >= 1_000_000
-                        ? number_format($tickVal / 1_000_000, 1) . 'M'
-                        : ($tickVal >= 1_000
-                            ? number_format($tickVal / 1_000, 0) . 'k'
-                            : number_format($tickVal, 0)),
-                ];
-            }
-            $avgY = round($padT + (1 - $avgVal / $maxVal) * $chartH, 2);
-            $barW = $count > 0 ? min(54, max(24, ($chartW / max($count, 1)) * 0.48)) : 32;
-        @endphp
-        <div class="lg:col-span-2 glass-card p-4 md:p-6 flex flex-col gap-4 min-h-[400px]">
-            <div class="flex items-start justify-between gap-4">
-                <div>
-                    <h3 class="text-[14px] md:text-[18px] font-bold tracking-tight text-slate-900">Doanh thu 7 ngày</h3>
-                    <p class="text-[9px] md:text-[12px] text-slate-400 uppercase tracking-widest mt-0.5">Cập nhật theo dữ liệu hóa đơn thật</p>
-                </div>
-                <div class="text-right">
-                    <p class="text-[9px] md:text-[11px] font-bold text-slate-400 uppercase tracking-widest">Tổng 7 ngày</p>
-                    <p class="text-[18px] md:text-[22px] font-bold text-electric-blue tracking-tight">{{ number_format($sumVal, 0, ',', '.') }}<span class="text-[10px] md:text-[13px] text-slate-400 ml-1">đ</span></p>
-                </div>
-            </div>
-
-            <div class="flex-1 w-full">
-                <svg viewBox="0 0 {{ $vbW }} {{ $vbH }}" class="w-full h-auto" preserveAspectRatio="xMidYMid meet">
-                    {{-- Grid lines + Y-axis labels --}}
-                    @foreach($ticks as $t)
-                        <line x1="{{ $padL }}" y1="{{ $t['y'] }}" x2="{{ $vbW - $padR }}" y2="{{ $t['y'] }}"
-                              stroke="#e2e8f0" stroke-width="1"/>
-                        <text x="{{ $padL - 10 }}" y="{{ $t['y'] + 4 }}" font-size="12" font-weight="700"
-                              text-anchor="end" fill="#94a3b8">{{ $t['label'] }}</text>
-                    @endforeach
-
-                    <line x1="{{ $padL }}" y1="{{ $bottomY }}" x2="{{ $vbW - $padR }}" y2="{{ $bottomY }}" stroke="#cbd5e1" stroke-width="1.5"/>
-
-                    {{-- Average line --}}
-                    @if($avgVal > 0)
-                        <line x1="{{ $padL }}" y1="{{ $avgY }}" x2="{{ $vbW - $padR }}" y2="{{ $avgY }}"
-                              stroke="#94a3b8" stroke-width="1" stroke-dasharray="6 4" opacity="0.6"/>
-                        <text x="{{ $vbW - $padR - 4 }}" y="{{ $avgY - 6 }}" font-size="10" font-weight="700"
-                              text-anchor="end" fill="#64748b">TB {{ $avgVal >= 1000 ? number_format($avgVal / 1000, 0) . 'k' : $avgVal }}</text>
-                    @endif
-
-                    {{-- Revenue bars --}}
-                    @foreach($points as $p)
-                        @php
-                            $barH = max(2, $bottomY - $p['y']);
-                            $barX = $p['x'] - ($barW / 2);
-                        @endphp
-                        <g class="cursor-pointer">
-                            <rect x="{{ $barX }}" y="{{ $p['y'] }}" width="{{ $barW }}" height="{{ $barH }}" rx="8"
-                                  fill="{{ $p['val'] > 0 ? '#0088CC' : '#cbd5e1' }}"/>
-                            <rect x="{{ $barX }}" y="{{ $p['y'] }}" width="{{ $barW }}" height="{{ min(10, $barH) }}" rx="8"
-                                  fill="#38bdf8" opacity="{{ $p['val'] > 0 ? '0.55' : '0' }}"/>
-                            @if($p['val'] > 0)
-                                <text x="{{ $p['x'] }}" y="{{ max(12, $p['y'] - 8) }}" font-size="11" font-weight="800"
-                                      text-anchor="middle" fill="#0f172a">
-                                    {{ $p['val'] >= 1000000 ? number_format($p['val'] / 1000000, 1) . 'M' : number_format($p['val'] / 1000, 0) . 'k' }}
-                                </text>
-                            @endif
-                            <title>{{ $p['day'] }} {{ $p['date'] }} — {{ number_format($p['val'], 0, ',', '.') }}đ</title>
-                        </g>
-                    @endforeach
-
-                    {{-- X-axis labels --}}
-                    @foreach($points as $p)
-                        <text x="{{ $p['x'] }}" y="{{ $vbH - 18 }}" font-size="13" font-weight="700"
-                              text-anchor="middle" fill="#64748b">{{ $p['day'] }}</text>
-                        <text x="{{ $p['x'] }}" y="{{ $vbH - 4 }}" font-size="10" font-weight="600"
-                              text-anchor="middle" fill="#cbd5e1">{{ $p['date'] }}</text>
-                    @endforeach
-                </svg>
-            </div>
-        </div>
-
-        <!-- Recent Activity Feed -->
-        <div class="glass-card p-6 flex flex-col gap-6 h-full">
-            <h3 class="text-[14px] md:text-[18px] font-bold tracking-tight text-slate-900">Giao dịch gần đây</h3>
-            <div class="flex flex-col gap-5">
-                @foreach($activities as $activity)
-                    <a href="{{ route('invoices.detail', $activity->id) }}" class="flex items-center gap-4 group cursor-pointer transition-all hover:translate-x-1">
-                        <div class="w-10 h-10 rounded-full bg-slate-50 border border-slate-200 flex items-center justify-center text-slate-400 group-hover:text-electric-blue group-hover:border-electric-blue/30 transition-all">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v20l2-1 2 1 2-1 2 1 2-1 2 1 2-1 2 1V2l-2 1-2-1-2 1-2-1-2 1-2-1-2 1-2-1Z"/></svg>
-                        </div>
-                        <div class="flex-1 min-w-0">
-                            <div class="flex items-center justify-between gap-2">
-                                <h4 class="text-[11px] md:text-[15px] font-bold text-slate-900 truncate">{{ $activity->customer->full_name ?? 'Khách lẻ' }}</h4>
-                                <span class="text-[11px] md:text-[15px] font-bold text-electric-blue">{{ number_format($activity->final_amount, 0, ',', '.') }}đ</span>
-                            </div>
-                            <div class="flex items-center justify-between gap-2 mt-1">
-                                <span class="text-[9px] md:text-[13px] text-slate-400 uppercase tracking-widest font-mono">{{ $activity->invoice_code }}</span>
-                                <span class="text-[8px] md:text-[12px] text-slate-300">{{ $activity->created_at->diffForHumans() }}</span>
-                            </div>
-                            <div class="flex items-center gap-1.5 mt-1 text-[9px] md:text-[12px] text-slate-500 min-w-0">
-                                <svg xmlns="http://www.w3.org/2000/svg" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-slate-300 shrink-0"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
-                                <span class="truncate min-w-0 flex-1">Người tạo: <span class="font-bold text-slate-700">{{ $activity->user->name ?? $activity->seller_name ?? '—' }}</span></span>
-                            </div>
-                        </div>
-                    </a>
-                @endforeach
-            </div>
-            
-            <a href="{{ route('invoices') }}" class="mt-auto pt-6 border-t border-slate-200 text-[10px] md:text-[14px] font-bold text-electric-blue hover:text-cyan-600 transition-colors uppercase tracking-[0.2em] flex items-center justify-center gap-2">
-                Xem tất cả hóa đơn
-                <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg>
-            </a>
-        </div>
-
-    </div>
-
-    {{-- ─────────────────────────────────────────────────────────────────── --}}
-    {{-- TOP 10 BEST-SELLING PRODUCTS                                      --}}
-    {{-- ─────────────────────────────────────────────────────────────────── --}}
+<div class="h-full min-h-0 overflow-y-auto custom-scrollbar bg-slate-50/60">
     @php
-        $maxQty = collect($topProducts)->max('total_qty') ?: 1;
-        $rangeLabels = [
-            'today' => 'Hôm nay',
-            '7d'    => '7 ngày',
-            '30d'   => '30 ngày',
-            '90d'   => '90 ngày',
-            'year'  => 'Năm nay',
-            'all'   => 'Tất cả',
-        ];
+        $fmt = fn ($v) => number_format((int) $v, 0, ',', '.');
+        $chg = function ($pct) {
+            if ($pct === null) return '<span class="text-slate-300 text-[11px] font-bold">—</span>';
+            $up = $pct > 0; $zero = abs($pct) < 0.005;
+            $cls = $zero ? 'text-slate-400' : ($up ? 'text-emerald-500' : 'text-rose-500');
+            $arrow = $zero ? '' : ($up ? '&#9650;' : '&#9660;');
+            return '<span class="'.$cls.' text-[11px] font-bold whitespace-nowrap">'.$arrow.' '.number_format(abs($pct), 2, ',', '.').'%</span>';
+        };
+        $axisM = function ($v) {
+            if ($v >= 1000000000) return rtrim(rtrim(number_format($v / 1000000000, 1, '.', ''), '0'), '.') . 'B';
+            if ($v >= 1000000) return round($v / 1000000) . 'M';
+            if ($v >= 1000) return round($v / 1000) . 'K';
+            return (string) (int) $v;
+        };
     @endphp
-    <div class="glass-card p-4 md:p-6 flex flex-col gap-5">
-        <div class="flex flex-col md:flex-row md:items-center justify-between gap-3">
-            <div>
-                <h3 class="text-[14px] md:text-[18px] font-bold tracking-tight text-slate-900">Top 10 mặt hàng bán chạy</h3>
-                <p class="text-[9px] md:text-[12px] text-slate-400 uppercase tracking-widest mt-0.5">Theo khoảng thời gian — sắp xếp theo số lượng bán</p>
+
+    {{-- Header --}}
+    <header class="sticky top-0 z-20 px-3 md:px-6 py-3 flex items-center justify-between gap-2 border-b border-slate-200 bg-white/90 backdrop-blur">
+        <h1 class="text-lg font-bold text-slate-900">Tổng quan</h1>
+        <div class="flex items-center gap-1 bg-slate-100 rounded-xl p-1">
+            @foreach(['today' => 'Hôm nay', '7d' => '7 ngày', 'month' => 'Tháng này', 'lastmonth' => 'Tháng trước'] as $rKey => $rLabel)
+                <button wire:click="setRange('{{ $rKey }}')"
+                        class="px-3 py-1.5 text-[12px] font-bold rounded-lg transition-colors {{ $range === $rKey ? 'bg-white text-electric-blue shadow-sm' : 'text-slate-500 hover:text-slate-800' }}">{{ $rLabel }}</button>
+            @endforeach
+        </div>
+    </header>
+
+    <div class="p-3 md:p-6 space-y-5">
+        {{-- ===== KPI cards ===== --}}
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
+            {{-- Tổng hàng chốt --}}
+            <div class="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm">
+                <div class="flex items-center gap-2 mb-4">
+                    <div class="w-9 h-9 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 7h10v10"/><path d="M7 17 17 7"/></svg>
+                    </div>
+                    <h3 class="text-sm font-bold text-slate-700">Tổng hàng chốt</h3>
+                </div>
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <div class="text-[11px] text-slate-400 font-semibold">Tổng tiền</div>
+                        <div class="text-xl font-black text-emerald-600 mt-0.5">{{ $fmt($kpi['chot']['amount']) }} đ</div>
+                        {!! $chg($kpi['chot']['amount_pct']) !!}
+                    </div>
+                    <div>
+                        <div class="text-[11px] text-slate-400 font-semibold">Số lượng</div>
+                        <div class="text-xl font-black text-slate-800 mt-0.5">{{ $fmt($kpi['chot']['qty']) }}</div>
+                        {!! $chg($kpi['chot']['qty_pct']) !!}
+                    </div>
+                </div>
             </div>
 
-            {{-- Range selector --}}
-            <select wire:change="setTopProductsRange($event.target.value)" class="md:hidden bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-[12px] font-bold text-slate-700 focus:outline-none">
-                @foreach($rangeLabels as $key => $label)
-                    <option value="{{ $key }}" @selected($topProductsRange === $key)>{{ $label }}</option>
-                @endforeach
-            </select>
-            <div class="hidden md:flex flex-wrap items-center gap-1 bg-slate-50 border border-slate-200 rounded-xl p-1 shrink-0">
-                @foreach($rangeLabels as $key => $label)
-                    <button wire:click="setTopProductsRange('{{ $key }}')"
-                            class="px-3 py-1.5 rounded-lg text-[10px] md:text-[12px] font-bold uppercase tracking-wider transition-all
-                                   {{ $topProductsRange === $key
-                                      ? 'bg-white text-electric-blue shadow-sm border border-slate-200'
-                                      : 'text-slate-400 hover:text-slate-700' }}">
-                        {{ $label }}
-                    </button>
-                @endforeach
+            {{-- Tổng hàng hoàn --}}
+            <div class="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm">
+                <div class="flex items-center gap-2 mb-4">
+                    <div class="w-9 h-9 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
+                    </div>
+                    <h3 class="text-sm font-bold text-slate-700">Tổng hàng hoàn</h3>
+                </div>
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <div class="text-[11px] text-slate-400 font-semibold">Tổng tiền</div>
+                        <div class="text-xl font-black text-amber-600 mt-0.5">{{ $fmt($kpi['hoan']['amount']) }} đ</div>
+                        {!! $chg($kpi['hoan']['amount_pct']) !!}
+                    </div>
+                    <div>
+                        <div class="text-[11px] text-slate-400 font-semibold">Số lượng</div>
+                        <div class="text-xl font-black text-slate-800 mt-0.5">{{ $fmt($kpi['hoan']['qty']) }}</div>
+                    </div>
+                </div>
+            </div>
+
+            {{-- Có thể bán --}}
+            <div class="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm">
+                <div class="flex items-center justify-between mb-4">
+                    <div class="flex items-center gap-2">
+                        <div class="w-9 h-9 rounded-xl bg-electric-blue/10 text-electric-blue flex items-center justify-center">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"/><path d="m3.3 7 8.7 5 8.7-5"/><path d="M12 22V12"/></svg>
+                        </div>
+                        <h3 class="text-sm font-bold text-slate-700">Có thể bán</h3>
+                    </div>
+                    <div class="text-lg font-black text-slate-800">{{ $fmt($kpi['ton']['qty']) }}</div>
+                </div>
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <div class="text-[11px] text-slate-400 font-semibold">Giá nhập (vốn)</div>
+                        <div class="text-lg font-black text-slate-800 mt-0.5">{{ $fmt($kpi['ton']['cost_value']) }} đ</div>
+                    </div>
+                    <div>
+                        <div class="text-[11px] text-slate-400 font-semibold">Giá bán</div>
+                        <div class="text-lg font-black text-electric-blue mt-0.5">{{ $fmt($kpi['ton']['sale_value']) }} đ</div>
+                    </div>
+                </div>
             </div>
         </div>
 
-        @if(count($topProducts) === 0)
-            <div class="py-10 flex flex-col items-center justify-center text-center opacity-50 gap-2">
-                <svg xmlns="http://www.w3.org/2000/svg" width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="text-slate-300"><path d="M3 3v18h18"/><path d="M7 16h2"/><path d="M11 13h2"/><path d="M15 10h2"/></svg>
-                <p class="text-[11px] font-bold tracking-widest text-slate-400 uppercase">Chưa có dữ liệu trong khoảng này</p>
-            </div>
-        @else
-            <div class="flex flex-col gap-3">
-                @foreach($topProducts as $i => $product)
-                    @php $widthPct = max(2, round(($product['total_qty'] / $maxQty) * 100)); @endphp
-                    <div class="group">
-                        <div class="flex items-center justify-between gap-3 mb-1.5">
-                            <div class="flex items-center gap-2 min-w-0">
-                                <span class="shrink-0 w-6 h-6 rounded-md text-[10px] font-black flex items-center justify-center
-                                             {{ $i < 3 ? 'bg-electric-blue text-white' : 'bg-slate-100 text-slate-500' }}">
-                                    {{ $i + 1 }}
-                                </span>
-                                <div class="min-w-0">
-                                    <h4 class="text-[11px] md:text-[13px] font-bold text-slate-900 truncate">{{ $product['name'] }}</h4>
-                                    <span class="text-[8px] md:text-[10px] font-mono text-slate-400 tracking-widest">{{ $product['sku'] }}</span>
-                                </div>
-                            </div>
-                            <div class="flex items-baseline gap-3 shrink-0 text-right">
-                                <span class="text-[12px] md:text-[14px] font-bold text-slate-900">{{ number_format($product['total_qty'], 0, ',', '.') }}</span>
-                                <span class="text-[9px] md:text-[11px] text-slate-400 uppercase tracking-widest">đã bán</span>
-                                <span class="text-[10px] md:text-[12px] font-bold text-emerald-600 ml-2">{{ number_format($product['total_revenue'], 0, ',', '.') }}đ</span>
-                            </div>
+        {{-- ===== Main: left (charts) + right (today) ===== --}}
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
+            {{-- LEFT --}}
+            <div class="lg:col-span-2 space-y-4">
+                {{-- Revenue split --}}
+                <div class="grid grid-cols-3 gap-3">
+                    @php
+                        $splitCards = [
+                            ['Tổng cộng', $revenueSplit['total'], 'text-slate-900'],
+                            ['Online', $revenueSplit['online'], 'text-electric-blue'],
+                            ['Bán tại quầy', $revenueSplit['quay'], 'text-emerald-600'],
+                        ];
+                    @endphp
+                    @foreach($splitCards as $sc)
+                        <div class="bg-white border border-slate-200 rounded-2xl p-4 shadow-sm">
+                            <div class="text-[12px] font-bold text-slate-500 mb-2">{{ $sc[0] }}</div>
+                            <div class="text-[11px] text-slate-400">Doanh thu</div>
+                            <div class="text-base font-black {{ $sc[2] }}">{{ $fmt($sc[1]['revenue']) }} đ</div>
+                            <div class="text-[11px] text-slate-400 mt-1.5">Đơn chốt <span class="font-bold text-slate-700">{{ $fmt($sc[1]['orders']) }}</span></div>
                         </div>
-                        <div class="w-full h-2 bg-slate-100 rounded-full overflow-hidden">
-                            <div class="h-full rounded-full transition-all duration-500 ease-out
-                                        {{ $i < 3 ? 'bg-gradient-to-r from-electric-blue to-cyan-400' : 'bg-gradient-to-r from-slate-300 to-slate-200' }}"
-                                 style="width: {{ $widthPct }}%;"></div>
+                    @endforeach
+                </div>
+
+                {{-- Metrics + line chart --}}
+                <div class="bg-white border border-slate-200 rounded-2xl p-4 md:p-5 shadow-sm">
+                    <div class="grid grid-cols-3 md:grid-cols-6 gap-3 pb-4 border-b border-slate-100">
+                        @foreach($metrics as $m)
+                            <div>
+                                <div class="text-[10px] font-bold text-slate-400 uppercase tracking-wide">{{ $m['label'] }}</div>
+                                <div class="text-sm font-black text-slate-800 mt-0.5">{{ $fmt($m['value']) }}</div>
+                                {!! $chg($m['pct']) !!}
+                            </div>
+                        @endforeach
+                    </div>
+
+                    {{-- Line chart: kỳ này (đậm) vs kỳ trước (nét đứt) --}}
+                    @php
+                        $curV = $lineChart['cur']; $prevV = $lineChart['prev']; $labels = $lineChart['labels'];
+                        $n = count($curV);
+                        $maxV = max(1, max($curV ?: [0]), max($prevV ?: [0]));
+                        $W = 820; $H = 300; $pl = 44; $pr = 12; $ptp = 12; $pb = 28;
+                        $cw = $W - $pl - $pr; $chh = $H - $ptp - $pb;
+                        $xAt = fn ($i) => $pl + ($n > 1 ? $i * $cw / ($n - 1) : $cw / 2);
+                        $yAt = fn ($v) => $ptp + (1 - $v / $maxV) * $chh;
+                        $ptsCur = implode(' ', array_map(fn ($v, $i) => round($xAt($i), 1) . ',' . round($yAt($v), 1), $curV, array_keys($curV)));
+                        $ptsPrev = implode(' ', array_map(fn ($v, $i) => round($xAt($i), 1) . ',' . round($yAt($v), 1), $prevV, array_keys($prevV)));
+                        $labelStep = max(1, (int) ceil($n / 15));
+                    @endphp
+                    <div class="mt-3">
+                        <svg viewBox="0 0 {{ $W }} {{ $H }}" class="w-full h-auto" preserveAspectRatio="xMidYMid meet">
+                            @for($g = 0; $g <= 4; $g++)
+                                @php $gy = $ptp + $g * $chh / 4; $gv = $maxV * (1 - $g / 4); @endphp
+                                <line x1="{{ $pl }}" y1="{{ round($gy,1) }}" x2="{{ $W - $pr }}" y2="{{ round($gy,1) }}" stroke="#eef2f7" stroke-width="1"/>
+                                <text x="{{ $pl - 6 }}" y="{{ round($gy + 3,1) }}" text-anchor="end" font-size="10" fill="#94a3b8">{{ $axisM($gv) }}</text>
+                            @endfor
+                            <polyline points="{{ $ptsPrev }}" fill="none" stroke="#93c5fd" stroke-width="1.8" stroke-dasharray="5 4" stroke-linejoin="round" stroke-linecap="round"/>
+                            <polyline points="{{ $ptsCur }}" fill="none" stroke="#0088CC" stroke-width="2.4" stroke-linejoin="round" stroke-linecap="round"/>
+                            @foreach($labels as $i => $lb)
+                                @if($i % $labelStep === 0)
+                                    <text x="{{ round($xAt($i),1) }}" y="{{ $H - 8 }}" text-anchor="middle" font-size="9" fill="#94a3b8">{{ $lb }}</text>
+                                @endif
+                            @endforeach
+                        </svg>
+                        <div class="flex items-center justify-center gap-5 mt-1 text-[11px] font-bold">
+                            <span class="flex items-center gap-1.5 text-slate-600"><span class="w-4 h-0.5 bg-electric-blue rounded"></span>Kỳ này</span>
+                            <span class="flex items-center gap-1.5 text-slate-400"><span class="w-4 border-t-2 border-dashed border-blue-300"></span>Kỳ trước</span>
                         </div>
                     </div>
-                @endforeach
+                </div>
             </div>
-        @endif
+
+            {{-- RIGHT: hôm nay --}}
+            <div class="bg-white border border-slate-200 rounded-2xl p-4 md:p-5 shadow-sm space-y-4">
+                <h3 class="text-sm font-bold text-slate-700">Thông tin kinh doanh hôm nay</h3>
+                <div class="grid grid-cols-2 gap-3">
+                    <div class="bg-slate-50 rounded-xl p-3">
+                        <div class="text-[11px] text-slate-400 font-semibold">Doanh thu</div>
+                        <div class="text-lg font-black text-electric-blue">{{ $fmt($today['revenue']) }} đ</div>
+                    </div>
+                    <div class="bg-slate-50 rounded-xl p-3">
+                        <div class="text-[11px] text-slate-400 font-semibold">Đơn chốt</div>
+                        <div class="text-lg font-black text-slate-800">{{ $fmt($today['orders']) }}</div>
+                    </div>
+                </div>
+
+                {{-- Hourly bar chart --}}
+                @php
+                    $hrs = $today['hours']; $maxH = max(1, max($hrs ?: [0]));
+                    $BW = 380; $BH = 150; $bpl = 30; $bpb = 18; $bpt = 8;
+                    $bcw = $BW - $bpl - 6; $bch = $BH - $bpt - $bpb;
+                    $slot = $bcw / 24; $barW = $slot * 0.55;
+                @endphp
+                <svg viewBox="0 0 {{ $BW }} {{ $BH }}" class="w-full h-auto">
+                    @for($g = 0; $g <= 3; $g++)
+                        @php $gy = $bpt + $g * $bch / 3; $gv = $maxH * (1 - $g / 3); @endphp
+                        <line x1="{{ $bpl }}" y1="{{ round($gy,1) }}" x2="{{ $BW - 6 }}" y2="{{ round($gy,1) }}" stroke="#f1f5f9" stroke-width="1"/>
+                        <text x="{{ $bpl - 4 }}" y="{{ round($gy + 3,1) }}" text-anchor="end" font-size="8" fill="#94a3b8">{{ $axisM($gv) }}</text>
+                    @endfor
+                    @foreach($hrs as $h => $v)
+                        @php $bh = $v > 0 ? max(2, $v / $maxH * $bch) : 0; $bx = $bpl + $h * $slot + ($slot - $barW) / 2; $by = $bpt + $bch - $bh; @endphp
+                        @if($bh > 0)
+                            <rect x="{{ round($bx,1) }}" y="{{ round($by,1) }}" width="{{ round($barW,1) }}" height="{{ round($bh,1) }}" rx="2" fill="#14b8a6"/>
+                        @endif
+                        @if($h % 2 === 0)
+                            <text x="{{ round($bpl + $h * $slot + $slot/2,1) }}" y="{{ $BH - 5 }}" text-anchor="middle" font-size="7" fill="#cbd5e1">{{ $h }}h</text>
+                        @endif
+                    @endforeach
+                </svg>
+
+                {{-- split --}}
+                <div class="grid grid-cols-2 gap-3">
+                    <div class="flex items-start gap-2">
+                        <span class="w-2 h-2 rounded-full bg-slate-400 mt-1.5"></span>
+                        <div>
+                            <div class="text-[11px] text-slate-400 font-semibold">Bán tại quầy</div>
+                            <div class="text-sm font-black text-slate-800">{{ $fmt($today['quay']['rev']) }} đ</div>
+                            <div class="text-[11px] text-slate-400">{{ $fmt($today['quay']['orders']) }} đơn</div>
+                        </div>
+                    </div>
+                    <div class="flex items-start gap-2">
+                        <span class="w-2 h-2 rounded-full bg-teal-500 mt-1.5"></span>
+                        <div>
+                            <div class="text-[11px] text-slate-400 font-semibold">Online</div>
+                            <div class="text-sm font-black text-slate-800">{{ $fmt($today['online']['rev']) }} đ</div>
+                            <div class="text-[11px] text-slate-400">{{ $fmt($today['online']['orders']) }} đơn</div>
+                        </div>
+                    </div>
+                </div>
+
+                {{-- tiles --}}
+                <div class="grid grid-cols-3 gap-2">
+                    @php
+                        $tiles = [
+                            ['Đơn tạo mới', $today['created'], 'text-slate-800'],
+                            ['Đơn hủy', $today['cancelled'], 'text-rose-500'],
+                            ['Đơn chốt', $today['chot'], 'text-emerald-600'],
+                            ['Đơn xoá', $today['deleted'], 'text-slate-800'],
+                            ['SL bán thực', $today['qty'], 'text-slate-800'],
+                            ['Khách hàng', $today['customers'], 'text-slate-800'],
+                        ];
+                    @endphp
+                    @foreach($tiles as $t)
+                        <div class="border border-slate-100 rounded-xl p-2.5 text-center">
+                            <div class="text-[10px] text-slate-400 font-semibold">{{ $t[0] }}</div>
+                            <div class="text-base font-black {{ $t[2] }}">{{ $fmt($t[1]) }}</div>
+                        </div>
+                    @endforeach
+                </div>
+            </div>
+        </div>
+
+        {{-- ===== Kho hàng (chi nhánh) ===== --}}
+        <x-dashboard.table title="Kho hàng"
+            :head="['Kho hàng','Doanh thu','Doanh số','Chiết khấu','Đơn chốt','Số lượng bán','GTTB']"
+            :rows="collect($branches)->map(fn($r) => [$r['label'], $fmt($r['revenue']).' đ', $fmt($r['goods']).' đ', $fmt($r['discount']).' đ', $fmt($r['orders']), $fmt($r['qty']), $fmt($r['aov']).' đ'])->all()" />
+
+        {{-- ===== Nguồn đơn (kênh) ===== --}}
+        <x-dashboard.table title="Nguồn đơn"
+            :head="['Nguồn đơn','Doanh thu','Lợi nhuận','Doanh số','Chiết khấu','Đơn chốt','Số lượng bán','GTTB']"
+            :rows="collect($sources)->map(fn($r) => [$r['label'], $fmt($r['revenue']).' đ', $fmt($r['profit']).' đ', $fmt($r['goods']).' đ', $fmt($r['discount']).' đ', $fmt($r['orders']), $fmt($r['qty']), $fmt($r['aov']).' đ'])->all()" />
+
+        {{-- ===== Sản phẩm + Nhân viên ===== --}}
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+            <x-dashboard.table title="Sản phẩm"
+                :head="['Thông tin sản phẩm','Doanh thu','SL bán']"
+                :rows="collect($products)->map(fn($r) => [$r['sku'].' — '.$r['name'], $fmt($r['revenue']).' đ', $fmt($r['qty'])])->all()" />
+
+            <x-dashboard.table title="Nhân viên"
+                :head="['Nhân viên','Doanh thu','Doanh số','Chiết khấu','Đơn chốt','Tỷ lệ chốt']"
+                :rows="collect($staff)->map(fn($r) => [$r['label'], $fmt($r['revenue']).' đ', $fmt($r['goods']).' đ', $fmt($r['discount']).' đ', $fmt($r['orders']), number_format($r['rate'],1,',','.').'%'])->all()" />
+        </div>
     </div>
 </div>
