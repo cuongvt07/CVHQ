@@ -53,7 +53,7 @@
         @if(auth()->user()?->hasPermission('products') || auth()->user()?->hasPermission('categories') || auth()->user()?->hasPermission('commissions') || auth()->user()?->hasPermission('reports'))
         <div x-data="{ open: @js(request()->routeIs('products*') || request()->routeIs('categories') || request()->routeIs('commissions') || request()->routeIs('reports.*')) }">
             <button type="button" @click="open = !open" class="w-full flex items-center justify-between px-4 mb-2">
-                <h3 class="text-[9px] font-bold tracking-[0.3em] text-slate-500 whitespace-nowrap">Hàng hóa</h3>
+                <h3 class="text-[11px] font-bold tracking-[0.12em] text-slate-600 whitespace-nowrap uppercase">Hàng hóa</h3>
                 <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="text-slate-400 transition-transform" :class="open ? 'rotate-180' : ''"><path d="m6 9 6 6 6-6"/></svg>
             </button>
             <div x-show="open" x-transition.opacity.duration.150ms class="flex flex-col gap-1">
@@ -111,7 +111,7 @@
         @if(auth()->user()?->hasPermission('pos') || auth()->user()?->hasPermission('invoices'))
         <div x-data="{ open: @js(request()->routeIs('pos') || request()->routeIs('invoices*')) }">
             <button type="button" @click="open = !open" class="w-full flex items-center justify-between px-4 mb-2">
-                <h3 class="text-[9px] font-bold tracking-[0.3em] text-slate-500 whitespace-nowrap">Giao dịch</h3>
+                <h3 class="text-[11px] font-bold tracking-[0.12em] text-slate-600 whitespace-nowrap uppercase">Giao dịch</h3>
                 <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="text-slate-400 transition-transform" :class="open ? 'rotate-180' : ''"><path d="m6 9 6 6 6-6"/></svg>
             </button>
             <div x-show="open" x-transition.opacity.duration.150ms class="flex flex-col gap-1">
@@ -141,7 +141,7 @@
         @if(auth()->user()?->hasPermission('customers'))
         <div x-data="{ open: @js(request()->routeIs('customers')) }">
             <button type="button" @click="open = !open" class="w-full flex items-center justify-between px-4 mb-2">
-                <h3 class="text-[9px] font-bold tracking-[0.3em] text-slate-500 whitespace-nowrap">Đối tác</h3>
+                <h3 class="text-[11px] font-bold tracking-[0.12em] text-slate-600 whitespace-nowrap uppercase">Đối tác</h3>
                 <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="text-slate-400 transition-transform" :class="open ? 'rotate-180' : ''"><path d="m6 9 6 6 6-6"/></svg>
             </button>
             <div x-show="open" x-transition.opacity.duration.150ms class="flex flex-col gap-1">
@@ -157,7 +157,7 @@
         @if(auth()->user()?->hasPermission('users'))
         <div x-data="{ open: @js(request()->routeIs('users') || request()->routeIs('system.*') || request()->routeIs('branches')) }">
             <button type="button" @click="open = !open" class="w-full flex items-center justify-between px-4 mb-2">
-                <h3 class="text-[9px] font-bold tracking-[0.3em] text-slate-500 whitespace-nowrap">Hệ thống</h3>
+                <h3 class="text-[11px] font-bold tracking-[0.12em] text-slate-600 whitespace-nowrap uppercase">Hệ thống</h3>
                 <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="text-slate-400 transition-transform" :class="open ? 'rotate-180' : ''"><path d="m6 9 6 6 6-6"/></svg>
             </button>
             <div x-show="open" x-transition.opacity.duration.150ms class="flex flex-col gap-1">
@@ -188,7 +188,7 @@
         @if(auth()->user()?->hasPermission('commissions') || auth()->user()?->hasPermission('users'))
         <div x-data="{ open: @js(request()->routeIs('commissions.settings')) }">
             <button type="button" @click="open = !open" class="w-full flex items-center justify-between px-4 mb-2">
-                <h3 class="text-[9px] font-bold tracking-[0.3em] text-slate-500 whitespace-nowrap">Cấu hình</h3>
+                <h3 class="text-[11px] font-bold tracking-[0.12em] text-slate-600 whitespace-nowrap uppercase">Cấu hình</h3>
                 <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="text-slate-400 transition-transform" :class="open ? 'rotate-180' : ''"><path d="m6 9 6 6 6-6"/></svg>
             </button>
             <div x-show="open" x-transition.opacity.duration.150ms class="flex flex-col gap-1">
