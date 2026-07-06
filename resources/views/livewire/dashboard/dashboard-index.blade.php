@@ -176,38 +176,48 @@
                     <div class="mt-3 relative" x-data="{
                             pts: @js($lineChart['points']),
                             coords: @js($coords),
-                            tip: { show: false, x: 0, y: 0, i: 0 },
-                            show(e, i) { const r = $el.getBoundingClientRect(); this.tip = { show: true, x: e.clientX - r.left, y: e.clientY - r.top, i }; },
+                            n: {{ $n }}, W: {{ $W }}, H: {{ $H }}, pl: {{ $pl }}, cw: {{ $cw }},
+                            tip: { show: false, i: 0, left: 0, top: 0 },
+                            move(e) {
+                                const r = this.$refs.svg.getBoundingClientRect();
+                                if (!r.width) return;
+                                const step = this.n > 1 ? this.cw / (this.n - 1) : 1;
+                                const svgX = (e.clientX - r.left) / r.width * this.W;
+                                let i = Math.round((svgX - this.pl) / step);
+                                i = Math.max(0, Math.min(this.n - 1, i));
+                                const cont = this.$el.getBoundingClientRect();
+                                const px = r.left + this.coords[i].x / this.W * r.width - cont.left;
+                                const py = r.top + this.coords[i].y / this.H * r.height - cont.top;
+                                this.tip = { show: true, i, left: px, top: py };
+                            },
                             fmt(v) { return (v || 0).toLocaleString('vi-VN'); },
                             trendTxt(t) { if (t === null || t === undefined) return '—'; const a = Math.abs(t).toFixed(2).replace('.', ','); return (t > 0 ? '▲ ' : (t < 0 ? '▼ ' : '')) + a + '%'; },
                             trendCls(t) { if (t === null || t === undefined) return 'text-slate-400'; return t > 0 ? 'text-emerald-500 font-bold' : (t < 0 ? 'text-rose-500 font-bold' : 'text-slate-400'); },
-                         }" @mouseleave="tip.show = false">
-                        <svg viewBox="0 0 {{ $W }} {{ $H }}" class="w-full h-auto" preserveAspectRatio="xMidYMid meet">
+                         }">
+                        <svg x-ref="svg" viewBox="0 0 {{ $W }} {{ $H }}" class="w-full h-auto" preserveAspectRatio="none"
+                             @mousemove="move($event)" @mouseleave="tip.show = false" style="touch-action:none">
+                            <rect x="0" y="0" width="{{ $W }}" height="{{ $H }}" fill="transparent"/>
                             @for($g = 0; $g <= 4; $g++)
                                 @php $gy = $ptp + $g * $chh / 4; $gv = $maxV * (1 - $g / 4); @endphp
                                 <line x1="{{ $pl }}" y1="{{ round($gy,1) }}" x2="{{ $W - $pr }}" y2="{{ round($gy,1) }}" stroke="#eef2f7" stroke-width="1"/>
                                 <text x="{{ $pl - 6 }}" y="{{ round($gy + 3,1) }}" text-anchor="end" font-size="10" fill="#94a3b8">{{ $axisM($gv) }}</text>
                             @endfor
-                            {{-- đường dóng khi hover --}}
+                            {{-- đường dóng theo điểm gần nhất --}}
                             <line x-show="tip.show" x-cloak :x1="coords[tip.i].x" :x2="coords[tip.i].x" y1="{{ $ptp }}" y2="{{ $ptp + $chh }}" stroke="#cbd5e1" stroke-width="1" stroke-dasharray="3 3" class="pointer-events-none"/>
-                            <polyline points="{{ $ptsPrev }}" fill="none" stroke="#93c5fd" stroke-width="1.8" stroke-dasharray="5 4" stroke-linejoin="round" stroke-linecap="round"/>
-                            <polyline points="{{ $ptsCur }}" fill="none" stroke="#0088CC" stroke-width="2.4" stroke-linejoin="round" stroke-linecap="round"/>
-                            {{-- điểm nổi bật khi hover --}}
+                            <polyline points="{{ $ptsPrev }}" fill="none" stroke="#93c5fd" stroke-width="1.8" stroke-dasharray="5 4" stroke-linejoin="round" stroke-linecap="round" class="pointer-events-none"/>
+                            <polyline points="{{ $ptsCur }}" fill="none" stroke="#0088CC" stroke-width="2.4" stroke-linejoin="round" stroke-linecap="round" class="pointer-events-none"/>
+                            {{-- chấm bám điểm gần nhất --}}
                             <circle x-show="tip.show" x-cloak :cx="coords[tip.i].x" :cy="coords[tip.i].y" r="4.5" fill="#0088CC" stroke="white" stroke-width="2" class="pointer-events-none"/>
-                            {{-- vùng bắt hover từng ngày --}}
-                            @foreach($coords as $i => $c)
-                                <circle cx="{{ $c['x'] }}" cy="{{ $c['y'] }}" r="9" fill="transparent" style="cursor:pointer" @mouseenter="show($event, {{ $i }})"/>
-                            @endforeach
                             @foreach($labels as $i => $lb)
                                 @if($i % $labelStep === 0)
-                                    <text x="{{ round($xAt($i),1) }}" y="{{ $H - 8 }}" text-anchor="middle" font-size="9" fill="#94a3b8">{{ $lb }}</text>
+                                    <text x="{{ round($xAt($i),1) }}" y="{{ $H - 8 }}" text-anchor="middle" font-size="9" fill="#94a3b8" class="pointer-events-none">{{ $lb }}</text>
                                 @endif
                             @endforeach
                         </svg>
 
-                        {{-- Tooltip --}}
-                        <div x-show="tip.show" x-cloak class="absolute z-30 pointer-events-none bg-white border border-slate-200 rounded-xl shadow-lg px-3 py-2 text-[11px] leading-relaxed w-max"
-                             :style="`left: ${tip.x + 14}px; top: ${Math.max(tip.y - 72, 4)}px`">
+                        {{-- Tooltip: bám phía trên điểm --}}
+                        <div x-show="tip.show" x-cloak class="absolute z-30 pointer-events-none bg-white border border-slate-200 rounded-xl shadow-lg px-3 py-2 text-[11px] leading-relaxed w-max -translate-x-1/2 -translate-y-full transition-[left,top] duration-75 ease-out"
+                             :style="`left: ${tip.left}px; top: ${Math.max(tip.top - 12, 8)}px`">
                             <template x-if="pts[tip.i]">
                                 <div>
                                     <div class="font-bold text-slate-700 mb-0.5" x-text="pts[tip.i].date + ' vs ' + pts[tip.i].cmp"></div>
