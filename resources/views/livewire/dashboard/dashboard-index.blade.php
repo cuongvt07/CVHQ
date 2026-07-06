@@ -17,13 +17,40 @@
     @endphp
 
     {{-- Header --}}
-    <header class="sticky top-0 z-20 px-3 md:px-6 py-3 flex items-center justify-between gap-2 border-b border-slate-200 bg-white/90 backdrop-blur">
+    <header class="sticky top-0 z-20 px-3 md:px-6 py-3 flex items-center justify-between gap-2 border-b border-slate-200 bg-white/90 backdrop-blur flex-wrap">
         <h1 class="text-lg font-bold text-slate-900">Tổng quan</h1>
-        <div class="flex items-center gap-1 bg-slate-100 rounded-xl p-1">
-            @foreach(['today' => 'Hôm nay', '7d' => '7 ngày', 'month' => 'Tháng này', 'lastmonth' => 'Tháng trước'] as $rKey => $rLabel)
-                <button wire:click="setRange('{{ $rKey }}')"
-                        class="px-3 py-1.5 text-[12px] font-bold rounded-lg transition-colors {{ $range === $rKey ? 'bg-white text-electric-blue shadow-sm' : 'text-slate-500 hover:text-slate-800' }}">{{ $rLabel }}</button>
-            @endforeach
+        <div class="flex items-center gap-2 flex-wrap">
+            {{-- Khoảng thời gian: preset + tùy chọn --}}
+            <div x-data="{ open: false }" class="relative">
+                <button @click="open = !open" class="flex items-center gap-1.5 px-3 py-2 bg-white border border-slate-200 rounded-lg text-[12px] font-bold text-slate-600 hover:border-electric-blue transition-colors">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="4" rx="2"/><path d="M3 10h18M8 2v4M16 2v4"/></svg>
+                    Khoảng thời gian
+                    <svg xmlns="http://www.w3.org/2000/svg" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" :class="open ? 'rotate-180' : ''" class="transition-transform"><polyline points="6 9 12 15 18 9"/></svg>
+                </button>
+                <div x-show="open" @click.outside="open = false" x-transition x-cloak class="absolute left-0 mt-2 w-52 bg-white border border-slate-200 rounded-xl shadow-xl z-[70] p-2">
+                    @foreach(['today' => 'Hôm nay', 'yesterday' => 'Hôm qua', '7d' => '7 ngày qua', '30d' => '30 ngày qua', '90d' => '90 ngày qua', 'lastmonth' => 'Tháng trước', 'weektodate' => 'Đầu tuần đến nay', 'monthtodate' => 'Đầu tháng đến nay'] as $pKey => $pLabel)
+                        <button wire:click="setPreset('{{ $pKey }}')" @click="open = false" class="w-full text-left px-3 py-1.5 rounded-lg text-[12px] font-semibold text-slate-600 hover:bg-slate-50 hover:text-electric-blue transition-colors">{{ $pLabel }}</button>
+                    @endforeach
+                    <div class="border-t border-slate-100 mt-2 pt-2 flex items-center gap-1.5 px-1">
+                        <input type="date" wire:model.live="fromDate" class="w-full bg-slate-50 border border-slate-200 rounded-lg px-1.5 py-1 text-[11px] focus:outline-none focus:border-electric-blue">
+                        <span class="text-slate-400 text-xs">→</span>
+                        <input type="date" wire:model.live="toDate" class="w-full bg-slate-50 border border-slate-200 rounded-lg px-1.5 py-1 text-[11px] focus:outline-none focus:border-electric-blue">
+                    </div>
+                </div>
+            </div>
+
+            {{-- So sánh với --}}
+            <div class="flex items-center gap-1.5">
+                <span class="text-[11px] font-bold text-slate-400 whitespace-nowrap">So sánh với</span>
+                <select wire:model.live="compareWith" class="bg-white border border-slate-200 rounded-lg px-2 py-2 text-[12px] font-bold text-slate-600 focus:outline-none focus:border-electric-blue cursor-pointer">
+                    <option value="1d">Trước đó 1 ngày</option>
+                    <option value="7d">Trước đó 7 ngày</option>
+                    <option value="28d">Trước đó 28 ngày</option>
+                    <option value="90d">Trước đó 90 ngày</option>
+                    <option value="prevmonth">Cùng kỳ tháng trước</option>
+                    <option value="prevyear">Cùng kỳ năm trước</option>
+                </select>
+            </div>
         </div>
     </header>
 
@@ -132,7 +159,7 @@
                         @endforeach
                     </div>
 
-                    {{-- Line chart: kỳ này (đậm) vs kỳ trước (nét đứt) --}}
+                    {{-- Line chart: kỳ này (đậm) vs kỳ trước (nét đứt) + hover tooltip --}}
                     @php
                         $curV = $lineChart['cur']; $prevV = $lineChart['prev']; $labels = $lineChart['labels'];
                         $n = count($curV);
@@ -143,23 +170,54 @@
                         $yAt = fn ($v) => $ptp + (1 - $v / $maxV) * $chh;
                         $ptsCur = implode(' ', array_map(fn ($v, $i) => round($xAt($i), 1) . ',' . round($yAt($v), 1), $curV, array_keys($curV)));
                         $ptsPrev = implode(' ', array_map(fn ($v, $i) => round($xAt($i), 1) . ',' . round($yAt($v), 1), $prevV, array_keys($prevV)));
+                        $coords = array_map(fn ($v, $i) => ['x' => round($xAt($i), 1), 'y' => round($yAt($v), 1)], $curV, array_keys($curV));
                         $labelStep = max(1, (int) ceil($n / 15));
                     @endphp
-                    <div class="mt-3">
+                    <div class="mt-3 relative" x-data="{
+                            pts: @js($lineChart['points']),
+                            coords: @js($coords),
+                            tip: { show: false, x: 0, y: 0, i: 0 },
+                            show(e, i) { const r = $el.getBoundingClientRect(); this.tip = { show: true, x: e.clientX - r.left, y: e.clientY - r.top, i }; },
+                            fmt(v) { return (v || 0).toLocaleString('vi-VN'); },
+                            trendTxt(t) { if (t === null || t === undefined) return '—'; const a = Math.abs(t).toFixed(2).replace('.', ','); return (t > 0 ? '▲ ' : (t < 0 ? '▼ ' : '')) + a + '%'; },
+                            trendCls(t) { if (t === null || t === undefined) return 'text-slate-400'; return t > 0 ? 'text-emerald-500 font-bold' : (t < 0 ? 'text-rose-500 font-bold' : 'text-slate-400'); },
+                         }" @mouseleave="tip.show = false">
                         <svg viewBox="0 0 {{ $W }} {{ $H }}" class="w-full h-auto" preserveAspectRatio="xMidYMid meet">
                             @for($g = 0; $g <= 4; $g++)
                                 @php $gy = $ptp + $g * $chh / 4; $gv = $maxV * (1 - $g / 4); @endphp
                                 <line x1="{{ $pl }}" y1="{{ round($gy,1) }}" x2="{{ $W - $pr }}" y2="{{ round($gy,1) }}" stroke="#eef2f7" stroke-width="1"/>
                                 <text x="{{ $pl - 6 }}" y="{{ round($gy + 3,1) }}" text-anchor="end" font-size="10" fill="#94a3b8">{{ $axisM($gv) }}</text>
                             @endfor
+                            {{-- đường dóng khi hover --}}
+                            <line x-show="tip.show" x-cloak :x1="coords[tip.i].x" :x2="coords[tip.i].x" y1="{{ $ptp }}" y2="{{ $ptp + $chh }}" stroke="#cbd5e1" stroke-width="1" stroke-dasharray="3 3" class="pointer-events-none"/>
                             <polyline points="{{ $ptsPrev }}" fill="none" stroke="#93c5fd" stroke-width="1.8" stroke-dasharray="5 4" stroke-linejoin="round" stroke-linecap="round"/>
                             <polyline points="{{ $ptsCur }}" fill="none" stroke="#0088CC" stroke-width="2.4" stroke-linejoin="round" stroke-linecap="round"/>
+                            {{-- điểm nổi bật khi hover --}}
+                            <circle x-show="tip.show" x-cloak :cx="coords[tip.i].x" :cy="coords[tip.i].y" r="4.5" fill="#0088CC" stroke="white" stroke-width="2" class="pointer-events-none"/>
+                            {{-- vùng bắt hover từng ngày --}}
+                            @foreach($coords as $i => $c)
+                                <circle cx="{{ $c['x'] }}" cy="{{ $c['y'] }}" r="9" fill="transparent" style="cursor:pointer" @mouseenter="show($event, {{ $i }})"/>
+                            @endforeach
                             @foreach($labels as $i => $lb)
                                 @if($i % $labelStep === 0)
                                     <text x="{{ round($xAt($i),1) }}" y="{{ $H - 8 }}" text-anchor="middle" font-size="9" fill="#94a3b8">{{ $lb }}</text>
                                 @endif
                             @endforeach
                         </svg>
+
+                        {{-- Tooltip --}}
+                        <div x-show="tip.show" x-cloak class="absolute z-30 pointer-events-none bg-white border border-slate-200 rounded-xl shadow-lg px-3 py-2 text-[11px] leading-relaxed w-max"
+                             :style="`left: ${tip.x + 14}px; top: ${Math.max(tip.y - 72, 4)}px`">
+                            <template x-if="pts[tip.i]">
+                                <div>
+                                    <div class="font-bold text-slate-700 mb-0.5" x-text="pts[tip.i].date + ' vs ' + pts[tip.i].cmp"></div>
+                                    <div class="text-slate-500">Doanh số: <b class="text-slate-900" x-text="fmt(pts[tip.i].rev)"></b> đ</div>
+                                    <div class="text-slate-500">Xu hướng: <span :class="trendCls(pts[tip.i].trend)" x-text="trendTxt(pts[tip.i].trend)"></span></div>
+                                    <div class="text-slate-500">Số đơn: <b class="text-slate-900" x-text="pts[tip.i].orders"></b></div>
+                                </div>
+                            </template>
+                        </div>
+
                         <div class="flex items-center justify-center gap-5 mt-1 text-[11px] font-bold">
                             <span class="flex items-center gap-1.5 text-slate-600"><span class="w-4 h-0.5 bg-electric-blue rounded"></span>Kỳ này</span>
                             <span class="flex items-center gap-1.5 text-slate-400"><span class="w-4 border-t-2 border-dashed border-blue-300"></span>Kỳ trước</span>

@@ -17,39 +17,81 @@ class DashboardIndex extends Component
 {
     use HasPermissions;
 
-    // today | 7d | month | lastmonth
-    public string $range = 'month';
+    public string $fromDate = '';
+    public string $toDate = '';
+    public string $compareWith = '7d'; // 1d|7d|28d|90d|prevmonth|prevyear
+
+    protected $queryString = [
+        'fromDate' => ['except' => ''],
+        'toDate' => ['except' => ''],
+        'compareWith' => ['except' => '7d'],
+    ];
 
     protected function getModuleKey(): string
     {
         return 'dashboard';
     }
 
-    public function setRange(string $range): void
+    public function mount(): void
     {
-        if (in_array($range, ['today', '7d', 'month', 'lastmonth'], true)) {
-            $this->range = $range;
+        if ($this->fromDate === '') {
+            $this->fromDate = now()->startOfMonth()->toDateString();
+        }
+        if ($this->toDate === '') {
+            $this->toDate = now()->toDateString();
+        }
+    }
+
+    /** Đặt nhanh khoảng thời gian. */
+    public function setPreset(string $preset): void
+    {
+        $now = now();
+        [$f, $t] = match ($preset) {
+            'today' => [$now->copy()->startOfDay(), $now->copy()],
+            'yesterday' => [$now->copy()->subDay()->startOfDay(), $now->copy()->subDay()->endOfDay()],
+            '7d' => [$now->copy()->subDays(6)->startOfDay(), $now->copy()],
+            '30d' => [$now->copy()->subDays(29)->startOfDay(), $now->copy()],
+            '90d' => [$now->copy()->subDays(89)->startOfDay(), $now->copy()],
+            'lastmonth' => [$now->copy()->subMonthNoOverflow()->startOfMonth(), $now->copy()->subMonthNoOverflow()->endOfMonth()],
+            'weektodate' => [$now->copy()->startOfWeek(), $now->copy()],
+            'monthtodate' => [$now->copy()->startOfMonth(), $now->copy()],
+            default => [$now->copy()->startOfMonth(), $now->copy()],
+        };
+        $this->fromDate = $f->toDateString();
+        $this->toDate = $t->toDateString();
+    }
+
+    public function setCompare(string $c): void
+    {
+        if (in_array($c, ['1d', '7d', '28d', '90d', 'prevmonth', 'prevyear'], true)) {
+            $this->compareWith = $c;
         }
     }
 
     /** [from, to] của kỳ hiện tại. */
     protected function bounds(): array
     {
-        $now = now();
-        return match ($this->range) {
-            'today' => [$now->copy()->startOfDay(), $now->copy()->endOfDay()],
-            '7d' => [$now->copy()->subDays(6)->startOfDay(), $now->copy()->endOfDay()],
-            'lastmonth' => [$now->copy()->subMonthNoOverflow()->startOfMonth(), $now->copy()->subMonthNoOverflow()->endOfMonth()],
-            default => [$now->copy()->startOfMonth(), $now->copy()->endOfDay()], // month
+        return [Carbon::parse($this->fromDate)->startOfDay(), Carbon::parse($this->toDate)->endOfDay()];
+    }
+
+    /** Lùi 1 mốc thời gian theo lựa chọn "So sánh với". */
+    protected function shiftBack(Carbon $d): Carbon
+    {
+        return match ($this->compareWith) {
+            '1d' => $d->copy()->subDay(),
+            '28d' => $d->copy()->subDays(28),
+            '90d' => $d->copy()->subDays(90),
+            'prevmonth' => $d->copy()->subMonthNoOverflow(),
+            'prevyear' => $d->copy()->subYear(),
+            default => $d->copy()->subDays(7),
         };
     }
 
-    /** [from, to] của kỳ liền trước (cùng độ dài) để so sánh. */
+    /** [from, to] của kỳ so sánh. */
     protected function prevBounds(): array
     {
         [$from, $to] = $this->bounds();
-        $days = $from->diffInDays($to) + 1;
-        return [$from->copy()->subDays($days)->startOfDay(), $from->copy()->subDay()->endOfDay()];
+        return [$this->shiftBack($from)->startOfDay(), $this->shiftBack($to)->endOfDay()];
     }
 
     protected function invoiceQuery($from, $to)
@@ -211,23 +253,40 @@ class DashboardIndex extends Component
 
     protected function lineChart($from, $to, $pf, $pt): array
     {
-        $curByDay = $this->invoiceQuery($from, $to)->selectRaw('DATE(created_at) d, SUM(final_amount) t')
-            ->groupBy('d')->pluck('t', 'd');
+        // Doanh thu + số đơn theo ngày (kỳ hiện tại + kỳ so sánh).
+        $curByDay = $this->invoiceQuery($from, $to)->selectRaw('DATE(created_at) d, SUM(final_amount) t, COUNT(*) o')
+            ->groupBy('d')->get()->keyBy('d');
         $prevByDay = $this->invoiceQuery($pf, $pt)->selectRaw('DATE(created_at) d, SUM(final_amount) t')
             ->groupBy('d')->pluck('t', 'd');
 
-        $days = $from->diffInDays($to) + 1;
+        $days = $from->copy()->startOfDay()->diffInDays($to->copy()->startOfDay()) + 1;
+        $days = max(1, min($days, 120)); // giới hạn an toàn
+
         $cur = [];
         $prev = [];
         $labels = [];
+        $points = [];
         for ($i = 0; $i < $days; $i++) {
             $d = $from->copy()->addDays($i);
-            $pd = $pf->copy()->addDays($i);
+            $pd = $this->shiftBack($d);
+            $revKey = $d->format('Y-m-d');
+            $rev = (int) ($curByDay[$revKey]->t ?? 0);
+            $ord = (int) ($curByDay[$revKey]->o ?? 0);
+            $prevRev = (int) ($prevByDay[$pd->format('Y-m-d')] ?? 0);
+
+            $cur[] = $rev;
+            $prev[] = $prevRev;
             $labels[] = $d->format('d/m');
-            $cur[] = (int) ($curByDay[$d->format('Y-m-d')] ?? 0);
-            $prev[] = (int) ($prevByDay[$pd->format('Y-m-d')] ?? 0);
+            $points[] = [
+                'date' => $d->format('d/m/Y'),
+                'cmp' => $pd->format('d/m/Y'),
+                'rev' => $rev,
+                'prev' => $prevRev,
+                'orders' => $ord,
+                'trend' => self::pct($rev, $prevRev),
+            ];
         }
-        return ['labels' => $labels, 'cur' => $cur, 'prev' => $prev];
+        return ['labels' => $labels, 'cur' => $cur, 'prev' => $prev, 'points' => $points];
     }
 
     protected function today(): array
