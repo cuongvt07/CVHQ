@@ -8,6 +8,8 @@ use App\Models\Product;
 use App\Models\Customer;
 use App\Models\Branch;
 use App\Livewire\Pos\PosTerminal;
+use App\Exports\DashboardExport;
+use Maatwebsite\Excel\Facades\Excel;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
 use Livewire\Component;
@@ -175,6 +177,31 @@ class DashboardIndex extends Component
             'products' => $this->topProducts($from, $to),
             'staff' => $this->byStaff($from, $to),
         ])->layout('layouts.app');
+    }
+
+    public function export()
+    {
+        if (!auth()->user()?->hasPermission('dashboard')) {
+            $this->dispatch('notify', message: 'Bạn không có quyền xuất báo cáo!', type: 'error');
+            return;
+        }
+
+        [$from, $to] = $this->bounds();
+        [$pf, $pt] = $this->prevBounds();
+        $cur = $this->aggregate($from, $to);
+        $prev = $this->aggregate($pf, $pt);
+
+        return Excel::download(new DashboardExport(
+            $this->fromDate,
+            $this->toDate,
+            $this->kpi($from, $to, $pf, $pt, $cur, $prev),
+            $this->metrics($cur, $prev),
+            $this->revenueSplit($from, $to),
+            $this->byBranch($from, $to),
+            $this->bySource($from, $to),
+            $this->topProducts($from, $to),
+            $this->byStaff($from, $to),
+        ), 'bao-cao-tong-quan_' . $this->fromDate . '_' . $this->toDate . '.xlsx');
     }
 
     protected function kpi($from, $to, $pf, $pt, $cur, $prev): array
