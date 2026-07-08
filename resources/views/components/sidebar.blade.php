@@ -35,172 +35,138 @@
     </div>
 
     <!-- Navigation Groups -->
-    <div class="flex-1 flex flex-col gap-6 px-4">
+    <div class="flex-1 flex flex-col gap-5 px-4">
         @auth
 
-        <!-- Dashboard -->
+        {{-- TỔNG QUAN --}}
         @if(auth()->user()?->hasPermission('dashboard'))
-        <div>
-            <a href="{{ route('dashboard') }}"
-               class="flex items-center gap-3 px-4 py-2.5 rounded-xl transition-all group {{ request()->routeIs('dashboard') ? 'bg-electric-blue/10 text-electric-blue border border-electric-blue/20 shadow-[0_4px_20px_rgba(0,136,204,0.1)]' : 'text-slate-500 hover:text-slate-900 hover:bg-slate-200/50 border border-transparent' }}">
-                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="shrink-0"><path d="M3 9h18v10a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V9Z"/><path d="m3 9 2.45-4.9A2 2 0 0 1 7.24 3h9.52a2 2 0 0 1 1.8 1.1L21 9"/></svg>
-                <span class="text-[13px] font-bold tracking-wider whitespace-nowrap">Tổng quan</span>
-            </a>
-        </div>
+        <a href="{{ route('dashboard') }}"
+           class="flex items-center gap-3 px-4 py-2.5 rounded-xl transition-all {{ request()->routeIs('dashboard') ? 'bg-electric-blue/10 text-electric-blue border border-electric-blue/20 shadow-[0_4px_20px_rgba(0,136,204,0.1)]' : 'text-slate-500 hover:text-slate-900 hover:bg-slate-200/50 border border-transparent' }}">
+            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="shrink-0"><path d="M3 9h18v10a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V9Z"/><path d="m3 9 2.45-4.9A2 2 0 0 1 7.24 3h9.52a2 2 0 0 1 1.8 1.1L21 9"/></svg>
+            <span class="text-[13px] font-bold tracking-wider whitespace-nowrap">Tổng quan</span>
+        </a>
         @endif
 
-        <!-- Hàng hóa -->
-        @if(auth()->user()?->hasPermission('products') || auth()->user()?->hasPermission('categories') || auth()->user()?->hasPermission('commissions') || auth()->user()?->hasPermission('reports'))
-        <div x-data="{ open: @js(request()->routeIs('products*') || request()->routeIs('categories') || request()->routeIs('commissions') || request()->routeIs('reports.*')) }">
-            <button type="button" @click="open = !open" class="w-full flex items-center justify-between px-4 mb-2">
-                <h3 class="text-[11px] font-bold tracking-[0.12em] text-slate-600 whitespace-nowrap uppercase">Hàng hóa</h3>
-                <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="text-slate-400 transition-transform" :class="open ? 'rotate-180' : ''"><path d="m6 9 6 6 6-6"/></svg>
-            </button>
-            <div x-show="open" x-transition.opacity.duration.150ms class="flex flex-col gap-1">
-                @if(auth()->user()?->hasPermission('products'))
-                <a href="{{ route('products') }}" class="flex items-center gap-3 px-4 py-2.5 rounded-xl transition-all {{ request()->routeIs('products') ? 'bg-electric-blue/10 text-electric-blue border border-electric-blue/20' : 'text-slate-500 hover:text-slate-900 hover:bg-slate-200/50 border border-transparent' }}">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="shrink-0"><path d="m7.5 4.27 9 5.15"/><path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"/><path d="m3.3 7 8.7 5 8.7-5"/><path d="M12 22V12"/></svg>
-                    <span class="text-sm font-medium whitespace-nowrap">Sản phẩm</span>
-                </a>
-
-                <a href="{{ route('products.restock') }}" class="flex items-center gap-2 px-3 py-2.5 rounded-xl transition-all [&>span]:min-w-0 [&>span]:flex-1 [&>span]:whitespace-normal [&>span]:break-words [&>span]:text-[13px] [&>span]:leading-4 {{ request()->routeIs('products.restock') ? 'bg-electric-blue/10 text-electric-blue border border-electric-blue/20' : 'text-slate-500 hover:text-slate-900 hover:bg-slate-200/50 border border-transparent' }}">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="shrink-0"><path d="M12 20v-6a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2v6"/><path d="M6 18H21"/><path d="M18 18v-4a2 2 0 0 0-2-2h-4"/></svg>
-                    <span class="text-sm font-medium whitespace-nowrap">Dự toán nhập hàng</span>
-                </a>
-
-                <a href="{{ route('products.stock-checks') }}" class="flex items-center gap-3 px-4 py-2.5 rounded-xl transition-all {{ request()->routeIs('products.stock-checks') ? 'bg-electric-blue/10 text-electric-blue border border-electric-blue/20' : 'text-slate-500 hover:text-slate-900 hover:bg-slate-200/50 border border-transparent' }}">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="shrink-0"><path d="M9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
-                    <span class="text-sm font-medium whitespace-nowrap">Kiểm kho</span>
-                </a>
-
-                <a href="{{ route('products.transfers') }}" class="flex items-center gap-3 px-4 py-2.5 rounded-xl transition-all {{ request()->routeIs('products.transfers*') ? 'bg-electric-blue/10 text-electric-blue border border-electric-blue/20' : 'text-slate-500 hover:text-slate-900 hover:bg-slate-200/50 border border-transparent' }}">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="shrink-0"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/><path d="m8 19-3-7 3-7"/></svg>
-                    <span class="text-sm font-medium whitespace-nowrap">Chuyển hàng CN</span>
-                </a>
-                @endif
-
-                @if(auth()->user()?->hasPermission('categories'))
-                <a href="{{ route('categories') }}" class="flex items-center gap-3 px-4 py-2.5 rounded-xl transition-all {{ request()->routeIs('categories') ? 'bg-electric-blue/10 text-electric-blue border border-electric-blue/20' : 'text-slate-500 hover:text-slate-900 hover:bg-slate-200/50 border border-transparent' }}">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="shrink-0"><path d="M3 6h18"/><path d="M7 10h10"/><path d="M7 14h10"/><path d="M7 18h10"/></svg>
-                    <span class="text-sm font-medium whitespace-nowrap">Danh mục</span>
-                </a>
-                @endif
-
-                @if(auth()->user()?->hasPermission('commissions'))
-                <a href="{{ route('commissions') }}" class="flex items-center gap-3 px-4 py-2.5 rounded-xl transition-all {{ request()->routeIs('commissions') ? 'bg-electric-blue/10 text-electric-blue border border-electric-blue/20' : 'text-slate-500 hover:text-slate-900 hover:bg-slate-200/50 border border-transparent' }}">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="shrink-0"><rect width="20" height="14" x="2" y="5" rx="2"/><line x1="2" x2="22" y1="10" y2="10"/><line x1="12" x2="12" y1="5" y2="19"/></svg>
-                    <span class="text-sm font-medium whitespace-nowrap">Bảng hoa hồng</span>
-                </a>
-                @endif
-
-                @if(auth()->user()?->hasPermission('reports'))
-                <a href="{{ route('reports.sales') }}" class="flex items-center gap-3 px-4 py-2.5 rounded-xl transition-all {{ request()->routeIs('reports.sales') ? 'bg-electric-blue/10 text-electric-blue border border-electric-blue/20' : 'text-slate-500 hover:text-slate-900 hover:bg-slate-200/50 border border-transparent' }}">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="shrink-0"><path d="M3 3v18h18"/><path d="m19 9-5 5-4-4-3 3"/></svg>
-                    <span class="text-sm font-medium whitespace-nowrap">Báo cáo bán hàng</span>
-                </a>
-                <a href="{{ route('reports.commissions') }}" class="flex items-center gap-3 px-4 py-2.5 rounded-xl transition-all {{ request()->routeIs('reports.commissions') ? 'bg-electric-blue/10 text-electric-blue border border-electric-blue/20' : 'text-slate-500 hover:text-slate-900 hover:bg-slate-200/50 border border-transparent' }}">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="shrink-0"><path d="M12 20V10"/><path d="M18 20V4"/><path d="M6 20v-4"/></svg>
-                    <span class="text-sm font-medium whitespace-nowrap">Báo cáo hoa hồng</span>
-                </a>
-                @endif
-            </div>
-        </div>
+        {{-- HÀNG HOÁ --}}
+        @if(auth()->user()?->hasPermission('products') || auth()->user()?->hasPermission('categories'))
+        <x-nav.group title="Hàng hoá" :open="request()->routeIs('products') || request()->routeIs('categories')">
+            @if(auth()->user()?->hasPermission('categories'))
+            <x-nav.link :href="route('categories')" :active="request()->routeIs('categories')">
+                <x-slot:icon><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="shrink-0"><path d="M3 6h18"/><path d="M7 10h10"/><path d="M7 14h10"/><path d="M7 18h10"/></svg></x-slot:icon>
+                Danh mục
+            </x-nav.link>
+            @endif
+            @if(auth()->user()?->hasPermission('products'))
+            <x-nav.link :href="route('products')" :active="request()->routeIs('products')">
+                <x-slot:icon><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="shrink-0"><path d="m7.5 4.27 9 5.15"/><path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"/><path d="m3.3 7 8.7 5 8.7-5"/><path d="M12 22V12"/></svg></x-slot:icon>
+                Sản phẩm
+            </x-nav.link>
+            @endif
+        </x-nav.group>
         @endif
 
-        <!-- Giao dịch -->
-        @if(auth()->user()?->hasPermission('pos') || auth()->user()?->hasPermission('invoices'))
-        <div x-data="{ open: @js(request()->routeIs('pos') || request()->routeIs('invoices*')) }">
-            <button type="button" @click="open = !open" class="w-full flex items-center justify-between px-4 mb-2">
-                <h3 class="text-[11px] font-bold tracking-[0.12em] text-slate-600 whitespace-nowrap uppercase">Giao dịch</h3>
-                <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="text-slate-400 transition-transform" :class="open ? 'rotate-180' : ''"><path d="m6 9 6 6 6-6"/></svg>
-            </button>
-            <div x-show="open" x-transition.opacity.duration.150ms class="flex flex-col gap-1">
-                @if(auth()->user()?->hasPermission('pos'))
-                <a href="{{ route('pos') }}" class="flex items-center gap-3 px-4 py-2.5 rounded-xl transition-all {{ request()->routeIs('pos') ? 'bg-electric-blue/10 text-electric-blue border border-electric-blue/20' : 'text-slate-500 hover:text-slate-900 hover:bg-slate-200/50 border border-transparent' }}">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="shrink-0"><circle cx="8" cy="21" r="1"/><circle cx="19" cy="21" r="1"/><path d="M2.05 2.05h2l2.66 12.42a2 2 0 0 0 2 1.58h9.78a2 2 0 0 0 1.95-1.57l1.65-7.43H5.12"/></svg>
-                    <span class="text-[13px] font-medium whitespace-nowrap">Trạm bán hàng</span>
-                </a>
-                @endif
-
-                @if(auth()->user()?->hasPermission('invoices'))
-                <a href="{{ route('invoices') }}" class="flex items-center gap-3 px-4 py-2.5 rounded-xl transition-all {{ request()->routeIs('invoices') ? 'bg-electric-blue/10 text-electric-blue border border-electric-blue/20' : 'text-slate-500 hover:text-slate-900 hover:bg-slate-200/50 border border-transparent' }}">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="shrink-0"><rect width="8" height="4" x="8" y="2" rx="1" ry="1"/><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><path d="M12 11h4"/><path d="M12 16h4"/><path d="M8 11h.01"/><path d="M8 16h.01"/></svg>
-                    <span class="text-sm font-medium whitespace-nowrap">Hóa đơn</span>
-                </a>
-
-                <a href="{{ route('invoices.returns') }}" class="flex items-center gap-3 px-4 py-2.5 rounded-xl transition-all {{ request()->routeIs('invoices.returns') ? 'bg-electric-blue/10 text-electric-blue border border-electric-blue/20' : 'text-slate-500 hover:text-slate-900 hover:bg-slate-200/50 border border-transparent' }}">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="shrink-0"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
-                    <span class="text-sm font-medium whitespace-nowrap">Danh sách trả hàng</span>
-                </a>
-                @endif
-            </div>
-        </div>
+        {{-- TỒN KHO --}}
+        @if(auth()->user()?->hasPermission('products'))
+        <x-nav.group title="Tồn kho" :open="request()->routeIs('products.stock-checks') || request()->routeIs('products.restock') || request()->routeIs('products.transfers*')">
+            <x-nav.link :href="route('products.stock-checks')" :active="request()->routeIs('products.stock-checks')">
+                <x-slot:icon><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="shrink-0"><path d="M9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg></x-slot:icon>
+                Kiểm kho
+            </x-nav.link>
+            <x-nav.link :href="route('products.restock')" :active="request()->routeIs('products.restock')">
+                <x-slot:icon><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="shrink-0"><path d="M12 20v-6a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2v6"/><path d="M6 18H21"/><path d="M18 18v-4a2 2 0 0 0-2-2h-4"/></svg></x-slot:icon>
+                Dự toán nhập hàng
+            </x-nav.link>
+            <x-nav.link :href="route('products.transfers')" :active="request()->routeIs('products.transfers*')">
+                <x-slot:icon><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="shrink-0"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/><path d="m8 19-3-7 3-7"/></svg></x-slot:icon>
+                Chuyển hàng CN
+            </x-nav.link>
+        </x-nav.group>
         @endif
 
-        <!-- Đối tác -->
-        @if(auth()->user()?->hasPermission('customers'))
-        <div x-data="{ open: @js(request()->routeIs('customers')) }">
-            <button type="button" @click="open = !open" class="w-full flex items-center justify-between px-4 mb-2">
-                <h3 class="text-[11px] font-bold tracking-[0.12em] text-slate-600 whitespace-nowrap uppercase">Đối tác</h3>
-                <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="text-slate-400 transition-transform" :class="open ? 'rotate-180' : ''"><path d="m6 9 6 6 6-6"/></svg>
-            </button>
-            <div x-show="open" x-transition.opacity.duration.150ms class="flex flex-col gap-1">
-                <a href="{{ route('customers') }}" class="flex items-center gap-3 px-4 py-2.5 rounded-xl transition-all {{ request()->routeIs('customers') ? 'bg-electric-blue/10 text-electric-blue border border-electric-blue/20' : 'text-slate-500 hover:text-slate-900 hover:bg-slate-200/50 border border-transparent' }}">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="shrink-0"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
-                    <span class="text-sm font-medium whitespace-nowrap">Khách hàng</span>
-                </a>
-            </div>
-        </div>
+        {{-- HOA HỒNG --}}
+        @if(auth()->user()?->hasPermission('commissions') || auth()->user()?->hasPermission('reports'))
+        <x-nav.group title="Hoa hồng" :open="request()->routeIs('commissions') || request()->routeIs('reports.commissions')">
+            @if(auth()->user()?->hasPermission('commissions'))
+            <x-nav.link :href="route('commissions')" :active="request()->routeIs('commissions')">
+                <x-slot:icon><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="shrink-0"><rect width="20" height="14" x="2" y="5" rx="2"/><line x1="2" x2="22" y1="10" y2="10"/><line x1="12" x2="12" y1="5" y2="19"/></svg></x-slot:icon>
+                Bảng hoa hồng
+            </x-nav.link>
+            @endif
+            @if(auth()->user()?->hasPermission('reports'))
+            <x-nav.link :href="route('reports.commissions')" :active="request()->routeIs('reports.commissions')">
+                <x-slot:icon><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="shrink-0"><path d="M12 20V10"/><path d="M18 20V4"/><path d="M6 20v-4"/></svg></x-slot:icon>
+                Báo cáo hoa hồng
+            </x-nav.link>
+            @endif
+        </x-nav.group>
         @endif
 
-        <!-- Hệ thống -->
-        @if(auth()->user()?->hasPermission('users'))
-        <div x-data="{ open: @js(request()->routeIs('users') || request()->routeIs('system.*') || request()->routeIs('branches')) }">
-            <button type="button" @click="open = !open" class="w-full flex items-center justify-between px-4 mb-2">
-                <h3 class="text-[11px] font-bold tracking-[0.12em] text-slate-600 whitespace-nowrap uppercase">Hệ thống</h3>
-                <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="text-slate-400 transition-transform" :class="open ? 'rotate-180' : ''"><path d="m6 9 6 6 6-6"/></svg>
-            </button>
-            <div x-show="open" x-transition.opacity.duration.150ms class="flex flex-col gap-1">
-                <a href="{{ route('users') }}" class="flex items-center gap-3 px-4 py-2.5 rounded-xl transition-all {{ request()->routeIs('users') ? 'bg-electric-blue/10 text-electric-blue border border-electric-blue/20' : 'text-slate-500 hover:text-slate-900 hover:bg-slate-200/50 border border-transparent' }}">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="shrink-0"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 10V6a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2v4"/><path d="m22 10-10 7L2 10"/></svg>
-                    <span class="text-sm font-medium whitespace-nowrap">Nhân viên</span>
-                </a>
-
-                @if(auth()->user()?->role === 'admin')
-                <a href="{{ route('system.logs') }}" class="flex items-center gap-3 px-4 py-2.5 rounded-xl transition-all {{ request()->routeIs('system.logs') ? 'bg-electric-blue/10 text-electric-blue border border-electric-blue/20' : 'text-slate-500 hover:text-slate-900 hover:bg-slate-200/50 border border-transparent' }}">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="shrink-0"><path d="M13 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"/><polyline points="13 2 13 9 20 9"/></svg>
-                    <span class="text-sm font-medium whitespace-nowrap">Lịch sử hệ thống</span>
-                </a>
-                <a href="{{ route('branches') }}" class="flex items-center gap-3 px-4 py-2.5 rounded-xl transition-all {{ request()->routeIs('branches') ? 'bg-electric-blue/10 text-electric-blue border border-electric-blue/20' : 'text-slate-500 hover:text-slate-900 hover:bg-slate-200/50 border border-transparent' }}">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="shrink-0"><path d="M3 21h18"/><path d="M5 21V7l8-4v18"/><path d="M19 21V11l-6-4"/><path d="M9 9v.01"/><path d="M9 12v.01"/><path d="M9 15v.01"/><path d="M9 18v.01"/></svg>
-                    <span class="text-sm font-medium whitespace-nowrap">Quản lý chi nhánh</span>
-                </a>
-                <a href="{{ route('system.settings') }}" class="flex items-center gap-3 px-4 py-2.5 rounded-xl transition-all {{ request()->routeIs('system.settings') ? 'bg-electric-blue/10 text-electric-blue border border-electric-blue/20' : 'text-slate-500 hover:text-slate-900 hover:bg-slate-200/50 border border-transparent' }}">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="shrink-0"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
-                    <span class="text-sm font-medium whitespace-nowrap">Cài đặt cửa hàng</span>
-                </a>
-                @endif
-            </div>
-        </div>
+        {{-- GIAO DỊCH (kèm Khách hàng) --}}
+        @if(auth()->user()?->hasPermission('pos') || auth()->user()?->hasPermission('invoices') || auth()->user()?->hasPermission('customers'))
+        <x-nav.group title="Giao dịch" :open="request()->routeIs('pos') || request()->routeIs('invoices*') || request()->routeIs('customers')">
+            @if(auth()->user()?->hasPermission('pos'))
+            <x-nav.link :href="route('pos')" :active="request()->routeIs('pos')">
+                <x-slot:icon><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="shrink-0"><circle cx="8" cy="21" r="1"/><circle cx="19" cy="21" r="1"/><path d="M2.05 2.05h2l2.66 12.42a2 2 0 0 0 2 1.58h9.78a2 2 0 0 0 1.95-1.57l1.65-7.43H5.12"/></svg></x-slot:icon>
+                Trạm bán hàng
+            </x-nav.link>
+            @endif
+            @if(auth()->user()?->hasPermission('invoices'))
+            <x-nav.link :href="route('invoices')" :active="request()->routeIs('invoices') && !request()->routeIs('invoices.returns')">
+                <x-slot:icon><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="shrink-0"><rect width="8" height="4" x="8" y="2" rx="1" ry="1"/><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><path d="M12 11h4"/><path d="M12 16h4"/><path d="M8 11h.01"/><path d="M8 16h.01"/></svg></x-slot:icon>
+                Hóa đơn
+            </x-nav.link>
+            <x-nav.link :href="route('invoices.returns')" :active="request()->routeIs('invoices.returns')">
+                <x-slot:icon><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="shrink-0"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg></x-slot:icon>
+                Danh sách trả hàng
+            </x-nav.link>
+            @endif
+            @if(auth()->user()?->hasPermission('customers'))
+            <x-nav.link :href="route('customers')" :active="request()->routeIs('customers')">
+                <x-slot:icon><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="shrink-0"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></x-slot:icon>
+                Khách hàng
+            </x-nav.link>
+            @endif
+        </x-nav.group>
         @endif
 
-        {{-- Cấu hình group --}}
-        @if(auth()->user()?->hasPermission('commissions') || auth()->user()?->hasPermission('users'))
-        <div x-data="{ open: @js(request()->routeIs('commissions.settings')) }">
-            <button type="button" @click="open = !open" class="w-full flex items-center justify-between px-4 mb-2">
-                <h3 class="text-[11px] font-bold tracking-[0.12em] text-slate-600 whitespace-nowrap uppercase">Cấu hình</h3>
-                <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="text-slate-400 transition-transform" :class="open ? 'rotate-180' : ''"><path d="m6 9 6 6 6-6"/></svg>
-            </button>
-            <div x-show="open" x-transition.opacity.duration.150ms class="flex flex-col gap-1">
-                @if(auth()->user()?->hasPermission('commissions'))
-                <a href="{{ route('commissions.settings') }}" class="flex items-center gap-3 px-4 py-2.5 rounded-xl transition-all {{ request()->routeIs('commissions.settings') ? 'bg-electric-blue/10 text-electric-blue border border-electric-blue/20' : 'text-slate-500 hover:text-slate-900 hover:bg-slate-200/50 border border-transparent' }}">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="shrink-0"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
-                    <span class="text-sm font-medium whitespace-nowrap">Cấu hình hoa hồng</span>
-                </a>
-                @endif
-            </div>
-        </div>
+        {{-- CẤU HÌNH (mọi thứ còn lại) --}}
+        @if(auth()->user()?->hasPermission('reports') || auth()->user()?->hasPermission('users') || auth()->user()?->hasPermission('commissions') || auth()->user()?->role === 'admin')
+        <x-nav.group title="Cấu hình" :open="request()->routeIs('reports.sales') || request()->routeIs('users') || request()->routeIs('system.*') || request()->routeIs('branches') || request()->routeIs('commissions.settings')">
+            @if(auth()->user()?->hasPermission('reports'))
+            <x-nav.link :href="route('reports.sales')" :active="request()->routeIs('reports.sales')">
+                <x-slot:icon><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="shrink-0"><path d="M3 3v18h18"/><path d="m19 9-5 5-4-4-3 3"/></svg></x-slot:icon>
+                Báo cáo bán hàng
+            </x-nav.link>
+            @endif
+            @if(auth()->user()?->hasPermission('users'))
+            <x-nav.link :href="route('users')" :active="request()->routeIs('users')">
+                <x-slot:icon><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="shrink-0"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 10V6a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2v4"/><path d="m22 10-10 7L2 10"/></svg></x-slot:icon>
+                Nhân viên
+            </x-nav.link>
+            @endif
+            @if(auth()->user()?->hasPermission('commissions'))
+            <x-nav.link :href="route('commissions.settings')" :active="request()->routeIs('commissions.settings')">
+                <x-slot:icon><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="shrink-0"><rect width="20" height="14" x="2" y="5" rx="2"/><line x1="2" x2="22" y1="10" y2="10"/><path d="M6 15h4"/></svg></x-slot:icon>
+                Cấu hình hoa hồng
+            </x-nav.link>
+            @endif
+            @if(auth()->user()?->role === 'admin')
+            <x-nav.link :href="route('branches')" :active="request()->routeIs('branches')">
+                <x-slot:icon><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="shrink-0"><path d="M3 21h18"/><path d="M5 21V7l8-4v18"/><path d="M19 21V11l-6-4"/><path d="M9 9v.01"/><path d="M9 12v.01"/><path d="M9 15v.01"/><path d="M9 18v.01"/></svg></x-slot:icon>
+                Quản lý chi nhánh
+            </x-nav.link>
+            <x-nav.link :href="route('system.settings')" :active="request()->routeIs('system.settings')">
+                <x-slot:icon><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="shrink-0"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></x-slot:icon>
+                Cài đặt cửa hàng
+            </x-nav.link>
+            <x-nav.link :href="route('system.logs')" :active="request()->routeIs('system.logs')">
+                <x-slot:icon><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="shrink-0"><path d="M13 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"/><polyline points="13 2 13 9 20 9"/></svg></x-slot:icon>
+                Lịch sử hệ thống
+            </x-nav.link>
+            @endif
+        </x-nav.group>
         @endif
+
         @endauth
     </div>
 
