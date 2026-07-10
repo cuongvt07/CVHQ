@@ -373,7 +373,7 @@
                                     @if($quickEditMode)
                                         <input type="number"
                                                value="{{ $product->stock_quantity }}"
-                                               x-on:blur="$wire.updateField({{ $product->id }}, 'stock_quantity', $event.target.value)"
+                                               onfocus="this.select()" x-on:blur="$wire.requestStockEdit({{ $product->id }}, $event.target.value)"
                                                x-on:keydown.enter="$event.target.blur()"
                                                class="w-full bg-white border border-slate-200 rounded px-1 py-0.5 text-[10px] font-black {{ $product->stock_quantity <= 5 ? 'text-rose-600' : 'text-slate-800' }} focus:outline-none focus:border-electric-blue">
                                         <input type="number"
@@ -681,7 +681,7 @@
                                 @if($quickEditMode)
                                     <input type="number" 
                                            value="{{ $product->stock_quantity }}" 
-                                           x-on:blur="$wire.updateField({{ $product->id }}, 'stock_quantity', $event.target.value)"
+                                           onfocus="this.select()" x-on:blur="$wire.requestStockEdit({{ $product->id }}, $event.target.value)"
                                            x-on:keydown.enter="$event.target.blur()"
                                            class="w-20 bg-slate-50 border border-slate-100 rounded-lg px-2 py-1 text-xs font-bold {{ $product->stock_quantity < 10 ? 'text-orange-600' : 'text-slate-900' }} transition-all focus:bg-white focus:border-electric-blue focus:ring-0 shadow-inner">
                                 @else
@@ -852,4 +852,39 @@
             class="md:hidden fixed bottom-4 right-4 z-30 w-14 h-14 bg-electric-blue text-white rounded-full shadow-lg shadow-electric-blue/40 flex items-center justify-center hover:bg-electric-blue/90 active:scale-95 transition-all">
         <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="M12 5v14"/></svg>
     </button>
+
+    {{-- Modal: lý do điều chỉnh tồn kho (sửa nhanh) --}}
+    @if($showStockReason)
+        @php $__delta = (int)$stockEditNew - (int)$stockEditOld; @endphp
+        <div class="fixed inset-0 z-[120] flex items-center justify-center p-4">
+            <div class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm" wire:click="cancelStockEdit"></div>
+            <div class="relative bg-white rounded-2xl shadow-2xl w-full max-w-md border border-slate-200 p-5">
+                <h3 class="text-base font-bold text-slate-900">Lý do điều chỉnh tồn kho</h3>
+                <p class="text-[12px] text-slate-500 mt-0.5 mb-3 truncate">{{ $stockEditSku }} — {{ $stockEditProductName }}</p>
+
+                <div class="flex items-center gap-2 text-sm mb-4">
+                    <span class="px-2.5 py-1 rounded-lg bg-slate-100 font-bold text-slate-700">{{ $stockEditOld }}</span>
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="text-slate-400"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
+                    <span class="px-2.5 py-1 rounded-lg bg-electric-blue/10 text-electric-blue font-black">{{ $stockEditNew }}</span>
+                    <span class="text-[12px] font-black {{ $__delta >= 0 ? 'text-emerald-600' : 'text-rose-600' }}">({{ $__delta >= 0 ? '+' : '' }}{{ $__delta }})</span>
+                </div>
+
+                <div class="flex flex-wrap gap-1.5 mb-2">
+                    @foreach(['Kiểm kê thực tế', 'Nhập bổ sung', 'Hàng hỏng/hủy', 'Thất thoát', 'Trả nhà cung cấp'] as $r)
+                        <button type="button" wire:click="$set('stockEditReason', '{{ $r }}')"
+                                class="px-2.5 py-1 rounded-lg border text-[11px] font-semibold transition-colors {{ $stockEditReason === $r ? 'bg-electric-blue text-white border-electric-blue' : 'bg-white border-slate-200 text-slate-600 hover:border-electric-blue' }}">{{ $r }}</button>
+                    @endforeach
+                </div>
+                <input type="text" wire:model="stockEditReason" placeholder="Nhập lý do (bắt buộc)..."
+                       class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:border-electric-blue focus:ring-2 focus:ring-electric-blue/10">
+                @error('stockEditReason') <span class="text-[11px] text-rose-500 font-bold">{{ $message }}</span> @enderror
+                <p class="text-[10px] text-slate-400 mt-1.5">Lý do được lưu vào thẻ kho để dò lại khi cần.</p>
+
+                <div class="flex justify-end gap-2 mt-4">
+                    <button wire:click="cancelStockEdit" class="px-4 py-2 text-sm font-bold text-slate-500 hover:text-slate-900">Hủy</button>
+                    <button wire:click="confirmStockEdit" class="btn-electric px-5 py-2 text-sm">Xác nhận</button>
+                </div>
+            </div>
+        </div>
+    @endif
 </div>

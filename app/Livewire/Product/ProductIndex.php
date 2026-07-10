@@ -47,6 +47,15 @@ class ProductIndex extends Component
     public $perPage = 10;
     public $branch = 'all';
     public $quickEditMode = false;
+
+    // Sửa nhanh tồn kho -> bắt buộc nhập lý do (lưu vào thẻ kho).
+    public $showStockReason = false;
+    public $stockEditId = null;
+    public $stockEditProductName = '';
+    public $stockEditSku = '';
+    public $stockEditOld = 0;
+    public $stockEditNew = 0;
+    public $stockEditReason = '';
     public $sortField = 'created_at';
     public $sortDirection = 'desc';
 
@@ -1104,6 +1113,61 @@ class ProductIndex extends Component
             // Force refresh to revert invalid UI state
             $this->dispatch('$refresh');
         }
+    }
+
+    /** Mở hộp nhập lý do khi sửa nhanh tồn kho (nếu số lượng thay đổi). */
+    public function requestStockEdit($id, $value): void
+    {
+        $product = Product::find($id);
+        if (!$product) {
+            return;
+        }
+        $new = (int) $value;
+        $old = (int) $product->stock_quantity;
+        if ($new === $old) {
+            return; // không đổi -> bỏ qua
+        }
+        $this->stockEditId = $id;
+        $this->stockEditProductName = $product->name;
+        $this->stockEditSku = $product->sku;
+        $this->stockEditOld = $old;
+        $this->stockEditNew = $new;
+        $this->stockEditReason = '';
+        $this->resetErrorBag('stockEditReason');
+        $this->showStockReason = true;
+    }
+
+    public function confirmStockEdit(): void
+    {
+        $reason = trim((string) $this->stockEditReason);
+        if ($reason === '') {
+            $this->addError('stockEditReason', 'Vui lòng nhập lý do điều chỉnh.');
+            return;
+        }
+
+        $product = Product::find($this->stockEditId);
+        if ($product) {
+            $old = (int) $product->stock_quantity;
+            $new = (int) $this->stockEditNew;
+            $change = $new - $old;
+            if ($change !== 0) {
+                // Ghi thẻ kho kèm lý do (dò lại sau này).
+                $product->recordStockHistory('Adjustment', $change, null, null, 'Sửa nhanh: ' . $reason, $old);
+                $product->update(['stock_quantity' => $new]);
+            }
+        }
+
+        $this->showStockReason = false;
+        $this->stockEditId = null;
+        $this->dispatch('notify', message: 'Đã cập nhật tồn kho (đã lưu lý do vào thẻ kho).', type: 'success');
+    }
+
+    public function cancelStockEdit(): void
+    {
+        $this->showStockReason = false;
+        $this->stockEditId = null;
+        // Làm mới để ô tồn kho hiển thị lại giá trị cũ.
+        $this->dispatch('$refresh');
     }
 
     public function sortBy($field)
