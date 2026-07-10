@@ -9,6 +9,9 @@ use App\Livewire\Product\ProductIndex;
 use App\Livewire\Auth\Login;
 use Illuminate\Support\Facades\Route;
 
+// Webhook WooCommerce (đơn hàng bắn về) — public, miễn CSRF.
+Route::post('/wp-webhook', [\App\Http\Controllers\WpWebhookController::class, 'handle'])->name('wp.webhook');
+
 // Auth Routes
 Route::get('/login', Login::class)->name('login')->middleware('guest');
 Route::post('/logout', function() {

@@ -22,29 +22,21 @@
       "Bash(php -l app/Livewire/Invoice/InvoiceIndex.php)",
       "Bash(php -v)",
       "Bash(git show *)",
-      "Bash(ssh -i ~/.ssh/cuong-vps.pem -o StrictHostKeyChecking=accept-new -o ConnectTimeout=15 -o BatchMode=yes feelex-fe 'echo \"=== CONNECTED ===\"; whoami; hostname; echo \"--- OS ---\"; cat /etc/os-release 2>/dev/null | head -2; echo \"--- docker ---\"; docker --version 2>/dev/null || echo \"NO DOCKER\"; docker compose version 2>/dev/null || echo \"NO COMPOSE\"; echo \"--- git ---\"; git --version 2>/dev/null || echo \"NO GIT\"; echo \"--- sudo ---\"; sudo -n true 2>/dev/null && echo \"SUDO_NOPASS_OK\" || echo \"SUDO_NEEDS_PASS\"')",
-      "Bash(ssh feelex-fe *)",
-      "Bash(scp -q Dockerfile docker-compose.yml .env.docker .dockerignore feelex-fe:~/CVHQ/)",
-      "Bash(scp -q docker/entrypoint.sh feelex-fe:~/CVHQ/docker/)",
-      "Bash(scp -q anvwclyo_cvhq.sql feelex-fe:~/CVHQ/)",
       "Bash(git checkout *)",
-      "Bash(curl -s -o /dev/null -w \"External http://150.95.111.3:8000/ -> HTTP %{http_code}\\\\n\" --connect-timeout 12 http://150.95.111.3:8000/login)",
-      "Bash(git -c color.ui=never diff app/Models/SystemSetting.php app/Livewire/System/SystemSettings.php)",
-      "Bash(git -c color.ui=never diff resources/views/components/sidebar.blade.php resources/views/layouts/app.blade.php resources/views/livewire/system/system-settings.blade.php)",
-      "Bash(grep -A30 \"CREATE TABLE \\\\`users\\\\`\" anvwclyo_cvhq.sql)",
+      "Bash(git pull *)",
+      "Bash(git restore *)",
+      "Bash(git merge *)",
       "Bash(git add *)",
-      "Bash(scp -q .env.docker feelex-fe:~/CVHQ/.env.docker)",
-      "Bash(grep -A40 \"CREATE TABLE \\\\`products\\\\`\" anvwclyo_cvhq.sql)",
-      "Bash(grep -n 'protected $rules\\\\|'\\\\''sale_price'\\\\''\\\\|'\\\\''commission_amount'\\\\''\\\\|public $rules\\\\|rules =' app/Livewire/Product/ProductIndex.php)",
-      "Bash(MSYS_NO_PATHCONV=1 docker run --rm -v /d/CVHQ:/app -w //app php:8.2-cli sh -c ' *)",
-      "Bash(MSYS_NO_PATHCONV=1 docker run --rm -v \"/d/CVHQ:/app\" -w //app php:8.2-cli sh -c 'php -l app/Models/Product.php && php -l app/Models/SystemSetting.php')",
-      "Bash(grep -n 'foreach\\\\|$product->category\\\\|image_url\\\\|getUnique\\\\|@php\\\\|->commission_value\\\\|temp_profit\\\\|effective_commission\\\\|x-data\\\\|@mousemove\\\\|wire:key' resources/views/livewire/product/product-index.blade.php)",
-      "Bash(grep -n 'perPage\\\\|wire:poll\\\\|->onEachSide\\\\|public $perPage' app/Livewire/Product/ProductIndex.php)",
-      "Bash(MSYS_NO_PATHCONV=1 docker run --rm -v \"/d/CVHQ:/app\" -w //app php:8.2-cli php -l app/Models/Product.php)"
+      "Bash(ssh feelex-fe *)",
+      "Bash(grep -n \"x-bulk-product-modal\\\\|x-product-modal\\\\|</div>\\\\s*$\" resources/views/livewire/product/product-index.blade.php)",
+      "Bash(grep -n ''\\\\''total'\\\\''\\\\|'\\\\''finalAmount'\\\\''\\\\|cartCount\\\\|totalQty\\\\|'\\\\''cart'\\\\''\\\\|=> $this->getTab\\\\|compact\\\\|->layout\\\\|view\\('\\\\''livewire.pos' app/Livewire/Pos/PosTerminal.php)",
+      "Bash(grep -rniE '\\\\$cart|partials.financials|partials.cart-items|getTab|@include|:cart' resources/views/livewire/pos/pos-terminal.blade.php)",
+      "Bash(grep -n 'foreach\\\\|\\\\$cart\\\\|@php' resources/views/livewire/pos/partials/cart-items.blade.php)",
+      "Bash(grep -n '@php\\\\|\\\\$cart\\\\s*=\\\\|\\\\$total\\\\s*=\\\\|getTab\\\\|activeTab' resources/views/livewire/pos/pos-terminal.blade.php)",
+      "Bash(grep -n 'sidebar\\\\|@livewire\\\\|livewireScripts\\\\|@stack\\\\|</body>\\\\|@auth\\\\|<main\\\\|{{ $slot\\\\|@yield' resources/views/layouts/app.blade.php)"
     ],
     "additionalDirectories": [
-      "\\tmp",
-      "C:\\Users\\Admin\\.ssh"
+      "\\tmp"
     ]
   }
 }

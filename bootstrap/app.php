@@ -11,7 +11,8 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
-        //
+        // Webhook WooCommerce POST từ ngoài -> miễn CSRF.
+        $middleware->validateCsrfTokens(except: ['wp-webhook']);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         //

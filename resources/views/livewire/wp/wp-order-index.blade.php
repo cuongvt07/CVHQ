@@ -99,4 +99,6 @@
 
         <div>{{ $orders->links() }}</div>
     </div>
+
+    @livewire('wp.wp-quick-order')
 </div>

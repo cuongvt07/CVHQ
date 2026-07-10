@@ -5,12 +5,19 @@ namespace App\Livewire\Wp;
 use App\Models\WpOrder;
 use App\Services\WooCommerceService;
 use App\Traits\HasPermissions;
+use Livewire\Attributes\On;
 use Livewire\Component;
 use Livewire\WithPagination;
 
 class WpOrderIndex extends Component
 {
     use WithPagination, HasPermissions;
+
+    #[On('wp-order-created')]
+    public function refreshList(): void
+    {
+        // re-render để cập nhật trạng thái "Đã tạo đơn".
+    }
 
     public string $statusFilter = 'pending'; // pending | all | processing | completed | cancelled
     public string $search = '';
