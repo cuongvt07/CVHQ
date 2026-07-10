@@ -448,7 +448,7 @@
                                             </button>
                                         @endif
                                         @if(auth()->user()->hasPermission('invoice.return'))
-                                            <button wire:click="returnItems({{ $invoice->id }})" class="flex items-center gap-1.5 px-2.5 py-1 bg-slate-900 text-white rounded-lg text-[9px] font-bold uppercase tracking-wider hover:bg-slate-800 transition-all {{ $invoice->status === 'Returned' ? 'opacity-50 cursor-not-allowed' : '' }}" {{ $invoice->status === 'Returned' ? 'disabled' : '' }}>
+                                            <button wire:click="returnItems({{ $invoice->id }})" class="flex items-center gap-1.5 px-2.5 py-1 bg-slate-900 text-white rounded-lg text-[9px] font-bold uppercase tracking-wider hover:bg-slate-800 transition-all {{ in_array($invoice->status, ['Returned','Cancelled']) ? 'opacity-50 cursor-not-allowed' : '' }}" {{ in_array($invoice->status, ['Returned','Cancelled']) ? 'disabled' : '' }}>
                                                 <svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7v6h6"/><path d="M21 17a9 9 0 0 0-9-9 9 9 0 0 0-6 2.3L3 13"/></svg>
                                                 Trả hàng
                                             </button>
@@ -802,7 +802,7 @@
                                                         </button>
                                                     @endif
                                                     @if(auth()->user()->hasPermission('invoice.return'))
-                                                        <button wire:click="returnItems({{ $invoice->id }})" class="flex items-center gap-2 px-3 py-1.5 bg-slate-900 text-white rounded-lg text-[10px] font-bold uppercase tracking-widest hover:bg-slate-800 transition-all {{ $invoice->status === 'Returned' ? 'opacity-50 cursor-not-allowed' : '' }}" {{ $invoice->status === 'Returned' ? 'disabled' : '' }}>
+                                                        <button wire:click="returnItems({{ $invoice->id }})" class="flex items-center gap-2 px-3 py-1.5 bg-slate-900 text-white rounded-lg text-[10px] font-bold uppercase tracking-widest hover:bg-slate-800 transition-all {{ in_array($invoice->status, ['Returned','Cancelled']) ? 'opacity-50 cursor-not-allowed' : '' }}" {{ in_array($invoice->status, ['Returned','Cancelled']) ? 'disabled' : '' }}>
                                                             <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7v6h6"/><path d="M21 17a9 9 0 0 0-9-9 9 9 0 0 0-6 2.3L3 13"/></svg>
                                                             Trả hàng
                                                         </button>

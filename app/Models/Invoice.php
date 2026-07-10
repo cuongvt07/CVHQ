@@ -85,7 +85,8 @@ class Invoice extends Model
 
     public function cancelledBy(): BelongsTo
     {
-        return $this->belongsTo(User::class, 'cancelled_by');
+        // withTrashed: vẫn hiện tên người trả hàng/hủy đơn kể cả khi NV đã nghỉ (xoá mềm).
+        return $this->belongsTo(User::class, 'cancelled_by')->withTrashed();
     }
 
     public function sharedTo(): BelongsTo

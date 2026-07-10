@@ -21,14 +21,14 @@
         <!-- Login Card -->
         <div class="glass-card p-10 border border-white/50 shadow-[0_20px_50px_rgba(0,0,0,0.05)] bg-white/40 backdrop-blur-2xl rounded-[2.5rem]">
             <form wire:submit="login" class="space-y-6">
-                <!-- Tên đăng nhập / Email -->
+                <!-- Tên đăng nhập -->
                 <div class="space-y-2">
-                    <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Tên đăng nhập hoặc Email</label>
+                    <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Tên đăng nhập</label>
                     <div class="relative group">
                         <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="absolute left-4 top-1/2 -translate-y-1/2 text-slate-300 group-focus-within:text-electric-blue transition-colors"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
                         <input type="text" wire:model="email" autocomplete="username"
                                class="w-full bg-white/50 border border-slate-200 rounded-2xl py-3.5 pl-12 pr-6 text-sm focus:outline-none focus:border-electric-blue/40 focus:ring-4 focus:ring-electric-blue/5 transition-all text-slate-900"
-                               placeholder="Tên đăng nhập hoặc email">
+                               placeholder="Nhập tên đăng nhập">
                     </div>
                     @error('email') <span class="text-[10px] text-rose-500 font-bold ml-1">{{ $message }}</span> @enderror
                 </div>

@@ -175,6 +175,18 @@
                         <span class="text-[10px] md:text-[14px] font-bold text-right">{{ $invoice->seller_name }}</span>
                     </div>
 
+                    @if(in_array($invoice->status, ['Returned', 'Cancelled']) && ($invoice->cancelled_at || $invoice->cancelled_by))
+                        <div class="flex justify-between items-start pt-3 border-t border-white/10">
+                            <span class="text-[9px] md:text-[13px] text-white/40 uppercase tracking-widest">{{ $invoice->status === 'Returned' ? 'Người trả hàng' : 'Người hủy đơn' }}</span>
+                            <span class="text-[10px] md:text-[14px] font-bold text-right text-rose-300">
+                                {{ $invoice->cancelledBy?->name ?? '—' }}
+                                @if($invoice->cancelled_at)
+                                    <span class="block text-[9px] md:text-[12px] font-normal text-white/50">{{ $invoice->cancelled_at->format('d/m/Y H:i') }}</span>
+                                @endif
+                            </span>
+                        </div>
+                    @endif
+
                     @if(auth()->user()?->hasPermission('invoice.view_commission'))
                         <div class="flex justify-between items-start pt-3 border-t border-white/10">
                             <span class="text-[9px] md:text-[13px] text-white/40 uppercase tracking-widest">Tổng hoa hồng</span>

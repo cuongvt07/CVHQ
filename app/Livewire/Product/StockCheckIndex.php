@@ -438,42 +438,66 @@ class StockCheckIndex extends Component
             }
         }
 
+        // An toàn chống MẤT PHIẾU: không bao giờ ghi đè một phiếu đã tồn tại bằng
+        // danh sách rỗng. Autosave có thể kích hoạt khi $this->lines tạm rỗng lúc
+        // mở phiếu / điều hướng → trước đây xoá sạch item và làm "mất" phiếu tạm.
+        if (empty($this->lines) && $this->stockCheckId) {
+            $existing = StockCheck::find($this->stockCheckId);
+            if ($existing) {
+                $this->status = $existing->status;
+                $this->code = $existing->code;
+                return $existing->fresh('items');
+            }
+        }
+
         foreach (array_keys($this->lines) as $index) {
             $this->recalculateLine((int) $index);
         }
 
         $totals = $this->totals();
-        $check = StockCheck::updateOrCreate(
-            ['id' => $this->stockCheckId],
-            [
+
+        // Toàn bộ ghi phiếu + item chạy trong 1 transaction: nếu lỗi giữa chừng sẽ
+        // rollback nguyên vẹn, không để lại phiếu rỗng (nguyên nhân mất phiếu).
+        $check = \DB::transaction(function () use ($status, $totals) {
+            // Chỉ đặt user_id KHI TẠO MỚI — không ghi đè người tạo gốc khi cập nhật
+            // (trước đây người bấm Hoàn thành bị ghi đè thành "người tạo" của phiếu).
+            $check = StockCheck::find($this->stockCheckId) ?: new StockCheck();
+            $isNew = !$check->exists;
+
+            $check->fill([
                 'code' => $this->code ?: $this->nextCode(),
                 'branch' => $this->branch,
-                'user_id' => auth()->id(),
                 'status' => $status,
                 'note' => $this->note ?: null,
                 'total_actual' => $totals['actual'],
                 'total_difference' => $totals['difference'],
                 'total_increase' => $totals['increase'],
                 'total_decrease' => $totals['decrease'],
-            ]
-        );
-
-        $check->items()->delete();
-        foreach ($this->lines as $line) {
-            StockCheckItem::create([
-                'stock_check_id' => $check->id,
-                'product_id' => $line['product_id'],
-                'sku' => $line['sku'],
-                'product_name' => $line['name'],
-                'unit' => $line['unit'],
-                'system_quantity' => (int) $line['system_quantity'],
-                'actual_quantity' => ($line['actual_quantity'] === null || $line['actual_quantity'] === '')
-                    ? null
-                    : (int) $line['actual_quantity'],
-                'difference' => (int) $line['difference'],
-                'difference_value' => (int) $line['difference_value'],
             ]);
-        }
+            if ($isNew) {
+                $check->user_id = auth()->id();
+            }
+            $check->save();
+
+            $check->items()->delete();
+            foreach ($this->lines as $line) {
+                StockCheckItem::create([
+                    'stock_check_id' => $check->id,
+                    'product_id' => $line['product_id'],
+                    'sku' => $line['sku'],
+                    'product_name' => $line['name'],
+                    'unit' => $line['unit'],
+                    'system_quantity' => (int) $line['system_quantity'],
+                    'actual_quantity' => ($line['actual_quantity'] === null || $line['actual_quantity'] === '')
+                        ? null
+                        : (int) $line['actual_quantity'],
+                    'difference' => (int) $line['difference'],
+                    'difference_value' => (int) $line['difference_value'],
+                ]);
+            }
+
+            return $check;
+        });
 
         $this->stockCheckId = $check->id;
         $this->code = $check->code;

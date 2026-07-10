@@ -398,7 +398,8 @@ class InvoiceIndex extends Component
             $invoice->update([
                 'status' => 'Returned',
                 'invoice_code' => $newCode,
-                'cancelled_at' => now(), // Reusing cancelled_at or adding logic
+                'cancelled_at' => now(),       // tái dùng làm mốc thời điểm trả hàng
+                'cancelled_by' => auth()->id(), // ghi lại AI đã bấm trả hàng
             ]);
         });
 
