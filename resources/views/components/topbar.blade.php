@@ -117,9 +117,34 @@
                     // Silently fail (eg. activity_logs missing) — show empty
                 }
 
+                // Đơn WooCommerce (WP) — chưa xử lý. Tách try riêng để bảng wp_orders thiếu không ảnh hưởng các tab khác.
+                $__wpNotifs = collect();
+                try {
+                    $__wpNotifs = \App\Models\WpOrder::pending()->whereNull('handled_at')
+                        ->orderByDesc('wp_created_at')->take(15)->get()
+                        ->map(function ($o) {
+                            $qty = collect($o->items ?? [])->sum('qty');
+                            return [
+                                'tab'   => 'wp',
+                                'type'  => 'warning',
+                                'title' => '#' . $o->number . ' • ' . ($o->customer_name ?: 'Khách WP'),
+                                'desc'  => trim(($o->customer_phone ? $o->customer_phone . ' • ' : '') . $qty . ' SP • ' . number_format((int) $o->total, 0, ',', '.') . 'đ'),
+                                'time'  => optional($o->wp_created_at)->diffForHumans() ?? '',
+                                'sort'  => optional($o->wp_created_at)->timestamp ?? 0,
+                                'url'   => route('wp.orders'),
+                            ];
+                        });
+                    if ($__wpNotifs->isNotEmpty()) {
+                        $__notifs = $__wpNotifs->concat($__notifs)->sortByDesc('sort')->values();
+                    }
+                } catch (\Throwable $e) {
+                    // wp_orders chưa migrate — bỏ qua tab WP
+                }
+
                 $__notifCount = $__notifs->count();
                 $__tabs = [
                     'all'         => ['label' => 'Tất cả', 'count' => $__notifCount],
+                    'wp'          => ['label' => 'Đơn WP', 'count' => $__notifs->where('tab', 'wp')->count()],
                     'invoice'     => ['label' => 'Hóa đơn', 'count' => $__notifs->where('tab', 'invoice')->count()],
                     'stock'       => ['label' => 'Tồn kho', 'count' => $__notifs->where('tab', 'stock')->count()],
                     'product'     => ['label' => 'Hàng hóa', 'count' => $__notifs->where('tab', 'product')->count()],
