@@ -1,6 +1,22 @@
 <div class="h-full flex flex-col">
 
     {{-- ══════════════════════════════════════════════════════════════ LIST MODE ══ --}}
+    @php
+        $stBadge = [
+            'draft'     => 'bg-slate-100 text-slate-600',
+            'shipping'  => 'bg-blue-100 text-blue-700',
+            'received'  => 'bg-amber-100 text-amber-700',
+            'completed' => 'bg-emerald-100 text-emerald-700',
+            'confirmed' => 'bg-emerald-100 text-emerald-700',
+        ];
+        $stLabel = [
+            'draft'     => 'Nháp',
+            'shipping'  => 'Đang vận chuyển',
+            'received'  => 'Đã nhận · chờ xác nhận',
+            'completed' => 'Đã hoàn thành',
+            'confirmed' => 'Đã hoàn thành',
+        ];
+    @endphp
     @if($mode === 'list')
     <div class="flex flex-col h-full">
         {{-- Header --}}
@@ -17,17 +33,35 @@
         </div>
 
         {{-- Filters --}}
-        <div class="px-4 md:px-6 py-2 flex items-center gap-3 bg-white border-b border-slate-100 shrink-0">
+        <div class="px-4 md:px-6 py-2 flex flex-wrap items-center gap-2 md:gap-3 bg-white border-b border-slate-100 shrink-0">
+            <div class="relative flex-1 min-w-[180px] max-w-xs">
+                <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-300"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+                <input type="text" wire:model.live.debounce.300ms="search" placeholder="Tìm mã phiếu, mã vận đơn, SKU, người tạo..."
+                       class="w-full bg-slate-50 border border-slate-200 rounded-lg py-1.5 pl-8 pr-3 text-xs focus:outline-none focus:border-electric-blue">
+            </div>
             <select wire:model.live="statusFilter" class="bg-slate-50 border border-slate-200 rounded-lg px-2.5 py-1.5 text-xs font-bold text-slate-600 focus:outline-none">
                 <option value="all">Tất cả trạng thái</option>
-                <option value="draft">Chờ xác nhận</option>
-                <option value="confirmed">Đã xác nhận</option>
+                <option value="draft">Nháp</option>
+                <option value="shipping">Đang vận chuyển</option>
+                <option value="received">Đã nhận · chờ xác nhận</option>
+                <option value="completed">Đã hoàn thành</option>
             </select>
             <select wire:model.live="branchFilter" class="bg-slate-50 border border-slate-200 rounded-lg px-2.5 py-1.5 text-xs font-bold text-slate-600 focus:outline-none">
                 <option value="all">Tất cả chi nhánh</option>
                 <option value="hn">Hà Nội</option>
                 <option value="sg">Sài Gòn</option>
             </select>
+            <div class="flex items-center gap-1">
+                <select wire:model.live="sortField" class="bg-slate-50 border border-slate-200 rounded-lg px-2.5 py-1.5 text-xs font-bold text-slate-600 focus:outline-none">
+                    <option value="created_at">Ngày tạo</option>
+                    <option value="code">Mã phiếu</option>
+                    <option value="status">Trạng thái</option>
+                </select>
+                <button wire:click="sortBy('{{ $sortField }}')" title="Đổi chiều sắp xếp"
+                        class="w-8 h-8 flex items-center justify-center rounded-lg bg-slate-50 border border-slate-200 text-slate-500 hover:bg-slate-100">
+                    {!! $sortDir === 'asc' ? '&uarr;' : '&darr;' !!}
+                </button>
+            </div>
         </div>
 
         {{-- Table --}}
@@ -43,7 +77,7 @@
                             <div class="text-[10px] text-slate-400 mt-0.5">{{ $tr->created_at->format('d/m/Y H:i') }} · {{ $tr->createdBy?->name }}</div>
                         </div>
                         <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[9px] font-bold
-                            {{ $tr->status === 'confirmed' ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-700' }}">
+                            {{ $stBadge[$tr->status] ?? 'bg-slate-100 text-slate-600' }}">
                             {{ $tr->status_label }}
                         </span>
                     </div>
@@ -138,7 +172,9 @@
         async gheDe() {
             if (this.mobileDetail === null) return;
             const v = Math.max(0, parseInt(this.stepVal) || 0);
-            await $wire.set('lines.' + this.mobileDetail + '.send_quantity', v);
+            // Nháp: ghi 'số gửi'. Đã nhận: bên nhận ghi 'thực nhận'.
+            const field = ($wire.status === 'received') ? 'actual_quantity' : 'send_quantity';
+            await $wire.set('lines.' + this.mobileDetail + '.' + field, v);
             this.close();
         },
         prev() {
@@ -167,9 +203,12 @@
                             {{ $transferCode ?: 'Phiếu mới' }}
                         </span>
                         <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[9px] font-bold shrink-0
-                            {{ $status === 'confirmed' ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-700' }}">
-                            {{ $status === 'confirmed' ? 'Đã xác nhận' : 'Bản nháp' }}
+                            {{ $stBadge[$status] ?? 'bg-slate-100 text-slate-600' }}">
+                            {{ $stLabel[$status] ?? $status }}
                         </span>
+                        @if($status === 'shipping' && $trackingCode)
+                            <span class="text-[10px] font-mono text-slate-400 shrink-0">· VĐ: {{ $trackingCode }}</span>
+                        @endif
                     </div>
                     @if($this->canEdit)
                         <div class="flex items-center gap-2 mt-1">
@@ -318,28 +357,52 @@
                 </div>
 
                 {{-- Bottom actions --}}
-                <div class="grid grid-cols-2 gap-2 p-3 border-t border-slate-100 bg-white shrink-0">
+                <div class="flex flex-col gap-2 p-3 border-t border-slate-100 bg-white shrink-0">
                     @if($status === 'draft')
-                        {{-- Bên gửi: chỉ thêm/sửa + lưu tạm --}}
                         @if($this->canEdit)
-                        <button wire:click="saveDraft" class="{{ $this->canConfirm ? '' : 'col-span-2' }} py-2.5 bg-slate-100 text-slate-700 text-sm font-bold rounded-xl hover:bg-slate-200 transition-colors">
-                            Lưu tạm
+                        <button wire:click="saveDraft" class="py-2.5 bg-slate-100 text-slate-700 text-sm font-bold rounded-xl hover:bg-slate-200 transition-colors">
+                            Lưu tạm & về danh sách
                         </button>
                         @endif
-                        {{-- Bên nhận: chỉ xác nhận --}}
-                        @if($editingId && $this->canConfirm)
-                        <button wire:click="confirmReceived" wire:confirm="Xác nhận đã nhận đủ hàng? Tồn kho sẽ được cập nhật."
-                                class="{{ $this->canEdit ? '' : 'col-span-2' }} py-2.5 text-sm font-bold rounded-xl bg-electric-blue text-white hover:bg-electric-blue/90 transition-colors">
-                            Xác nhận nhận hàng
+                        @if($this->canShip)
+                        <input type="text" wire:model="trackingCode" placeholder="Mã vận đơn ĐVVC" style="font-size:16px"
+                               class="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:border-electric-blue">
+                        <button wire:click="shipGoods" wire:confirm="Gửi hàng đi {{ strtoupper($toBranch) }}? Tồn kho chi nhánh gửi sẽ bị trừ ngay."
+                                class="py-2.5 text-sm font-bold rounded-xl bg-electric-blue text-white hover:bg-electric-blue/90 transition-colors">
+                            Gửi hàng →
                         </button>
                         @endif
-                        @if(!$this->canEdit && !$this->canConfirm)
-                        <div class="col-span-2 text-center py-2.5 text-xs text-slate-400">Bạn chỉ có quyền xem phiếu này.</div>
+                        @if(!$this->canEdit && !$this->canShip)
+                        <div class="text-center py-2.5 text-xs text-slate-400">Bạn chỉ có quyền xem phiếu này.</div>
+                        @endif
+                    @elseif($status === 'shipping')
+                        <div class="text-center text-xs font-bold text-blue-600">Đang vận chuyển · vận đơn {{ $trackingCode ?: '—' }}</div>
+                        @if($this->canReceive)
+                        <button wire:click="receiveGoods" wire:confirm="Xác nhận đã nhận thùng hàng?"
+                                class="py-2.5 text-sm font-bold rounded-xl bg-electric-blue text-white hover:bg-electric-blue/90 transition-colors">
+                            Nhận hàng
+                        </button>
+                        @endif
+                    @elseif($status === 'received')
+                        @if($this->hasDiscrepancy && !$senderConfirmed)
+                        <div class="text-center text-xs font-bold text-amber-600">Thực nhận lệch — chờ bên gửi chốt</div>
+                        @endif
+                        @if($this->canSenderConfirm)
+                        <button wire:click="senderConfirm" wire:confirm="Xác nhận đã chốt chênh lệch với bên nhận?"
+                                class="py-2.5 text-sm font-bold rounded-xl bg-amber-500 text-white hover:bg-amber-600 transition-colors">
+                            Chốt chênh lệch
+                        </button>
+                        @endif
+                        @if($this->canComplete)
+                        <button wire:click="completeTransfer" wire:confirm="Hoàn thành phiếu? Tồn kho hai chi nhánh sẽ cập nhật."
+                                class="py-2.5 text-sm font-bold rounded-xl bg-emerald-600 text-white hover:bg-emerald-700 transition-colors">
+                            Hoàn thành ✓
+                        </button>
                         @endif
                     @else
-                    <div class="col-span-2 text-center py-2.5 bg-emerald-50 text-emerald-700 text-sm font-bold rounded-xl">
-                        Đã xác nhận · Tồn kho đã cập nhật
-                    </div>
+                        <div class="text-center py-2.5 bg-emerald-50 text-emerald-700 text-sm font-bold rounded-xl">
+                            Đã hoàn thành · Tồn kho đã cập nhật
+                        </div>
                     @endif
                 </div>
             </div>
@@ -393,7 +456,7 @@
                                     </div>
 
                                     <div class="bg-electric-blue/5 border border-electric-blue/20 rounded-2xl p-5">
-                                        <p class="text-xs font-bold text-slate-500 text-center mb-3 uppercase tracking-widest">Số lượng gửi</p>
+                                        <p class="text-xs font-bold text-slate-500 text-center mb-3 uppercase tracking-widest">{{ $status === 'received' ? 'Thực nhận' : 'Số lượng gửi' }}</p>
                                         <div class="flex items-center justify-center gap-4">
                                             <button @click="stepVal = Math.max(0, (parseInt(stepVal)||0) - 1)"
                                                     class="w-12 h-12 rounded-full bg-white border-2 border-slate-200 text-2xl font-black text-slate-500 flex items-center justify-center hover:border-electric-blue hover:text-electric-blue transition-all">−</button>
@@ -440,7 +503,7 @@
                             <button wire:click="addProduct({{ $r['id'] }})"
                                     class="w-full flex items-center gap-3 px-3 py-2.5 hover:bg-slate-50 transition-colors text-left border-b border-slate-50 last:border-0">
                                 <div class="w-9 h-9 rounded-lg bg-slate-100 overflow-hidden shrink-0">
-                                    @if($r['image'])<img src="{{ \App\Models\Product::imageUrl($r['image']) }}" class="w-full h-full object-cover">@endif
+                                    @if($r['image'])<x-zoom-image :src="\App\Models\Product::imageUrl($r['image'])" />@endif
                                 </div>
                                 <div class="flex-1 min-w-0">
                                     <div class="text-xs font-black text-electric-blue font-mono">{{ $r['sku'] }}</div>
@@ -483,7 +546,7 @@
                                 <td class="px-3 py-2 text-xs text-slate-400 text-center">{{ $idx + 1 }}</td>
                                 <td class="px-3 py-2">
                                     <div class="w-10 h-10 rounded-lg bg-slate-100 overflow-hidden">
-                                        @if($line['image'])<img src="{{ \App\Models\Product::imageUrl($line['image']) }}" class="w-full h-full object-cover">@endif
+                                        @if($line['image'])<x-zoom-image :src="\App\Models\Product::imageUrl($line['image'])" />@endif
                                     </div>
                                 </td>
                                 <td class="px-3 py-2">
@@ -511,7 +574,7 @@
                                     @endif
                                 </td>
                                 <td class="px-3 py-2 text-center">
-                                    @if($this->canEdit)
+                                    @if($this->canEditActual)
                                     <input type="number" wire:model.live.debounce.400ms="lines.{{ $idx }}.actual_quantity"
                                            min="0" placeholder="{{ $line['send_quantity'] }}"
                                            class="w-20 text-center border border-slate-200 rounded-lg px-2 py-1 text-sm font-bold {{ $line['actual_quantity'] !== null && $line['actual_quantity'] != $line['send_quantity'] ? 'text-amber-600 border-amber-300 bg-amber-50' : 'text-slate-700' }} focus:outline-none focus:border-electric-blue bg-white">
@@ -522,7 +585,7 @@
                                     @endif
                                 </td>
                                 <td class="px-3 py-2">
-                                    @if($this->canEdit)
+                                    @if($this->canEditActual)
                                     <input type="text" wire:model.blur="lines.{{ $idx }}.adjust_reason"
                                            placeholder="Lý do điều chỉnh..."
                                            class="w-full border border-slate-100 rounded-lg px-2 py-1 text-xs text-slate-600 focus:outline-none focus:border-slate-300 bg-transparent">
@@ -558,27 +621,58 @@
                     </div>
                     <div class="flex items-center gap-2">
                         @if($status === 'draft')
-                        {{-- Bên gửi: chỉ thêm/sửa + lưu tạm --}}
-                        @if($this->canEdit)
-                        <button wire:click="saveDraft"
-                                class="px-4 py-2 border border-slate-200 text-slate-700 text-sm font-bold rounded-xl hover:bg-slate-50 transition-colors">
-                            Lưu tạm
-                        </button>
-                        @endif
-                        {{-- Bên nhận: chỉ xác nhận --}}
-                        @if($editingId && $this->canConfirm)
-                        <button wire:click="confirmReceived" wire:confirm="Xác nhận đã nhận đủ hàng? Tồn kho sẽ được cập nhật ngay."
-                                class="px-5 py-2 text-sm font-bold rounded-xl bg-electric-blue text-white hover:bg-electric-blue/90 shadow-sm transition-colors">
-                            Xác nhận đã nhận hàng
-                        </button>
-                        @endif
-                        @if(!$this->canEdit && !$this->canConfirm)
-                        <span class="text-xs text-slate-400">Bạn chỉ có quyền xem phiếu này.</span>
-                        @endif
+                            @if($this->canEdit)
+                            <button wire:click="saveDraft"
+                                    class="px-4 py-2 border border-slate-200 text-slate-700 text-sm font-bold rounded-xl hover:bg-slate-50 transition-colors">
+                                Lưu tạm & về danh sách
+                            </button>
+                            @endif
+                            {{-- Bước 2: Gửi hàng (kèm mã vận đơn) — trừ tồn nguồn ngay --}}
+                            @if($this->canShip)
+                            <input type="text" wire:model="trackingCode" placeholder="Mã vận đơn ĐVVC"
+                                   class="border border-slate-200 rounded-xl px-3 py-2 text-sm w-44 focus:outline-none focus:border-electric-blue">
+                            <button wire:click="shipGoods" wire:confirm="Gửi hàng đi {{ strtoupper($toBranch) }}? Tồn kho chi nhánh gửi sẽ bị trừ ngay."
+                                    class="px-5 py-2 text-sm font-bold rounded-xl bg-electric-blue text-white hover:bg-electric-blue/90 shadow-sm transition-colors">
+                                Gửi hàng →
+                            </button>
+                            @endif
+                            @if(!$this->canEdit && !$this->canShip)
+                            <span class="text-xs text-slate-400">Bạn chỉ có quyền xem phiếu này.</span>
+                            @endif
+                        @elseif($status === 'shipping')
+                            <span class="text-xs font-bold text-blue-600">Đang vận chuyển · vận đơn {{ $trackingCode ?: '—' }}</span>
+                            {{-- Bước 3a: Bên nhận bấm nhận hàng --}}
+                            @if($this->canReceive)
+                            <button wire:click="receiveGoods" wire:confirm="Xác nhận đã nhận thùng hàng từ {{ strtoupper($fromBranch) }}?"
+                                    class="px-5 py-2 text-sm font-bold rounded-xl bg-electric-blue text-white hover:bg-electric-blue/90 shadow-sm transition-colors">
+                                Nhận hàng
+                            </button>
+                            @endif
+                        @elseif($status === 'received')
+                            @if($this->hasDiscrepancy && !$senderConfirmed)
+                            <span class="text-xs font-bold text-amber-600">Thực nhận lệch số gửi — chờ bên gửi chốt</span>
+                            @endif
+                            {{-- Bên gửi chốt chênh lệch --}}
+                            @if($this->canSenderConfirm)
+                            <button wire:click="senderConfirm" wire:confirm="Xác nhận đã chốt chênh lệch với bên nhận?"
+                                    class="px-4 py-2 text-sm font-bold rounded-xl bg-amber-500 text-white hover:bg-amber-600 shadow-sm transition-colors">
+                                Chốt chênh lệch
+                            </button>
+                            @endif
+                            {{-- Bước 3b: Bên nhận hoàn thành --}}
+                            @if($this->canComplete)
+                            <button wire:click="completeTransfer" wire:confirm="Hoàn thành phiếu? Tồn kho hai chi nhánh sẽ được cập nhật."
+                                    class="px-5 py-2 text-sm font-bold rounded-xl bg-emerald-600 text-white hover:bg-emerald-700 shadow-sm transition-colors">
+                                Hoàn thành ✓
+                            </button>
+                            @endif
+                            @if(!$this->canEditActual && !$this->canSenderConfirm && !$this->canComplete)
+                            <span class="text-xs text-slate-400">Đang chờ xử lý…</span>
+                            @endif
                         @else
-                        <div class="px-4 py-2 bg-emerald-50 text-emerald-700 text-sm font-bold rounded-xl border border-emerald-200">
-                            Đã xác nhận · Tồn kho đã cập nhật
-                        </div>
+                            <div class="px-4 py-2 bg-emerald-50 text-emerald-700 text-sm font-bold rounded-xl border border-emerald-200">
+                                Đã hoàn thành · Tồn kho đã cập nhật
+                            </div>
                         @endif
                     </div>
                 </div>
@@ -600,7 +694,7 @@
                     <button wire:click="addProduct({{ $s['id'] }})"
                             class="w-full flex items-center gap-2 bg-white border border-slate-100 rounded-xl px-2.5 py-2 hover:border-electric-blue/40 hover:bg-electric-blue/5 transition-colors text-left group">
                         <div class="w-9 h-9 rounded-lg bg-slate-100 overflow-hidden shrink-0">
-                            @if($s['image'])<img src="{{ \App\Models\Product::imageUrl($s['image']) }}" class="w-full h-full object-cover">@endif
+                            @if($s['image'])<x-zoom-image :src="\App\Models\Product::imageUrl($s['image'])" />@endif
                         </div>
                         <div class="flex-1 min-w-0">
                             <div class="text-[10px] font-black text-electric-blue font-mono truncate">{{ $s['sku'] }} <span class="text-slate-400">→ {{ $s['to_sku'] }}</span></div>
