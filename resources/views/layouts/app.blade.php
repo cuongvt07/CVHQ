@@ -52,6 +52,13 @@
 
         @livewireScripts
         <x-notification />
+
+        {{-- Chuông thông báo đơn WooCommerce (poll + kêu khi có đơn mới) --}}
+        @auth
+            @if(auth()->user()?->hasPermission('invoices') || auth()->user()?->hasPermission('pos'))
+                @livewire('wp.wp-order-bell')
+            @endif
+        @endauth
         
         <!-- Global Loading Bar -->
         {{-- Loading bar removed per user request — gây ồn khi search/filter --}}

@@ -103,11 +103,17 @@
 
         {{-- GIAO DỊCH (kèm Khách hàng) --}}
         @if(auth()->user()?->hasPermission('pos') || auth()->user()?->hasPermission('invoices') || auth()->user()?->hasPermission('customers'))
-        <x-nav.group title="Giao dịch" :open="request()->routeIs('pos') || request()->routeIs('invoices*') || request()->routeIs('customers')">
+        <x-nav.group title="Giao dịch" :open="request()->routeIs('pos') || request()->routeIs('invoices*') || request()->routeIs('customers') || request()->routeIs('wp.orders')">
             @if(auth()->user()?->hasPermission('pos'))
             <x-nav.link :href="route('pos')" :active="request()->routeIs('pos')">
                 <x-slot:icon><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="shrink-0"><circle cx="8" cy="21" r="1"/><circle cx="19" cy="21" r="1"/><path d="M2.05 2.05h2l2.66 12.42a2 2 0 0 0 2 1.58h9.78a2 2 0 0 0 1.95-1.57l1.65-7.43H5.12"/></svg></x-slot:icon>
                 Trạm bán hàng
+            </x-nav.link>
+            @endif
+            @if(auth()->user()?->hasPermission('pos') || auth()->user()?->hasPermission('invoices'))
+            <x-nav.link :href="route('wp.orders')" :active="request()->routeIs('wp.orders')">
+                <x-slot:icon><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="shrink-0"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></svg></x-slot:icon>
+                Đơn WP
             </x-nav.link>
             @endif
             @if(auth()->user()?->hasPermission('invoices'))

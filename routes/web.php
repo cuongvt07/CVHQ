@@ -38,6 +38,7 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/reports/sales', \App\Livewire\Report\SalesReport::class)->name('reports.sales');
     Route::get('/reports/sales/day/{date}', \App\Livewire\Report\SalesDayDetail::class)->name('reports.sales.day');
     Route::get('/invoices', InvoiceIndex::class)->name('invoices');
+    Route::get('/wp-orders', \App\Livewire\Wp\WpOrderIndex::class)->name('wp.orders');
     Route::get('/invoices/returns', \App\Livewire\Invoice\ReturnIndex::class)->name('invoices.returns');
     Route::get('/invoices/{invoice}', \App\Livewire\Invoice\InvoiceDetail::class)->name('invoices.detail');
     Route::get('/system/logs', \App\Livewire\System\ActivityLogList::class)->name('system.logs');

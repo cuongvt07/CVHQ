@@ -35,4 +35,11 @@ return [
         ],
     ],
 
+    // WooCommerce (cavathanquoc.com) — đồng bộ đơn hàng online. (key nhập thẳng theo yêu cầu)
+    'woocommerce' => [
+        'url' => 'https://cavathanquoc.com',
+        'key' => 'ck_0074a1c148ebf62553872160bfec830b581145d0',
+        'secret' => 'cs_0e2f1dea5a383104fccd526cd0ec80756d9d3d21',
+    ],
+
 ];
