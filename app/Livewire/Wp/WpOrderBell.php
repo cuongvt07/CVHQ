@@ -41,8 +41,18 @@ class WpOrderBell extends Component
         }
     }
 
+    /** Đánh dấu đã đọc (tắt chấm đỏ) khi mở tab thông báo. */
+    public function markSeen(): void
+    {
+        WpOrder::where('seen', false)->update(['seen' => true]);
+        $this->unseen = 0;
+    }
+
     public function render()
     {
-        return view('livewire.wp.wp-order-bell');
+        return view('livewire.wp.wp-order-bell', [
+            'recent' => WpOrder::pending()->whereNull('handled_at')
+                ->orderByDesc('wp_created_at')->limit(8)->get(),
+        ]);
     }
 }
