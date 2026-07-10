@@ -1,6 +1,10 @@
 {{-- POS Financials: total, discount toggle, extra fees, paid + change, checkout button --}}
 <div class="px-1.5 py-1 bg-white border-t border-slate-100 flex flex-col gap-1 shrink-0 shadow-[0_-2px_8px_rgba(0,0,0,0.03)]">
 
+    {{-- Tổng số sản phẩm trong giỏ --}}
+    @php $__cartQty = collect($cart)->sum(fn($i) => (int) ($i['quantity'] ?? 0)); @endphp
+    <div class="text-[11px] font-bold text-slate-500">Tổng {{ number_format($__cartQty, 0, ',', '.') }} sản phẩm</div>
+
     {{-- Tổng tiền hàng --}}
     <div class="flex justify-between items-center text-[11px]">
         <span class="text-slate-400 font-bold tracking-wider">Tổng tiền hàng</span>
