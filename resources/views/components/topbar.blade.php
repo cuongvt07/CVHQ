@@ -37,12 +37,33 @@
                         ];
                     };
 
-                    // Hóa đơn — kèm mã hóa đơn
-                    $invLogs  = \App\Models\ActivityLog::with('user')->where('model_type', \App\Models\Invoice::class)
+                    // Hóa đơn — kèm mã, tiền, số SP, nhân viên, khách, kênh
+                    $invLogs = \App\Models\ActivityLog::with('user')->where('model_type', \App\Models\Invoice::class)
                         ->where('created_at', '>=', $since)->latest()->take(10)->get();
-                    $invCodes = \App\Models\Invoice::whereIn('id', $invLogs->pluck('model_id'))->pluck('invoice_code', 'id');
-                    $invoiceLogs = $invLogs->map(fn($l) => $mapLog($l, 'invoice', 'Hóa đơn',
-                        $invCodes[$l->model_id] ?? ($l->changes['snapshot']['invoice_code'] ?? '#' . $l->model_id)));
+                    $invMap = \App\Models\Invoice::withCount('items')->with('customer')
+                        ->whereIn('id', $invLogs->pluck('model_id'))->get()->keyBy('id');
+                    $invoiceLogs = $invLogs->map(function ($l) use ($P, $invMap) {
+                        $inv  = $invMap[$l->model_id] ?? null;
+                        $code = $inv->invoice_code ?? ($l->changes['snapshot']['invoice_code'] ?? '#' . $l->model_id);
+                        $bits = array_values(array_filter([
+                            ($l->user?->name ?? 'Hệ thống'),
+                            \App\Support\LogPresenter::actionLabel(\App\Models\Invoice::class, $l->action, $l->changes),
+                            $inv ? number_format((int) $inv->final_amount, 0, ',', '.') . 'đ' : null,
+                            $inv ? $inv->items_count . ' SP' : null,
+                            ($inv?->seller_name ? 'NV: ' . $inv->seller_name : null),
+                            ($inv?->customer?->full_name ? 'KH: ' . $inv->customer->full_name : null),
+                            ($inv?->sales_channel ?: null),
+                        ]));
+                        return [
+                            'tab'   => 'invoice',
+                            'type'  => $P::actionType($l->action),
+                            'title' => 'Hóa đơn: ' . $code,
+                            'desc'  => implode(' • ', $bits),
+                            'time'  => $l->created_at->diffForHumans(),
+                            'sort'  => $l->created_at->timestamp,
+                            'url'   => $P::detailUrl(\App\Models\Invoice::class, $l->model_id),
+                        ];
+                    });
 
                     // Hàng hóa — kèm SKU / tên danh mục
                     $prodLogs = \App\Models\ActivityLog::with('user')->whereIn('model_type', [\App\Models\Product::class, \App\Models\Category::class])
@@ -82,11 +103,19 @@
                             $change = (int) ($h->quantity_change ?? 0);
                             $after  = (int) ($h->quantity_after ?? 0);
                             $before = $h->quantity_before !== null ? (int) $h->quantity_before : ($after - $change);
+                            $sign = ($change > 0 ? '+' : '') . number_format($change);
+                            $bits = array_values(array_filter([
+                                ($h->user?->name ?? 'Hệ thống'),
+                                ($typeMap[$h->type] ?? $h->type) . ' (' . $sign . ')',
+                                number_format($before) . ' → ' . number_format($after),
+                                ($h->reference_code ? 'Phiếu: ' . $h->reference_code : null),
+                                ($h->note ? 'Lý do: ' . $h->note : null),
+                            ]));
                             return [
                                 'tab'   => 'stock',
                                 'type'  => $change >= 0 ? 'success' : 'error',
                                 'title' => ($h->product->sku ?? '—') . ' • ' . mb_substr($h->product->name ?? 'SP', 0, 26),
-                                'desc'  => ($h->user?->name ?? 'Hệ thống') . ' • ' . ($typeMap[$h->type] ?? $h->type) . ': ' . number_format($before) . ' → ' . number_format($after),
+                                'desc'  => implode(' • ', $bits),
                                 'time'  => $h->created_at->diffForHumans(),
                                 'sort'  => $h->created_at->timestamp,
                                 'url'   => $h->product_id ? route('products', ['open' => $h->product_id]) : null,
@@ -99,11 +128,18 @@
                         ->map(function ($h) {
                             $change = (int) ($h->quantity_change ?? 0);
                             $after  = (int) ($h->quantity_after ?? 0);
+                            $bits = array_values(array_filter([
+                                ($h->user?->name ?? 'Hệ thống'),
+                                'Nhập +' . $change,
+                                'Tồn: ' . number_format($after),
+                                ($h->reference_code ? 'Phiếu: ' . $h->reference_code : null),
+                                ($h->note ? $h->note : null),
+                            ]));
                             return [
                                 'tab'   => 'import',
                                 'type'  => 'success',
                                 'title' => ($h->product->sku ?? '—') . ' • ' . mb_substr($h->product->name ?? 'SP', 0, 26),
-                                'desc'  => ($h->user?->name ?? 'Hệ thống') . ' • Nhập +' . $change . ' • Tồn: ' . number_format($after),
+                                'desc'  => implode(' • ', $bits),
                                 'time'  => $h->created_at->diffForHumans(),
                                 'sort'  => $h->created_at->timestamp,
                                 'url'   => $h->product_id ? route('products', ['open' => $h->product_id]) : null,
@@ -120,15 +156,30 @@
                 // Đơn WooCommerce (WP) — chưa xử lý. Tách try riêng để bảng wp_orders thiếu không ảnh hưởng các tab khác.
                 $__wpNotifs = collect();
                 try {
+                    $__wpStatusMap = ['pending' => 'Chờ thanh toán', 'processing' => 'Đang xử lý', 'on-hold' => 'Tạm giữ',
+                        'completed' => 'Hoàn thành', 'cancelled' => 'Đã hủy', 'refunded' => 'Hoàn tiền', 'failed' => 'Thất bại'];
                     $__wpNotifs = \App\Models\WpOrder::pending()->whereNull('handled_at')
                         ->orderByDesc('wp_created_at')->take(15)->get()
-                        ->map(function ($o) {
-                            $qty = collect($o->items ?? [])->sum('qty');
+                        ->map(function ($o) use ($__wpStatusMap) {
+                            $items = collect($o->items ?? []);
+                            $qty   = $items->sum('qty');
+                            $names = $items->map(fn ($it) => ((int) ($it['qty'] ?? 1)) . 'x ' . mb_substr($it['name'] ?? 'SP', 0, 30))->all();
+                            $prodStr = implode(', ', array_slice($names, 0, 2)) . (count($names) > 2 ? ' +' . (count($names) - 2) . ' SP khác' : '');
+                            $bits = array_values(array_filter([
+                                ($__wpStatusMap[$o->status] ?? $o->status),
+                                ($o->customer_phone ?: null),
+                                $qty . ' SP • ' . number_format((int) $o->total, 0, ',', '.') . 'đ'
+                                    . ((int) $o->shipping_total > 0 ? ' (ship ' . number_format((int) $o->shipping_total, 0, ',', '.') . 'đ)' : ''),
+                                ($prodStr ?: null),
+                                ($o->address ? 'Đ/c: ' . mb_substr($o->address, 0, 60) : null),
+                                ($o->payment_title ?: null),
+                                ($o->customer_note ? 'Ghi chú: ' . mb_substr($o->customer_note, 0, 60) : null),
+                            ]));
                             return [
                                 'tab'   => 'wp',
                                 'type'  => 'warning',
                                 'title' => '#' . $o->number . ' • ' . ($o->customer_name ?: 'Khách WP'),
-                                'desc'  => trim(($o->customer_phone ? $o->customer_phone . ' • ' : '') . $qty . ' SP • ' . number_format((int) $o->total, 0, ',', '.') . 'đ'),
+                                'desc'  => implode(' • ', $bits),
                                 'time'  => optional($o->wp_created_at)->diffForHumans() ?? '',
                                 'sort'  => optional($o->wp_created_at)->timestamp ?? 0,
                                 'url'   => route('wp.orders'),
@@ -223,9 +274,9 @@
                                          </template>
                                     </div>
                                     <div class="flex-1 min-w-0">
-                                        <div class="text-[10px] font-bold text-slate-800 tracking-tight" x-text="noti.title"></div>
-                                        <p class="text-[9px] text-slate-500 mt-0.5 line-clamp-2 leading-relaxed" x-text="noti.desc"></p>
-                                        <span class="text-[8px] text-slate-400 font-mono mt-1 block" x-text="noti.time"></span>
+                                        <div class="text-[11px] font-bold text-slate-800 tracking-tight" x-text="noti.title"></div>
+                                        <p class="text-[10px] text-slate-500 mt-0.5 line-clamp-3 leading-relaxed" x-text="noti.desc"></p>
+                                        <span class="text-[9px] text-slate-400 font-mono mt-1 block" x-text="noti.time"></span>
                                     </div>
                                     <template x-if="noti.url">
                                         <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="shrink-0 self-center text-slate-300 opacity-0 group-hover:opacity-100 transition-opacity"><path d="M7 7h10v10"/><path d="M7 17 17 7"/></svg>

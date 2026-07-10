@@ -33,7 +33,11 @@
       "Bash(grep -rniE '\\\\$cart|partials.financials|partials.cart-items|getTab|@include|:cart' resources/views/livewire/pos/pos-terminal.blade.php)",
       "Bash(grep -n 'foreach\\\\|\\\\$cart\\\\|@php' resources/views/livewire/pos/partials/cart-items.blade.php)",
       "Bash(grep -n '@php\\\\|\\\\$cart\\\\s*=\\\\|\\\\$total\\\\s*=\\\\|getTab\\\\|activeTab' resources/views/livewire/pos/pos-terminal.blade.php)",
-      "Bash(grep -n 'sidebar\\\\|@livewire\\\\|livewireScripts\\\\|@stack\\\\|</body>\\\\|@auth\\\\|<main\\\\|{{ $slot\\\\|@yield' resources/views/layouts/app.blade.php)"
+      "Bash(grep -n 'sidebar\\\\|@livewire\\\\|livewireScripts\\\\|@stack\\\\|</body>\\\\|@auth\\\\|<main\\\\|{{ $slot\\\\|@yield' resources/views/layouts/app.blade.php)",
+      "Bash(python -c \"import sys,json; d=json.load\\(sys.stdin\\); print\\(json.dumps\\([{'id':p['id'],'name':p['name'],'price':p['price']} for p in d], ensure_ascii=False, indent=2\\)\\)\")",
+      "Bash(export PYTHONIOENCODING=utf-8)",
+      "Bash(grep -n 'protected $fillable\\\\|invoice_code\\\\|total\\\\|final_amount\\\\|customer_id\\\\|payment' d:/CVHQ/app/Models/Invoice.php)",
+      "Bash(grep -n 'reason\\\\|note\\\\|$fillable' d:/CVHQ/app/Models/StockHistory.php)"
     ],
     "additionalDirectories": [
       "\\tmp"
