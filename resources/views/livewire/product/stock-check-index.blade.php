@@ -322,13 +322,21 @@
                     </div>
                     @endunless
                 </div>
-                {{-- Detail header --}}
-                <div x-show="mobileDetail !== null" x-cloak class="flex items-center gap-3 w-full">
+                {{-- Detail header — kèm thông tin phiếu (mã / người / thời gian / trạng thái) --}}
+                <div x-show="mobileDetail !== null" x-cloak class="flex items-center gap-2 w-full">
                     <button @click="close()" class="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-slate-100 text-slate-600 shrink-0 text-xl font-light">×</button>
-                    <div class="min-w-0">
-                        <span class="text-sm font-black text-slate-900" x-text="$wire.lines[mobileDetail]?.sku ?? ''"></span>
-                        <span class="text-xs text-slate-400 ml-1.5 truncate" x-text="$wire.lines[mobileDetail]?.name ?? ''"></span>
+                    <div class="min-w-0 flex-1">
+                        <div class="flex items-center gap-1.5">
+                            <span class="text-sm font-black text-slate-900 shrink-0" x-text="$wire.lines[mobileDetail]?.sku ?? ''"></span>
+                            <span class="text-xs text-slate-400 truncate" x-text="$wire.lines[mobileDetail]?.name ?? ''"></span>
+                        </div>
+                        <div class="text-[10px] text-slate-400 truncate">
+                            {{ $code ?: 'Phiếu mới' }} · {{ $creatorName ?: '—' }}@if($createdAtLabel) · {{ $createdAtLabel }}@endif · {{ $branch === 'sg' ? 'SG' : 'HN' }}
+                        </div>
                     </div>
+                    <span class="shrink-0 inline-flex items-center rounded-full px-2 py-0.5 text-[9px] font-black border {{ $locked ? 'bg-emerald-50 text-emerald-700 border-emerald-100' : 'bg-amber-50 text-amber-700 border-amber-100' }}">
+                        {{ $locked ? 'Hoàn thành' : 'Phiếu tạm' }}
+                    </span>
                 </div>
             </div>
 
@@ -480,6 +488,15 @@
                              })()">
                         </div>
                     </div>
+                </div>
+
+                {{-- Thẻ kho sản phẩm --}}
+                <div class="px-4 pt-3">
+                    <button type="button" @click="$wire.openStockCard($wire.lines[mobileDetail]?.product_id)"
+                            class="w-full h-10 rounded-xl border border-slate-200 text-slate-600 text-xs font-black flex items-center justify-center gap-2 hover:bg-slate-50 active:bg-slate-100 transition-colors">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="3" rx="2"/><path d="M3 9h18"/><path d="M9 21V9"/></svg>
+                        Xem thẻ kho sản phẩm
+                    </button>
                 </div>
 
                 {{-- Stepper --}}

@@ -245,14 +245,16 @@
             <div class="bg-white border border-slate-200 rounded-2xl p-4 md:p-5 shadow-sm space-y-4">
                 <h3 class="text-sm font-bold text-slate-700">Thông tin kinh doanh hôm nay</h3>
                 <div class="grid grid-cols-2 gap-3">
-                    <div class="bg-slate-50 rounded-xl p-3">
-                        <div class="text-[11px] text-slate-400 font-semibold">Doanh thu</div>
+                    <a href="{{ route('invoices', ['startDate' => now()->format('Y-m-d'), 'endDate' => now()->format('Y-m-d'), 'statusFilter' => 'active']) }}"
+                       class="bg-slate-50 rounded-xl p-3 block hover:bg-electric-blue/5 transition-colors group">
+                        <div class="text-[11px] text-slate-400 font-semibold group-hover:text-electric-blue">Doanh thu hôm nay →</div>
                         <div class="text-lg font-black text-electric-blue">{{ $fmt($today['revenue']) }} đ</div>
-                    </div>
-                    <div class="bg-slate-50 rounded-xl p-3">
-                        <div class="text-[11px] text-slate-400 font-semibold">Đơn chốt</div>
+                    </a>
+                    <a href="{{ route('invoices', ['startDate' => now()->format('Y-m-d'), 'endDate' => now()->format('Y-m-d'), 'statusFilter' => 'active']) }}"
+                       class="bg-slate-50 rounded-xl p-3 block hover:bg-electric-blue/5 transition-colors group">
+                        <div class="text-[11px] text-slate-400 font-semibold group-hover:text-electric-blue">Đơn chốt hôm nay →</div>
                         <div class="text-lg font-black text-slate-800">{{ $fmt($today['orders']) }}</div>
-                    </div>
+                    </a>
                 </div>
 
                 {{-- Hourly bar chart --}}
@@ -317,6 +319,49 @@
                             <div class="text-base font-black {{ $t[2] }}">{{ $fmt($t[1]) }}</div>
                         </div>
                     @endforeach
+                </div>
+            </div>
+        </div>
+
+        {{-- ===== Số đơn giao dịch (kỳ đã chọn) + Giao dịch gần đây ===== --}}
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+            <div class="bg-white border border-slate-200 rounded-2xl p-4 md:p-5 shadow-sm">
+                <h3 class="text-sm font-bold text-slate-700 mb-3">Số đơn giao dịch (kỳ đã chọn)</h3>
+                <div class="grid grid-cols-2 sm:grid-cols-5 gap-2">
+                    @php $osTiles = [
+                        ['Tổng hóa đơn', $orderStats['total'], 'text-slate-800'],
+                        ['Hoàn thành', $orderStats['completed'], 'text-emerald-600'],
+                        ['Trả hàng', $orderStats['returned'], 'text-amber-600'],
+                        ['Sửa', $orderStats['edited'], 'text-blue-600'],
+                        ['Hủy', $orderStats['cancelled'], 'text-rose-500'],
+                    ]; @endphp
+                    @foreach($osTiles as $t)
+                        <div class="border border-slate-100 rounded-xl p-3 text-center">
+                            <div class="text-[10px] text-slate-400 font-semibold">{{ $t[0] }}</div>
+                            <div class="text-lg font-black {{ $t[2] }}">{{ $fmt($t[1]) }}</div>
+                        </div>
+                    @endforeach
+                </div>
+            </div>
+
+            <div class="bg-white border border-slate-200 rounded-2xl p-4 md:p-5 shadow-sm">
+                <div class="flex items-center justify-between mb-3">
+                    <h3 class="text-sm font-bold text-slate-700">Giao dịch gần đây</h3>
+                    <a href="{{ route('invoices') }}" class="text-[11px] font-bold text-electric-blue hover:underline">Xem tất cả →</a>
+                </div>
+                <div class="divide-y divide-slate-50">
+                    @forelse($recentTx as $tx)
+                        <a href="{{ route('invoices.detail', $tx['id']) }}" wire:navigate
+                           class="flex items-center justify-between gap-2 py-2 -mx-2 px-2 rounded-lg hover:bg-slate-50 transition-colors">
+                            <div class="min-w-0">
+                                <div class="text-[13px] font-bold text-slate-800 truncate">{{ $tx['code'] }} · {{ $tx['customer'] }}</div>
+                                <div class="text-[11px] text-slate-400 truncate">NV: {{ $tx['seller'] }} · {{ $tx['channel'] }} · {{ $tx['time'] }}</div>
+                            </div>
+                            <span class="text-[13px] font-black text-electric-blue whitespace-nowrap">{{ $fmt($tx['amount']) }} đ</span>
+                        </a>
+                    @empty
+                        <div class="py-6 text-center text-[12px] text-slate-400">Chưa có giao dịch.</div>
+                    @endforelse
                 </div>
             </div>
         </div>

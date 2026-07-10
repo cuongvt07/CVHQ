@@ -101,9 +101,21 @@ class ActivityLogList extends Component
                 ->when($this->date_from, fn($query) => $query->whereDate('created_at', '>=', $this->date_from))
                 ->when($this->date_to, fn($query) => $query->whereDate('created_at', '<=', $this->date_to))
                 ->when($this->search, function($query) {
-                    $query->whereHas('user', fn($q) => $q->where('name', 'like', '%' . $this->search . '%'))
-                          ->orWhere('model_type', 'like', '%' . $this->search . '%')
-                          ->orWhere('model_id', 'like', '%' . $this->search . '%');
+                    $s = '%' . $this->search . '%';
+                    // Dò theo mã chứng từ: mã HĐ, SKU/tên SP, mã phiếu kiểm, mã phiếu/vận đơn chuyển hàng.
+                    $invIds      = Invoice::where('invoice_code', 'like', $s)->pluck('id');
+                    $prodIds     = Product::withTrashed()->where('sku', 'like', $s)
+                                        ->orWhere('base_name', 'like', $s)->orWhere('name', 'like', $s)->pluck('id');
+                    $checkIds    = StockCheck::where('code', 'like', $s)->pluck('id');
+                    $transferIds = StockTransfer::where('code', 'like', $s)->orWhere('tracking_code', 'like', $s)->pluck('id');
+
+                    $query->whereHas('user', fn($q) => $q->where('name', 'like', $s))
+                          ->orWhere('model_type', 'like', $s)
+                          ->orWhere('model_id', 'like', $s)
+                          ->orWhere(fn($q) => $q->where('model_type', Invoice::class)->whereIn('model_id', $invIds))
+                          ->orWhere(fn($q) => $q->whereIn('model_type', [Product::class, \App\Models\Category::class])->whereIn('model_id', $prodIds))
+                          ->orWhere(fn($q) => $q->where('model_type', StockCheck::class)->whereIn('model_id', $checkIds))
+                          ->orWhere(fn($q) => $q->where('model_type', StockTransfer::class)->whereIn('model_id', $transferIds));
                 })
                 ->when($this->tab !== 'all', function($query) {
                     match($this->tab) {

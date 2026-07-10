@@ -127,10 +127,11 @@
                             
                             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                                 @foreach($this->availablePermissions as $moduleKey => $module)
-                                    <div class="bg-slate-50 border border-slate-100 rounded-[1.5rem] p-4 hover:border-electric-blue/20 transition-all group/card">
+                                    <div data-perm-card class="bg-slate-50 border border-slate-100 rounded-[1.5rem] p-4 hover:border-electric-blue/20 transition-all group/card">
                                         <label class="flex items-center gap-3 cursor-pointer mb-3">
                                             <input type="checkbox"
                                                    @checked(in_array($moduleKey, (array) $this->permissions))
+                                                   x-on:change="$el.closest('[data-perm-card]').querySelectorAll('input[data-child]').forEach(c => c.checked = $el.checked)"
                                                    wire:change="toggleModule('{{ $moduleKey }}', $event.target.checked)"
                                                    class="w-4 h-4 rounded border-slate-300 text-electric-blue focus:ring-electric-blue">
                                             <span class="text-sm font-bold text-slate-700 group-hover/card:text-electric-blue transition-colors">{{ $module['label'] }}</span>
@@ -140,7 +141,7 @@
                                             <div class="pl-7 space-y-2 border-l-2 border-slate-200 ml-2 mt-2">
                                                 @foreach($module['actions'] as $actionKey => $actionLabel)
                                                     <label class="flex items-center gap-3 cursor-pointer opacity-80 hover:opacity-100 transition-opacity">
-                                                        <input type="checkbox" wire:model="permissions" value="{{ $actionKey }}" class="w-3.5 h-3.5 rounded border-slate-300 text-electric-blue/70 focus:ring-electric-blue/50">
+                                                        <input type="checkbox" data-child wire:model="permissions" value="{{ $actionKey }}" class="w-3.5 h-3.5 rounded border-slate-300 text-electric-blue/70 focus:ring-electric-blue/50">
                                                         <span class="text-[11px] font-semibold text-slate-500">{{ $actionLabel }}</span>
                                                     </label>
                                                 @endforeach

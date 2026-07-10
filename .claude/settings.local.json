@@ -37,7 +37,8 @@
       "Bash(python -c \"import sys,json; d=json.load\\(sys.stdin\\); print\\(json.dumps\\([{'id':p['id'],'name':p['name'],'price':p['price']} for p in d], ensure_ascii=False, indent=2\\)\\)\")",
       "Bash(export PYTHONIOENCODING=utf-8)",
       "Bash(grep -n 'protected $fillable\\\\|invoice_code\\\\|total\\\\|final_amount\\\\|customer_id\\\\|payment' d:/CVHQ/app/Models/Invoice.php)",
-      "Bash(grep -n 'reason\\\\|note\\\\|$fillable' d:/CVHQ/app/Models/StockHistory.php)"
+      "Bash(grep -n 'reason\\\\|note\\\\|$fillable' d:/CVHQ/app/Models/StockHistory.php)",
+      "Bash(grep -n 'function render\\\\|'\\\\''today'\\\\''\\\\|'\\\\''kpi'\\\\''\\\\|compact\\\\|=> $this->\\\\|view\\(' d:/CVHQ/app/Livewire/Dashboard/DashboardIndex.php)"
     ],
     "additionalDirectories": [
       "\\tmp"

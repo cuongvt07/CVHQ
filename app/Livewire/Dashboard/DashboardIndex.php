@@ -172,6 +172,8 @@ class DashboardIndex extends Component
             'revenueSplit' => $this->revenueSplit($from, $to),
             'lineChart' => $this->lineChart($from, $to, $pf, $pt),
             'today' => $this->today(),
+            'orderStats' => $this->orderStats($from, $to),
+            'recentTx' => $this->recentTransactions(),
             'branches' => $this->byBranch($from, $to),
             'sources' => $this->bySource($from, $to),
             'products' => $this->topProducts($from, $to),
@@ -354,6 +356,40 @@ class DashboardIndex extends Component
             'qty' => $qty,
             'customers' => (int) (clone $valid)->whereNotNull('customer_id')->distinct('customer_id')->count('customer_id'),
         ];
+    }
+
+    // Chi tiết số đơn trong kỳ đã chọn: tổng / hoàn thành / trả hàng / sửa / hủy.
+    protected function orderStats($from, $to): array
+    {
+        $base = fn () => Invoice::query()->whereBetween('created_at', [$from, $to]);
+        $total     = (int) $base()->count();
+        $returned  = (int) $base()->where('status', 'Returned')->count();
+        $cancelled = (int) $base()->where('status', 'Cancelled')->count();
+        $completed = (int) $base()->whereNotIn('status', ['Returned', 'Cancelled'])->count();
+        // "Sửa": số hóa đơn từng bị chỉnh sửa (có nhật ký 'updated') trong kỳ.
+        $edited = (int) \App\Models\ActivityLog::where('model_type', Invoice::class)
+            ->where('action', 'updated')
+            ->whereBetween('created_at', [$from, $to])
+            ->distinct('model_id')->count('model_id');
+
+        return compact('total', 'completed', 'returned', 'edited', 'cancelled');
+    }
+
+    // Giao dịch gần đây: hóa đơn mới nhất (còn hiệu lực) kèm người tạo + link chi tiết.
+    protected function recentTransactions(): array
+    {
+        return Invoice::with(['customer', 'user'])
+            ->whereNotIn('status', ['Cancelled', 'Returned'])
+            ->latest('created_at')->limit(8)->get()
+            ->map(fn ($inv) => [
+                'id'       => $inv->id,
+                'code'     => $inv->invoice_code,
+                'customer' => $inv->customer?->full_name ?? 'Khách lẻ',
+                'seller'   => $inv->seller_name ?: ($inv->user?->name ?? '—'),
+                'amount'   => (int) $inv->final_amount,
+                'time'     => optional($inv->created_at)->format('d/m H:i'),
+                'channel'  => $inv->sales_channel,
+            ])->all();
     }
 
     protected function byBranch($from, $to): array

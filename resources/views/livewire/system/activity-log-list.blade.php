@@ -35,7 +35,7 @@
         <div class="flex items-center gap-2">
             <div class="relative flex-1 group">
                 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="absolute left-4 top-1/2 -translate-y-1/2 text-slate-300 group-focus-within:text-electric-blue transition-colors"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
-                <input type="text" wire:model.live.debounce.300ms="search" placeholder="Tìm theo nhân viên, ID hoặc loại đối tượng..." class="w-full bg-slate-50 border border-slate-200 rounded-xl py-2 pl-12 pr-6 text-xs focus:outline-none focus:border-electric-blue transition-all text-slate-900 shadow-sm">
+                <input type="text" wire:model.live.debounce.300ms="search" placeholder="Tìm theo nhân viên, mã HĐ, SKU, mã phiếu, mã vận đơn..." class="w-full bg-slate-50 border border-slate-200 rounded-xl py-2 pl-12 pr-6 text-xs focus:outline-none focus:border-electric-blue transition-all text-slate-900 shadow-sm">
             </div>
 
             <button @click="mobileFilterOpen = !mobileFilterOpen"
