@@ -155,7 +155,7 @@
                                         <div x-data="{
                                                 open: false,
                                                 options: @js($this->locationOptions),
-                                                query: @entangle('bulkProducts.{{ $index }}.location'),
+                                                query: @entangle('bulkProducts.'.$index.'.location'),
                                                 matches() {
                                                     const x = (this.query || '').toString().toLowerCase().trim();
                                                     if (x === '') return [];
