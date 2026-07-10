@@ -53,13 +53,11 @@ class ProductIndex extends Component
     // Bulk Add Feature
     public $bulkPrefix = '';
     public $bulkBaseName = '';
-    public $bulkCategory = '';
-    public $bulkBrand = '';
     public $bulkSalePrice = 0;
     public $bulkCommission = 0;
     public $bulkRowCount = 30;
-    public $bulkImages = []; // ảnh chung áp dụng cho tất cả sản phẩm tạo hàng loạt
     public array $bulkProducts = [];
+    public array $bulkRowImages = []; // ảnh riêng từng dòng (key = index dòng)
     // public $commissionRanges = [];
 
     protected $queryString = [
@@ -664,12 +662,10 @@ class ProductIndex extends Component
     {
         $this->bulkPrefix = \App\Models\SystemSetting::get('sku_prefix', 'SP');
         $this->bulkBaseName = '';
-        $this->bulkCategory = '';
-        $this->bulkBrand = '';
         $this->bulkSalePrice = 0;
         $this->bulkCommission = 0;
         $this->bulkRowCount = 30;
-        $this->bulkImages = [];
+        $this->bulkRowImages = [];
         $this->bulkProducts = [];
         $this->addBulkRow($this->bulkRowCount);
 
@@ -684,10 +680,50 @@ class ProductIndex extends Component
         return $this->nextSkuForPrefix((string) $this->bulkPrefix);
     }
 
-    public function removeBulkImage($index)
+    /**
+     * Mã SP xem trước cho từng dòng: chỉ dòng đã nhập (màu/phân loại hoặc vị trí)
+     * mới được cấp mã, tự nhảy tiến theo thứ tự.
+     */
+    public function getBulkSkusProperty(): array
     {
-        unset($this->bulkImages[$index]);
-        $this->bulkImages = array_values($this->bulkImages);
+        $first = $this->nextBulkSku;
+        if (preg_match('/^(.*?)(\d+)$/', $first, $m)) {
+            $base = $m[1];
+            $num = (int) $m[2];
+            $pad = strlen($m[2]);
+        } else {
+            $base = $first . '-';
+            $num = 1;
+            $pad = 3;
+        }
+
+        $skus = [];
+        $k = 0;
+        foreach ($this->bulkProducts as $i => $row) {
+            $filled = trim((string) ($row['attribute'] ?? '')) !== '' || trim((string) ($row['location'] ?? '')) !== '';
+            $skus[$i] = $filled ? ($base . str_pad((string) ($num + $k), $pad, '0', STR_PAD_LEFT)) : '';
+            if ($filled) {
+                $k++;
+            }
+        }
+        return $skus;
+    }
+
+    /** Số sản phẩm sẽ được tạo (dòng có màu/phân loại hoặc vị trí). */
+    public function getBulkFilledCountProperty(): int
+    {
+        $c = 0;
+        foreach ($this->bulkProducts as $row) {
+            if (trim((string) ($row['attribute'] ?? '')) !== '' || trim((string) ($row['location'] ?? '')) !== '') {
+                $c++;
+            }
+        }
+        return $c;
+    }
+
+    public function removeBulkRowImage($index)
+    {
+        unset($this->bulkRowImages[$index]);
     }
 
     public function updatedBulkSalePrice()
@@ -730,6 +766,7 @@ class ProductIndex extends Component
 
         if ($target < $current) {
             $this->bulkProducts = array_slice($this->bulkProducts, 0, $target);
+            $this->bulkRowImages = array_filter($this->bulkRowImages, fn ($k) => $k < $target, ARRAY_FILTER_USE_KEY);
         }
     }
 
@@ -750,6 +787,16 @@ class ProductIndex extends Component
     {
         unset($this->bulkProducts[$index]);
         $this->bulkProducts = array_values($this->bulkProducts);
+
+        // Dồn lại ảnh riêng cho khớp index mới.
+        $imgs = [];
+        foreach ($this->bulkRowImages as $k => $v) {
+            if ($k == $index) {
+                continue;
+            }
+            $imgs[$k > $index ? $k - 1 : $k] = $v;
+        }
+        $this->bulkRowImages = $imgs;
     }
 
     public function saveBulkProducts()
@@ -758,18 +805,12 @@ class ProductIndex extends Component
             'bulkPrefix' => 'required|min:1',
             'bulkBaseName' => 'required|min:2',
             'bulkSalePrice' => 'required|numeric|min:0',
-            'bulkImages.*' => 'nullable|image|max:5120',
+            'bulkRowImages.*' => 'nullable|image|max:5120',
         ]);
 
         if (empty($this->bulkProducts)) {
             $this->dispatch('notify', message: 'Vui lòng thêm ít nhất 1 dòng sản phẩm!', type: 'warning');
             return;
-        }
-
-        // Upload ảnh chung 1 lần, dùng cho tất cả sản phẩm trong lô.
-        $sharedImages = [];
-        foreach ($this->bulkImages as $image) {
-            $sharedImages[] = $image->store('products', 'public');
         }
 
         $count = 0;
@@ -778,7 +819,7 @@ class ProductIndex extends Component
             $this->bulkCommission = $this->commissionForPrice((int) $this->bulkSalePrice);
         }
 
-        foreach ($this->bulkProducts as $row) {
+        foreach ($this->bulkProducts as $index => $row) {
             $attrVal = trim($row['attribute'] ?? '');
             $location = trim($row['location'] ?? '');
             if ($attrVal === '' && $location === '') {
@@ -787,7 +828,7 @@ class ProductIndex extends Component
 
             // Generate SKU
             $sku = $this->nextSkuForPrefix($this->bulkPrefix);
-            
+
             // Build attributes array
             $attributes = [];
             if ($attrVal !== '') {
@@ -810,18 +851,25 @@ class ProductIndex extends Component
                 $rowCommission = 0;
             }
 
+            // Ảnh riêng từng dòng (nếu có).
+            $rowImages = [];
+            $img = $this->bulkRowImages[$index] ?? null;
+            if ($img && method_exists($img, 'store')) {
+                $rowImages[] = $img->store('products', 'public');
+            }
+
             $productData = [
                 'sku' => $sku,
                 'base_name' => $this->bulkBaseName,
-                'category_path' => $this->bulkCategory,
-                'brand' => $this->bulkBrand,
+                'category_path' => '',
+                'brand' => '',
                 'sale_price' => $rowPrice,
                 'commission_amount' => $rowCommission,
                 'stock_quantity' => $row['stock'] === '' || $row['stock'] === null ? 999 : (int)$row['stock'],
                 'location' => $location,
                 'is_active' => true,
                 'attributes' => $attributes,
-                'images' => $sharedImages,
+                'images' => $rowImages,
             ];
 
             $newProduct = Product::create($productData);
@@ -841,6 +889,7 @@ class ProductIndex extends Component
             return;
         }
 
+        $this->bulkRowImages = [];
         $this->dispatch('notify', message: "Đã thêm thành công {$count} sản phẩm!", type: 'success');
         $this->dispatch('close-bulk-modal');
     }

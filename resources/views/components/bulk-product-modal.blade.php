@@ -61,14 +61,6 @@
                             @error('bulkBaseName') <span class="text-[10px] text-rose-500 font-bold">{{ $message }}</span> @enderror
                         </div>
                         <div>
-                            <label class="block text-[11px] font-bold text-slate-600 mb-1">Thương hiệu</label>
-                            <input type="text" wire:model="bulkBrand" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:border-electric-blue focus:ring-2 focus:ring-electric-blue/10">
-                        </div>
-                        <div>
-                            <label class="block text-[11px] font-bold text-slate-600 mb-1">Danh mục</label>
-                            <input type="text" wire:model="bulkCategory" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:border-electric-blue focus:ring-2 focus:ring-electric-blue/10">
-                        </div>
-                        <div>
                             <label class="block text-[11px] font-bold text-slate-600 mb-1">Giá bán chung <span class="text-rose-500">*</span></label>
                             @php $emptyBulkPrice = $this->bulkSalePrice === null || $this->bulkSalePrice === '' || (int)$this->bulkSalePrice === 0; @endphp
                             <input type="number" wire:model.live.debounce.500ms="bulkSalePrice" placeholder="—" class="w-full rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 border {{ $emptyBulkPrice ? 'border-rose-400 bg-rose-50 placeholder-rose-300 focus:border-rose-500 focus:ring-rose-500/10' : 'bg-slate-50 border-slate-200 focus:border-electric-blue focus:ring-electric-blue/10' }}">
@@ -80,28 +72,6 @@
                             <input type="number" wire:model="bulkCommission" class="w-full bg-amber-50/50 border border-amber-200 rounded-xl px-3 py-2 text-sm font-bold text-amber-600 focus:outline-none focus:border-amber-400 focus:ring-2 focus:ring-amber-400/20">
                         </div>
                         @endif
-
-                        {{-- Ảnh chung: áp dụng cho tất cả sản phẩm trong lô --}}
-                        <div class="col-span-full">
-                            <label class="block text-[11px] font-bold text-slate-600 mb-1">Ảnh chung <span class="text-slate-400 font-normal">(áp dụng cho tất cả)</span></label>
-                            <div class="flex items-center gap-2 flex-wrap">
-                                @foreach($this->bulkImages as $i => $img)
-                                    <div class="relative w-14 h-14 rounded-lg overflow-hidden border border-slate-200 group/img">
-                                        @if(method_exists($img, 'temporaryUrl'))
-                                            <img src="{{ $img->temporaryUrl() }}" class="w-full h-full object-cover">
-                                        @endif
-                                        <button type="button" wire:click="removeBulkImage({{ $i }})"
-                                                class="absolute top-0.5 right-0.5 w-4 h-4 flex items-center justify-center rounded-full bg-rose-500 text-white text-[10px] leading-none">×</button>
-                                    </div>
-                                @endforeach
-                                <label class="w-14 h-14 rounded-lg border-2 border-dashed border-slate-200 flex items-center justify-center text-slate-400 cursor-pointer hover:border-electric-blue hover:text-electric-blue transition-colors">
-                                    <input type="file" wire:model="bulkImages" multiple accept="image/*" class="hidden">
-                                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="M12 5v14"/></svg>
-                                </label>
-                                <span wire:loading wire:target="bulkImages" class="text-[10px] text-slate-400">Đang tải ảnh...</span>
-                            </div>
-                            @error('bulkImages.*') <span class="text-[10px] text-rose-500 font-bold">{{ $message }}</span> @enderror
-                        </div>
                     </div>
                 </div>
 
@@ -111,6 +81,7 @@
                         <h4 class="text-xs font-black text-electric-blue uppercase tracking-widest flex items-center gap-2">
                             <span class="w-1.5 h-4 bg-electric-blue rounded-full"></span>
                             Danh sách phân loại
+                            <span class="normal-case tracking-normal text-[11px] font-bold text-slate-600 bg-slate-100 px-2 py-0.5 rounded-full">Tổng SP sẽ tạo: {{ $this->bulkFilledCount }}</span>
                         </h4>
                         <div class="flex flex-wrap items-center justify-end gap-1.5">
                             <div class="flex items-center gap-1 bg-white border border-slate-200 rounded-lg px-2 py-1">
@@ -129,48 +100,96 @@
                     <p class="mb-2 text-[10px] font-semibold text-slate-400">Nhập liên tiếp từng dòng trong bảng. Dòng không có màu/phân loại và không có vị trí sẽ tự bỏ qua khi lưu.</p>
 
                     <div class="glass-card overflow-x-auto border border-slate-200 rounded-xl flex-1">
-                        <table class="w-full text-left border-collapse min-w-[760px]">
+                        <table class="w-full text-left border-collapse min-w-[920px]">
                             <thead class="sticky top-0 bg-slate-50/95 backdrop-blur-md z-10">
                                 <tr class="border-b border-slate-200">
-                                    <th class="w-12 px-3 py-2 text-center text-[10px] font-bold text-slate-400">#</th>
+                                    <th class="w-10 px-2 py-2 text-center text-[10px] font-bold text-slate-400">#</th>
+                                    <th class="w-28 px-3 py-2 text-[10px] font-bold text-slate-600 uppercase tracking-wider">Mã SP</th>
+                                    <th class="w-14 px-2 py-2 text-[10px] font-bold text-slate-600 uppercase tracking-wider">Ảnh</th>
                                     <th class="px-3 py-2 text-[10px] font-bold text-slate-600 uppercase tracking-wider">Màu sắc / Phân loại</th>
-                                    <th class="w-36 px-3 py-2 text-[10px] font-bold text-slate-600 uppercase tracking-wider">Vị trí cất</th>
-                                    <th class="w-32 px-3 py-2 text-[10px] font-bold text-slate-600 uppercase tracking-wider">Giá bán riêng</th>
+                                    <th class="w-40 px-3 py-2 text-[10px] font-bold text-slate-600 uppercase tracking-wider">Vị trí cất</th>
+                                    <th class="w-28 px-3 py-2 text-[10px] font-bold text-slate-600 uppercase tracking-wider">Giá bán riêng</th>
                                     @if(auth()->user()?->hasPermission('product.edit_commission'))
-                                    <th class="w-28 px-3 py-2 text-[10px] font-bold text-slate-600 uppercase tracking-wider">Hoa hồng riêng</th>
+                                    <th class="w-24 px-3 py-2 text-[10px] font-bold text-slate-600 uppercase tracking-wider">Hoa hồng riêng</th>
                                     @endif
-                                    <th class="w-28 px-3 py-2 text-[10px] font-bold text-slate-600 uppercase tracking-wider">Tồn kho</th>
-                                    <th class="w-12 px-3 py-2 text-center"></th>
+                                    <th class="w-24 px-3 py-2 text-[10px] font-bold text-slate-600 uppercase tracking-wider">Tồn kho</th>
+                                    <th class="w-10 px-2 py-2 text-center"></th>
                                 </tr>
                             </thead>
                             <tbody class="divide-y divide-slate-100">
                                 @foreach($this->bulkProducts as $index => $row)
                                 <tr class="hover:bg-slate-50/50" wire:key="bulk-row-{{ $index }}">
-                                    <td class="px-3 py-1.5 text-center text-[10px] font-bold text-slate-400">{{ $index + 1 }}</td>
+                                    <td class="px-2 py-1.5 text-center text-[10px] font-bold text-slate-400">{{ $index + 1 }}</td>
+
+                                    {{-- Mã SP tự nhảy theo dòng đã nhập --}}
                                     <td class="px-3 py-1.5">
-                                        <input type="text" wire:model="bulkProducts.{{ $index }}.attribute" class="w-full bg-transparent border border-transparent hover:border-slate-200 focus:border-electric-blue focus:bg-white rounded-lg px-2 py-1.5 text-xs focus:outline-none transition-all" placeholder="VD: Đỏ, Xanh, ...">
+                                        @php $rowSku = $this->bulkSkus[$index] ?? ''; @endphp
+                                        <span class="text-[11px] font-black {{ $rowSku ? 'text-electric-blue' : 'text-slate-300' }}">{{ $rowSku ?: '—' }}</span>
                                     </td>
+
+                                    {{-- Ảnh riêng từng SP --}}
+                                    <td class="px-2 py-1.5">
+                                        @php $rimg = $this->bulkRowImages[$index] ?? null; @endphp
+                                        @if($rimg && method_exists($rimg, 'temporaryUrl'))
+                                            <div class="relative w-9 h-9">
+                                                <img src="{{ $rimg->temporaryUrl() }}" class="w-9 h-9 rounded object-cover border border-slate-200">
+                                                <button type="button" wire:click="removeBulkRowImage({{ $index }})" class="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-rose-500 text-white text-[9px] leading-none flex items-center justify-center">×</button>
+                                            </div>
+                                        @else
+                                            <label class="w-9 h-9 rounded border border-dashed border-slate-300 flex items-center justify-center text-slate-400 cursor-pointer hover:border-electric-blue hover:text-electric-blue transition-colors" title="Chọn ảnh cho SP này">
+                                                <input type="file" wire:model="bulkRowImages.{{ $index }}" accept="image/*" class="hidden">
+                                                <span wire:loading.remove wire:target="bulkRowImages.{{ $index }}">
+                                                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="3" rx="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.1-3.1a2 2 0 0 0-2.8 0L6 21"/></svg>
+                                                </span>
+                                                <svg wire:loading wire:target="bulkRowImages.{{ $index }}" class="animate-spin w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg>
+                                            </label>
+                                        @endif
+                                    </td>
+
                                     <td class="px-3 py-1.5">
-                                        <input type="text" wire:model="bulkProducts.{{ $index }}.location" list="bulk-location-suggestions" class="w-full bg-transparent border border-transparent hover:border-slate-200 focus:border-electric-blue focus:bg-white rounded-lg px-2 py-1.5 text-xs font-bold text-electric-blue focus:outline-none transition-all" placeholder="Gõ để chọn / thêm vị trí">
+                                        <input type="text" wire:model.live.debounce.500ms="bulkProducts.{{ $index }}.attribute" class="w-full bg-transparent border border-transparent hover:border-slate-200 focus:border-electric-blue focus:bg-white rounded-lg px-2 py-1.5 text-xs focus:outline-none transition-all" placeholder="VD: Đỏ, Xanh, ...">
                                     </td>
+
+                                    {{-- Vị trí: autocomplete như form SP lẻ (x-model + gợi ý), không mất focus --}}
+                                    <td class="px-3 py-1.5">
+                                        <div x-data="{
+                                                open: false,
+                                                options: @js($this->locationOptions),
+                                                query: @entangle('bulkProducts.{{ $index }}.location'),
+                                                matches() {
+                                                    const x = (this.query || '').toString().toLowerCase().trim();
+                                                    if (x === '') return [];
+                                                    return this.options.filter(o => o.toLowerCase().includes(x) && o.toLowerCase() !== x).slice(0, 6);
+                                                },
+                                                pick(o) { this.query = o; this.open = false; }
+                                             }" @click.outside="open = false" class="relative">
+                                            <input type="text" x-model="query" @input="open = true" @focus="open = (query || '').toString().trim() !== ''"
+                                                   class="w-full bg-transparent border border-transparent hover:border-slate-200 focus:border-electric-blue focus:bg-white rounded-lg px-2 py-1.5 text-xs font-bold text-electric-blue focus:outline-none transition-all" placeholder="Gõ vị trí...">
+                                            <div x-show="open && matches().length" x-cloak class="absolute z-30 left-0 right-0 mt-1 max-h-40 overflow-y-auto bg-white border border-slate-200 rounded-lg shadow-lg">
+                                                <template x-for="opt in matches()" :key="opt">
+                                                    <button type="button" @click="pick(opt)" x-text="opt" class="block w-full text-left px-2 py-1.5 text-xs text-slate-700 hover:bg-blue-50 transition-colors"></button>
+                                                </template>
+                                            </div>
+                                        </div>
+                                    </td>
+
                                     <td class="px-3 py-1.5">
                                         @php
                                             $rowPrice = $row['price'] ?? null;
                                             $rowPriceEmpty = $rowPrice === null || $rowPrice === '' || (int)$rowPrice === 0;
-                                            // Đỏ chỉ khi CẢ giá chung lẫn giá riêng đều trống (không có giá nào để dùng).
                                             $rowPriceInvalid = $rowPriceEmpty && $emptyBulkPrice;
                                         @endphp
-                                        <input type="number" wire:model.live.debounce.500ms="bulkProducts.{{ $index }}.price" class="w-full rounded-lg px-2 py-1.5 text-xs font-bold focus:bg-white focus:outline-none transition-all border {{ $rowPriceInvalid ? 'border-rose-400 bg-rose-50 text-rose-600' : 'bg-transparent border-transparent hover:border-slate-200 focus:border-electric-blue text-slate-900' }}" placeholder="{{ $this->bulkSalePrice ? number_format($this->bulkSalePrice, 0, ',', '.') : 'Giá chung' }}">
+                                        <input type="number" onfocus="this.select()" wire:model.live.debounce.500ms="bulkProducts.{{ $index }}.price" class="w-full rounded-lg px-2 py-1.5 text-xs font-bold focus:bg-white focus:outline-none transition-all border {{ $rowPriceInvalid ? 'border-rose-400 bg-rose-50 text-rose-600' : 'bg-transparent border-transparent hover:border-slate-200 focus:border-electric-blue text-slate-900' }}" placeholder="{{ $this->bulkSalePrice ? number_format($this->bulkSalePrice, 0, ',', '.') : 'Giá chung' }}">
                                     </td>
                                     @if(auth()->user()?->hasPermission('product.edit_commission'))
                                     <td class="px-3 py-1.5">
-                                        <input type="number" wire:model="bulkProducts.{{ $index }}.commission" class="w-full bg-transparent border border-transparent hover:border-slate-200 focus:border-amber-400 focus:bg-white rounded-lg px-2 py-1.5 text-xs font-bold text-amber-600 focus:outline-none transition-all" placeholder="{{ $this->bulkCommission ? number_format($this->bulkCommission, 0, ',', '.') : 'HH chung' }}">
+                                        <input type="number" onfocus="this.select()" wire:model="bulkProducts.{{ $index }}.commission" class="w-full bg-transparent border border-transparent hover:border-slate-200 focus:border-amber-400 focus:bg-white rounded-lg px-2 py-1.5 text-xs font-bold text-amber-600 focus:outline-none transition-all" placeholder="{{ $this->bulkCommission ? number_format($this->bulkCommission, 0, ',', '.') : 'HH chung' }}">
                                     </td>
                                     @endif
                                     <td class="px-3 py-1.5">
-                                        <input type="number" wire:model="bulkProducts.{{ $index }}.stock" class="w-full bg-transparent border border-transparent hover:border-slate-200 focus:border-electric-blue focus:bg-white rounded-lg px-2 py-1.5 text-xs font-bold text-slate-900 focus:outline-none transition-all">
+                                        <input type="number" onfocus="this.select()" wire:model="bulkProducts.{{ $index }}.stock" class="w-full bg-transparent border border-transparent hover:border-slate-200 focus:border-electric-blue focus:bg-white rounded-lg px-2 py-1.5 text-xs font-bold text-slate-900 focus:outline-none transition-all">
                                     </td>
-                                    <td class="px-3 py-1.5 text-center">
+                                    <td class="px-2 py-1.5 text-center">
                                         <button wire:click="removeBulkRow({{ $index }})" class="p-1.5 text-slate-300 hover:text-rose-500 rounded-md hover:bg-rose-50 transition-colors" tabindex="-1">
                                             <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
                                         </button>
@@ -182,13 +201,6 @@
                         @if(empty($this->bulkProducts))
                             <div class="p-8 text-center text-slate-400 text-xs font-bold">Chưa có dòng nào. Vui lòng bấm thêm dòng.</div>
                         @endif
-
-                        {{-- Gợi ý vị trí đã có; gõ giá trị mới để thêm vị trí mới --}}
-                        <datalist id="bulk-location-suggestions">
-                            @foreach($this->locationOptions as $loc)
-                                <option value="{{ $loc }}">
-                            @endforeach
-                        </datalist>
                     </div>
                 </div>
             </div>

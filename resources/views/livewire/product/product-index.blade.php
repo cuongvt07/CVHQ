@@ -214,8 +214,14 @@
                 </div>
             @endif
 
-            <!-- Right cluster: perPage + paginator + column toggle (pushed right) -->
+            <!-- Right cluster: count + perPage + paginator + column toggle (pushed right) -->
             <div class="flex items-center gap-2 ml-auto">
+                <span class="hidden md:inline-flex items-center gap-1 text-[11px] font-bold text-slate-500 bg-white border border-slate-200 rounded-md px-2 py-1 whitespace-nowrap">
+                    Tổng <span class="text-slate-900 font-black">{{ number_format($products->total()) }}</span> SP
+                    @if(count($selectedRows) > 0)
+                        <span class="text-slate-300">·</span> chọn <span class="text-electric-blue font-black">{{ count($selectedRows) }}</span>
+                    @endif
+                </span>
                 <select wire:model.live="perPage" class="bg-white border border-slate-200 rounded-md py-1 px-2 text-[10px] font-bold text-slate-600 focus:outline-none focus:border-electric-blue cursor-pointer">
                     <option value="10">10</option>
                     <option value="25">25</option>
