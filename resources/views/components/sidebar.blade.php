@@ -99,6 +99,10 @@
                     <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="shrink-0"><path d="M3 3v18h18"/><path d="m19 9-5 5-4-4-3 3"/></svg>
                     <span class="text-sm whitespace-nowrap">Báo cáo bán hàng</span>
                 </a>
+                <a href="{{ route('reports.overview') }}" class="{{ $nav(request()->routeIs('reports.overview')) }}">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="shrink-0"><path d="M3 3v18h18"/><rect x="7" y="12" width="3" height="5"/><rect x="12" y="8" width="3" height="9"/><rect x="17" y="5" width="3" height="12"/></svg>
+                    <span class="text-sm whitespace-nowrap">Báo cáo chi tiết</span>
+                </a>
                 @endif
             </div>
         </div>

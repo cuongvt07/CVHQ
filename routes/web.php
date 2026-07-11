@@ -38,6 +38,7 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/commissions', \App\Livewire\Product\ProductCommission::class)->name('commissions');
     Route::get('/commissions/settings', \App\Livewire\System\CommissionSettings::class)->name('commissions.settings');
     Route::get('/reports/commissions', \App\Livewire\Report\CommissionReport::class)->name('reports.commissions');
+    Route::get('/reports/overview', \App\Livewire\Report\OverviewReport::class)->name('reports.overview');
     Route::get('/reports/sales', \App\Livewire\Report\SalesReport::class)->name('reports.sales');
     Route::get('/reports/sales/day/{date}', \App\Livewire\Report\SalesDayDetail::class)->name('reports.sales.day');
     Route::get('/invoices', InvoiceIndex::class)->name('invoices');
