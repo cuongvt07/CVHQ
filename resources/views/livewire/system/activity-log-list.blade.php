@@ -265,12 +265,23 @@
                                     <div class="text-[10px] font-bold text-slate-600">{{ $log->custom_details }}</div>
                                 @elseif(is_array($log->changes) && !empty($log->changes['after']))
                                     <div class="space-y-1">
+                                        @php
+                                            $__money = ['sale_price', 'cost_price', 'commission_amount', 'commission_value', 'final_amount', 'total_amount', 'discount_amount', 'total_commission', 'shared_commission_amount', 'extra_fee'];
+                                            $__fmtVal = function ($field, $v) use ($__money) {
+                                                if ($v === null || $v === '') return '—';
+                                                if (is_array($v)) return '(đã cập nhật)';
+                                                if (in_array($field, $__money, true) && is_numeric($v)) return number_format((int) $v, 0, ',', '.') . 'đ';
+                                                return (string) $v;
+                                            };
+                                        @endphp
                                         @foreach($log->changes['after'] as $field => $newValue)
                                             @php
-                                                $oldValue = $log->changes['before'][$field] ?? '—';
+                                                $oldRaw = $log->changes['before'][$field] ?? null;
                                                 // Bỏ qua trường nội bộ + giá trị mảng/quá dài cho dễ đọc
                                                 if (in_array($field, $__skip, true) || is_array($newValue) || strlen((string)$newValue) > 50) continue;
                                                 $__label = $__fieldLabels[$field] ?? $field;
+                                                $oldValue = $__fmtVal($field, $oldRaw);
+                                                $newValue = $__fmtVal($field, $newValue);
                                             @endphp
                                             <div class="text-[10px] flex items-center gap-2">
                                                 <span class="font-black text-slate-400 uppercase tracking-tighter">{{ $__label }}:</span>

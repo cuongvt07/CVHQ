@@ -26,11 +26,19 @@
 
                     // Closure dựng thông báo từ ActivityLog (mã/code truyền vào, hành động cụ thể, URL chi tiết)
                     $mapLog = function($log, $tab, $modelNameLabel, $code) use ($P) {
+                        $desc = ($log->user?->name ?? 'Hệ thống') . ' • ' . $P::actionLabel($log->model_type, $log->action, $log->changes);
+                        // Với hành động sửa: kèm nội dung thay đổi cũ → mới.
+                        if ($log->action === 'updated') {
+                            $sum = $P::changeSummary($log->model_type, $log->changes, 4);
+                            if ($sum !== '') {
+                                $desc .= ' • ' . $sum;
+                            }
+                        }
                         return [
                             'tab'   => $tab,
                             'type'  => $P::actionType($log->action),
                             'title' => $modelNameLabel . ': ' . $code,
-                            'desc'  => ($log->user?->name ?? 'Hệ thống') . ' • ' . $P::actionLabel($log->model_type, $log->action, $log->changes),
+                            'desc'  => $desc,
                             'time'  => $log->created_at->diffForHumans(),
                             'sort'  => $log->created_at->timestamp,
                             'url'   => $P::detailUrl($log->model_type, $log->model_id),
