@@ -40,6 +40,9 @@ return [
         'url' => 'https://cavathanquoc.com',
         'key' => 'ck_0074a1c148ebf62553872160bfec830b581145d0',
         'secret' => 'cs_0e2f1dea5a383104fccd526cd0ec80756d9d3d21',
+        // Chỉ đồng bộ đơn Mail tạo TỪ mốc này trở đi (không kéo đơn cũ về).
+        // Có thể ghi đè bằng cấu hình DB 'mail_sync_since'.
+        'sync_since' => '2026-07-12',
     ],
 
 ];

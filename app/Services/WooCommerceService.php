@@ -51,11 +51,34 @@ class WooCommerceService
     }
 
     /**
+     * Mốc cắt: chỉ lấy đơn tạo TỪ thời điểm này trở đi. Null = lấy tất cả.
+     * Ưu tiên cấu hình DB 'mail_sync_since', fallback config services.woocommerce.sync_since.
+     */
+    public function syncSince(): ?Carbon
+    {
+        $val = \App\Models\SystemSetting::get('mail_sync_since') ?: config('services.woocommerce.sync_since');
+        if (!$val) {
+            return null;
+        }
+        try {
+            return Carbon::parse($val);
+        } catch (\Throwable $e) {
+            return null;
+        }
+    }
+
+    /**
      * Đồng bộ đơn gần đây về DB. Trả ['new' => số đơn mới, 'total' => số đơn xử lý].
      */
     public function sync(int $perPage = 30): array
     {
-        $orders = $this->fetchOrders(['per_page' => $perPage]);
+        $params = ['per_page' => $perPage];
+        if ($since = $this->syncSince()) {
+            // WooCommerce lọc theo ngày tạo (GMT).
+            $params['after'] = $since->copy()->utc()->toIso8601String();
+        }
+
+        $orders = $this->fetchOrders($params);
         $new = 0;
         foreach ($orders as $o) {
             if ($this->upsertFromPayload($o)) {
@@ -70,6 +93,15 @@ class WooCommerceService
     {
         if (empty($o['id'])) {
             return false;
+        }
+        // Bỏ qua đơn tạo TRƯỚC mốc cắt (kể cả đến từ webhook).
+        if (($since = $this->syncSince()) && !empty($o['date_created'])) {
+            try {
+                if (Carbon::parse($o['date_created'])->lt($since)) {
+                    return false;
+                }
+            } catch (\Throwable $e) {
+            }
         }
         $exists = WpOrder::where('wp_id', $o['id'])->exists();
 
