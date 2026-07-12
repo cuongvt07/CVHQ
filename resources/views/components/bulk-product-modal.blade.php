@@ -154,22 +154,30 @@
                                     <td class="px-3 py-1.5">
                                         <div x-data="{
                                                 open: false,
+                                                px: 0, py: 0, pw: 0,
                                                 options: @js($this->locationOptions),
                                                 query: @entangle('bulkProducts.'.$index.'.location'),
                                                 matches() {
                                                     const x = (this.query || '').toString().toLowerCase().trim();
                                                     if (x === '') return [];
-                                                    return this.options.filter(o => o.toLowerCase().includes(x) && o.toLowerCase() !== x).slice(0, 6);
+                                                    return (this.options || []).filter(o => o.toLowerCase().includes(x) && o.toLowerCase() !== x).slice(0, 6);
                                                 },
+                                                place(el) { const r = el.getBoundingClientRect(); this.px = r.left; this.py = r.bottom; this.pw = r.width; },
                                                 pick(o) { this.query = o; this.open = false; }
                                              }" @click.outside="open = false" class="relative">
-                                            <input type="text" x-model="query" @input="open = true" @focus="open = (query || '').toString().trim() !== ''"
+                                            <input type="text" x-model="query"
+                                                   @input="open = true; place($el)" @focus="open = (query || '').toString().trim() !== ''; place($el)"
                                                    class="w-full bg-transparent border border-transparent hover:border-slate-200 focus:border-electric-blue focus:bg-white rounded-lg px-2 py-1.5 text-xs font-bold text-electric-blue focus:outline-none transition-all" placeholder="Gõ vị trí...">
-                                            <div x-show="open && matches().length" x-cloak class="absolute z-30 left-0 right-0 mt-1 max-h-40 overflow-y-auto bg-white border border-slate-200 rounded-lg shadow-lg">
-                                                <template x-for="opt in matches()" :key="opt">
-                                                    <button type="button" @click="pick(opt)" x-text="opt" class="block w-full text-left px-2 py-1.5 text-xs text-slate-700 hover:bg-blue-50 transition-colors"></button>
-                                                </template>
-                                            </div>
+                                            {{-- Teleport ra body: không bị bảng (overflow-x-auto) cắt mất dropdown --}}
+                                            <template x-teleport="body">
+                                                <div x-show="open && matches().length" x-cloak
+                                                     class="fixed z-[200] max-h-40 overflow-y-auto bg-white border border-slate-200 rounded-lg shadow-xl"
+                                                     :style="`left:${px}px; top:${py + 4}px; width:${Math.max(pw, 120)}px`">
+                                                    <template x-for="opt in matches()" :key="opt">
+                                                        <button type="button" @click="pick(opt)" x-text="opt" class="block w-full text-left px-2 py-1.5 text-xs text-slate-700 hover:bg-blue-50 transition-colors"></button>
+                                                    </template>
+                                                </div>
+                                            </template>
                                         </div>
                                     </td>
 

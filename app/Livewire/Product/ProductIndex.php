@@ -1127,6 +1127,15 @@ class ProductIndex extends Component
         if ($new === $old) {
             return; // không đổi -> bỏ qua
         }
+        // Tăng tồn -> KHÔNG cần lý do, áp dụng ngay (vẫn ghi thẻ kho).
+        if ($new > $old) {
+            $change = $new - $old;
+            $product->recordStockHistory('Adjustment', $change, null, null, 'Sửa nhanh: tăng tồn', $old);
+            $product->update(['stock_quantity' => $new]);
+            $this->dispatch('notify', message: 'Đã tăng tồn kho.', type: 'success');
+            return;
+        }
+        // Giảm tồn -> BẮT BUỘC nhập lý do (dò lại sau khi có vấn đề).
         $this->stockEditId = $id;
         $this->stockEditProductName = $product->name;
         $this->stockEditSku = $product->sku;
