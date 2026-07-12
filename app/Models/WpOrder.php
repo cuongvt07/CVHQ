@@ -31,7 +31,8 @@ class WpOrder extends Model
     /** Hóa đơn nội bộ đã lập từ đơn Mail này (nếu đã lên đơn). */
     public function localInvoice(): BelongsTo
     {
-        return $this->belongsTo(Invoice::class, 'local_invoice_id');
+        // withTrashed: đơn Mail vẫn tra ra hóa đơn gốc kể cả khi HĐ bị xóa/hủy.
+        return $this->belongsTo(Invoice::class, 'local_invoice_id')->withTrashed();
     }
 
     public function cannotHandleBy(): BelongsTo
