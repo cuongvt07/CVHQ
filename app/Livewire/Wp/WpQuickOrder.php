@@ -230,12 +230,13 @@ class WpQuickOrder extends Component
                 }
             }
 
-            // Gắn ngược về đơn WP.
+            // Gắn ngược về đơn WP -> chuyển trạng thái "Đã lên đơn".
             if ($wp) {
                 $wp->update([
                     'local_invoice_id' => $invoice->id,
-                    'handled_at' => now(),
-                    'handled_by' => auth()->id(),
+                    'local_status'     => 'ordered',
+                    'handled_at'       => now(),
+                    'handled_by'       => auth()->id(),
                 ]);
             }
 

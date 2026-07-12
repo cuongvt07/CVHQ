@@ -13,26 +13,29 @@ class WpOrderIndex extends Component
 {
     use WithPagination, HasPermissions;
 
-    #[On('wp-order-created')]
-    public function refreshList(): void
-    {
-        // re-render để cập nhật trạng thái "Đã tạo đơn".
-    }
-
-    public string $statusFilter = 'pending'; // pending | all | processing | completed | cancelled
+    // Tab trạng thái xử lý: pending | unreachable | ordered | cannot_handle | all
+    public string $statusFilter = 'pending';
     public string $search = '';
     public bool $syncing = false;
+
+    // Modal "Không thể xử lý"
+    public ?int $cannotHandleId = null;
+    public string $cannotHandleReason = '';
 
     protected function getModuleKey(): string
     {
         return 'invoices';
     }
 
+    #[On('wp-order-created')]
+    public function refreshList(): void
+    {
+        // re-render để cập nhật trạng thái "Đã lên đơn".
+    }
+
     public function mount(): void
     {
-        // Đồng bộ nhẹ khi mở trang.
         $this->sync(false);
-        // Đánh dấu đã xem (tắt chấm chuông) khi vào trang.
         WpOrder::where('seen', false)->update(['seen' => true]);
     }
 
@@ -59,29 +62,73 @@ class WpOrderIndex extends Component
             }
         } catch (\Throwable $e) {
             if ($notify) {
-                $this->dispatch('notify', message: 'Lỗi đồng bộ WooCommerce: ' . $e->getMessage(), type: 'error');
+                $this->dispatch('notify', message: 'Lỗi đồng bộ đơn Mail: ' . $e->getMessage(), type: 'error');
             }
         }
         $this->syncing = false;
     }
 
-    /** Đánh dấu đã xử lý thủ công (không tạo đơn nội bộ). */
-    public function markHandled($id): void
+    /** Trường hợp 2: gọi không được -> ghi 1 lần "không liên lạc được", đơn vẫn đang xử lý. */
+    public function markUnreachable($id): void
     {
         $o = WpOrder::find($id);
-        if ($o && !$o->local_invoice_id) {
-            $o->update(['handled_at' => now(), 'handled_by' => auth()->id(), 'status' => $o->status ?: 'processing']);
-            // đánh dấu bằng local_invoice_id = 0 để ẩn khỏi "chưa xử lý"? -> dùng handled_at thay thế.
+        if (!$o || $o->local_status !== 'pending') {
+            return;
         }
-        $this->dispatch('notify', message: 'Đã đánh dấu xử lý.', type: 'success');
+        $attempts = is_array($o->contact_attempts) ? $o->contact_attempts : [];
+        $attempts[] = [
+            'at'      => now()->toDateTimeString(),
+            'by'      => auth()->id(),
+            'by_name' => auth()->user()->name ?? 'NV',
+        ];
+        $o->update(['contact_attempts' => $attempts]);
+        $this->dispatch('notify', message: 'Đã ghi nhận không liên lạc được (lần ' . count($attempts) . ').', type: 'success');
+    }
+
+    /** Mở modal nhập lý do "không thể xử lý". */
+    public function requestCannotHandle($id): void
+    {
+        $this->cannotHandleId = (int) $id;
+        $this->cannotHandleReason = '';
+        $this->dispatch('open-cannot-handle');
+    }
+
+    /** Trường hợp 3: gọi được nhưng không mua / hẹn / lý do khác -> không thể xử lý. */
+    public function confirmCannotHandle(): void
+    {
+        $reason = trim($this->cannotHandleReason);
+        if ($reason === '') {
+            $this->dispatch('notify', message: 'Vui lòng nhập lý do.', type: 'warning');
+            return;
+        }
+        $o = WpOrder::find($this->cannotHandleId);
+        if ($o && $o->local_status === 'pending') {
+            $o->update([
+                'local_status'         => 'cannot_handle',
+                'cannot_handle_reason' => $reason,
+                'cannot_handle_at'     => now(),
+                'cannot_handle_by'     => auth()->id(),
+            ]);
+            $this->dispatch('notify', message: 'Đã đánh dấu không thể xử lý.', type: 'success');
+        }
+        $this->cannotHandleId = null;
+        $this->cannotHandleReason = '';
+        $this->dispatch('close-cannot-handle');
     }
 
     public function render()
     {
-        $orders = WpOrder::query()
-            ->when($this->statusFilter === 'pending', fn ($q) => $q->pending()->whereNull('handled_at'))
-            ->when(in_array($this->statusFilter, ['processing', 'completed', 'cancelled'], true),
-                fn ($q) => $q->where('status', $this->statusFilter))
+        $notCancelled = ['cancelled', 'refunded', 'failed', 'trash'];
+
+        $orders = WpOrder::query()->with('localInvoice.user')
+            ->when($this->statusFilter === 'pending', fn ($q) => $q
+                ->where('local_status', 'pending')->whereNotIn('status', $notCancelled)
+                ->where(fn ($w) => $w->whereNull('contact_attempts')->orWhere('contact_attempts', '[]')))
+            ->when($this->statusFilter === 'unreachable', fn ($q) => $q
+                ->where('local_status', 'pending')->whereNotIn('status', $notCancelled)
+                ->whereNotNull('contact_attempts')->where('contact_attempts', '!=', '[]'))
+            ->when($this->statusFilter === 'ordered', fn ($q) => $q->where('local_status', 'ordered'))
+            ->when($this->statusFilter === 'cannot_handle', fn ($q) => $q->where('local_status', 'cannot_handle'))
             ->when($this->search !== '', function ($q) {
                 $s = '%' . $this->search . '%';
                 $q->where(fn ($w) => $w->where('customer_name', 'like', $s)
@@ -93,7 +140,7 @@ class WpOrderIndex extends Component
 
         return view('livewire.wp.wp-order-index', [
             'orders' => $orders,
-            'pendingCount' => WpOrder::pending()->whereNull('handled_at')->count(),
+            'openCount' => WpOrder::open()->count(),
         ])->layout('layouts.app');
     }
 }
