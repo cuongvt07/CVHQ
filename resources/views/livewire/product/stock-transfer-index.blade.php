@@ -22,7 +22,7 @@
         {{-- Header --}}
         <div class="px-4 md:px-6 py-3 flex items-center justify-between border-b border-slate-200 bg-white shrink-0">
             <div>
-                <h1 class="text-base font-bold text-slate-900">Chuyển hàng liên chi nhánh</h1>
+                <h1 class="text-base font-bold text-slate-900">Quản lý gửi hàng</h1>
                 <p class="text-xs text-slate-400 mt-0.5">Quản lý phiếu gửi hàng giữa HN ↔ SG</p>
             </div>
             <button wire:click="create"

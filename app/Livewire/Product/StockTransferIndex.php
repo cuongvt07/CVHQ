@@ -685,13 +685,15 @@ class StockTransferIndex extends Component
             ->get(['id', 'sku', 'base_name', 'name', 'stock_quantity', 'images']);
 
         $cpSkus = $fromProducts->map(fn($p) => $this->counterpartSku($p->sku))->filter()->unique()->values()->all();
-        $cpMap  = Product::whereIn('sku', $cpSkus)->get(['id', 'sku', 'stock_quantity'])->keyBy('sku');
+        // Ghép cặp KHÔNG phân biệt hoa/thường + trim (SKU lệch case trước đây bị mất cặp -> gợi ý bỏ sót).
+        $cpMap  = Product::whereIn('sku', $cpSkus)->get(['id', 'sku', 'stock_quantity'])
+            ->keyBy(fn($p) => strtoupper(trim((string) $p->sku)));
 
         $existingIds = array_column($this->lines, 'from_product_id');
 
         return $fromProducts
             ->map(function ($p) use ($cpMap, $existingIds) {
-                $cp = $cpMap->get($this->counterpartSku($p->sku));
+                $cp = $cpMap->get(strtoupper(trim((string) $this->counterpartSku($p->sku))));
                 if (!$cp) return null;                        // chưa có cặp ở chi nhánh đối -> bỏ
                 if (in_array($p->id, $existingIds)) return null;
 
