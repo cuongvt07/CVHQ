@@ -56,11 +56,10 @@
         @endif
 
         {{-- Hàng hóa --}}
-        @if(auth()->user()?->hasPermission('products') || auth()->user()?->hasPermission('categories') || auth()->user()?->hasPermission('commissions') || auth()->user()?->hasPermission('reports'))
+        @if(auth()->user()?->hasPermission('products'))
         <div>
             <h3 class="{{ $head }}">Hàng hóa</h3>
             <div class="flex flex-col gap-1">
-                @if(auth()->user()?->hasPermission('products'))
                 <a href="{{ route('products') }}" class="{{ $nav(request()->routeIs('products')) }}">
                     <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="shrink-0"><path d="m7.5 4.27 9 5.15"/><path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"/><path d="m3.3 7 8.7 5 8.7-5"/><path d="M12 22V12"/></svg>
                     <span class="text-sm whitespace-nowrap">Sản phẩm</span>
@@ -77,33 +76,6 @@
                     <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="shrink-0"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/><path d="m8 19-3-7 3-7"/></svg>
                     <span class="text-sm whitespace-nowrap">Chuyển hàng CN</span>
                 </a>
-                @endif
-                @if(auth()->user()?->hasPermission('categories'))
-                <a href="{{ route('categories') }}" class="{{ $nav(request()->routeIs('categories')) }}">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="shrink-0"><path d="M3 6h18"/><path d="M7 10h10"/><path d="M7 14h10"/><path d="M7 18h10"/></svg>
-                    <span class="text-sm whitespace-nowrap">Danh mục</span>
-                </a>
-                @endif
-                @if(auth()->user()?->hasPermission('commissions'))
-                <a href="{{ route('commissions') }}" class="{{ $nav(request()->routeIs('commissions')) }}">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="shrink-0"><rect width="20" height="14" x="2" y="5" rx="2"/><line x1="2" x2="22" y1="10" y2="10"/><line x1="12" x2="12" y1="5" y2="19"/></svg>
-                    <span class="text-sm whitespace-nowrap">Bảng hoa hồng</span>
-                </a>
-                @endif
-                @if(auth()->user()?->hasPermission('reports'))
-                <a href="{{ route('reports.commissions') }}" class="{{ $nav(request()->routeIs('reports.commissions')) }}">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="shrink-0"><path d="M12 20V10"/><path d="M18 20V4"/><path d="M6 20v-4"/></svg>
-                    <span class="text-sm whitespace-nowrap">Báo cáo hoa hồng</span>
-                </a>
-                <a href="{{ route('reports.sales') }}" class="{{ $nav(request()->routeIs('reports.sales')) }}">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="shrink-0"><path d="M3 3v18h18"/><path d="m19 9-5 5-4-4-3 3"/></svg>
-                    <span class="text-sm whitespace-nowrap">Báo cáo bán hàng</span>
-                </a>
-                <a href="{{ route('reports.overview') }}" class="{{ $nav(request()->routeIs('reports.overview')) }}">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="shrink-0"><path d="M3 3v18h18"/><rect x="7" y="12" width="3" height="5"/><rect x="12" y="8" width="3" height="9"/><rect x="17" y="5" width="3" height="12"/></svg>
-                    <span class="text-sm whitespace-nowrap">Báo cáo chi tiết</span>
-                </a>
-                @endif
             </div>
         </div>
         @endif
@@ -116,12 +88,12 @@
                 @if(auth()->user()?->hasPermission('pos'))
                 <a href="{{ route('pos') }}" class="{{ $nav(request()->routeIs('pos')) }}">
                     <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="shrink-0"><circle cx="8" cy="21" r="1"/><circle cx="19" cy="21" r="1"/><path d="M2.05 2.05h2l2.66 12.42a2 2 0 0 0 2 1.58h9.78a2 2 0 0 0 1.95-1.57l1.65-7.43H5.12"/></svg>
-                    <span class="text-[13px] whitespace-nowrap">Trạm bán hàng</span>
+                    <span class="text-[13px] whitespace-nowrap">Trạm bán hàng POS</span>
                 </a>
                 @endif
-                {{-- Đơn Mail — nằm cùng chỗ với đơn hàng --}}
+                {{-- Đơn Mail --}}
                 <a href="{{ route('wp.orders') }}" class="{{ $nav(request()->routeIs('wp.orders')) }}">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="shrink-0"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></svg>
+                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="shrink-0"><rect width="20" height="16" x="2" y="4" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg>
                     <span class="text-sm whitespace-nowrap">Đơn Mail</span>
                 </a>
                 @if(auth()->user()?->hasPermission('invoices'))
@@ -134,6 +106,27 @@
                     <span class="text-sm whitespace-nowrap">Danh sách trả hàng</span>
                 </a>
                 @endif
+            </div>
+        </div>
+        @endif
+
+        {{-- Báo cáo --}}
+        @if(auth()->user()?->hasPermission('reports'))
+        <div>
+            <h3 class="{{ $head }}">Báo cáo</h3>
+            <div class="flex flex-col gap-1">
+                <a href="{{ route('reports.commissions') }}" class="{{ $nav(request()->routeIs('reports.commissions')) }}">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="shrink-0"><path d="M12 20V10"/><path d="M18 20V4"/><path d="M6 20v-4"/></svg>
+                    <span class="text-sm whitespace-nowrap">Báo cáo hoa hồng</span>
+                </a>
+                <a href="{{ route('reports.sales') }}" class="{{ $nav(request()->routeIs('reports.sales')) }}">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="shrink-0"><path d="M3 3v18h18"/><path d="m19 9-5 5-4-4-3 3"/></svg>
+                    <span class="text-sm whitespace-nowrap">Báo cáo bán hàng</span>
+                </a>
+                <a href="{{ route('reports.overview') }}" class="{{ $nav(request()->routeIs('reports.overview')) }}">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="shrink-0"><path d="M3 3v18h18"/><rect x="7" y="12" width="3" height="5"/><rect x="12" y="8" width="3" height="9"/><rect x="17" y="5" width="3" height="12"/></svg>
+                    <span class="text-sm whitespace-nowrap">Báo cáo chi tiết</span>
+                </a>
             </div>
         </div>
         @endif
@@ -152,7 +145,7 @@
         @endif
 
         {{-- Hệ thống --}}
-        @if(auth()->user()?->hasPermission('users') || auth()->user()?->role === 'admin')
+        @if(auth()->user()?->hasPermission('users') || auth()->user()?->hasPermission('commissions') || auth()->user()?->hasPermission('categories') || auth()->user()?->role === 'admin')
         <div>
             <h3 class="{{ $head }}">Hệ thống</h3>
             <div class="flex flex-col gap-1">
@@ -163,32 +156,39 @@
                 </a>
                 @endif
                 @if(auth()->user()?->role === 'admin')
-                <a href="{{ route('branches') }}" class="{{ $nav(request()->routeIs('branches')) }}">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="shrink-0"><path d="M3 21h18"/><path d="M5 21V7l8-4v18"/><path d="M19 21V11l-6-4"/><path d="M9 9v.01"/><path d="M9 12v.01"/><path d="M9 15v.01"/><path d="M9 18v.01"/></svg>
-                    <span class="text-sm whitespace-nowrap">Quản lý chi nhánh</span>
-                </a>
                 <a href="{{ route('system.settings') }}" class="{{ $nav(request()->routeIs('system.settings')) }}">
                     <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="shrink-0"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
                     <span class="text-sm whitespace-nowrap">Cài đặt cửa hàng</span>
                 </a>
+                @endif
+                @if(auth()->user()?->hasPermission('commissions'))
+                <a href="{{ route('commissions') }}" class="{{ $nav(request()->routeIs('commissions')) }}">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="shrink-0"><rect width="20" height="14" x="2" y="5" rx="2"/><line x1="2" x2="22" y1="10" y2="10"/><line x1="12" x2="12" y1="5" y2="19"/></svg>
+                    <span class="text-sm whitespace-nowrap">Bảng hoa hồng</span>
+                </a>
+                <a href="{{ route('commissions.settings') }}" class="{{ $nav(request()->routeIs('commissions.settings')) }}">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="shrink-0"><rect width="20" height="14" x="2" y="5" rx="2"/><line x1="2" x2="22" y1="10" y2="10"/><path d="M6 15h4"/></svg>
+                    <span class="text-sm whitespace-nowrap">Mức hoa hồng</span>
+                </a>
+                @endif
+                @if(auth()->user()?->role === 'admin')
+                <a href="{{ route('branches') }}" class="{{ $nav(request()->routeIs('branches')) }}">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="shrink-0"><path d="M3 21h18"/><path d="M5 21V7l8-4v18"/><path d="M19 21V11l-6-4"/><path d="M9 9v.01"/><path d="M9 12v.01"/><path d="M9 15v.01"/><path d="M9 18v.01"/></svg>
+                    <span class="text-sm whitespace-nowrap">Quản lý chi nhánh</span>
+                </a>
+                @endif
+                @if(auth()->user()?->hasPermission('categories'))
+                <a href="{{ route('categories') }}" class="{{ $nav(request()->routeIs('categories')) }}">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="shrink-0"><path d="M3 6h18"/><path d="M7 10h10"/><path d="M7 14h10"/><path d="M7 18h10"/></svg>
+                    <span class="text-sm whitespace-nowrap">Danh mục sản phẩm</span>
+                </a>
+                @endif
+                @if(auth()->user()?->role === 'admin')
                 <a href="{{ route('system.logs') }}" class="{{ $nav(request()->routeIs('system.logs')) }}">
                     <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="shrink-0"><path d="M13 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"/><polyline points="13 2 13 9 20 9"/></svg>
                     <span class="text-sm whitespace-nowrap">Lịch sử hệ thống</span>
                 </a>
                 @endif
-            </div>
-        </div>
-        @endif
-
-        {{-- Cấu hình --}}
-        @if(auth()->user()?->hasPermission('commissions'))
-        <div>
-            <h3 class="{{ $head }}">Cấu hình</h3>
-            <div class="flex flex-col gap-1">
-                <a href="{{ route('commissions.settings') }}" class="{{ $nav(request()->routeIs('commissions.settings')) }}">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="shrink-0"><rect width="20" height="14" x="2" y="5" rx="2"/><line x1="2" x2="22" y1="10" y2="10"/><path d="M6 15h4"/></svg>
-                    <span class="text-sm whitespace-nowrap">Cấu hình hoa hồng</span>
-                </a>
             </div>
         </div>
         @endif
