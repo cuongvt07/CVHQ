@@ -186,7 +186,7 @@
                             return [
                                 'tab'   => 'wp',
                                 'type'  => 'warning',
-                                'title' => '#' . $o->number . ' • ' . ($o->customer_name ?: 'Khách WP'),
+                                'title' => '#' . $o->number . ' • ' . ($o->customer_name ?: 'Khách Mail'),
                                 'desc'  => implode(' • ', $bits),
                                 'time'  => optional($o->wp_created_at)->diffForHumans() ?? '',
                                 'sort'  => optional($o->wp_created_at)->timestamp ?? 0,
@@ -203,7 +203,7 @@
                 $__notifCount = $__notifs->count();
                 $__tabs = [
                     'all'         => ['label' => 'Tất cả', 'count' => $__notifCount],
-                    'wp'          => ['label' => 'Đơn WP', 'count' => $__notifs->where('tab', 'wp')->count()],
+                    'wp'          => ['label' => 'Đơn Mail', 'count' => $__notifs->where('tab', 'wp')->count()],
                     'invoice'     => ['label' => 'Hóa đơn', 'count' => $__notifs->where('tab', 'invoice')->count()],
                     'stock'       => ['label' => 'Tồn kho', 'count' => $__notifs->where('tab', 'stock')->count()],
                     'product'     => ['label' => 'Hàng hóa', 'count' => $__notifs->where('tab', 'product')->count()],

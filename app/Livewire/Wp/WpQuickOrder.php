@@ -194,7 +194,7 @@ class WpQuickOrder extends Component
 
         $wp = WpOrder::find($this->wpOrderId);
         if ($wp && $wp->local_invoice_id) {
-            $this->dispatch('notify', message: 'Đơn WP này đã được tạo hóa đơn rồi.', type: 'warning');
+            $this->dispatch('notify', message: 'Đơn Mail này đã được lên đơn rồi.', type: 'warning');
             $this->open = false;
             return;
         }
@@ -209,7 +209,7 @@ class WpQuickOrder extends Component
             if (!$customer) {
                 $customer = Customer::create([
                     'customer_code' => 'KH' . now()->format('ymdHis') . rand(10, 99),
-                    'full_name' => $this->custName ?: 'Khách WP',
+                    'full_name' => $this->custName ?: 'Khách Mail',
                     'phone' => $phone ?: null,
                     'address' => $this->custAddress ?: null,
                 ]);
@@ -233,7 +233,7 @@ class WpQuickOrder extends Component
             $paymentCols[$paymentKey . '_amount'] = $final;
 
             $invoice = Invoice::create(array_merge([
-                'invoice_code' => 'WP' . time(),
+                'invoice_code' => 'MAIL' . time(),
                 'branch' => $branch,
                 'customer_id' => $customerId,
                 'user_id' => auth()->id(),
@@ -269,7 +269,7 @@ class WpQuickOrder extends Component
 
                 $product = Product::find($item['id']);
                 if ($product) {
-                    $product->recordStockHistory('Sale', -(int) $item['qty'], $invoice->id, $invoice->invoice_code, 'Bán hàng (đơn WP #' . ($this->wpRef['number'] ?? '') . ')');
+                    $product->recordStockHistory('Sale', -(int) $item['qty'], $invoice->id, $invoice->invoice_code, 'Bán hàng (đơn Mail #' . ($this->wpRef['number'] ?? '') . ')');
                     $product->decrement('stock_quantity', (int) $item['qty']);
                 }
             }
@@ -287,7 +287,7 @@ class WpQuickOrder extends Component
             DB::commit();
 
             $this->open = false;
-            $this->dispatch('notify', message: 'Đã tạo hóa đơn ' . $invoice->invoice_code . ' từ đơn WP!', type: 'success');
+            $this->dispatch('notify', message: 'Đã lên đơn ' . $invoice->invoice_code . ' từ đơn Mail!', type: 'success');
             $this->dispatch('wp-order-created');
         } catch (\Throwable $e) {
             DB::rollBack();
