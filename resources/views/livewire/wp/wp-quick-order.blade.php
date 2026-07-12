@@ -13,8 +13,8 @@
             {{-- Header --}}
             <div class="px-4 py-3 bg-white border-b border-slate-200 flex items-center justify-between shrink-0">
                 <div>
-                    <h3 class="text-base font-black text-slate-900">Tạo đơn nhanh</h3>
-                    <p class="text-[11px] text-slate-500">Từ đơn WP #{{ $wpRef['number'] ?? '' }}</p>
+                    <h3 class="text-base font-black text-slate-900">Lên đơn nhanh</h3>
+                    <p class="text-[11px] text-slate-500">Từ đơn Mail #{{ $wpRef['number'] ?? '' }}</p>
                 </div>
                 <button @click="show = false" class="w-9 h-9 flex items-center justify-center rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100">
                     <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
@@ -24,7 +24,7 @@
             <div class="flex-1 overflow-y-auto custom-scrollbar p-3 space-y-3">
                 {{-- Tham chiếu đơn WP --}}
                 <div class="bg-white border border-slate-200 rounded-xl p-3">
-                    <div class="text-[10px] font-black text-electric-blue uppercase tracking-wider mb-1.5">Thông tin đơn WP (tham chiếu)</div>
+                    <div class="text-[10px] font-black text-electric-blue uppercase tracking-wider mb-1.5">Thông tin đơn Mail (tham chiếu)</div>
                     <div class="text-[12px] text-slate-600 space-y-0.5">
                         <div><span class="text-slate-400">Khách:</span> <b class="text-slate-800">{{ $custName }}</b> · {{ $custPhone }}</div>
                         @if($custAddress)<div><span class="text-slate-400">Địa chỉ:</span> {{ $custAddress }}</div>@endif
@@ -49,9 +49,15 @@
                     @if(trim($productSearch) !== '')
                         <div class="absolute z-20 left-0 right-0 mt-1 max-h-64 overflow-y-auto bg-white border border-slate-200 rounded-xl shadow-xl">
                             @forelse($this->searchResults as $p)
-                                <button wire:click="addProduct({{ $p->id }})" class="flex items-center justify-between gap-2 w-full text-left px-3 py-2 hover:bg-slate-50 border-b border-slate-50">
-                                    <span class="text-[12px] text-slate-700 truncate">[{{ $p->sku }}] {{ $p->name }}</span>
-                                    <span class="text-[11px] font-bold text-electric-blue whitespace-nowrap">{{ $fmt($p->sale_price) }}đ</span>
+                                <button wire:click="addProduct({{ $p->id }})" class="block w-full text-left px-3 py-2 hover:bg-slate-50 border-b border-slate-50">
+                                    <div class="flex items-center justify-between gap-2">
+                                        <span class="text-[12px] text-slate-700 truncate">[{{ $p->sku }}] {{ $p->name }}</span>
+                                        <span class="text-[11px] font-bold text-electric-blue whitespace-nowrap">{{ $fmt($p->sale_price) }}đ</span>
+                                    </div>
+                                    <div class="flex items-center gap-2 text-[10px] text-slate-400 mt-0.5">
+                                        @if($p->location)<span>Vị trí: {{ $p->location }}</span>@endif
+                                        <span>Tồn: {{ $p->stock_quantity }}</span>
+                                    </div>
                                 </button>
                             @empty
                                 <div class="px-3 py-3 text-[12px] text-slate-400">Không tìm thấy sản phẩm.</div>
@@ -67,7 +73,8 @@
                             <div class="flex items-start justify-between gap-2">
                                 <div class="min-w-0">
                                     <div class="text-[12px] font-bold text-slate-800 truncate">{{ $item['name'] }}</div>
-                                    <div class="text-[10px] text-slate-400">{{ $item['sku'] }} · tồn {{ $item['stock'] }}</div>
+                                    <div class="text-[10px] text-slate-400">{{ $item['sku'] }} · tồn {{ $item['stock'] }}@if(!empty($item['location'])) · Vị trí {{ $item['location'] }}@endif</div>
+                                    @if($this->canReceiveCommission)<div class="text-[10px] font-bold text-amber-600">HH: {{ $fmt($item['commission']) }}đ/sp</div>@endif
                                 </div>
                                 <button wire:click="removeItem({{ $i }})" class="text-slate-300 hover:text-rose-500 shrink-0">
                                     <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
@@ -119,8 +126,27 @@
             {{-- Footer tổng + tạo --}}
             <div class="p-3 bg-white border-t border-slate-200 shrink-0 space-y-2">
                 <div class="flex items-center justify-between text-[12px]">
-                    <span class="text-slate-500">Tiền hàng</span><span class="font-bold">{{ $fmt($this->subtotal) }}đ</span>
+                    <span class="text-slate-500">Tổng {{ $this->itemCount }} sản phẩm</span>
+                    <span class="font-bold">{{ $fmt($this->subtotal) }}đ</span>
                 </div>
+                @if($this->canReceiveCommission)
+                    <div class="flex items-center justify-between text-[12px]">
+                        <span class="text-slate-500">Hoa hồng tạm tính</span>
+                        <span class="font-bold text-amber-600">{{ $fmt($this->totalCommission) }}đ</span>
+                    </div>
+                    {{-- Chia hoa hồng (giống POS) --}}
+                    <div class="grid grid-cols-2 gap-2">
+                        <select wire:model="sharedToUserId" class="bg-slate-50 border border-slate-200 rounded-lg px-2 py-2 text-[12px] focus:outline-none focus:border-electric-blue">
+                            <option value="">Chia HH cho NV…</option>
+                            @foreach($this->staffList as $st)<option value="{{ $st->id }}">{{ $st->name }}</option>@endforeach
+                        </select>
+                        <div class="relative">
+                            <input type="number" onfocus="this.select()" wire:model="sharedCommissionAmount" placeholder="Số tiền chia"
+                                   class="w-full bg-slate-50 border border-slate-200 rounded-lg pl-2 pr-6 py-2 text-[12px] text-right focus:outline-none focus:border-electric-blue">
+                            <span class="absolute right-2 top-1/2 -translate-y-1/2 text-[10px] text-slate-400">đ</span>
+                        </div>
+                    </div>
+                @endif
                 <div class="flex items-center justify-between">
                     <span class="text-sm font-bold text-slate-900">Khách cần trả</span>
                     <span class="text-lg font-black text-electric-blue">{{ $fmt($this->final) }}đ</span>

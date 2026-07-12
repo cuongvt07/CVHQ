@@ -33,6 +33,9 @@ class WpQuickOrder extends Component
     public string $paymentMethod = 'cash';
     public int $shippingFee = 0;
     public $discount = 0;
+    // Chia hoa hồng (giống POS)
+    public $sharedToUserId = null;
+    public $sharedCommissionAmount = '';
 
     #[On('open-wp-quick')]
     public function openFor($id): void
@@ -62,6 +65,8 @@ class WpQuickOrder extends Component
         $this->discount = 0;
         $this->paymentMethod = 'cash';
         $this->channel = 'Website';
+        $this->sharedToUserId = null;
+        $this->sharedCommissionAmount = '';
         $this->open = true;
     }
 
@@ -83,7 +88,7 @@ class WpQuickOrder extends Component
             })
             ->orderBy('sku')
             ->limit(20)
-            ->get(['id', 'sku', 'name', 'sale_price', 'commission_amount', 'stock_quantity']);
+            ->get(['id', 'sku', 'name', 'sale_price', 'commission_amount', 'stock_quantity', 'location']);
     }
 
     public function channelOptions(): array
@@ -110,6 +115,7 @@ class WpQuickOrder extends Component
             'id' => $p->id,
             'sku' => $p->sku,
             'name' => $p->name,
+            'location' => $p->location,
             'price' => (int) $p->sale_price,
             'qty' => 1,
             'commission' => (int) $p->commission_value,
@@ -146,6 +152,37 @@ class WpQuickOrder extends Component
     public function getFinalProperty(): int
     {
         return max(0, $this->subtotal - (int) $this->discount + (int) $this->shippingFee);
+    }
+
+    /** Tổng số lượng sản phẩm trong giỏ (giống POS: "Tổng N sản phẩm"). */
+    public function getItemCountProperty(): int
+    {
+        return (int) collect($this->cart)->sum(fn ($r) => (int) $r['qty']);
+    }
+
+    /** Người bán có được nhận hoa hồng không (giống POS). */
+    public function getCanReceiveCommissionProperty(): bool
+    {
+        return (bool) (auth()->user()?->can_receive_commission ?? false);
+    }
+
+    /** Tổng hoa hồng tạm tính (chỉ khi NV được nhận hoa hồng). */
+    public function getTotalCommissionProperty(): int
+    {
+        if (!$this->canReceiveCommission) {
+            return 0;
+        }
+        return (int) collect($this->cart)->sum(fn ($r) => (int) $r['commission'] * (int) $r['qty']);
+    }
+
+    /** Danh sách NV để chia hoa hồng (giống POS). */
+    public function getStaffListProperty()
+    {
+        return \App\Models\User::where('id', '!=', auth()->id())
+            ->where('can_receive_commission', true)
+            ->where('is_active', true)
+            ->orderBy('name')
+            ->get(['id', 'name']);
     }
 
     public function createInvoice()
@@ -185,7 +222,10 @@ class WpQuickOrder extends Component
             }
 
             $subtotal = $this->subtotal;
-            $totalCommission = (int) collect($this->cart)->sum(fn ($r) => (int) $r['commission'] * (int) $r['qty']);
+            $canReceiveCommission = (bool) (auth()->user()?->can_receive_commission ?? false);
+            $totalCommission = $canReceiveCommission
+                ? (int) collect($this->cart)->sum(fn ($r) => (int) $r['commission'] * (int) $r['qty'])
+                : 0;
             $final = $this->final;
 
             $paymentKey = in_array($this->paymentMethod, ['cash', 'transfer'], true) ? $this->paymentMethod : 'cash';
@@ -206,6 +246,10 @@ class WpQuickOrder extends Component
                 'extra_fee_name' => $this->shippingFee > 0 ? 'Phí ship' : null,
                 'final_amount' => $final,
                 'total_commission' => $totalCommission,
+                'shared_commission_amount' => ($this->sharedToUserId && $this->sharedCommissionAmount !== '')
+                    ? max(0, min((int) $this->sharedCommissionAmount, $totalCommission)) : null,
+                'shared_to_user_id' => ($this->sharedToUserId && $this->sharedCommissionAmount !== '')
+                    ? (int) $this->sharedToUserId : null,
                 'paid_amount' => $final,
                 'status' => 'Completed',
                 'delivery_status' => 'Pending',
@@ -219,7 +263,7 @@ class WpQuickOrder extends Component
                     'product_name' => $item['name'],
                     'quantity' => $item['qty'],
                     'unit_price' => $item['price'],
-                    'commission_amount' => $item['commission'],
+                    'commission_amount' => $canReceiveCommission ? $item['commission'] : 0,
                     'final_price' => (int) $item['price'] * (int) $item['qty'],
                 ]);
 
