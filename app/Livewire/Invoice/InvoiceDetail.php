@@ -24,7 +24,9 @@ class InvoiceDetail extends Component
 
     public function render()
     {
-        return view('livewire.invoice.invoice-detail')
-            ->layout('layouts.app');
+        return view('livewire.invoice.invoice-detail', [
+            // Đơn Mail (WooCommerce) gốc đã lập ra hóa đơn này (nếu có) — liên kết 2 chiều.
+            'wpOrder' => \App\Models\WpOrder::where('local_invoice_id', $this->invoice->id)->first(),
+        ])->layout('layouts.app');
     }
 }

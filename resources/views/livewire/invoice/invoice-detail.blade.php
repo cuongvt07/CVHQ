@@ -206,6 +206,30 @@
                     @endif
                 </div>
             </div>
+
+            {{-- Đơn Mail (WooCommerce) gốc — liên kết 2 chiều --}}
+            @if($wpOrder)
+            <div class="bg-white border border-slate-200 rounded-2xl p-4 md:p-5 mt-4">
+                <h3 class="text-[10px] md:text-[14px] font-bold text-slate-900 uppercase tracking-widest mb-3">Đơn Mail gốc</h3>
+                <div class="space-y-1.5 text-[12px] md:text-[14px]">
+                    <div class="flex justify-between"><span class="text-slate-400">Mã đơn</span><span class="font-bold text-slate-800">#{{ $wpOrder->number }}</span></div>
+                    <div class="flex justify-between"><span class="text-slate-400">Thời gian đặt</span><span class="font-bold text-slate-800">{{ optional($wpOrder->wp_created_at)->format('d/m/Y H:i') }}</span></div>
+                    @if($wpOrder->customer_note)
+                        <div class="text-amber-600 bg-amber-50 rounded-lg px-2 py-1">Ghi chú: {{ $wpOrder->customer_note }}</div>
+                    @endif
+                </div>
+                <div class="mt-2 border-t border-slate-100 pt-2 space-y-1">
+                    <div class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Sản phẩm đặt</div>
+                    @foreach($wpOrder->items ?? [] as $it)
+                        <div class="flex items-center justify-between gap-2 text-[12px]">
+                            <span class="text-slate-600 truncate">{{ $it['sku'] ? '['.$it['sku'].'] ' : '' }}{{ $it['name'] }}</span>
+                            <span class="text-slate-400 whitespace-nowrap">x{{ $it['qty'] }}</span>
+                        </div>
+                    @endforeach
+                </div>
+                <a href="{{ route('wp.orders') }}" wire:navigate class="mt-3 inline-block text-[11px] font-bold text-electric-blue hover:underline">← Xem danh sách đơn Mail</a>
+            </div>
+            @endif
         </div>
     </div>
 </div>

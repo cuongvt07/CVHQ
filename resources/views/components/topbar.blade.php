@@ -212,6 +212,22 @@
                     'import'      => ['label' => 'Nhập hàng', 'count' => $__notifs->where('tab', 'import')->count()],
                 ];
             @endphp
+
+            {{-- Icon Đơn Mail (trước chuông thông báo) — số đỏ đơn chưa xử lý --}}
+            @auth
+            @if(auth()->user()?->hasPermission('invoices') || auth()->user()?->hasPermission('pos'))
+                @php $__mailCount = 0; try { $__mailCount = \App\Models\WpOrder::open()->count(); } catch (\Throwable $e) {} @endphp
+                <a href="{{ route('wp.orders') }}" wire:navigate
+                   class="relative w-7 h-7 md:w-9 md:h-9 rounded-full flex items-center justify-center text-slate-400 hover:text-electric-blue hover:bg-slate-100 transition-all"
+                   title="Đơn Mail">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="md:w-[18px] md:h-[18px]"><rect width="20" height="16" x="2" y="4" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg>
+                    @if($__mailCount > 0)
+                        <span class="absolute -top-0.5 -right-0.5 md:top-1 md:right-1 min-w-[14px] md:min-w-[16px] h-3.5 md:h-4 px-1 bg-rose-500 text-white text-[8px] md:text-[9px] font-black rounded-full flex items-center justify-center shadow-[0_0_8px_rgba(244,63,94,0.6)]">{{ $__mailCount > 99 ? '99+' : $__mailCount }}</span>
+                    @endif
+                </a>
+            @endif
+            @endauth
+
             <div class="relative" x-data="{ open: false, activeTab: 'all', notifs: @js($__notifs) }" @click.away="open = false">
                 <button @click="open = !open"
                     class="w-7 h-7 md:w-9 md:h-9 rounded-full flex items-center justify-center text-slate-400 hover:text-slate-900 hover:bg-slate-100 transition-all relative">
