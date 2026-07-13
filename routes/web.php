@@ -47,6 +47,8 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/invoices/{invoice}', \App\Livewire\Invoice\InvoiceDetail::class)->name('invoices.detail');
     Route::get('/system/logs', \App\Livewire\System\ActivityLogList::class)->name('system.logs');
     Route::get('/system/settings', \App\Livewire\System\SystemSettings::class)->name('system.settings');
+    Route::get('/system/shifts', \App\Livewire\System\WorkShiftSettings::class)->name('system.shifts');
+    Route::get('/reports/payroll', \App\Livewire\Report\PayrollReport::class)->name('reports.payroll');
     Route::get('/branches', \App\Livewire\System\BranchIndex::class)->name('branches');
 
     Route::get('/pos/print/{invoice}', function (App\Models\Invoice $invoice) {

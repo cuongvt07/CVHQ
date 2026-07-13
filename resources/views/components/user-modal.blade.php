@@ -97,6 +97,14 @@
                                 </select>
                                 @error('work_branch') <span class="text-[10px] text-rose-500 font-bold ml-1">{{ $message }}</span> @enderror
                             </div>
+
+                            <div class="space-y-2">
+                                <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Lương theo giờ (đ)</label>
+                                <input type="number" min="0" step="1000" wire:model="hourly_rate" onfocus="this.select()"
+                                       class="w-full bg-slate-50 border border-slate-200 rounded-2xl py-2.5 px-4 md:py-3 md:px-5 text-sm focus:outline-none focus:border-electric-blue/40 focus:ring-4 focus:ring-electric-blue/5 transition-all"
+                                       placeholder="VD: 30000 (chưa set = tính lương 0)">
+                                @error('hourly_rate') <span class="text-[10px] text-rose-500 font-bold ml-1">{{ $message }}</span> @enderror
+                            </div>
                         </div>
 
                         <!-- Commission Eligibility Toggle -->

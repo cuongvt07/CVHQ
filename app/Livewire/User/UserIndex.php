@@ -42,7 +42,7 @@ class UserIndex extends Component
 
     // Form properties
     public $userId;
-    public $name, $username, $email, $password, $role = 'staff', $can_receive_commission = true, $work_branch = '', $permissions = [];
+    public $name, $username, $email, $password, $role = 'staff', $can_receive_commission = true, $hourly_rate = 0, $work_branch = '', $permissions = [];
     public $is_active = true;
 
     // Khi sao chép nhân viên: tên nhân viên nguồn (hiển thị nhắc trong form)
@@ -57,6 +57,7 @@ class UserIndex extends Component
             'password' => $this->userId ? 'nullable|min:6' : 'required|min:6',
             'role' => 'required|in:admin,staff',
             'can_receive_commission' => 'boolean',
+            'hourly_rate' => 'nullable|numeric|min:0',
             'work_branch' => 'nullable|in:' . implode(',', array_keys(\App\Models\Branch::options())),
             'permissions' => 'nullable|array',
         ];
@@ -72,6 +73,7 @@ class UserIndex extends Component
         $this->role = 'staff';
         $this->is_active = true;
         $this->can_receive_commission = true;
+        $this->hourly_rate = 0;
         $this->work_branch = '';
         $this->permissions = [];
         $this->copiedFromName = null;
@@ -107,6 +109,7 @@ class UserIndex extends Component
         $this->role = $user->role;
         $this->is_active = (bool) $user->is_active;
         $this->can_receive_commission = $user->can_receive_commission;
+        $this->hourly_rate = $user->hourly_rate;
         $this->work_branch = $user->work_branch ?? '';
         $this->permissions = $user->permissions ?? [];
 
@@ -127,6 +130,7 @@ class UserIndex extends Component
         // userId vẫn null => save() sẽ TẠO MỚI, không sửa nhân viên nguồn.
         $this->role = $source->role;
         $this->can_receive_commission = $source->can_receive_commission;
+        $this->hourly_rate = $source->hourly_rate;
         $this->work_branch = $source->work_branch ?? '';
         $this->permissions = $source->permissions ?? [];
         $this->copiedFromName = $source->name;
@@ -147,6 +151,7 @@ class UserIndex extends Component
             'role' => $this->role,
             'is_active' => $this->is_active,
             'can_receive_commission' => $this->can_receive_commission,
+            'hourly_rate' => (float) ($this->hourly_rate ?: 0),
             'work_branch' => $this->work_branch ?: null,
             'permissions' => $this->role === 'admin' ? null : $this->permissions,
         ];
