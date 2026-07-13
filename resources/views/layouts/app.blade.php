@@ -58,8 +58,11 @@
             @if(auth()->user()?->hasPermission('invoices') || auth()->user()?->hasPermission('pos'))
                 @livewire('wp.wp-order-bell')
             @endif
+
+            {{-- Nút chấm công check-in/check-out (mọi nhân viên) --}}
+            @livewire('attendance.check-in-button')
         @endauth
-        
+
         <!-- Global Loading Bar -->
         {{-- Loading bar removed per user request — gây ồn khi search/filter --}}
 

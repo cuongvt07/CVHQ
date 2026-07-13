@@ -29,6 +29,7 @@ class User extends Authenticatable
         'role',
         'is_active',
         'can_receive_commission',
+        'hourly_rate',
         'work_branch',
         'permissions',
         'ui_settings',
