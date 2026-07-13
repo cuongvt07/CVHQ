@@ -17,13 +17,32 @@
                 this._t = setInterval(() => { this.now = Date.now(); }, 1000);
             @endif
         },
-        destroy() { if (this._t) clearInterval(this._t); },
+        _onMove: null, _onUp: null,
+        destroy() {
+            if (this._t) clearInterval(this._t);
+            this.detach();
+        },
+        detach() {
+            if (this._onMove) {
+                window.removeEventListener('mousemove', this._onMove);
+                window.removeEventListener('touchmove', this._onMove);
+                window.removeEventListener('mouseup', this._onUp);
+                window.removeEventListener('touchend', this._onUp);
+            }
+        },
         down(e) {
             const p = e.touches ? e.touches[0] : e;
             this.dragging = true; this.moved = false;
             this.sx = p.clientX; this.sy = p.clientY;
             this.or = (window.innerWidth - p.clientX) - this.posR;
             this.ot = p.clientY - this.posT;
+            // Chỉ gắn listener KHI đang kéo (tránh xử lý mọi mousemove toàn trang -> lag).
+            this._onMove = (ev) => this.move(ev);
+            this._onUp = () => this.up();
+            window.addEventListener('mousemove', this._onMove);
+            window.addEventListener('touchmove', this._onMove, { passive: false });
+            window.addEventListener('mouseup', this._onUp);
+            window.addEventListener('touchend', this._onUp);
         },
         move(e) {
             if (!this.dragging) return;
@@ -34,8 +53,10 @@
             let t = p.clientY - this.ot;
             this.posR = Math.min(Math.max(4, r), window.innerWidth - w - 4);
             this.posT = Math.min(Math.max(4, t), window.innerHeight - h - 4);
+            if (e.cancelable && e.touches) e.preventDefault();
         },
         up() {
+            this.detach();
             if (!this.dragging) return;
             this.dragging = false;
             if (this.moved) { try { localStorage.setItem('cvhq_checkin_pos', JSON.stringify({ r: this.posR, t: this.posT })); } catch (e) {} }
@@ -50,8 +71,6 @@
         }
      }"
      @mousedown="down($event)" @touchstart="down($event)"
-     @mousemove.window="move($event)" @touchmove.window="move($event)"
-     @mouseup.window="up()" @touchend.window="up()"
      @click.outside="expanded = false">
 
     {{-- Thu gọn: hình tròn (kéo để di chuyển, bấm để mở) --}}
