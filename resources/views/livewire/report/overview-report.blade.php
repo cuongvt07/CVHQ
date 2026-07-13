@@ -17,7 +17,7 @@
     @endphp
 
     {{-- Header --}}
-    <header class="sticky top-0 z-20 px-3 md:px-6 py-3 flex items-center justify-between gap-2 border-b border-slate-200 bg-white/90 backdrop-blur flex-wrap">
+    <header class="sticky top-0 z-20 px-3 md:px-6 py-3 flex items-center justify-between gap-2 border-b border-slate-200 bg-white/90 flex-wrap">
         <h1 class="text-lg font-bold text-slate-900">Báo cáo chi tiết</h1>
         <div class="flex items-center gap-2 flex-wrap">
             {{-- Khoảng thời gian: preset + tùy chọn --}}

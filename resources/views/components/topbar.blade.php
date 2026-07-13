@@ -1,5 +1,5 @@
 <header
-    class="h-8 md:h-16 border-b border-slate-200 bg-white/80 backdrop-blur-xl flex items-center justify-between px-4 md:px-8 z-40 sticky top-0">
+    class="h-8 md:h-16 border-b border-slate-200 bg-white/95 flex items-center justify-between px-4 md:px-8 z-40 sticky top-0">
     <div class="flex items-center gap-4">
         <!-- Hamburger: mở sidebar trên mọi màn hình -->
         <button @click="sidebarHidden = false"
@@ -245,7 +245,7 @@
                 <div x-show="open" x-transition:enter="transition ease-out duration-200"
                     x-transition:enter-start="opacity-0 scale-95 translate-y-2"
                     x-transition:enter-end="opacity-100 scale-100 translate-y-0" x-cloak
-                    class="absolute right-0 mt-3 w-[calc(100vw-2rem)] max-w-[24rem] sm:w-[24rem] bg-white/95 backdrop-blur-xl border border-slate-200 rounded-3xl shadow-2xl z-50 overflow-hidden flex flex-col">
+                    class="absolute right-0 mt-3 w-[calc(100vw-2rem)] max-w-[24rem] sm:w-[24rem] bg-white/95 border border-slate-200 rounded-3xl shadow-2xl z-50 overflow-hidden flex flex-col">
                     <div class="px-6 py-4 border-b border-slate-100 flex items-center justify-between bg-slate-50/50 shrink-0">
                         <h3 class="text-[13px] font-bold text-slate-900 tracking-widest">Thông báo</h3>
                     </div>

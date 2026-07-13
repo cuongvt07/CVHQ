@@ -41,7 +41,12 @@
       "Bash(grep -n 'function render\\\\|'\\\\''today'\\\\''\\\\|'\\\\''kpi'\\\\''\\\\|compact\\\\|=> $this->\\\\|view\\(' d:/CVHQ/app/Livewire/Dashboard/DashboardIndex.php)",
       "Bash(cd /d/CVHQ *)",
       "Bash(grep -nE 'bulkCategory|bulkBrand|bulkImages|bulkRowImages|bulkProducts|getBulkSkus|getBulkFilled|bulkPrice|bulkCommission|requestStockEdit|confirmStockEdit|location|public $bulk|function.*[Bb]ulk' app/Livewire/Product/ProductIndex.php)",
-      "Bash(grep -nA25 'protected $fillable' app/Models/Product.php)"
+      "Bash(grep -nA25 'protected $fillable' app/Models/Product.php)",
+      "Bash(grep -viE \"wp_created|wp_id|wp-order|wp.orders|WpOrder|wp-quick|localInvoice|wpRef|wpOrder|//|wp-new-order|open-wp\")",
+      "Bash(grep -nE '\\\\{\\\\{ \\\\$head \\\\}\\\\}\">|whitespace-nowrap\">\\(Sản phẩm|Kiểm kho|Dự toán|Chuyển hàng|Trạm bán hàng POS|Đơn Mail|Hóa đơn|Danh sách trả|Báo cáo|Khách hàng|Nhân viên|Cài đặt|Bảng hoa hồng|Mức hoa hồng|Quản lý chi nhánh|Danh mục sản phẩm|Lịch sử\\)' resources/views/components/sidebar.blade.php)",
+      "Bash(grep -nA12 \"function getUniqueLocations\" app/Models/Product.php)",
+      "Bash(grep -nE 'public \\\\$can_receive_commission|public \\\\$work_branch|can_receive_commission|hourly_rate|function edit|function copy|function save|function resetForm|->can_receive_commission|'\\\\''can_receive_commission'\\\\''' app/Livewire/User/UserIndex.php)",
+      "Bash(grep -vE \"check-in-button|keydown.escape|resize.window\\\\\"\\\\s*$\")"
     ],
     "additionalDirectories": [
       "\\tmp"

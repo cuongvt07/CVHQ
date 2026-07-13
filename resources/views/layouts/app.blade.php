@@ -34,7 +34,7 @@
                  x-transition:leave-start="opacity-100"
                  x-transition:leave-end="opacity-0"
                  @click="sidebarHidden = true"
-                 class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[50] lg:hidden"></div>
+                 class="fixed inset-0 bg-slate-900/60 z-[50] lg:hidden"></div>
 
             <!-- Persistent Sidebar -->
             <x-sidebar />

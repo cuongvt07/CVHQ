@@ -62,7 +62,7 @@
 
     {{-- Modal thêm/sửa --}}
     <div x-data="{ show: @entangle('showModal') }" x-show="show" x-cloak class="relative z-[9999]">
-        <div x-show="show" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm" @click="show = false"></div>
+        <div x-show="show" class="fixed inset-0 bg-slate-900/50" @click="show = false"></div>
         <div class="fixed inset-0 z-10 overflow-y-auto">
             <div class="flex min-h-full items-center justify-center p-4">
                 <div x-show="show" x-transition class="relative bg-white rounded-3xl shadow-2xl w-full max-w-lg border border-slate-200 p-6">

@@ -222,7 +222,7 @@
         {{-- Desktop table --}}
         <div class="hidden md:block glass-card overflow-visible border border-slate-200">
             <table class="w-full text-left border-collapse">
-                <thead class="sticky top-0 z-30 bg-slate-50/95 backdrop-blur-md shadow-[0_1px_0_rgba(226,232,240,1)]">
+                <thead class="sticky top-0 z-30 bg-slate-50/95 shadow-[0_1px_0_rgba(226,232,240,1)]">
                     <tr class="border-b border-slate-200">
                         <th class="px-4 py-2 text-[9px] font-bold text-slate-500 tracking-[0.2em]">Sản phẩm</th>
                         <th class="px-4 py-2 text-[9px] font-bold text-slate-400 tracking-[0.2em]">SKU</th>

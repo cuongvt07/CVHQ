@@ -77,7 +77,7 @@
              x-transition:leave-end="opacity-0 translate-x-8 scale-95"
              class="pointer-events-auto relative group">
             
-            <div class="glass-card p-2.5 border border-white/20 shadow-xl overflow-hidden rounded-xl flex items-center gap-2 bg-white/90 backdrop-blur-md">
+            <div class="glass-card p-2.5 border border-white/20 shadow-xl overflow-hidden rounded-xl flex items-center gap-2 bg-white/90">
                 <!-- Status Icon (Smaller) -->
                 <div class="shrink-0">
                     <template x-if="n.type === 'success'">

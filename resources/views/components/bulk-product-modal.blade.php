@@ -14,7 +14,7 @@
              x-transition:leave="ease-in duration-200" 
              x-transition:leave-start="opacity-100" 
              x-transition:leave-end="opacity-0" 
-             class="fixed inset-0 transition-opacity bg-slate-900/60 backdrop-blur-sm" 
+             class="fixed inset-0 transition-opacity bg-slate-900/60" 
              @click="open = false"></div>
 
         <!-- Modal Content -->
@@ -101,7 +101,7 @@
 
                     <div class="glass-card overflow-x-auto border border-slate-200 rounded-xl flex-1">
                         <table class="w-full text-left border-collapse min-w-[920px]">
-                            <thead class="sticky top-0 bg-slate-50/95 backdrop-blur-md z-10">
+                            <thead class="sticky top-0 bg-slate-50/95 z-10">
                                 <tr class="border-b border-slate-200">
                                     <th class="w-10 px-2 py-2 text-center text-[10px] font-bold text-slate-400">#</th>
                                     <th class="w-28 px-3 py-2 text-[10px] font-bold text-slate-600 uppercase tracking-wider">Mã SP</th>

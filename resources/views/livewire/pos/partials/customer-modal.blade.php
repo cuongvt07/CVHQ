@@ -1,6 +1,6 @@
 {{-- POS Quick Create Customer Modal --}}
 <div x-show="$wire.is_creating_customer" class="fixed inset-0 z-[100] flex items-center justify-center p-4" x-cloak>
-    <div class="absolute inset-0 bg-slate-900/40 backdrop-blur-sm" @click="$wire.is_creating_customer = false"></div>
+    <div class="absolute inset-0 bg-slate-900/40" @click="$wire.is_creating_customer = false"></div>
     <div class="relative w-full max-w-md bg-white rounded-3xl p-8 shadow-2xl">
         <h3 class="text-xl font-bold text-slate-900 mb-6">Thêm khách hàng nhanh</h3>
         <div class="space-y-4">

@@ -498,7 +498,7 @@
         <!-- Desktop table (hidden on mobile) -->
         <div class="hidden md:block glass-card overflow-visible border border-slate-200">
             <table class="w-full text-left border-collapse">
-                <thead class="sticky top-0 z-30 bg-slate-50/95 backdrop-blur-md shadow-[0_1px_0_rgba(226,232,240,1)]">
+                <thead class="sticky top-0 z-30 bg-slate-50/95 shadow-[0_1px_0_rgba(226,232,240,1)]">
                     <tr class="border-b border-slate-200">
                         <th class="px-4 py-2 w-10">
                             <input type="checkbox" wire:model.live="selectAll" class="w-4 h-4 rounded border-slate-300 text-electric-blue focus:ring-electric-blue transition-all cursor-pointer">
@@ -735,7 +735,7 @@
                         </tr>
 
                         @if($expandedProductId === $product->id)
-                            <tr wire:key="history-row-{{ $product->id }}" class="bg-slate-900/95 backdrop-blur-xl">
+                            <tr wire:key="history-row-{{ $product->id }}" class="bg-slate-900/95">
                                 <td colspan="6" class="px-6 py-4">
                                     <div class="flex flex-col gap-4 animate-in fade-in slide-in-from-top-2 duration-300">
                                         <div class="flex items-center justify-between">
@@ -750,7 +750,7 @@
 
                                         <div class="max-h-[300px] overflow-y-auto custom-scrollbar-dark border border-white/5 rounded-2xl bg-black/40">
                                             <table class="w-full text-[11px]">
-                                                <thead class="sticky top-0 bg-black/80 backdrop-blur-md z-10">
+                                                <thead class="sticky top-0 bg-black/80 z-10">
                                                         <tr class="text-slate-500 border-b border-white/5">
                                                             <th class="px-4 py-3 font-bold text-left">Thời gian</th>
                                                             <th class="px-4 py-3 font-bold text-left">Loại</th>
@@ -857,7 +857,7 @@
     @if($showStockReason)
         @php $__delta = (int)$stockEditNew - (int)$stockEditOld; @endphp
         <div class="fixed inset-0 z-[120] flex items-center justify-center p-4">
-            <div class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm" wire:click="cancelStockEdit"></div>
+            <div class="fixed inset-0 bg-slate-900/50" wire:click="cancelStockEdit"></div>
             <div class="relative bg-white rounded-2xl shadow-2xl w-full max-w-md border border-slate-200 p-5">
                 <h3 class="text-base font-bold text-slate-900">Lý do điều chỉnh tồn kho</h3>
                 <p class="text-[12px] text-slate-500 mt-0.5 mb-3 truncate">{{ $stockEditSku }} — {{ $stockEditProductName }}</p>

@@ -203,7 +203,7 @@
     <div class="hidden md:flex flex-1 min-h-0 overflow-y-auto custom-scrollbar flex-col p-4">
         <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-visible">
             <table class="w-full text-left border-collapse">
-                <thead class="sticky top-0 z-30 bg-slate-50/95 backdrop-blur-md shadow-[0_1px_0_rgba(226,232,240,1)]">
+                <thead class="sticky top-0 z-30 bg-slate-50/95 shadow-[0_1px_0_rgba(226,232,240,1)]">
                     <tr class="border-b border-slate-100">
                         <th class="px-4 py-2 w-10">
                             <input type="checkbox" class="w-4 h-4 rounded border-slate-300 text-electric-blue focus:ring-electric-blue transition-all cursor-pointer">

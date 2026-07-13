@@ -12,7 +12,7 @@
          x-transition:leave="ease-in duration-200" 
          x-transition:leave-start="opacity-100" 
          x-transition:leave-end="opacity-0" 
-         class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm transition-opacity" 
+         class="fixed inset-0 bg-slate-900/60 transition-opacity" 
          @click="open = false"></div>
 
     <div class="fixed inset-0 z-10 overflow-y-auto">

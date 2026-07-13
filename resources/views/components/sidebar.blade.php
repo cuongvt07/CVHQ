@@ -6,7 +6,7 @@
     x-transition:leave="transition ease-in duration-150"
     x-transition:leave-start="opacity-100 translate-x-0"
     x-transition:leave-end="opacity-0 -translate-x-4"
-    class="w-64 fixed inset-y-0 left-0 z-[60] lg:static flex flex-col border-r border-slate-200 bg-slate-50/80 backdrop-blur-2xl shrink-0 h-dvh overflow-y-auto custom-scrollbar overflow-x-hidden">
+    class="w-64 fixed inset-y-0 left-0 z-[60] lg:static flex flex-col border-r border-slate-200 bg-slate-50/95 shrink-0 h-dvh overflow-y-auto custom-scrollbar overflow-x-hidden">
 
     <!-- Brand + Close button -->
     @php

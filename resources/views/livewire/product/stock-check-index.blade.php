@@ -758,7 +758,7 @@
         <div class="fixed inset-0 z-[9999] flex items-center justify-center p-4"
              x-data wire:key="sc-stock-card-{{ $stockCardId }}"
              x-on:keydown.escape.window="$wire.closeStockCard()">
-            <div class="absolute inset-0 bg-slate-900/70 backdrop-blur-sm" wire:click="closeStockCard"></div>
+            <div class="absolute inset-0 bg-slate-900/70" wire:click="closeStockCard"></div>
             <div class="relative bg-slate-900 rounded-2xl shadow-2xl w-full max-w-4xl max-h-[85vh] flex flex-col border border-white/10">
                 <div class="flex items-center justify-between px-5 py-4 border-b border-white/10">
                     <div class="flex items-center gap-2 min-w-0">
@@ -774,7 +774,7 @@
                 </div>
                 <div class="overflow-y-auto custom-scrollbar-dark bg-black/30">
                     <table class="w-full text-[11px]">
-                        <thead class="sticky top-0 bg-black/80 backdrop-blur-md z-10">
+                        <thead class="sticky top-0 bg-black/80 z-10">
                             <tr class="text-slate-500 border-b border-white/5">
                                 <th class="px-4 py-3 font-bold text-left">Thời gian</th>
                                 <th class="px-4 py-3 font-bold text-left">Loại</th>

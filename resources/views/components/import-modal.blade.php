@@ -30,7 +30,7 @@
          x-transition:leave="ease-in duration-200"
          x-transition:leave-start="opacity-100"
          x-transition:leave-end="opacity-0"
-         class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm transition-opacity"
+         class="fixed inset-0 bg-slate-900/40 transition-opacity"
          @click="if(!uploading && !$wire.importing) open = false"></div>
 
     <!-- Modal Content -->

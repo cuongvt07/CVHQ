@@ -14,7 +14,7 @@
                                  @click.stop="zoomOpen = true"
                                  class="w-full h-full object-cover cursor-zoom-in">
                             <button type="button" @click.stop="zoomOpen = true"
-                                    class="absolute top-1 right-1 w-5 h-5 rounded-full bg-white/90 backdrop-blur-sm text-slate-600 hover:text-electric-blue hover:bg-white shadow flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all"
+                                    class="absolute top-1 right-1 w-5 h-5 rounded-full bg-white/90 text-slate-600 hover:text-electric-blue hover:bg-white shadow flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all"
                                     title="Phóng to ảnh">
                                 <svg xmlns="http://www.w3.org/2000/svg" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/><line x1="11" y1="8" x2="11" y2="14"/><line x1="8" y1="11" x2="14" y2="11"/></svg>
                             </button>
@@ -23,7 +23,7 @@
                                      x-transition.opacity
                                      @click="zoomOpen = false"
                                      @keydown.escape.window="zoomOpen = false"
-                                     class="fixed inset-0 z-[200] flex items-center justify-center bg-slate-900/80 backdrop-blur-sm cursor-zoom-out p-4">
+                                     class="fixed inset-0 z-[200] flex items-center justify-center bg-slate-900/80 cursor-zoom-out p-4">
                                     <img src="{{ $product['image'] }}" alt="{{ $product['name'] }}"
                                          @click.stop
                                          class="max-w-[92vw] max-h-[92vh] object-contain rounded-2xl shadow-2xl">

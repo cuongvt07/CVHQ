@@ -146,7 +146,7 @@
 
     {{-- Modal "Không thể xử lý" — nhập lý do --}}
     <div x-show="cannotOpen" x-cloak class="fixed inset-0 z-[80] flex items-center justify-center p-4">
-        <div class="absolute inset-0 bg-slate-900/50 backdrop-blur-sm" @click="cannotOpen = false"></div>
+        <div class="absolute inset-0 bg-slate-900/50" @click="cannotOpen = false"></div>
         <div class="relative bg-white rounded-2xl shadow-2xl w-full max-w-md p-5" @click.stop>
             <h3 class="text-base font-bold text-slate-900 mb-1">Đánh dấu không thể xử lý</h3>
             <p class="text-[12px] text-slate-500 mb-3">Nhập lý do (gọi được nhưng không mua / hẹn qua cửa hàng / lý do khác).</p>

@@ -1093,7 +1093,7 @@
 
     <!-- Cancellation Modal -->
     @if($showCancelModal)
-        <div class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-in fade-in duration-300">
+        <div class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 animate-in fade-in duration-300">
             <div class="glass-card w-full max-w-md bg-white shadow-2xl rounded-3xl overflow-hidden border border-white/20 animate-in zoom-in-95 duration-300">
                 <div class="px-8 py-6 border-b border-slate-50 bg-slate-50/30">
                     <h3 class="text-xl font-bold text-slate-900">Xác nhận hủy hóa đơn</h3>

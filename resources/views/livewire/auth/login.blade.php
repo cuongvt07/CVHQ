@@ -19,7 +19,7 @@
         </div>
 
         <!-- Login Card -->
-        <div class="glass-card p-10 border border-white/50 shadow-[0_20px_50px_rgba(0,0,0,0.05)] bg-white/40 backdrop-blur-2xl rounded-[2.5rem]">
+        <div class="glass-card p-10 border border-white/50 shadow-[0_20px_50px_rgba(0,0,0,0.05)] bg-white/40 rounded-[2.5rem]">
             <form wire:submit="login" class="space-y-6">
                 <!-- Tên đăng nhập -->
                 <div class="space-y-2">

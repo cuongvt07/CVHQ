@@ -10,7 +10,7 @@
     </main>
 
     {{-- SIDEBAR: Checkout Panel (default visible on mobile) --}}
-    <aside class="flex-1 md:flex-none md:w-80 lg:w-96 flex flex-col border-l border-slate-200 bg-white md:bg-slate-50/80 backdrop-blur-3xl overflow-hidden h-full min-h-0">
+    <aside class="flex-1 md:flex-none md:w-80 lg:w-96 flex flex-col border-l border-slate-200 bg-white md:bg-slate-50/80 overflow-hidden h-full min-h-0">
 
         {{-- TOP STICKY: tabs + (mobile only) add product button --}}
         <div class="shrink-0">

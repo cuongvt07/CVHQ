@@ -2,7 +2,7 @@
     @php $fmt = fn ($v) => number_format((int) $v, 0, ',', '.'); @endphp
     <div x-data="{ show: @entangle('open') }" x-show="show" x-cloak class="relative z-[130]">
         {{-- Overlay --}}
-        <div x-show="show" x-transition.opacity class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm" @click="show = false"></div>
+        <div x-show="show" x-transition.opacity class="fixed inset-0 bg-slate-900/50" @click="show = false"></div>
 
         {{-- Panel trượt từ phải (bản mobile) --}}
         <div x-show="show"
