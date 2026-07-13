@@ -17,7 +17,9 @@
         <!-- Global Actions -->
         <div class="flex items-center gap-2">
             @php
-                // Pull REAL notifications from DB — activity_logs + low-stock alerts
+                // Cache ~8s: gom thông báo (nhiều truy vấn nặng) -> chỉ chạy 1 lần / 8s thay vì
+                // MỖI lần tải trang. Thông báo là hoạt động chung, chậm vài giây không sao.
+                $__notifs = collect(\Illuminate\Support\Facades\Cache::remember('cvhq_topbar_notifs', 8, function () {
                 $__notifs = collect();
 
                 try {
@@ -199,6 +201,9 @@
                 } catch (\Throwable $e) {
                     // wp_orders chưa migrate — bỏ qua tab WP
                 }
+
+                    return $__notifs->values()->all();
+                }));
 
                 $__notifCount = $__notifs->count();
                 $__tabs = [
