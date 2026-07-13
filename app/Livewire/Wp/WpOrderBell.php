@@ -3,7 +3,6 @@
 namespace App\Livewire\Wp;
 
 use App\Models\WpOrder;
-use App\Services\WooCommerceService;
 use Livewire\Component;
 
 class WpOrderBell extends Component
@@ -22,22 +21,17 @@ class WpOrderBell extends Component
         $this->unseen = WpOrder::where('seen', false)->count();
     }
 
-    /** Poll định kỳ: đồng bộ đơn WP + kêu chuông nếu có đơn mới. */
+    /**
+     * Poll định kỳ (NHẸ): chỉ ĐẾM DB, không gọi API WooCommerce ngoài mỗi 30s
+     * (trước đây gọi HTTP ngoài trên MỌI trang -> khựng định kỳ). Đơn mới vẫn về
+     * real-time qua webhook; kêu chuông khi số đếm tăng.
+     */
     public function tick(): void
     {
-        $wasEmpty = WpOrder::count() === 0;
-        $new = 0;
-        try {
-            $res = app(WooCommerceService::class)->sync(20);
-            $new = (int) ($res['new'] ?? 0);
-        } catch (\Throwable $e) {
-            // im lặng nếu WP không phản hồi
-        }
+        $old = $this->count;
         $this->refreshCounts();
-
-        // Không kêu cho lần đồng bộ đầu tiên (DB đang rỗng).
-        if (!$wasEmpty && $new > 0) {
-            $this->dispatch('wp-new-order', count: $new);
+        if ($this->count > $old) {
+            $this->dispatch('wp-new-order', count: $this->count - $old);
         }
     }
 
