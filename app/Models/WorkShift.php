@@ -37,8 +37,10 @@ class WorkShift extends Model
     }
 
     /**
-     * Nhận diện ca theo giờ check-in: ca có giờ BẮT ĐẦU gần thời điểm check-in nhất
-     * (không phân công trước; check trước/sau mốc đều tính ca đó). Null nếu chưa có ca nào.
+     * Nhận diện ca theo giờ check-in (không phân công trước):
+     *   1) Nếu thời điểm check-in NẰM TRONG khung giờ 1 ca -> tính ca đó (đang trong ca).
+     *   2) Nếu không trong ca nào (đến sớm/trễ/giữa 2 ca) -> ca có mốc BẮT ĐẦU gần nhất.
+     * Null nếu chưa cấu hình ca nào.
      */
     public static function detectForCheckIn(Carbon $at): ?self
     {
@@ -47,10 +49,24 @@ class WorkShift extends Model
             return null;
         }
         $mod = $at->hour * 60 + $at->minute;
+
+        // 1) Ca có khung giờ chứa thời điểm check-in.
+        $within = $shifts->filter(function ($s) use ($mod) {
+            $start = self::toMinutes($s->start_time);
+            $end   = self::toMinutes($s->end_time);
+            return $end > $start
+                ? ($mod >= $start && $mod <= $end)
+                : ($mod >= $start || $mod <= $end); // ca qua đêm
+        })->sortBy(fn ($s) => abs($mod - self::toMinutes($s->start_time)));
+        if ($within->isNotEmpty()) {
+            return $within->first();
+        }
+
+        // 2) Không trong ca nào -> mốc bắt đầu gần nhất (tính cả vòng qua nửa đêm).
         return $shifts->sortBy(function ($s) use ($mod) {
             $start = self::toMinutes($s->start_time);
             $diff = abs($mod - $start);
-            return min($diff, 1440 - $diff); // tính cả vòng qua nửa đêm
+            return min($diff, 1440 - $diff);
         })->first();
     }
 }
