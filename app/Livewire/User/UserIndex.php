@@ -6,6 +6,7 @@ use App\Models\User;
 use Livewire\Component;
 use Livewire\WithPagination;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Schema;
 use App\Traits\WithColumnVisibility;
 use App\Traits\WithUserPreferences;
 use App\Traits\WithBulkActions;
@@ -151,10 +152,14 @@ class UserIndex extends Component
             'role' => $this->role,
             'is_active' => $this->is_active,
             'can_receive_commission' => $this->can_receive_commission,
-            'hourly_rate' => (int) ($this->hourly_rate ?: 0),
             'work_branch' => $this->work_branch ?: null,
             'permissions' => $this->role === 'admin' ? null : $this->permissions,
         ];
+
+        // Chỉ set lương/giờ khi cột đã tồn tại (tránh lỗi nếu server chưa migrate).
+        if (Schema::hasColumn('users', 'hourly_rate')) {
+            $data['hourly_rate'] = (int) ($this->hourly_rate ?: 0);
+        }
 
         if ($this->password) {
             $data['password'] = Hash::make($this->password);

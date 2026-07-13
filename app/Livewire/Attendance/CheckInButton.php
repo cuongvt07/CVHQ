@@ -24,8 +24,13 @@ class CheckInButton extends Component
 
     private function refreshState(): void
     {
-        $att = Attendance::where('user_id', auth()->id())
-            ->whereNull('check_out_at')->latest('check_in_at')->first();
+        try {
+            $att = Attendance::where('user_id', auth()->id())
+                ->whereNull('check_out_at')->latest('check_in_at')->first();
+        } catch (\Throwable $e) {
+            // Bảng chấm công chưa migrate -> ẩn trạng thái, không làm hỏng trang.
+            $att = null;
+        }
 
         if ($att) {
             $this->openId = $att->id;
