@@ -109,7 +109,7 @@ class UserIndex extends Component
         $this->role = $user->role;
         $this->is_active = (bool) $user->is_active;
         $this->can_receive_commission = $user->can_receive_commission;
-        $this->hourly_rate = $user->hourly_rate;
+        $this->hourly_rate = (int) $user->hourly_rate;
         $this->work_branch = $user->work_branch ?? '';
         $this->permissions = $user->permissions ?? [];
 
@@ -130,7 +130,7 @@ class UserIndex extends Component
         // userId vẫn null => save() sẽ TẠO MỚI, không sửa nhân viên nguồn.
         $this->role = $source->role;
         $this->can_receive_commission = $source->can_receive_commission;
-        $this->hourly_rate = $source->hourly_rate;
+        $this->hourly_rate = (int) $source->hourly_rate;
         $this->work_branch = $source->work_branch ?? '';
         $this->permissions = $source->permissions ?? [];
         $this->copiedFromName = $source->name;
@@ -151,7 +151,7 @@ class UserIndex extends Component
             'role' => $this->role,
             'is_active' => $this->is_active,
             'can_receive_commission' => $this->can_receive_commission,
-            'hourly_rate' => (float) ($this->hourly_rate ?: 0),
+            'hourly_rate' => (int) ($this->hourly_rate ?: 0),
             'work_branch' => $this->work_branch ?: null,
             'permissions' => $this->role === 'admin' ? null : $this->permissions,
         ];

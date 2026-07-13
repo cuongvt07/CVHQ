@@ -4,7 +4,9 @@
         <div x-data="{
                 start: new Date('{{ $checkInAtIso }}').getTime(),
                 now: Date.now(),
-                init() { setInterval(() => this.now = Date.now(), 1000); },
+                _t: null,
+                init() { this._t = setInterval(() => { this.now = Date.now(); }, 1000); },
+                destroy() { if (this._t) clearInterval(this._t); },
                 fmt() {
                     let s = Math.max(0, Math.floor((this.now - this.start) / 1000));
                     const h = String(Math.floor(s / 3600)).padStart(2, '0');
@@ -12,7 +14,7 @@
                     const ss = String(s % 60).padStart(2, '0');
                     return h + ':' + m + ':' + ss;
                 }
-             }" x-init="init()"
+             }"
              class="flex items-center gap-2 bg-rose-500 text-white rounded-full shadow-xl pl-4 pr-1.5 py-1.5">
             <div class="text-left leading-tight">
                 <div class="text-[9px] font-bold uppercase tracking-wider opacity-80">{{ $shiftName ?: 'Đang làm' }}</div>
