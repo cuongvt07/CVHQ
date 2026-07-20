@@ -209,18 +209,31 @@
                         @if($d->customer_note)<div class="text-amber-600 bg-amber-50 rounded-lg px-2 py-1 mt-1 inline-block">Ghi chú: {{ $d->customer_note }}</div>@endif
                     </div>
 
-                    {{-- Sản phẩm đặt --}}
+                    {{-- Sản phẩm đặt — card có ảnh SP + SKU + SL × đơn giá (giống chi tiết hóa đơn) --}}
                     <div class="border-t border-slate-100 pt-2">
-                        <div class="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Sản phẩm đặt</div>
-                        @foreach($d->items ?? [] as $it)
-                            @php $q = urlencode($it['sku'] ?: ($it['name'] ?? '')); @endphp
-                            <div class="flex items-center justify-between gap-2 py-1.5 border-b border-slate-50">
-                                <a href="{{ $wcUrl }}/?post_type=product&s={{ $q }}" target="_blank" rel="noopener" class="text-slate-700 hover:text-electric-blue hover:underline truncate">
-                                    {{ $it['sku'] ? '['.$it['sku'].'] ' : '' }}{{ $it['name'] }}
-                                </a>
-                                <span class="text-slate-500 whitespace-nowrap shrink-0">x{{ $it['qty'] ?? 1 }} · {{ $fmt($it['total'] ?? 0) }}đ</span>
-                            </div>
-                        @endforeach
+                        <div class="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2">Sản phẩm đặt ({{ count($d->items ?? []) }})</div>
+                        <div class="space-y-2">
+                            @foreach($d->items ?? [] as $it)
+                                @php $q = urlencode($it['sku'] ?: ($it['name'] ?? '')); @endphp
+                                <div class="flex items-center gap-3 bg-slate-50 rounded-xl p-2">
+                                    <a href="{{ $wcUrl }}/?post_type=product&s={{ $q }}" target="_blank" rel="noopener"
+                                       class="w-12 h-12 rounded-lg bg-white border border-slate-100 overflow-hidden shrink-0 flex items-center justify-center">
+                                        @if(!empty($it['image']))
+                                            <img src="{{ $it['image'] }}" class="w-full h-full object-cover">
+                                        @else
+                                            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" class="text-slate-300"><rect width="18" height="18" x="3" y="3" rx="2"/><path d="m3 16 5-5 4 4 3-3 6 6"/><circle cx="9" cy="9" r="1.5"/></svg>
+                                        @endif
+                                    </a>
+                                    <div class="min-w-0 flex-1">
+                                        <a href="{{ $wcUrl }}/?post_type=product&s={{ $q }}" target="_blank" rel="noopener"
+                                           class="block text-[13px] font-bold text-slate-800 hover:text-electric-blue hover:underline truncate">{{ $it['name'] }}</a>
+                                        <div class="text-[11px] text-electric-blue font-mono">{{ $it['sku'] ?: '—' }}</div>
+                                        <div class="text-[11px] text-slate-500 mt-0.5">SL: <b class="text-slate-700">{{ $it['qty'] ?? 1 }}</b> × {{ $fmt($it['price'] ?? 0) }}đ</div>
+                                    </div>
+                                    <div class="text-[13px] font-black text-slate-900 whitespace-nowrap shrink-0">{{ $fmt($it['total'] ?? 0) }}đ</div>
+                                </div>
+                            @endforeach
+                        </div>
                     </div>
 
                     {{-- Tổng tiền --}}

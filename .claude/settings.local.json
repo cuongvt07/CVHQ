@@ -46,7 +46,8 @@
       "Bash(grep -nE '\\\\{\\\\{ \\\\$head \\\\}\\\\}\">|whitespace-nowrap\">\\(Sản phẩm|Kiểm kho|Dự toán|Chuyển hàng|Trạm bán hàng POS|Đơn Mail|Hóa đơn|Danh sách trả|Báo cáo|Khách hàng|Nhân viên|Cài đặt|Bảng hoa hồng|Mức hoa hồng|Quản lý chi nhánh|Danh mục sản phẩm|Lịch sử\\)' resources/views/components/sidebar.blade.php)",
       "Bash(grep -nA12 \"function getUniqueLocations\" app/Models/Product.php)",
       "Bash(grep -nE 'public \\\\$can_receive_commission|public \\\\$work_branch|can_receive_commission|hourly_rate|function edit|function copy|function save|function resetForm|->can_receive_commission|'\\\\''can_receive_commission'\\\\''' app/Livewire/User/UserIndex.php)",
-      "Bash(grep -vE \"check-in-button|keydown.escape|resize.window\\\\\"\\\\s*$\")"
+      "Bash(grep -vE \"check-in-button|keydown.escape|resize.window\\\\\"\\\\s*$\")",
+      "Bash(grep -nA10 '$items = array_map' app/Services/WooCommerceService.php)"
     ],
     "additionalDirectories": [
       "\\tmp"
