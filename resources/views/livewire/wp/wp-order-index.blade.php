@@ -106,29 +106,6 @@
                     @endforeach
                 </div>
 
-                {{-- Hóa đơn đã lập (gắn liền) — xem thông tin NGAY tại đây, không cần mở detail --}}
-                @if($o->local_status === 'ordered' && $o->localInvoice)
-                    @php $inv = $o->localInvoice; @endphp
-                    <div class="mt-3 bg-emerald-50 border border-emerald-100 rounded-xl px-3 py-2.5">
-                        <div class="flex items-start justify-between gap-3 flex-wrap">
-                            <div class="min-w-0 space-y-0.5">
-                                <div class="text-[13px] font-black text-emerald-700">HĐ {{ $inv->invoice_code }}</div>
-                                <div class="text-[11px] text-emerald-700/90">NV lên đơn: <b>{{ $inv->seller_name ?: ($inv->user?->name ?? '—') }}</b></div>
-                                <div class="text-[11px] text-emerald-700/90">Thời gian: {{ optional($inv->created_at)->format('d/m/Y H:i') }}</div>
-                                <div class="text-[11px] text-emerald-700/90">Tổng tiền: <b>{{ $fmt($inv->final_amount) }}đ</b>
-                                    @if($inv->status === 'Returned')<span class="ml-1 text-rose-600 font-bold">(Đã trả hàng)</span>
-                                    @elseif($inv->status === 'Cancelled')<span class="ml-1 text-rose-600 font-bold">(Đã hủy)</span>@endif
-                                </div>
-                            </div>
-                            <a href="{{ route('invoices.detail', $o->local_invoice_id) }}" wire:navigate
-                               class="shrink-0 flex items-center gap-1.5 px-3 py-1.5 text-[12px] font-bold text-white bg-emerald-600 rounded-lg hover:bg-emerald-700 transition-colors">
-                                <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg>
-                                Xem chi tiết hóa đơn
-                            </a>
-                        </div>
-                    </div>
-                @endif
-
                 {{-- Actions --}}
                 <div class="mt-3 flex items-center justify-end gap-2 flex-wrap">
                     <button wire:click="openDetail({{ $o->id }})"
