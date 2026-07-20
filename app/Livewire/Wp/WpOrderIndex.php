@@ -22,6 +22,20 @@ class WpOrderIndex extends Component
     public ?int $cannotHandleId = null;
     public string $cannotHandleReason = '';
 
+    // Modal xem chi tiết đơn Mail
+    public ?int $detailId = null;
+
+    public function openDetail($id): void
+    {
+        $this->detailId = (int) $id;
+        $this->dispatch('open-order-detail');
+    }
+
+    public function closeDetail(): void
+    {
+        $this->detailId = null;
+    }
+
     protected function getModuleKey(): string
     {
         return 'invoices';
@@ -140,6 +154,9 @@ class WpOrderIndex extends Component
         return view('livewire.wp.wp-order-index', [
             'orders' => $orders,
             'openCount' => WpOrder::open()->count(),
+            'detailOrder' => $this->detailId
+                ? WpOrder::with('localInvoice.user', 'cannotHandleBy')->find($this->detailId)
+                : null,
         ])->layout('layouts.app');
     }
 }

@@ -1,7 +1,8 @@
 <div class="h-full min-h-0 flex flex-col" wire:poll.30s="sync(false)"
-     x-data="{ cannotOpen: false }"
+     x-data="{ cannotOpen: false, detailOpen: false }"
      x-on:open-cannot-handle.window="cannotOpen = true"
-     x-on:close-cannot-handle.window="cannotOpen = false">
+     x-on:close-cannot-handle.window="cannotOpen = false"
+     x-on:open-order-detail.window="detailOpen = true">
     @php
         $statusMap = [
             'processing' => ['Đang xử lý', 'bg-amber-50 text-amber-700 border-amber-200'],
@@ -130,6 +131,11 @@
 
                 {{-- Actions --}}
                 <div class="mt-3 flex items-center justify-end gap-2 flex-wrap">
+                    <button wire:click="openDetail({{ $o->id }})"
+                            class="flex items-center gap-1.5 px-3 py-1.5 text-[12px] font-bold text-slate-600 bg-white border border-slate-200 rounded-lg hover:border-electric-blue hover:text-electric-blue transition-colors">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg>
+                        Xem chi tiết đơn
+                    </button>
                     @if($o->local_status === 'pending')
                         <button wire:click="markUnreachable({{ $o->id }})"
                                 class="px-3 py-1.5 text-[12px] font-bold text-orange-600 bg-orange-50 border border-orange-200 rounded-lg hover:bg-orange-100">Không liên lạc được</button>
@@ -162,6 +168,98 @@
                 <button @click="cannotOpen = false" class="px-4 py-2 text-[12px] font-bold text-slate-500 bg-slate-100 rounded-lg hover:bg-slate-200">Hủy</button>
                 <button wire:click="confirmCannotHandle" class="px-4 py-2 text-[12px] font-bold text-white bg-rose-500 rounded-lg hover:bg-rose-600">Xác nhận</button>
             </div>
+        </div>
+    </div>
+
+    {{-- Modal xem chi tiết đơn Mail --}}
+    <div x-show="detailOpen" x-cloak class="fixed inset-0 z-[85] flex items-center justify-center p-4">
+        <div class="absolute inset-0 bg-slate-900/50" @click="detailOpen = false; $wire.closeDetail()"></div>
+        <div class="relative bg-white rounded-2xl shadow-2xl w-full max-w-lg max-h-[88vh] flex flex-col" @click.stop>
+            @if($detailOrder)
+                @php
+                    $d = $detailOrder;
+                    $wcUrl = rtrim((string) config('services.woocommerce.url'), '/');
+                    $lsBadge = match($d->local_status) {
+                        'ordered' => 'bg-emerald-50 text-emerald-700 border-emerald-200',
+                        'cannot_handle' => 'bg-rose-50 text-rose-600 border-rose-200',
+                        default => !empty($d->contact_attempts) ? 'bg-orange-50 text-orange-600 border-orange-200' : 'bg-slate-100 text-slate-500 border-slate-200',
+                    };
+                @endphp
+                <div class="px-5 py-4 border-b border-slate-100 flex items-start justify-between gap-2 shrink-0">
+                    <div>
+                        <div class="flex items-center gap-2 flex-wrap">
+                            <h3 class="text-base font-black text-slate-900">Đơn Mail #{{ $d->number }}</h3>
+                            <span class="px-2 py-0.5 rounded-full border text-[10px] font-bold {{ $lsBadge }}">{{ $d->localStatusLabel() }}</span>
+                        </div>
+                        <p class="text-[11px] text-slate-400 mt-0.5">Đặt lúc {{ optional($d->wp_created_at)->format('d/m/Y H:i') }}</p>
+                    </div>
+                    <button @click="detailOpen = false; $wire.closeDetail()" class="w-8 h-8 flex items-center justify-center rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100 shrink-0">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+                    </button>
+                </div>
+
+                <div class="flex-1 overflow-y-auto custom-scrollbar p-5 space-y-3 text-[13px]">
+                    {{-- Khách --}}
+                    <div>
+                        <div class="font-bold text-slate-800">{{ $d->customer_name }}
+                            <span class="text-slate-300">·</span>
+                            <a href="tel:{{ $d->customer_phone }}" class="text-electric-blue font-normal">{{ $d->customer_phone }}</a>
+                        </div>
+                        @if($d->address)<div class="text-slate-500 mt-0.5">Đ/c: {{ $d->address }}</div>@endif
+                        @if($d->customer_note)<div class="text-amber-600 bg-amber-50 rounded-lg px-2 py-1 mt-1 inline-block">Ghi chú: {{ $d->customer_note }}</div>@endif
+                    </div>
+
+                    {{-- Sản phẩm đặt --}}
+                    <div class="border-t border-slate-100 pt-2">
+                        <div class="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Sản phẩm đặt</div>
+                        @foreach($d->items ?? [] as $it)
+                            @php $q = urlencode($it['sku'] ?: ($it['name'] ?? '')); @endphp
+                            <div class="flex items-center justify-between gap-2 py-1.5 border-b border-slate-50">
+                                <a href="{{ $wcUrl }}/?post_type=product&s={{ $q }}" target="_blank" rel="noopener" class="text-slate-700 hover:text-electric-blue hover:underline truncate">
+                                    {{ $it['sku'] ? '['.$it['sku'].'] ' : '' }}{{ $it['name'] }}
+                                </a>
+                                <span class="text-slate-500 whitespace-nowrap shrink-0">x{{ $it['qty'] ?? 1 }} · {{ $fmt($it['total'] ?? 0) }}đ</span>
+                            </div>
+                        @endforeach
+                    </div>
+
+                    {{-- Tổng tiền --}}
+                    <div class="border-t border-slate-100 pt-2 space-y-0.5 text-slate-600">
+                        @if((int)$d->shipping_total > 0)<div class="flex justify-between"><span>Phí ship</span><span>{{ $fmt($d->shipping_total) }}đ</span></div>@endif
+                        @if((int)$d->discount_total > 0)<div class="flex justify-between"><span>Giảm giá</span><span>-{{ $fmt($d->discount_total) }}đ</span></div>@endif
+                        <div class="flex justify-between font-black text-slate-900 text-[15px]"><span>Tổng đơn</span><span class="text-electric-blue">{{ $fmt($d->total) }}đ</span></div>
+                        @if($d->payment_title)<div class="text-[11px] text-slate-400">{{ $d->payment_title }}</div>@endif
+                    </div>
+
+                    {{-- Lịch sử liên lạc / không thể xử lý --}}
+                    @if(!empty($d->contact_attempts) || $d->local_status === 'cannot_handle')
+                        <div class="border-t border-slate-100 pt-2 space-y-1">
+                            @foreach($d->contact_attempts ?? [] as $i => $att)
+                                <div class="text-[11px] font-bold text-rose-600">⚠ Không liên lạc được Lần {{ $i + 1 }} – {{ \Illuminate\Support\Carbon::parse($att['at'])->format('d/m/Y H:i') }} – {{ $att['by_name'] ?? 'NV' }}</div>
+                            @endforeach
+                            @if($d->local_status === 'cannot_handle')
+                                <div class="text-[11px] font-bold text-rose-600">✕ Không thể xử lý: {{ $d->cannot_handle_reason }} – {{ optional($d->cannot_handle_at)->format('d/m/Y H:i') }} – {{ $d->cannotHandleBy?->name ?? 'NV' }}</div>
+                            @endif
+                        </div>
+                    @endif
+
+                    {{-- Hóa đơn liên kết --}}
+                    @if($d->local_status === 'ordered' && $d->localInvoice)
+                        <a href="{{ route('invoices.detail', $d->local_invoice_id) }}" wire:navigate
+                           class="block border-t border-slate-100 pt-3 mt-1">
+                            <div class="bg-emerald-50 border border-emerald-100 rounded-xl px-3 py-2.5 hover:bg-emerald-100 transition-colors">
+                                <div class="flex items-center justify-between gap-2">
+                                    <div>
+                                        <div class="text-[12px] font-black text-emerald-700">HĐ {{ $d->localInvoice->invoice_code }}</div>
+                                        <div class="text-[11px] text-emerald-700/80">{{ $d->localInvoice->seller_name ?: ($d->localInvoice->user?->name ?? '—') }} · {{ optional($d->localInvoice->created_at)->format('d/m/Y H:i') }} · {{ $fmt($d->localInvoice->final_amount) }}đ</div>
+                                    </div>
+                                    <span class="text-[11px] font-bold text-emerald-700 whitespace-nowrap">Xem HĐ →</span>
+                                </div>
+                            </div>
+                        </a>
+                    @endif
+                </div>
+            @endif
         </div>
     </div>
 
