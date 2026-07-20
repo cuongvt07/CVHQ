@@ -122,8 +122,7 @@ class WpOrderIndex extends Component
 
         $orders = WpOrder::query()->with('localInvoice.user')
             ->when($this->statusFilter === 'pending', fn ($q) => $q
-                ->where('local_status', 'pending')->whereNotIn('status', $notCancelled)
-                ->where(fn ($w) => $w->whereNull('contact_attempts')->orWhere('contact_attempts', '[]')))
+                ->where('local_status', 'pending')->whereNotIn('status', $notCancelled))
             ->when($this->statusFilter === 'unreachable', fn ($q) => $q
                 ->where('local_status', 'pending')->whereNotIn('status', $notCancelled)
                 ->whereNotNull('contact_attempts')->where('contact_attempts', '!=', '[]'))
