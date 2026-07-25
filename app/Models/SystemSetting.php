@@ -104,6 +104,50 @@ class SystemSetting extends Model
         return $penalty;
     }
 
+    // ── Khóa check-in theo IP (mạng cửa hàng) ─────────────────────────────────
+    /** IP client thực (ưu tiên X-Forwarded-For khi qua proxy/Cloudflare). */
+    public static function clientIp(): ?string
+    {
+        $xff = request()->header('X-Forwarded-For');
+        if ($xff) {
+            $first = trim(explode(',', $xff)[0]);
+            if ($first !== '') return $first;
+        }
+        return request()->ip();
+    }
+
+    public static function attendanceIpLock(): bool
+    {
+        return (bool) self::get('attendance_ip_lock', false);
+    }
+
+    public static function attendanceAllowedIps(): array
+    {
+        $ips = self::get('attendance_allowed_ips', []);
+        if (!is_array($ips)) $ips = [];
+        return array_values(array_filter(
+            array_map(fn ($s) => trim((string) $s), $ips),
+            fn ($s) => $s !== ''
+        ));
+    }
+
+    /** IP có được phép check-in/out không. Không bật khóa -> luôn cho phép. */
+    public static function ipAllowedForAttendance(?string $ip): bool
+    {
+        if (!self::attendanceIpLock()) return true;
+        $ip = trim((string) $ip);
+        if ($ip === '') return false;
+        foreach (self::attendanceAllowedIps() as $rule) {
+            // Tiền tố dải: "1.52." khớp mọi IP bắt đầu bằng chuỗi đó.
+            if (str_ends_with($rule, '.')) {
+                if (str_starts_with($ip, $rule)) return true;
+            } elseif ($rule === $ip) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     public static function set($key, $value, $description = null)
     {
         // Reset cache dải giá nếu thay đổi cấu hình hoa hồng.

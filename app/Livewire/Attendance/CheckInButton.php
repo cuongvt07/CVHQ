@@ -3,6 +3,7 @@
 namespace App\Livewire\Attendance;
 
 use App\Models\Attendance;
+use App\Models\SystemSetting;
 use Livewire\Component;
 
 /**
@@ -46,8 +47,19 @@ class CheckInButton extends Component
         $this->shiftMinutes = null;
     }
 
+    /** Chặn nếu IP không thuộc mạng cửa hàng (khi bật khóa). */
+    private function ipBlocked(): bool
+    {
+        if (SystemSetting::ipAllowedForAttendance(SystemSetting::clientIp())) {
+            return false;
+        }
+        $this->dispatch('notify', message: 'Chỉ được check-in/out khi ở mạng cửa hàng.', type: 'error');
+        return true;
+    }
+
     public function checkIn(): void
     {
+        if ($this->ipBlocked()) return;
         $this->refreshState(); // dọn phiên cũ quên check-out (nếu có)
         if ($this->openId) {
             return; // đã check-in hôm nay
@@ -66,6 +78,7 @@ class CheckInButton extends Component
 
     public function checkOut(): void
     {
+        if ($this->ipBlocked()) return;
         $att = Attendance::where('user_id', auth()->id())
             ->whereNull('check_out_at')->latest('check_in_at')->first();
         if (!$att) {

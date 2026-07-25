@@ -51,7 +51,8 @@
       "Bash(MSYS_NO_PATHCONV=1 docker run --rm -v \"//d/CVHQ\":\"//app\" -w \"//app\" php:8.2-cli php -l app/Livewire/Product/ProductIndex.php)",
       "Bash(MSYS_NO_PATHCONV=1 docker run --rm -v \"//d/CVHQ\":\"//app\" -w \"//app\" php:8.2-cli php -l app/Livewire/Product/StockTransferIndex.php)",
       "Bash(MSYS_NO_PATHCONV=1 docker run --rm -v \"//d/CVHQ\":\"//app\" -w \"//app\" php:8.2-cli php -l app/Models/SystemSetting.php)",
-      "Bash(MSYS_NO_PATHCONV=1 docker run --rm -v //d/CVHQ://app -w //app php:8.2-cli sh -c 'for f in app/Models/SystemSetting.php app/Livewire/System/WorkShiftSettings.php app/Livewire/Report/PayrollReport.php app/Models/WpOrder.php app/Livewire/Wp/WpOrderIndex.php; do php -l \"$f\"; done')"
+      "Bash(MSYS_NO_PATHCONV=1 docker run --rm -v //d/CVHQ://app -w //app php:8.2-cli sh -c 'for f in app/Models/SystemSetting.php app/Livewire/System/WorkShiftSettings.php app/Livewire/Report/PayrollReport.php app/Models/WpOrder.php app/Livewire/Wp/WpOrderIndex.php; do php -l \"$f\"; done')",
+      "Bash(MSYS_NO_PATHCONV=1 docker run --rm -v //d/CVHQ://app -w //app php:8.2-cli sh -c 'for f in app/Models/SystemSetting.php app/Livewire/System/WorkShiftSettings.php app/Livewire/Attendance/CheckInButton.php; do php -l \"$f\"; done')"
     ],
     "additionalDirectories": [
       "\\tmp"

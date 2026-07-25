@@ -52,6 +52,51 @@
             </div>
         </div>
 
+        {{-- Khóa check-in theo IP mạng cửa hàng --}}
+        <div class="bg-white border border-slate-200 rounded-2xl p-4 md:p-5 shadow-sm max-w-4xl">
+            <div class="flex items-center justify-between gap-2 mb-3 flex-wrap">
+                <div>
+                    <h3 class="text-sm font-bold text-slate-800">Khóa check-in theo IP (mạng cửa hàng)</h3>
+                    <p class="text-[11px] text-slate-500">Chỉ cho check-in/out khi IP <b>công cộng</b> nằm trong danh sách. App chạy server từ xa nên chỉ thấy IP công cộng — hãy thêm IP công cộng của WiFi cửa hàng (không phải 192.168.x.x).</p>
+                </div>
+                <button wire:click="saveIpConfig" class="px-4 py-2 bg-electric-blue text-white text-sm font-bold rounded-xl hover:bg-electric-blue/90 transition-colors">Lưu cấu hình</button>
+            </div>
+
+            <label class="flex items-center gap-2.5 mb-4 cursor-pointer select-none">
+                <input type="checkbox" wire:model="ipLock" class="w-4 h-4 rounded border-slate-300 text-electric-blue focus:ring-electric-blue">
+                <span class="text-sm font-bold text-slate-700">Bật khóa IP (tắt = cho check-in mọi nơi)</span>
+            </label>
+
+            <div class="flex items-center gap-2 mb-3 flex-wrap text-[12px]">
+                <span class="text-slate-500">IP anh đang kết nối:</span>
+                <span class="font-mono font-bold text-slate-800 bg-slate-100 rounded-lg px-2 py-1">{{ \App\Models\SystemSetting::clientIp() ?: '—' }}</span>
+                <button wire:click="addCurrentIp" class="flex items-center gap-1 text-xs font-bold text-electric-blue hover:underline">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="M12 5v14"/></svg>
+                    Thêm IP hiện tại
+                </button>
+            </div>
+
+            <div class="space-y-2">
+                <div class="text-[10px] font-bold text-slate-400 uppercase tracking-widest px-1">IP / dải được phép</div>
+                @forelse($allowedIps as $i => $ip)
+                    <div class="flex items-center gap-2" wire:key="ip-{{ $i }}">
+                        <input type="text" wire:model="allowedIps.{{ $i }}" placeholder="VD: 1.52.248.199  hoặc  1.52."
+                               class="flex-1 bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-sm font-mono focus:outline-none focus:border-electric-blue">
+                        <button wire:click="removeIp({{ $i }})" class="w-9 h-9 flex items-center justify-center rounded-xl text-rose-400 hover:bg-rose-50 hover:text-rose-600">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+                        </button>
+                    </div>
+                @empty
+                    <p class="text-[12px] text-slate-400 px-1 py-2">Chưa có IP nào. Bật khóa mà để trống sẽ chặn tất cả.</p>
+                @endforelse
+                <button wire:click="addIp" class="mt-1 flex items-center gap-1.5 text-xs font-bold text-electric-blue hover:underline">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="M12 5v14"/></svg>
+                    Thêm IP thủ công
+                </button>
+                <p class="text-[11px] text-slate-400 pt-1">Kết thúc bằng dấu chấm = khớp cả dải, VD <b>1.52.</b> khớp mọi IP bắt đầu bằng 1.52 (phòng khi IP đổi số cuối). Trang này không bị khóa IP nên admin ở đâu cũng sửa được.</p>
+            </div>
+        </div>
+
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 max-w-4xl">
             {{-- Form thêm/sửa --}}
             <div class="bg-white border border-slate-200 rounded-2xl p-4 shadow-sm h-fit">

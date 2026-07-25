@@ -17,6 +17,10 @@ class WorkShiftSettings extends Component
     public string $lateStart = '08:30';
     public array $penalties = []; // [['minutes' => 10, 'amount' => 25000], ...]
 
+    // Khóa check-in theo IP mạng cửa hàng
+    public bool $ipLock = false;
+    public array $allowedIps = [];
+
     public function mount(): void
     {
         if (auth()->user()->role !== 'admin') {
@@ -27,6 +31,39 @@ class WorkShiftSettings extends Component
         if (empty($this->penalties)) {
             $this->penalties = [['minutes' => 10, 'amount' => 25000], ['minutes' => 20, 'amount' => 50000]];
         }
+        $this->ipLock = SystemSetting::attendanceIpLock();
+        $this->allowedIps = SystemSetting::attendanceAllowedIps();
+    }
+
+    public function addIp(): void
+    {
+        $this->allowedIps[] = '';
+    }
+
+    public function addCurrentIp(): void
+    {
+        $ip = SystemSetting::clientIp();
+        if ($ip && !in_array($ip, $this->allowedIps, true)) {
+            $this->allowedIps[] = $ip;
+        }
+    }
+
+    public function removeIp(int $i): void
+    {
+        unset($this->allowedIps[$i]);
+        $this->allowedIps = array_values($this->allowedIps);
+    }
+
+    public function saveIpConfig(): void
+    {
+        $ips = array_values(array_filter(
+            array_map(fn ($s) => trim((string) $s), $this->allowedIps),
+            fn ($s) => $s !== ''
+        ));
+        SystemSetting::set('attendance_ip_lock', $this->ipLock ? 1 : 0, 'Khóa check-in theo IP');
+        SystemSetting::set('attendance_allowed_ips', $ips, 'Danh sách IP được phép check-in');
+        $this->allowedIps = $ips;
+        $this->dispatch('notify', message: 'Đã lưu cấu hình khóa IP check-in.', type: 'success');
     }
 
     public function addPenalty(): void
