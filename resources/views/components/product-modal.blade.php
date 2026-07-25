@@ -200,9 +200,10 @@
                                     options: @js($this->locationOptions),
                                     query: @entangle('location'),
                                     matches() {
-                                        const x = (this.query || '').toString().toLowerCase().trim();
+                                        const raw = (this.query || '').toString().trim();
+                                        const x = raw.toLowerCase();
                                         if (x === '') return [];
-                                        return this.options.filter(o => o.toLowerCase().includes(x) && o.toLowerCase() !== x).slice(0, 30);
+                                        return this.options.filter(o => o.toLowerCase().includes(x) && o !== raw).slice(0, 30);
                                     },
                                     pick(o) { this.query = o; this.open = false; },
                                     addNew() { this.query = (this.query || '').toString().trim(); this.open = false; }
