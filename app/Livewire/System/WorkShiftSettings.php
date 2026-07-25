@@ -33,6 +33,10 @@ class WorkShiftSettings extends Component
         }
         $this->ipLock = SystemSetting::attendanceIpLock();
         $this->allowedIps = SystemSetting::attendanceAllowedIps();
+        // Mặc định hiện sẵn 2 ô IP (VD 2 cửa hàng) để nhập ngay.
+        while (count($this->allowedIps) < 2) {
+            $this->allowedIps[] = '';
+        }
     }
 
     public function addIp(): void
