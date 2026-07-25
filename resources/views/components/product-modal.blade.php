@@ -252,12 +252,29 @@
                             </div>
 
                             <!-- Stock -->
-                            <div class="space-y-2">
+                            <div class="space-y-2"
+                                 x-data="{ orig: {{ (int) ($editStockOriginal ?? 0) }}, editing: {{ $productId ? 'true' : 'false' }}, val: {{ (int) ($stock_quantity ?: 0) }} }">
                                 <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">
                                     Số lượng tồn kho<span class="text-rose-500 ml-0.5">*</span>
                                 </label>
-                                <input type="number" wire:model="stock_quantity" class="w-full bg-slate-50 border border-slate-200 rounded-xl sm:rounded-2xl py-2 sm:py-3 px-3 sm:px-5 text-[13px] sm:text-sm focus:outline-none focus:border-electric-blue/40 focus:ring-2 sm:focus:ring-4 focus:ring-electric-blue/5 transition-all">
+                                <input type="number" wire:model="stock_quantity" @input="val = Number($event.target.value)" class="w-full bg-slate-50 border border-slate-200 rounded-xl sm:rounded-2xl py-2 sm:py-3 px-3 sm:px-5 text-[13px] sm:text-sm focus:outline-none focus:border-electric-blue/40 focus:ring-2 sm:focus:ring-4 focus:ring-electric-blue/5 transition-all">
                                 @error('stock_quantity') <span class="text-[10px] text-rose-500 font-bold ml-1">{{ $message }}</span> @enderror
+
+                                {{-- Lý do CHỈ bắt buộc khi GIẢM tồn (đang sửa & nhập nhỏ hơn tồn cũ). Tăng thì áp dụng ngay. --}}
+                                <div x-show="editing && val < orig" x-cloak class="space-y-1.5 pt-1">
+                                    <div class="text-[10px] font-bold text-rose-500 uppercase tracking-widest ml-1">
+                                        Lý do giảm tồn (<span x-text="orig"></span> → <span x-text="val"></span>)<span class="ml-0.5">*</span>
+                                    </div>
+                                    <div class="flex flex-wrap gap-1.5">
+                                        @foreach(['Hàng hỏng/lỗi', 'Thất thoát', 'Kiểm kê lệch', 'Xuất nội bộ'] as $r)
+                                            <button type="button" wire:click="$set('editStockReason', '{{ $r }}')"
+                                                    class="px-2.5 py-1 rounded-lg border text-[11px] font-semibold transition-colors {{ $editStockReason === $r ? 'bg-rose-500 text-white border-rose-500' : 'bg-white border-slate-200 text-slate-600 hover:border-rose-400' }}">{{ $r }}</button>
+                                        @endforeach
+                                    </div>
+                                    <input type="text" wire:model="editStockReason" placeholder="Nhập lý do giảm tồn (bắt buộc)..."
+                                           class="w-full bg-rose-50/40 border border-rose-200 rounded-xl py-2 px-3 text-[13px] focus:outline-none focus:border-rose-400 transition-all">
+                                    @error('editStockReason') <span class="text-[10px] text-rose-500 font-bold ml-1">{{ $message }}</span> @enderror
+                                </div>
                             </div>
                         </div>
 
