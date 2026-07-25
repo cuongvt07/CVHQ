@@ -32,7 +32,12 @@
 
     {{-- Tabs trạng thái xử lý --}}
     <div class="px-3 md:px-6 py-2.5 bg-white border-b border-slate-100 flex items-center gap-2 flex-wrap">
-        @foreach(['pending' => 'Chưa xử lý', 'ordered' => 'Đã lên đơn', 'unreachable' => 'Không liên lạc được', 'cannot_handle' => 'Không thể xử lý', 'all' => 'Tất cả'] as $k => $lbl)
+        @php
+            $tabs = ['pending' => 'Chưa xử lý', 'ordered' => 'Đã lên đơn', 'unreachable' => 'Không liên lạc được', 'cannot_handle' => 'Không thể xử lý'];
+            if ($isAdmin) $tabs['archived'] = 'Đã xử lý';
+            $tabs['all'] = 'Tất cả';
+        @endphp
+        @foreach($tabs as $k => $lbl)
             <button wire:click="$set('statusFilter', '{{ $k }}')"
                     class="px-3 py-1.5 text-[12px] font-bold rounded-lg border transition-colors {{ $statusFilter === $k ? 'bg-electric-blue text-white border-electric-blue' : 'bg-white text-slate-600 border-slate-200 hover:border-electric-blue' }}">{{ $lbl }}</button>
         @endforeach
@@ -122,6 +127,21 @@
                                 class="flex items-center gap-1.5 px-4 py-1.5 text-[12px] font-bold text-white bg-electric-blue rounded-lg hover:bg-electric-blue/90 shadow-sm">
                             <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
                             Lên đơn nhanh
+                        </button>
+                    @endif
+
+                    {{-- Admin: dọn đơn cũ (đánh dấu đã xử lý) / khôi phục --}}
+                    @if($isAdmin && $o->local_status !== 'archived')
+                        <button wire:click="archiveOrder({{ $o->id }})" wire:confirm="Đánh dấu đơn #{{ $o->number }} đã xử lý (dọn khỏi Chưa xử lý)?"
+                                class="flex items-center gap-1.5 px-3 py-1.5 text-[12px] font-bold text-slate-500 bg-slate-100 border border-slate-200 rounded-lg hover:bg-slate-200">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                            Đã xử lý
+                        </button>
+                    @elseif($isAdmin && $o->local_status === 'archived')
+                        <button wire:click="unarchiveOrder({{ $o->id }})"
+                                class="flex items-center gap-1.5 px-3 py-1.5 text-[12px] font-bold text-electric-blue bg-white border border-electric-blue/40 rounded-lg hover:bg-electric-blue/5">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7v6h6"/><path d="M21 17a9 9 0 0 0-9-9 9 9 0 0 0-6 2.3L3 13"/></svg>
+                            Khôi phục
                         </button>
                     @endif
                 </div>

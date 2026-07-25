@@ -1,10 +1,57 @@
 <div class="h-full flex flex-col">
     <header class="px-4 md:px-6 py-3 border-b border-slate-200 bg-slate-50/50">
-        <h1 class="text-base md:text-lg font-bold text-slate-900">Ca làm việc</h1>
-        <p class="text-[11px] text-slate-500">Cấu hình các ca. Hệ thống tự nhận diện ca theo giờ check-in gần mốc bắt đầu ca nhất.</p>
+        <h1 class="text-base md:text-lg font-bold text-slate-900">Chấm công & Ca làm việc</h1>
+        <p class="text-[11px] text-slate-500">Cấu hình giờ vào chuẩn, mức phạt đi muộn (trừ vào lương) và các ca làm việc.</p>
     </header>
 
-    <div class="flex-1 overflow-y-auto custom-scrollbar p-4 md:p-6">
+    <div class="flex-1 overflow-y-auto custom-scrollbar p-4 md:p-6 space-y-6">
+        {{-- Cấu hình đi muộn & phạt lương --}}
+        <div class="bg-white border border-slate-200 rounded-2xl p-4 md:p-5 shadow-sm max-w-4xl">
+            <div class="flex items-center justify-between gap-2 mb-3 flex-wrap">
+                <div>
+                    <h3 class="text-sm font-bold text-slate-800">Đi muộn & phạt lương</h3>
+                    <p class="text-[11px] text-slate-500">Check-in sau giờ vào chuẩn sẽ bị phạt theo bậc. Tiền phạt trừ trực tiếp vào bảng lương.</p>
+                </div>
+                <button wire:click="saveLateConfig" class="px-4 py-2 bg-electric-blue text-white text-sm font-bold rounded-xl hover:bg-electric-blue/90 transition-colors">Lưu cấu hình</button>
+            </div>
+
+            <div class="flex items-end gap-3 flex-wrap mb-4">
+                <div>
+                    <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Giờ vào chuẩn</label>
+                    <input type="time" wire:model="lateStart"
+                           class="mt-1 block bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:border-electric-blue">
+                    @error('lateStart')<div class="text-[11px] text-rose-500 font-bold">{{ $message }}</div>@enderror
+                </div>
+                <p class="text-[11px] text-slate-400 pb-2">VD: 08:30 → check-in 08:41 = muộn 11 phút.</p>
+            </div>
+
+            <div class="space-y-2">
+                <div class="grid grid-cols-[1fr_1fr_auto] gap-2 text-[10px] font-bold text-slate-400 uppercase tracking-widest px-1">
+                    <span>Muộn từ (phút)</span>
+                    <span>Phạt (đ)</span>
+                    <span></span>
+                </div>
+                @forelse($penalties as $i => $p)
+                    <div class="grid grid-cols-[1fr_1fr_auto] gap-2 items-center" wire:key="pen-{{ $i }}">
+                        <input type="number" min="1" wire:model="penalties.{{ $i }}.minutes" placeholder="10"
+                               class="bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:border-electric-blue">
+                        <input type="number" min="0" step="1000" wire:model="penalties.{{ $i }}.amount" placeholder="25000"
+                               class="bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:border-electric-blue">
+                        <button wire:click="removePenalty({{ $i }})" class="w-9 h-9 flex items-center justify-center rounded-xl text-rose-400 hover:bg-rose-50 hover:text-rose-600">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+                        </button>
+                    </div>
+                @empty
+                    <p class="text-[12px] text-slate-400 px-1 py-2">Chưa có bậc phạt nào.</p>
+                @endforelse
+                <button wire:click="addPenalty" class="mt-1 flex items-center gap-1.5 text-xs font-bold text-electric-blue hover:underline">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="M12 5v14"/></svg>
+                    Thêm bậc phạt
+                </button>
+                <p class="text-[11px] text-slate-400 pt-1">Muộn càng nhiều áp bậc cao nhất thỏa. VD muộn 25 phút với bậc 10→25k, 20→50k thì phạt 50k.</p>
+            </div>
+        </div>
+
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 max-w-4xl">
             {{-- Form thêm/sửa --}}
             <div class="bg-white border border-slate-200 rounded-2xl p-4 shadow-sm h-fit">

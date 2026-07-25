@@ -36,6 +36,30 @@ class WpOrderIndex extends Component
         $this->detailId = null;
     }
 
+    /** Admin dọn đơn cũ: đánh dấu đã xử lý (rời khỏi Chưa xử lý). */
+    public function archiveOrder($id): void
+    {
+        if (auth()->user()?->role !== 'admin') {
+            $this->dispatch('notify', message: 'Chỉ admin mới được dọn đơn.', type: 'error');
+            return;
+        }
+        $o = WpOrder::find($id);
+        if (!$o) return;
+        $o->update(['local_status' => 'archived', 'handled_at' => now(), 'handled_by' => auth()->id(), 'seen' => true]);
+        $this->dispatch('notify', message: 'Đã đánh dấu đã xử lý (dọn đơn #' . $o->number . ').', type: 'success');
+    }
+
+    /** Admin khôi phục đơn đã dọn về Chưa xử lý. */
+    public function unarchiveOrder($id): void
+    {
+        if (auth()->user()?->role !== 'admin') return;
+        $o = WpOrder::find($id);
+        if ($o && $o->local_status === 'archived') {
+            $o->update(['local_status' => 'pending', 'handled_at' => null, 'handled_by' => null]);
+            $this->dispatch('notify', message: 'Đã khôi phục đơn #' . $o->number . ' về Chưa xử lý.', type: 'success');
+        }
+    }
+
     protected function getModuleKey(): string
     {
         return 'invoices';
@@ -142,6 +166,7 @@ class WpOrderIndex extends Component
                 ->whereNotNull('contact_attempts')->where('contact_attempts', '!=', '[]'))
             ->when($this->statusFilter === 'ordered', fn ($q) => $q->where('local_status', 'ordered'))
             ->when($this->statusFilter === 'cannot_handle', fn ($q) => $q->where('local_status', 'cannot_handle'))
+            ->when($this->statusFilter === 'archived', fn ($q) => $q->where('local_status', 'archived'))
             ->when($this->search !== '', function ($q) {
                 $s = '%' . $this->search . '%';
                 $q->where(fn ($w) => $w->where('customer_name', 'like', $s)
@@ -153,6 +178,7 @@ class WpOrderIndex extends Component
 
         return view('livewire.wp.wp-order-index', [
             'orders' => $orders,
+            'isAdmin' => auth()->user()?->role === 'admin',
             'openCount' => WpOrder::open()->count(),
             'detailOrder' => $this->detailId
                 ? WpOrder::with('localInvoice.user', 'cannotHandleBy')->find($this->detailId)

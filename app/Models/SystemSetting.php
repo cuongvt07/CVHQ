@@ -61,6 +61,49 @@ class SystemSetting extends Model
         return (json_last_error() === JSON_ERROR_NONE) ? $decoded : $value;
     }
 
+    // ── Cấu hình đi muộn / phạt lương ─────────────────────────────────────────
+    /** Giờ vào chuẩn (HH:MM). Sau mốc này coi là đi muộn. */
+    public static function lateStartTime(): string
+    {
+        $t = self::get('attendance_start_time', '08:30');
+        return (is_string($t) && preg_match('/^\d{1,2}:\d{2}$/', $t)) ? $t : '08:30';
+    }
+
+    /** Các bậc phạt đi muộn, đã lọc hợp lệ + sắp xếp tăng dần theo số phút. */
+    public static function latePenaltyTiers(): array
+    {
+        $tiers = self::get('attendance_penalties', []);
+        if (!is_array($tiers)) $tiers = [];
+        $out = [];
+        foreach ($tiers as $t) {
+            $m = (int) ($t['minutes'] ?? 0);
+            $a = (int) ($t['amount'] ?? 0);
+            if ($m > 0 && $a > 0) $out[] = ['minutes' => $m, 'amount' => $a];
+        }
+        usort($out, fn ($x, $y) => $x['minutes'] <=> $y['minutes']);
+        return $out;
+    }
+
+    /** Số phút đi muộn của 1 lần check-in (0 nếu đúng/sớm giờ). */
+    public static function lateMinutesFor(\Illuminate\Support\Carbon $checkIn): int
+    {
+        [$h, $m] = array_pad(explode(':', self::lateStartTime()), 2, '0');
+        $startMod = ((int) $h) * 60 + (int) $m;
+        $inMod    = $checkIn->hour * 60 + $checkIn->minute;
+        return max(0, $inMod - $startMod);
+    }
+
+    /** Tiền phạt tương ứng số phút đi muộn (lấy bậc cao nhất thoả). */
+    public static function latePenaltyFor(int $lateMinutes): int
+    {
+        if ($lateMinutes <= 0) return 0;
+        $penalty = 0;
+        foreach (self::latePenaltyTiers() as $t) {
+            if ($lateMinutes >= $t['minutes']) $penalty = $t['amount'];
+        }
+        return $penalty;
+    }
+
     public static function set($key, $value, $description = null)
     {
         // Reset cache dải giá nếu thay đổi cấu hình hoa hồng.

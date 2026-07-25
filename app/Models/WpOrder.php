@@ -68,6 +68,7 @@ class WpOrder extends Model
         return match ($this->local_status) {
             'ordered'       => 'Đã lên đơn',
             'cannot_handle' => 'Không thể xử lý',
+            'archived'      => 'Đã xử lý (dọn)',
             default         => !empty($this->contact_attempts) ? 'Không liên lạc được' : 'Chưa xử lý',
         };
     }

@@ -2,6 +2,7 @@
 
 namespace App\Livewire\System;
 
+use App\Models\SystemSetting;
 use App\Models\WorkShift;
 use Livewire\Component;
 
@@ -12,11 +13,54 @@ class WorkShiftSettings extends Component
     public string $start_time = '';
     public string $end_time = '';
 
+    // Cấu hình đi muộn / phạt lương
+    public string $lateStart = '08:30';
+    public array $penalties = []; // [['minutes' => 10, 'amount' => 25000], ...]
+
     public function mount(): void
     {
         if (auth()->user()->role !== 'admin') {
             abort(403, 'Bạn không có quyền truy cập trang này.');
         }
+        $this->lateStart = SystemSetting::lateStartTime();
+        $this->penalties = SystemSetting::latePenaltyTiers();
+        if (empty($this->penalties)) {
+            $this->penalties = [['minutes' => 10, 'amount' => 25000], ['minutes' => 20, 'amount' => 50000]];
+        }
+    }
+
+    public function addPenalty(): void
+    {
+        $this->penalties[] = ['minutes' => 0, 'amount' => 0];
+    }
+
+    public function removePenalty(int $i): void
+    {
+        unset($this->penalties[$i]);
+        $this->penalties = array_values($this->penalties);
+    }
+
+    public function saveLateConfig(): void
+    {
+        $this->validate([
+            'lateStart'          => 'required|date_format:H:i',
+            'penalties.*.minutes'=> 'nullable|integer|min:0',
+            'penalties.*.amount' => 'nullable|integer|min:0',
+        ]);
+
+        $tiers = [];
+        foreach ($this->penalties as $p) {
+            $m = (int) ($p['minutes'] ?? 0);
+            $a = (int) ($p['amount'] ?? 0);
+            if ($m > 0 && $a > 0) $tiers[] = ['minutes' => $m, 'amount' => $a];
+        }
+        usort($tiers, fn ($x, $y) => $x['minutes'] <=> $y['minutes']);
+
+        SystemSetting::set('attendance_start_time', $this->lateStart, 'Giờ vào chuẩn (đi muộn)');
+        SystemSetting::set('attendance_penalties', $tiers, 'Bậc phạt đi muộn');
+
+        $this->penalties = $tiers;
+        $this->dispatch('notify', message: 'Đã lưu cấu hình đi muộn & phạt lương.', type: 'success');
     }
 
     protected function rules(): array

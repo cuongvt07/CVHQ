@@ -3,7 +3,7 @@
     <header class="px-4 md:px-6 py-3 border-b border-slate-200 bg-slate-50/50 flex items-center justify-between gap-2 flex-wrap">
         <div>
             <h1 class="text-base md:text-lg font-bold text-slate-900">Bảng lương</h1>
-            <p class="text-[11px] text-slate-500">Lương = giờ công × lương/giờ. Tối đa 13 giờ/ngày · quên check-out = 0 giờ. Bấm "Chi tiết" để xem & sửa từng ngày.</p>
+            <p class="text-[11px] text-slate-500">Thực lĩnh = giờ công × lương/giờ − phạt đi muộn. Tối đa 13 giờ/ngày · quên check-out = 0 giờ. Bấm "Chi tiết" để xem & sửa từng ngày.</p>
         </div>
         <div class="flex items-center gap-2">
             <span class="text-xs font-bold text-slate-500">Tháng</span>
@@ -13,13 +13,17 @@
 
     <div class="flex-1 overflow-y-auto custom-scrollbar p-4 md:p-6">
         {{-- Tổng --}}
-        <div class="grid grid-cols-2 gap-4 max-w-md mb-4">
+        <div class="grid grid-cols-3 gap-4 max-w-2xl mb-4">
             <div class="bg-white border border-slate-200 rounded-2xl p-4 shadow-sm">
                 <div class="text-[11px] text-slate-400 font-semibold">Tổng giờ công</div>
                 <div class="text-xl font-black text-slate-900">{{ number_format($totalHours, 2, ',', '.') }} giờ</div>
             </div>
             <div class="bg-white border border-slate-200 rounded-2xl p-4 shadow-sm">
-                <div class="text-[11px] text-slate-400 font-semibold">Tổng lương</div>
+                <div class="text-[11px] text-slate-400 font-semibold">Tổng phạt muộn</div>
+                <div class="text-xl font-black text-rose-500">-{{ $fmt($totalPenalty) }} đ</div>
+            </div>
+            <div class="bg-white border border-slate-200 rounded-2xl p-4 shadow-sm">
+                <div class="text-[11px] text-slate-400 font-semibold">Tổng thực lĩnh</div>
                 <div class="text-xl font-black text-electric-blue">{{ $fmt($totalSalary) }} đ</div>
             </div>
         </div>
@@ -32,7 +36,8 @@
                         <th class="px-4 py-2.5 text-[10px] font-bold text-slate-500 uppercase tracking-widest text-right">Số ngày</th>
                         <th class="px-4 py-2.5 text-[10px] font-bold text-slate-500 uppercase tracking-widest text-right">Giờ công</th>
                         <th class="px-4 py-2.5 text-[10px] font-bold text-slate-500 uppercase tracking-widest text-right">Lương/giờ</th>
-                        <th class="px-4 py-2.5 text-[10px] font-bold text-slate-500 uppercase tracking-widest text-right">Thành tiền</th>
+                        <th class="px-4 py-2.5 text-[10px] font-bold text-slate-500 uppercase tracking-widest text-right">Phạt muộn</th>
+                        <th class="px-4 py-2.5 text-[10px] font-bold text-slate-500 uppercase tracking-widest text-right">Thực lĩnh</th>
                         <th class="px-4 py-2.5 text-[10px] font-bold text-slate-500 uppercase tracking-widest text-center">Chi tiết</th>
                     </tr>
                 </thead>
@@ -43,6 +48,7 @@
                         <td class="px-4 py-3 text-right text-sm text-slate-600">{{ $r['sessions'] }}</td>
                         <td class="px-4 py-3 text-right text-sm font-bold text-slate-700">{{ number_format($r['hours'], 2, ',', '.') }}</td>
                         <td class="px-4 py-3 text-right text-sm text-slate-600">{{ $fmt($r['rate']) }}đ</td>
+                        <td class="px-4 py-3 text-right text-sm font-bold {{ $r['penalty'] > 0 ? 'text-rose-500' : 'text-slate-300' }}">{{ $r['penalty'] > 0 ? '-'.$fmt($r['penalty']).'đ' : '—' }}</td>
                         <td class="px-4 py-3 text-right text-sm font-black text-electric-blue">{{ $fmt($r['salary']) }}đ</td>
                         <td class="px-4 py-3 text-center">
                             <button wire:click="toggleDetail({{ $r['user_id'] }})"
@@ -54,7 +60,7 @@
 
                     @if($expandedUserId === $r['user_id'])
                     <tr wire:key="pr-detail-{{ $r['user_id'] }}">
-                        <td colspan="6" class="px-4 py-3 bg-slate-50/60">
+                        <td colspan="7" class="px-4 py-3 bg-slate-50/60">
                             <div class="rounded-xl border border-slate-200 overflow-hidden bg-white">
                                 <table class="w-full text-left">
                                     <thead class="bg-slate-100/60">
@@ -62,8 +68,10 @@
                                             <th class="px-3 py-2 text-[10px] font-bold text-slate-500 uppercase">Ngày</th>
                                             <th class="px-3 py-2 text-[10px] font-bold text-slate-500 uppercase text-center">Check-in</th>
                                             <th class="px-3 py-2 text-[10px] font-bold text-slate-500 uppercase text-center">Check-out</th>
+                                            <th class="px-3 py-2 text-[10px] font-bold text-slate-500 uppercase text-center">Đi muộn</th>
                                             <th class="px-3 py-2 text-[10px] font-bold text-slate-500 uppercase text-center">Giờ công (sửa)</th>
-                                            <th class="px-3 py-2 text-[10px] font-bold text-slate-500 uppercase text-right">Thành tiền</th>
+                                            <th class="px-3 py-2 text-[10px] font-bold text-slate-500 uppercase text-right">Phạt</th>
+                                            <th class="px-3 py-2 text-[10px] font-bold text-slate-500 uppercase text-right">Thực lĩnh</th>
                                         </tr>
                                     </thead>
                                     <tbody class="divide-y divide-slate-100">
@@ -78,6 +86,13 @@
                                                     <span class="text-slate-600">{{ $d['out'] }}</span>
                                                 @endif
                                             </td>
+                                            <td class="px-3 py-2 text-center text-[12px] font-mono">
+                                                @if($d['late'] > 0)
+                                                    <span class="text-rose-500 font-bold">{{ $d['late'] }}'</span>
+                                                @else
+                                                    <span class="text-emerald-600">đúng giờ</span>
+                                                @endif
+                                            </td>
                                             <td class="px-3 py-2">
                                                 <div class="flex items-center justify-center gap-1">
                                                     <input type="number" min="0" max="13" step="0.5" wire:model="editHours.{{ $d['id'] }}" onfocus="this.select()"
@@ -88,10 +103,11 @@
                                                     </button>
                                                 </div>
                                             </td>
+                                            <td class="px-3 py-2 text-right text-[12px] font-bold {{ $d['penalty'] > 0 ? 'text-rose-500' : 'text-slate-300' }}">{{ $d['penalty'] > 0 ? '-'.$fmt($d['penalty']).'đ' : '—' }}</td>
                                             <td class="px-3 py-2 text-right text-[12px] font-bold text-electric-blue">{{ $fmt($d['salary']) }}đ</td>
                                         </tr>
                                         @empty
-                                        <tr><td colspan="5" class="px-3 py-4 text-center text-[12px] text-slate-400">Không có ngày công.</td></tr>
+                                        <tr><td colspan="7" class="px-3 py-4 text-center text-[12px] text-slate-400">Không có ngày công.</td></tr>
                                         @endforelse
                                     </tbody>
                                 </table>
@@ -101,7 +117,7 @@
                     </tr>
                     @endif
                     @empty
-                    <tr><td colspan="6" class="px-4 py-10 text-center text-sm text-slate-400">Chưa có dữ liệu chấm công trong tháng.</td></tr>
+                    <tr><td colspan="7" class="px-4 py-10 text-center text-sm text-slate-400">Chưa có dữ liệu chấm công trong tháng.</td></tr>
                     @endforelse
                 </tbody>
             </table>

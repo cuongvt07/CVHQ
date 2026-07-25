@@ -90,18 +90,29 @@ class PayrollReport extends Component
             if (!$u) {
                 return null;
             }
+            $byDay = $list->groupBy(fn ($a) => optional($a->work_date)->toDateString());
             // Cap 13h/ngày rồi cộng các ngày.
-            $minutes = $list->groupBy(fn ($a) => optional($a->work_date)->toDateString())
-                ->sum(fn ($g) => min($g->sum(fn ($a) => (int) $a->worked_minutes), self::MAX_MINUTES));
+            $minutes = $byDay->sum(fn ($g) => min($g->sum(fn ($a) => (int) $a->worked_minutes), self::MAX_MINUTES));
+            // Phạt đi muộn: mỗi ngày lấy lần check-in sớm nhất.
+            $penalty = $byDay->sum(function ($g) {
+                $first = $g->sortBy('check_in_at')->first();
+                if (!$first || !$first->check_in_at) return 0;
+                return \App\Models\SystemSetting::latePenaltyFor(
+                    \App\Models\SystemSetting::lateMinutesFor($first->check_in_at)
+                );
+            });
             $hours = round($minutes / 60, 2);
             $rate  = (int) $u->hourly_rate;
+            $gross = (int) round($hours * $rate);
             return [
                 'user_id'  => (int) $uid,
                 'name'     => $u->name . ($u->deleted_at ? ' (đã nghỉ)' : ''),
                 'sessions' => $list->count(),
                 'hours'    => $hours,
                 'rate'     => $rate,
-                'salary'   => (int) round($hours * $rate),
+                'gross'    => $gross,
+                'penalty'  => (int) $penalty,
+                'salary'   => max(0, $gross - (int) $penalty),
             ];
         })->filter()->sortBy('name')->values();
 
@@ -111,22 +122,27 @@ class PayrollReport extends Component
             $rate = (int) optional($byUser[$this->expandedUserId]->first()->user)->hourly_rate;
             $detail = $byUser[$this->expandedUserId]->sortByDesc('check_in_at')->map(function ($a) use ($rate) {
                 $mins = (int) $a->worked_minutes;
+                $late = $a->check_in_at ? \App\Models\SystemSetting::lateMinutesFor($a->check_in_at) : 0;
+                $penalty = \App\Models\SystemSetting::latePenaltyFor($late);
                 return [
-                    'id'     => $a->id,
-                    'date'   => optional($a->work_date)->format('d/m/Y'),
-                    'in'     => optional($a->check_in_at)->format('H:i'),
-                    'out'    => $a->check_out_at ? $a->check_out_at->format('H:i') : null,
-                    'forgot' => $a->check_out_at === null,
-                    'salary' => (int) round(($mins / 60) * $rate),
+                    'id'      => $a->id,
+                    'date'    => optional($a->work_date)->format('d/m/Y'),
+                    'in'      => optional($a->check_in_at)->format('H:i'),
+                    'out'     => $a->check_out_at ? $a->check_out_at->format('H:i') : null,
+                    'forgot'  => $a->check_out_at === null,
+                    'late'    => $late,
+                    'penalty' => (int) $penalty,
+                    'salary'  => max(0, (int) round(($mins / 60) * $rate) - (int) $penalty),
                 ];
             })->values();
         }
 
         return view('livewire.report.payroll-report', [
-            'rows'        => $rows,
-            'detail'      => $detail,
-            'totalHours'  => round($rows->sum('hours'), 2),
-            'totalSalary' => (int) $rows->sum('salary'),
+            'rows'         => $rows,
+            'detail'       => $detail,
+            'totalHours'   => round($rows->sum('hours'), 2),
+            'totalPenalty' => (int) $rows->sum('penalty'),
+            'totalSalary'  => (int) $rows->sum('salary'),
         ])->layout('layouts.app');
     }
 }
