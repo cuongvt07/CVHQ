@@ -384,19 +384,23 @@
                         </button>
                         @endif
                     @elseif($status === 'received')
-                        @if($this->hasDiscrepancy && !$senderConfirmed)
-                        <div class="text-center text-xs font-bold text-amber-600">Thực nhận lệch — chờ bên gửi chốt</div>
+                        @if($this->hasDiscrepancy)
+                        <div class="text-center text-xs font-bold text-amber-700 bg-amber-50 border border-amber-200 rounded-lg py-2 px-2">
+                            ⚠ Lệch SL thực nhận — cần bên gửi kiểm tra lại
+                        </div>
                         @endif
-                        @if($this->canSenderConfirm)
-                        <button wire:click="senderConfirm" wire:confirm="Xác nhận đã chốt chênh lệch với bên nhận?"
-                                class="py-2.5 text-sm font-bold rounded-xl bg-amber-500 text-white hover:bg-amber-600 transition-colors">
-                            Chốt chênh lệch
+                        {{-- Bên nhận: khớp -> hoàn thành luôn; lệch -> đẩy lại bên gửi --}}
+                        @if($this->canReceiverConfirm)
+                        <button wire:click="confirmReceipt" wire:confirm="Xác nhận số thực nhận cho tất cả sản phẩm?"
+                                class="py-2.5 text-sm font-bold rounded-xl bg-electric-blue text-white hover:bg-electric-blue/90 transition-colors">
+                            Xác nhận thực nhận
                         </button>
                         @endif
-                        @if($this->canComplete)
-                        <button wire:click="completeTransfer" wire:confirm="Hoàn thành phiếu? Tồn kho hai chi nhánh sẽ cập nhật."
-                                class="py-2.5 text-sm font-bold rounded-xl bg-emerald-600 text-white hover:bg-emerald-700 transition-colors">
-                            Hoàn thành ✓
+                        {{-- Bên gửi kiểm tra chênh lệch xong -> chốt & hoàn thành --}}
+                        @if($this->canSenderConfirm)
+                        <button wire:click="senderConfirm" wire:confirm="Đã kiểm tra chênh lệch — chốt và hoàn thành phiếu?"
+                                class="py-2.5 text-sm font-bold rounded-xl bg-amber-500 text-white hover:bg-amber-600 transition-colors">
+                            Chốt chênh lệch & hoàn thành
                         </button>
                         @endif
                     @else
@@ -649,24 +653,24 @@
                             </button>
                             @endif
                         @elseif($status === 'received')
-                            @if($this->hasDiscrepancy && !$senderConfirmed)
-                            <span class="text-xs font-bold text-amber-600">Thực nhận lệch số gửi — chờ bên gửi chốt</span>
+                            @if($this->hasDiscrepancy)
+                            <span class="text-xs font-bold text-amber-700 bg-amber-50 border border-amber-200 rounded-lg px-3 py-1.5">⚠ Lệch SL thực nhận — cần bên gửi kiểm tra lại</span>
                             @endif
-                            {{-- Bên gửi chốt chênh lệch --}}
+                            {{-- Bên nhận xác nhận thực nhận: khớp -> hoàn thành; lệch -> đẩy lại bên gửi --}}
+                            @if($this->canReceiverConfirm)
+                            <button wire:click="confirmReceipt" wire:confirm="Xác nhận số thực nhận cho tất cả sản phẩm?"
+                                    class="px-5 py-2 text-sm font-bold rounded-xl bg-electric-blue text-white hover:bg-electric-blue/90 shadow-sm transition-colors">
+                                Xác nhận thực nhận
+                            </button>
+                            @endif
+                            {{-- Bên gửi kiểm tra chênh lệch xong -> chốt & hoàn thành --}}
                             @if($this->canSenderConfirm)
-                            <button wire:click="senderConfirm" wire:confirm="Xác nhận đã chốt chênh lệch với bên nhận?"
+                            <button wire:click="senderConfirm" wire:confirm="Đã kiểm tra chênh lệch — chốt và hoàn thành phiếu?"
                                     class="px-4 py-2 text-sm font-bold rounded-xl bg-amber-500 text-white hover:bg-amber-600 shadow-sm transition-colors">
-                                Chốt chênh lệch
+                                Chốt chênh lệch & hoàn thành
                             </button>
                             @endif
-                            {{-- Bước 3b: Bên nhận hoàn thành --}}
-                            @if($this->canComplete)
-                            <button wire:click="completeTransfer" wire:confirm="Hoàn thành phiếu? Tồn kho hai chi nhánh sẽ được cập nhật."
-                                    class="px-5 py-2 text-sm font-bold rounded-xl bg-emerald-600 text-white hover:bg-emerald-700 shadow-sm transition-colors">
-                                Hoàn thành ✓
-                            </button>
-                            @endif
-                            @if(!$this->canEditActual && !$this->canSenderConfirm && !$this->canComplete)
+                            @if(!$this->canReceiverConfirm && !$this->canSenderConfirm)
                             <span class="text-xs text-slate-400">Đang chờ xử lý…</span>
                             @endif
                         @else

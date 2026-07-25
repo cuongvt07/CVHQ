@@ -162,6 +162,12 @@ class StockTransferIndex extends Component
             && (!$this->hasDiscrepancy || $this->senderConfirmed);
     }
 
+    // Bên NHẬN xác nhận số thực nhận (khớp -> xong; lệch -> đẩy lại bên gửi).
+    public function getCanReceiverConfirmProperty(): bool
+    {
+        return $this->status === 'received' && $this->isReceiver();
+    }
+
     // ── Create / Edit ────────────────────────────────────────────────────────
     public function create(): void
     {
@@ -537,7 +543,39 @@ class StockTransferIndex extends Component
         $this->dispatch('notify', message: 'Đã nhận hàng. Vui lòng nhập số thực nhận cho từng sản phẩm.', type: 'success');
     }
 
-    // ── Bên gửi chốt chênh lệch (mở khoá nút Hoàn thành khi lệch) ─────────────
+    // ── Bên NHẬN xác nhận thực nhận: khớp -> hoàn thành luôn; lệch -> đẩy lại bên gửi check ─
+    public function confirmReceipt(): void
+    {
+        if ($this->status !== 'received' || !$this->isReceiver()) {
+            $this->dispatch('notify', message: 'Không thể xác nhận lúc này.', type: 'error');
+            return;
+        }
+        // Bắt buộc nhập thực nhận cho tất cả sản phẩm.
+        foreach ($this->lines as $l) {
+            $entered = isset($l['actual_quantity']) && $l['actual_quantity'] !== null && $l['actual_quantity'] !== '';
+            if (!$entered) {
+                $this->dispatch('notify', message: 'Vui lòng nhập số thực nhận cho tất cả sản phẩm.', type: 'warning');
+                return;
+            }
+        }
+        $this->saveActuals();
+
+        if ($this->hasDiscrepancy) {
+            // Lệch -> đẩy lại bên gửi kiểm tra, chờ bên gửi chốt.
+            StockTransfer::where('id', $this->editingId)->update([
+                'sender_confirmed_at' => null,
+                'sender_confirmed_by' => null,
+            ]);
+            $this->senderConfirmed = false;
+            $this->logStatus('Lệch SL thực nhận — cần bên gửi kiểm tra lại', []);
+            $this->dispatch('notify', message: 'Số thực nhận lệch số gửi — đã đẩy lại bên gửi kiểm tra lại.', type: 'warning');
+            return;
+        }
+        // Khớp -> hoàn thành luôn.
+        $this->applyCompletion();
+    }
+
+    // ── Bên gửi kiểm tra chênh lệch xong -> chốt & hoàn thành phiếu ────────────
     public function senderConfirm(): void
     {
         if (!$this->canSenderConfirm) {
@@ -550,20 +588,26 @@ class StockTransferIndex extends Component
         ]);
         $this->senderConfirmed = true;
         $this->logStatus('Bên gửi đã chốt chênh lệch', []);
-        $this->dispatch('notify', message: 'Đã chốt chênh lệch. Bên nhận có thể hoàn thành phiếu.', type: 'success');
+        // Chốt xong -> hoàn thành phiếu luôn (cộng/trừ tồn theo thực nhận).
+        $this->applyCompletion();
     }
 
-    // ── Bước 3b: Hoàn thành (bên nhận) — cộng tồn nhận + cộng/trừ bù nguồn ────
+    // ── Bước 3b: Hoàn thành (bên nhận, đường khớp) — có kiểm tra quyền ─────────
     public function completeTransfer(): void
     {
         if (!$this->canComplete) {
             $msg = $this->hasDiscrepancy && !$this->senderConfirmed
-                ? 'Thực nhận đang lệch số gửi — chờ bên gửi xác nhận trước khi hoàn thành.'
+                ? 'Thực nhận đang lệch số gửi — chờ bên gửi kiểm tra trước khi hoàn thành.'
                 : 'Bạn không thể hoàn thành phiếu này.';
             $this->dispatch('notify', message: $msg, type: 'warning');
             return;
         }
+        $this->applyCompletion();
+    }
 
+    // Áp dụng hoàn thành: cộng tồn nhận + bù chênh lệch nguồn. Gọi từ confirmReceipt/senderConfirm/completeTransfer.
+    private function applyCompletion(): void
+    {
         \DB::beginTransaction();
         try {
             $this->saveActuals(); // chốt thực nhận mới nhất

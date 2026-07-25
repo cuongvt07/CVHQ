@@ -48,7 +48,8 @@
       "Bash(grep -nE 'public \\\\$can_receive_commission|public \\\\$work_branch|can_receive_commission|hourly_rate|function edit|function copy|function save|function resetForm|->can_receive_commission|'\\\\''can_receive_commission'\\\\''' app/Livewire/User/UserIndex.php)",
       "Bash(grep -vE \"check-in-button|keydown.escape|resize.window\\\\\"\\\\s*$\")",
       "Bash(grep -nA10 '$items = array_map' app/Services/WooCommerceService.php)",
-      "Bash(MSYS_NO_PATHCONV=1 docker run --rm -v \"//d/CVHQ\":\"//app\" -w \"//app\" php:8.2-cli php -l app/Livewire/Product/ProductIndex.php)"
+      "Bash(MSYS_NO_PATHCONV=1 docker run --rm -v \"//d/CVHQ\":\"//app\" -w \"//app\" php:8.2-cli php -l app/Livewire/Product/ProductIndex.php)",
+      "Bash(MSYS_NO_PATHCONV=1 docker run --rm -v \"//d/CVHQ\":\"//app\" -w \"//app\" php:8.2-cli php -l app/Livewire/Product/StockTransferIndex.php)"
     ],
     "additionalDirectories": [
       "\\tmp"
