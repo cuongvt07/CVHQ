@@ -147,6 +147,82 @@ class WooCommerceService
         return !$exists;
     }
 
+    /**
+     * Đồng bộ TRẠNG THÁI tồn (còn/hết hàng) từ admin -> WooCommerce theo SKU trùng.
+     * Chỉ xét SKU CÓ bên admin. Admin là nguồn: stock_quantity > 0 = còn hàng, ngược lại = hết hàng.
+     * Trả ['ok', 'matched', 'changed', 'rows' => [{sku,name,admin_stock,wp_from,wp_to,changed}], 'error'].
+     */
+    public function syncStockStatusFromAdmin(): array
+    {
+        if (!$this->isConfigured()) {
+            return ['ok' => false, 'error' => 'WooCommerce chưa cấu hình', 'rows' => []];
+        }
+
+        // 1) Lấy toàn bộ SP trên WC (id, sku, stock_status) -> map theo SKU (chuẩn hoá hoa/thường).
+        $wpBySku = [];
+        for ($page = 1; $page <= 100; $page++) {
+            $resp = Http::withBasicAuth($this->key, $this->secret)->timeout(40)
+                ->get($this->url . '/wp-json/wc/v3/products', [
+                    'per_page' => 100,
+                    'page'     => $page,
+                    '_fields'  => 'id,sku,stock_status',
+                ]);
+            if (!$resp->successful()) {
+                if ($page === 1) {
+                    return ['ok' => false, 'error' => 'Lỗi lấy sản phẩm WC (HTTP ' . $resp->status() . ')', 'rows' => []];
+                }
+                break;
+            }
+            $batch = $resp->json() ?: [];
+            if (empty($batch)) break;
+            foreach ($batch as $p) {
+                $sku = strtoupper(trim((string) ($p['sku'] ?? '')));
+                if ($sku === '' || empty($p['id'])) continue;
+                $wpBySku[$sku] = ['id' => (int) $p['id'], 'status' => $p['stock_status'] ?? null];
+            }
+            if (count($batch) < 100) break;
+        }
+
+        // 2) Duyệt SP admin có SKU, khớp với WC -> tính trạng thái mong muốn.
+        $updates = [];
+        $rows = [];
+        \App\Models\Product::query()
+            ->whereNotNull('sku')->where('sku', '!=', '')
+            ->select(['id', 'sku', 'base_name', 'name', 'stock_quantity'])
+            ->chunk(500, function ($chunk) use (&$updates, &$rows, $wpBySku) {
+                foreach ($chunk as $prod) {
+                    $sku = strtoupper(trim((string) $prod->sku));
+                    if (!isset($wpBySku[$sku])) continue; // chỉ SKU có cả 2 bên
+                    $desired = ((int) $prod->stock_quantity) > 0 ? 'instock' : 'outofstock';
+                    $current = $wpBySku[$sku]['status'];
+                    $changed = $current !== $desired;
+                    if ($changed) {
+                        $updates[] = ['id' => $wpBySku[$sku]['id'], 'stock_status' => $desired];
+                    }
+                    $rows[] = [
+                        'sku'         => $prod->sku,
+                        'name'        => $prod->base_name ?: $prod->name,
+                        'admin_stock' => (int) $prod->stock_quantity,
+                        'wp_from'     => $current,
+                        'wp_to'       => $desired,
+                        'changed'     => $changed,
+                    ];
+                }
+            });
+
+        // 3) Cập nhật hàng loạt lên WC (chunk 100 theo /products/batch).
+        foreach (array_chunk($updates, 100) as $chunk) {
+            $resp = Http::withBasicAuth($this->key, $this->secret)->timeout(60)
+                ->post($this->url . '/wp-json/wc/v3/products/batch', ['update' => $chunk]);
+            if (!$resp->successful()) {
+                return ['ok' => false, 'error' => 'Lỗi cập nhật WC (HTTP ' . $resp->status() . ')', 'rows' => $rows,
+                    'matched' => count($rows), 'changed' => count($updates)];
+            }
+        }
+
+        return ['ok' => true, 'matched' => count($rows), 'changed' => count($updates), 'rows' => $rows];
+    }
+
     /** Secret ký webhook (dùng để xác minh chữ ký khi WooCommerce bắn về). */
     public function webhookSecret(): string
     {

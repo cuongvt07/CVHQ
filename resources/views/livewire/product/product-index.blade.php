@@ -4,6 +4,15 @@
         <h1 class="text-base md:text-lg font-black tracking-tight text-slate-900 shrink truncate">Kho hàng</h1>
 
         <div class="flex items-center gap-1.5 md:gap-2 shrink-0">
+            {{-- Đồng bộ trạng thái còn/hết hàng lên WooCommerce theo SKU --}}
+            <button wire:click="syncWpStatus" wire:loading.attr="disabled" wire:target="syncWpStatus"
+                    class="flex items-center gap-1.5 px-2 md:px-3 py-1.5 bg-white border border-slate-200 text-slate-600 rounded-lg text-[11px] md:text-[12px] font-bold hover:bg-slate-50 hover:border-slate-300 transition-all"
+                    title="Đồng bộ trạng thái còn/hết hàng lên website (WooCommerce) theo SKU trùng">
+                <svg wire:loading.remove wire:target="syncWpStatus" xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/><path d="M21 16a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 20"/><path d="M21 21v-5h-5"/></svg>
+                <svg wire:loading wire:target="syncWpStatus" class="animate-spin" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg>
+                <span class="hidden md:inline">Đồng bộ WP</span>
+            </button>
+
             {{-- Nhập Excel (mobile: icon only) --}}
             <button @click="$dispatch('open-import-products')"
                     class="flex items-center gap-1.5 px-2 md:px-3 py-1.5 md:py-1.5 bg-white border border-slate-200 text-slate-600 rounded-lg text-[11px] md:text-[12px] font-bold hover:bg-slate-50 hover:border-slate-300 transition-all"
@@ -32,6 +41,71 @@
     <x-product-modal id="product-form" />
     <x-bulk-product-modal />
     <x-delete-modal />
+
+    {{-- Popup kết quả đồng bộ trạng thái SP với WooCommerce --}}
+    <div x-data="{ wpSyncOpen: false }" x-on:open-wp-sync.window="wpSyncOpen = true"
+         x-show="wpSyncOpen" x-cloak class="fixed inset-0 z-[95] flex items-center justify-center p-4">
+        <div class="absolute inset-0 bg-slate-900/50" @click="wpSyncOpen = false"></div>
+        <div class="relative bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[85vh] flex flex-col" @click.stop>
+            @php
+                $__stLabel = fn ($s) => $s === 'instock' ? 'Còn hàng' : ($s === 'outofstock' ? 'Hết hàng' : ($s ?: '—'));
+            @endphp
+            <div class="px-5 py-4 border-b border-slate-100 flex items-start justify-between gap-2 shrink-0">
+                <div>
+                    <h3 class="text-base font-black text-slate-900">Đồng bộ trạng thái với WooCommerce</h3>
+                    <p class="text-[12px] text-slate-500 mt-0.5">
+                        Khớp <b class="text-slate-700">{{ $wpSyncSummary['matched'] ?? 0 }}</b> SKU ·
+                        cập nhật <b class="text-emerald-600">{{ $wpSyncSummary['changed'] ?? 0 }}</b> ·
+                        đã đúng sẵn <b class="text-slate-400">{{ ($wpSyncSummary['matched'] ?? 0) - ($wpSyncSummary['changed'] ?? 0) }}</b>
+                    </p>
+                </div>
+                <button @click="wpSyncOpen = false" class="w-8 h-8 flex items-center justify-center rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100 shrink-0">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+                </button>
+            </div>
+
+            <div class="flex-1 overflow-y-auto custom-scrollbar">
+                @if(count($wpSyncRows))
+                    <table class="w-full text-left text-[12px]">
+                        <thead class="bg-slate-50 border-b border-slate-100 sticky top-0">
+                            <tr>
+                                <th class="px-4 py-2 text-[10px] font-bold text-slate-500 uppercase tracking-wider">SKU</th>
+                                <th class="px-4 py-2 text-[10px] font-bold text-slate-500 uppercase tracking-wider">Sản phẩm</th>
+                                <th class="px-4 py-2 text-[10px] font-bold text-slate-500 uppercase tracking-wider text-center">Tồn</th>
+                                <th class="px-4 py-2 text-[10px] font-bold text-slate-500 uppercase tracking-wider">Trạng thái WP</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-slate-50">
+                            @foreach($wpSyncRows as $r)
+                                <tr class="{{ $r['changed'] ? 'bg-emerald-50/40' : '' }}">
+                                    <td class="px-4 py-2 font-mono font-bold text-electric-blue whitespace-nowrap">{{ $r['sku'] }}</td>
+                                    <td class="px-4 py-2 text-slate-700 truncate max-w-[220px]">{{ $r['name'] }}</td>
+                                    <td class="px-4 py-2 text-center font-bold {{ $r['admin_stock'] > 0 ? 'text-slate-700' : 'text-rose-500' }}">{{ $r['admin_stock'] }}</td>
+                                    <td class="px-4 py-2">
+                                        @if($r['changed'])
+                                            <span class="text-slate-400">{{ $__stLabel($r['wp_from']) }}</span>
+                                            <span class="text-slate-300 mx-1">→</span>
+                                            <span class="font-bold {{ $r['wp_to'] === 'instock' ? 'text-emerald-600' : 'text-rose-500' }}">{{ $__stLabel($r['wp_to']) }}</span>
+                                            <span class="ml-1 text-[10px] font-bold text-emerald-600">(đã cập nhật)</span>
+                                        @else
+                                            <span class="font-bold {{ $r['wp_to'] === 'instock' ? 'text-emerald-600' : 'text-rose-500' }}">{{ $__stLabel($r['wp_to']) }}</span>
+                                            <span class="ml-1 text-[10px] text-slate-400">(đã đúng)</span>
+                                        @endif
+                                    </td>
+                                </tr>
+                            @endforeach
+                        </tbody>
+                    </table>
+                @else
+                    <div class="py-16 text-center text-slate-400 text-sm">Không có SKU nào trùng giữa admin và WooCommerce.</div>
+                @endif
+            </div>
+
+            <div class="px-5 py-3 border-t border-slate-100 flex justify-end shrink-0">
+                <button @click="wpSyncOpen = false" class="px-4 py-2 text-[12px] font-bold text-white bg-electric-blue rounded-lg hover:bg-electric-blue/90">Đóng</button>
+            </div>
+        </div>
+    </div>
 
     <!-- Search & Filter Bar (compact) -->
     <div x-data="{ mobileFilterOpen: false, branchOpen: false }" class="px-3 md:px-6 py-2 md:py-2 bg-white border-b border-slate-100 flex flex-col gap-2">

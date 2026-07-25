@@ -60,6 +60,11 @@ class ProductIndex extends Component
     // Form sửa SP: GIẢM tồn kho -> bắt buộc nhập lý do (tăng thì áp dụng ngay).
     public $editStockOriginal = 0;
     public $editStockReason = '';
+
+    // Đồng bộ trạng thái SP (còn/hết hàng) admin -> WooCommerce
+    public bool $wpSyncing = false;
+    public array $wpSyncRows = [];
+    public array $wpSyncSummary = [];
     public $sortField = 'created_at';
     public $sortDirection = 'desc';
 
@@ -186,6 +191,29 @@ class ProductIndex extends Component
     public function getLocationOptionsProperty(): array
     {
         return \App\Models\Product::getUniqueLocations();
+    }
+
+    /** Đồng bộ trạng thái còn/hết hàng từ admin -> WooCommerce (SKU trùng), rồi mở popup liệt kê. */
+    public function syncWpStatus(): void
+    {
+        $this->wpSyncing = true;
+        $result = app(\App\Services\WooCommerceService::class)->syncStockStatusFromAdmin();
+        $this->wpSyncing = false;
+
+        if (!($result['ok'] ?? false)) {
+            $this->dispatch('notify', message: 'Lỗi đồng bộ: ' . ($result['error'] ?? 'không rõ'), type: 'error');
+            return;
+        }
+
+        $this->wpSyncRows = $result['rows'] ?? [];
+        $this->wpSyncSummary = [
+            'matched' => (int) ($result['matched'] ?? 0),
+            'changed' => (int) ($result['changed'] ?? 0),
+        ];
+        $this->dispatch('open-wp-sync');
+        $this->dispatch('notify',
+            message: 'Đồng bộ xong: cập nhật ' . $this->wpSyncSummary['changed'] . '/' . $this->wpSyncSummary['matched'] . ' SP trùng SKU.',
+            type: 'success');
     }
 
     protected function commissionForPrice(int $price): int
