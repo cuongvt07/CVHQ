@@ -241,14 +241,17 @@ class Product extends Model
             ->distinct()
             ->pluck('location');
 
-        // Tách các mã gộp trong 1 ô ("D01, D02; K05" -> D01, D02, K05) để gõ
-        // tiền tố/hậu tố ra hết từng vị trí. Khử trùng không phân biệt hoa thường.
+        // Gợi ý gồm CẢ chuỗi gốc (VD "Kệ trưng bày|D01") LẪN từng mã tách ra
+        // (D01, D02...) để gõ tiền tố/hậu tố ra hết. Khử trùng không phân biệt hoa thường.
         $set = [];
         foreach ($raw as $loc) {
-            foreach (preg_split('/[,;|\/\r\n\t]+/', (string) $loc) as $token) {
+            $loc = trim((string) $loc);
+            if ($loc === '') continue;
+            $set[mb_strtolower($loc)] = $loc; // giữ nguyên cụm gốc
+            foreach (preg_split('/[,;|\/\r\n\t]+/', $loc) as $token) {
                 $token = trim($token);
                 if ($token !== '') {
-                    $set[mb_strtolower($token)] = $token;
+                    $set[mb_strtolower($token)] = $token; // + từng mã lẻ
                 }
             }
         }
