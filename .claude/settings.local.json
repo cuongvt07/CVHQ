@@ -56,7 +56,8 @@
       "Bash(MSYS_NO_PATHCONV=1 docker run --rm -v \"//d/CVHQ\":\"//app\" -w \"//app\" php:8.2-cli php -l routes/web.php)",
       "Bash(MSYS_NO_PATHCONV=1 docker run --rm -v \"//d/CVHQ\":\"//app\" -w \"//app\" php:8.2-cli php -l app/Livewire/System/WorkShiftSettings.php)",
       "Bash(MSYS_NO_PATHCONV=1 docker run --rm -v \"//d/CVHQ\":\"//app\" -w \"//app\" php:8.2-cli php -l app/Livewire/Attendance/CheckInButton.php)",
-      "Bash(MSYS_NO_PATHCONV=1 docker run --rm -v \"//d/CVHQ\":\"//app\" -w \"//app\" php:8.2-cli php -l app/Models/Product.php)"
+      "Bash(MSYS_NO_PATHCONV=1 docker run --rm -v \"//d/CVHQ\":\"//app\" -w \"//app\" php:8.2-cli php -l app/Models/Product.php)",
+      "Bash(MSYS_NO_PATHCONV=1 docker run --rm -v \"//d/CVHQ\":\"//app\" -w \"//app\" php:8.2-cli php -l app/Livewire/Wp/WpOrderIndex.php)"
     ],
     "additionalDirectories": [
       "\\tmp"

@@ -47,14 +47,45 @@
         </div>
     </div>
 
+    {{-- Thanh chọn hàng loạt (admin) --}}
+    @if($isAdmin)
+    @php $allPageSelected = count($pageIds) && empty(array_diff($pageIds, array_map('intval', $selected))); @endphp
+    <div class="px-3 md:px-6 py-2 bg-slate-50 border-b border-slate-100 flex items-center gap-3 flex-wrap">
+        <label class="flex items-center gap-2 text-[12px] font-bold text-slate-600 cursor-pointer select-none">
+            <input type="checkbox" @if($allPageSelected) checked @endif wire:click="togglePageSelection"
+                   class="w-4 h-4 rounded border-slate-300 text-electric-blue focus:ring-electric-blue">
+            Chọn tất cả trang
+        </label>
+        <span class="text-[12px] text-slate-500">Đã chọn <b class="text-electric-blue">{{ count($selected) }}</b></span>
+        @if(count($selected))
+            @if($statusFilter === 'archived')
+                <button wire:click="bulkUnarchive"
+                        class="px-3 py-1.5 text-[12px] font-bold text-electric-blue bg-white border border-electric-blue/40 rounded-lg hover:bg-electric-blue/5">Khôi phục ({{ count($selected) }})</button>
+            @else
+                <button wire:click="bulkArchive" wire:confirm="Đánh dấu {{ count($selected) }} đơn đã xử lý (dọn khỏi Chưa xử lý)?"
+                        class="flex items-center gap-1.5 px-3 py-1.5 text-[12px] font-bold text-white bg-slate-600 rounded-lg hover:bg-slate-700">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                    Đánh dấu đã xử lý ({{ count($selected) }})
+                </button>
+            @endif
+            <button wire:click="$set('selected', [])" class="px-3 py-1.5 text-[12px] font-bold text-slate-400 hover:text-slate-600">Bỏ chọn</button>
+        @endif
+    </div>
+    @endif
+
     {{-- List --}}
     <div class="flex-1 min-h-0 overflow-y-auto custom-scrollbar p-3 md:p-6 space-y-3">
         @forelse($orders as $o)
             @php $st = $statusMap[$o->status] ?? [$o->status, 'bg-slate-50 text-slate-600 border-slate-200']; @endphp
-            <div class="bg-white border border-slate-200 rounded-2xl shadow-sm p-4" wire:key="wp-{{ $o->id }}">
+            @php $isChecked = in_array((int) $o->id, array_map('intval', $selected), true); @endphp
+            <div class="bg-white border rounded-2xl shadow-sm p-4 transition-colors {{ $isChecked ? 'border-electric-blue ring-1 ring-electric-blue/30 bg-electric-blue/[0.02]' : 'border-slate-200' }}" wire:key="wp-{{ $o->id }}">
                 <div class="flex items-start justify-between gap-3 flex-wrap">
                     <div class="min-w-0">
                         <div class="flex items-center gap-2 flex-wrap">
+                            @if($isAdmin)
+                            <input type="checkbox" wire:model.live="selected" value="{{ $o->id }}"
+                                   class="w-4 h-4 rounded border-slate-300 text-electric-blue focus:ring-electric-blue cursor-pointer">
+                            @endif
                             <span class="font-black text-slate-900">#{{ $o->number }}</span>
                             {{-- Trạng thái xử lý nội bộ --}}
                             @php

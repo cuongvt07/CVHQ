@@ -25,6 +25,52 @@ class WpOrderIndex extends Component
     // Modal xem chi tiết đơn Mail
     public ?int $detailId = null;
 
+    // Tích chọn hàng loạt
+    public array $selected = [];
+    public array $pageIds = [];
+
+    /** Chọn/bỏ tất cả đơn ở trang hiện tại. */
+    public function togglePageSelection(): void
+    {
+        $sel = array_map('intval', $this->selected);
+        $allSelected = empty(array_diff($this->pageIds, $sel));
+        if ($allSelected) {
+            $this->selected = array_values(array_diff($sel, $this->pageIds));
+        } else {
+            $this->selected = array_values(array_unique(array_merge($sel, $this->pageIds)));
+        }
+    }
+
+    /** Admin: dọn hàng loạt các đơn đã chọn -> đã xử lý. */
+    public function bulkArchive(): void
+    {
+        if (auth()->user()?->role !== 'admin') {
+            $this->dispatch('notify', message: 'Chỉ admin mới được dọn đơn.', type: 'error');
+            return;
+        }
+        $ids = array_map('intval', $this->selected);
+        if (empty($ids)) return;
+        WpOrder::whereIn('id', $ids)->update([
+            'local_status' => 'archived', 'handled_at' => now(), 'handled_by' => auth()->id(), 'seen' => true,
+        ]);
+        $n = count($ids);
+        $this->selected = [];
+        $this->dispatch('notify', message: "Đã đánh dấu đã xử lý {$n} đơn.", type: 'success');
+    }
+
+    /** Admin: khôi phục hàng loạt đơn đã dọn -> chưa xử lý. */
+    public function bulkUnarchive(): void
+    {
+        if (auth()->user()?->role !== 'admin') return;
+        $ids = array_map('intval', $this->selected);
+        if (empty($ids)) return;
+        WpOrder::whereIn('id', $ids)->where('local_status', 'archived')->update([
+            'local_status' => 'pending', 'handled_at' => null, 'handled_by' => null,
+        ]);
+        $this->selected = [];
+        $this->dispatch('notify', message: 'Đã khôi phục các đơn đã chọn.', type: 'success');
+    }
+
     public function openDetail($id): void
     {
         $this->detailId = (int) $id;
@@ -80,11 +126,13 @@ class WpOrderIndex extends Component
     public function updatingStatusFilter()
     {
         $this->resetPage();
+        $this->selected = [];
     }
 
     public function updatingSearch()
     {
         $this->resetPage();
+        $this->selected = [];
     }
 
     public function sync(bool $notify = true): void
@@ -175,6 +223,8 @@ class WpOrderIndex extends Component
             })
             ->orderByDesc('wp_created_at')
             ->paginate(20);
+
+        $this->pageIds = $orders->pluck('id')->map(fn ($i) => (int) $i)->all();
 
         return view('livewire.wp.wp-order-index', [
             'orders' => $orders,
