@@ -58,7 +58,14 @@
       "Bash(MSYS_NO_PATHCONV=1 docker run --rm -v \"//d/CVHQ\":\"//app\" -w \"//app\" php:8.2-cli php -l app/Livewire/Attendance/CheckInButton.php)",
       "Bash(MSYS_NO_PATHCONV=1 docker run --rm -v \"//d/CVHQ\":\"//app\" -w \"//app\" php:8.2-cli php -l app/Models/Product.php)",
       "Bash(MSYS_NO_PATHCONV=1 docker run --rm -v \"//d/CVHQ\":\"//app\" -w \"//app\" php:8.2-cli php -l app/Livewire/Wp/WpOrderIndex.php)",
-      "Bash(MSYS_NO_PATHCONV=1 docker run --rm -v \"//d/CVHQ\":\"//app\" -w \"//app\" php:8.2-cli sh -c 'php -l app/Services/WooCommerceService.php; php -l app/Livewire/Product/ProductIndex.php')"
+      "Bash(MSYS_NO_PATHCONV=1 docker run --rm -v \"//d/CVHQ\":\"//app\" -w \"//app\" php:8.2-cli sh -c 'php -l app/Services/WooCommerceService.php; php -l app/Livewire/Product/ProductIndex.php')",
+      "Bash(curl -s -u \"ck_0074a1c148ebf62553872160bfec830b581145d0:cs_0e2f1dea5a383104fccd526cd0ec80756d9d3d21\" \"https://cavathanquoc.com/wp-json/wc/v3/products?per_page=10&_fields=id,sku,name,stock_status,manage_stock,stock_quantity\")",
+      "Bash(curl -s -u ck_0074a1c148ebf62553872160bfec830b581145d0:cs_0e2f1dea5a383104fccd526cd0ec80756d9d3d21 https://cavathanquoc.com/wp-json/wc/v3/products/24991?_fields=id,sku,stock_status,manage_stock)",
+      "Bash(curl -s -u ck_0074a1c148ebf62553872160bfec830b581145d0:cs_0e2f1dea5a383104fccd526cd0ec80756d9d3d21 -X POST https://cavathanquoc.com/wp-json/wc/v3/products/batch -H 'Content-Type: application/json' -d '{\"update\":[{\"id\":24991,\"stock_status\":\"outofstock\"}]}' -o /dev/null -w 'HTTP %{http_code}\\\\n')",
+      "Bash(curl -s -u ck_0074a1c148ebf62553872160bfec830b581145d0:cs_0e2f1dea5a383104fccd526cd0ec80756d9d3d21 https://cavathanquoc.com/wp-json/wc/v3/products/24991?_fields=id,sku,stock_status)",
+      "Bash(curl -s -u ck_0074a1c148ebf62553872160bfec830b581145d0:cs_0e2f1dea5a383104fccd526cd0ec80756d9d3d21 -X POST https://cavathanquoc.com/wp-json/wc/v3/products/batch -H 'Content-Type: application/json' -d '{\"update\":[{\"id\":24991,\"stock_status\":\"instock\"}]}' -o /dev/null -w 'HTTP %{http_code}\\\\n')",
+      "Bash(curl -s -u ck_0074a1c148ebf62553872160bfec830b581145d0:cs_0e2f1dea5a383104fccd526cd0ec80756d9d3d21 -X PUT https://cavathanquoc.com/wp-json/wc/v3/products/24991 -H 'Content-Type: application/json' -d '{\"stock_status\":\"instock\"}' -w '\\\\nHTTP %{http_code}\\\\n' -o /tmp/put_resp.json)",
+      "Bash(MSYS_NO_PATHCONV=1 docker run --rm -v \"//d/CVHQ\":\"//app\" -w \"//app\" php:8.2-cli php -l app/Services/WooCommerceService.php)"
     ],
     "additionalDirectories": [
       "\\tmp"

@@ -166,6 +166,7 @@ class WooCommerceService
                     'per_page' => 100,
                     'page'     => $page,
                     '_fields'  => 'id,sku,stock_status',
+                    '_ts'      => uniqid(), // phá cache đọc của WC -> lấy trạng thái mới nhất
                 ]);
             if (!$resp->successful()) {
                 if ($page === 1) {
