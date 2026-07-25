@@ -73,6 +73,7 @@ class CheckInButton extends Component
         ]);
 
         $this->refreshState();
+        $this->dispatch('ci-checked-in', iso: $this->checkInAtIso);
         $this->dispatch('notify', message: 'Đã check-in lúc ' . $now->format('H:i') . '.', type: 'success');
     }
 
@@ -97,6 +98,7 @@ class CheckInButton extends Component
         $att->update(['check_out_at' => $now, 'worked_minutes' => $worked]);
 
         $this->refreshState();
+        $this->dispatch('ci-checked-out');
         $h = number_format($worked / 60, 2, ',', '.');
         $this->dispatch('notify', message: "Đã check-out. Thời gian công: {$h} giờ.", type: 'success');
     }

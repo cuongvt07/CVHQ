@@ -5,6 +5,8 @@
         posR: 16, posT: 68,
         dragging: false, moved: false, sx: 0, sy: 0, or: 0, ot: 0,
         expanded: false,
+        // trạng thái đang làm (do Alpine giữ, đồng bộ qua sự kiện -> nút đổi màu ngay, không chờ morph)
+        working: {{ $openId ? 'true' : 'false' }},
         // đồng hồ
         start: 0, now: Date.now(), _t: null,
         init() {
@@ -12,10 +14,20 @@
                 const s = JSON.parse(localStorage.getItem('cvhq_checkin_pos') || 'null');
                 if (s && typeof s.r === 'number') { this.posR = s.r; this.posT = s.t; }
             } catch (e) {}
-            @if($openId)
-                this.start = new Date('{{ $checkInAtIso }}').getTime();
-                this._t = setInterval(() => { this.now = Date.now(); }, 1000);
-            @endif
+            if (this.working) this.startClock(@js($checkInAtIso));
+        },
+        startClock(iso) {
+            if (!iso) return;
+            this.working = true;
+            this.start = new Date(iso).getTime();
+            this.now = Date.now();
+            if (this._t) clearInterval(this._t);
+            this._t = setInterval(() => { this.now = Date.now(); }, 1000);
+        },
+        stopClock() {
+            this.working = false;
+            this.start = 0;
+            if (this._t) { clearInterval(this._t); this._t = null; }
         },
         _onMove: null, _onUp: null,
         destroy() {
@@ -71,25 +83,26 @@
         }
      }"
      @mousedown="down($event)" @touchstart="down($event)"
-     @click.outside="expanded = false">
+     @click.outside="expanded = false"
+     x-on:ci-checked-in.window="startClock($event.detail?.iso)"
+     x-on:ci-checked-out.window="stopClock()">
 
     {{-- Thu gọn: hình tròn (kéo để di chuyển, bấm để mở) --}}
     <button x-show="!expanded" @click="if (!moved) expanded = true"
-            class="relative w-11 h-11 rounded-full shadow-xl flex items-center justify-center text-white cursor-move transition-colors {{ $openId ? 'bg-rose-500 hover:bg-rose-600' : 'bg-emerald-500 hover:bg-emerald-600' }}"
-            title="{{ $openId ? 'Đang làm việc — bấm để mở, kéo để di chuyển' : 'Chấm công — bấm để mở, kéo để di chuyển' }}">
+            class="relative w-11 h-11 rounded-full shadow-xl flex items-center justify-center text-white cursor-move transition-colors"
+            :class="working ? 'bg-rose-500 hover:bg-rose-600' : 'bg-emerald-500 hover:bg-emerald-600'"
+            :title="working ? 'Đang làm việc — bấm để mở, kéo để di chuyển' : 'Chấm công — bấm để mở, kéo để di chuyển'">
         <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-        @if($openId)
-            <span class="absolute -top-0.5 -right-0.5 flex h-3 w-3">
-                <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-rose-300 opacity-75"></span>
-                <span class="relative inline-flex rounded-full h-3 w-3 bg-white"></span>
-            </span>
-        @endif
+        <span x-show="working" class="absolute -top-0.5 -right-0.5 flex h-3 w-3">
+            <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-rose-300 opacity-75"></span>
+            <span class="relative inline-flex rounded-full h-3 w-3 bg-white"></span>
+        </span>
     </button>
 
     {{-- Mở rộng --}}
     <div x-show="expanded" x-cloak
          x-transition:enter="transition ease-out duration-150" x-transition:enter-start="opacity-0 scale-95" x-transition:enter-end="opacity-100 scale-100">
-        @if($openId)
+        <template x-if="working">
             {{-- Đang làm: đồng hồ + Check Out --}}
             <div class="flex items-center gap-2 bg-rose-500 text-white rounded-full shadow-xl pl-2 pr-1.5 py-1.5 cursor-move">
                 <button @click="expanded = false" title="Thu gọn" class="w-6 h-6 flex items-center justify-center rounded-full text-white/70 hover:text-white hover:bg-white/10 shrink-0 cursor-pointer">
@@ -105,7 +118,8 @@
                     Check Out
                 </button>
             </div>
-        @else
+        </template>
+        <template x-if="!working">
             {{-- Chưa làm: Check In --}}
             <div class="flex items-center gap-2 bg-emerald-500 text-white rounded-full shadow-xl pl-2 pr-1.5 py-1.5 cursor-move">
                 <button @click="expanded = false" title="Thu gọn" class="w-6 h-6 flex items-center justify-center rounded-full text-white/70 hover:text-white hover:bg-white/10 shrink-0 cursor-pointer">
@@ -118,6 +132,6 @@
                     <span wire:loading wire:target="checkIn">Đang...</span>
                 </button>
             </div>
-        @endif
+        </template>
     </div>
 </div>
