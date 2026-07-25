@@ -1,7 +1,10 @@
 <div class="h-full min-h-0 flex flex-col">
     <!-- Header -->
-    <header class="px-3 md:px-6 py-2 md:py-4 flex items-center justify-between gap-2 md:justify-end border-b border-slate-200 bg-slate-50/50">
-        <h1 class="text-base font-black tracking-tight text-slate-900 md:hidden">Bảng hoa hồng</h1>
+    <header class="px-3 md:px-6 py-2 md:py-4 flex items-center justify-between gap-2 border-b border-slate-200 bg-slate-50/50 flex-wrap">
+        <div>
+            <h1 class="text-base md:text-lg font-bold text-slate-900">Bảng hoa hồng</h1>
+            <p class="text-[11px] text-slate-500 hidden md:block">Hoa hồng theo sản phẩm · nhân viên</p>
+        </div>
         <div class="flex items-center gap-2">
             @if(auth()->user()->hasPermission('commission.sync'))
             <button wire:click="syncCommissions" wire:loading.attr="disabled" class="flex items-center gap-1.5 px-3 py-2 bg-rose-500 text-white rounded-lg text-[12px] font-bold hover:bg-rose-600 transition-all shadow-sm shadow-rose-500/20">
