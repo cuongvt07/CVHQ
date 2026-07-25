@@ -253,7 +253,12 @@
 
                             <!-- Stock -->
                             <div class="space-y-2"
-                                 x-data="{ orig: {{ (int) ($editStockOriginal ?? 0) }}, editing: {{ $productId ? 'true' : 'false' }}, val: {{ (int) ($stock_quantity ?: 0) }} }">
+                                 x-data="{
+                                     val: 0,
+                                     get orig() { return Number($wire.get('editStockOriginal') || 0); },
+                                     get editing() { return !!$wire.get('productId'); }
+                                 }"
+                                 x-on:open-product-modal.window="$nextTick(() => { val = Number($wire.get('stock_quantity') || 0); })">
                                 <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">
                                     Số lượng tồn kho<span class="text-rose-500 ml-0.5">*</span>
                                 </label>
@@ -267,8 +272,9 @@
                                     </div>
                                     <div class="flex flex-wrap gap-1.5">
                                         @foreach(['Hàng hỏng/lỗi', 'Thất thoát', 'Kiểm kê lệch', 'Xuất nội bộ'] as $r)
-                                            <button type="button" wire:click="$set('editStockReason', '{{ $r }}')"
-                                                    class="px-2.5 py-1 rounded-lg border text-[11px] font-semibold transition-colors {{ $editStockReason === $r ? 'bg-rose-500 text-white border-rose-500' : 'bg-white border-slate-200 text-slate-600 hover:border-rose-400' }}">{{ $r }}</button>
+                                            <button type="button" wire:click="$set('editStockReason', @js($r))"
+                                                    :class="$wire.editStockReason === @js($r) ? 'bg-rose-500 text-white border-rose-500' : 'bg-white border-slate-200 text-slate-600 hover:border-rose-400'"
+                                                    class="px-2.5 py-1 rounded-lg border text-[11px] font-semibold transition-colors">{{ $r }}</button>
                                         @endforeach
                                     </div>
                                     <input type="text" wire:model="editStockReason" placeholder="Nhập lý do giảm tồn (bắt buộc)..."
