@@ -682,28 +682,71 @@ class StockTransferIndex extends Component
     }
 
     // ── Delete ───────────────────────────────────────────────────────────────
+    // Xóa được mọi phiếu TRỪ đã hoàn thành. Nếu phiếu đã gửi/nhận (đã trừ tồn nguồn)
+    // thì hoàn lại tồn kho nguồn khi xóa để không thất thoát.
     public function deleteTransfer(int $id): void
     {
-        $transfer = StockTransfer::find($id);
-        if (!$transfer || $transfer->status !== 'draft') {
-            $this->dispatch('notify', message: 'Chỉ xóa được phiếu ở trạng thái Nháp.', type: 'error');
+        $transfer = StockTransfer::with('items')->find($id);
+        if (!$transfer) return;
+
+        if (in_array($transfer->status, ['completed', 'confirmed'], true)) {
+            $this->dispatch('notify', message: 'Không xóa được phiếu đã hoàn thành.', type: 'error');
             return;
         }
+
+        // Quyền: admin, người tạo, hoặc nhân viên chi nhánh gửi.
+        $u = auth()->user();
+        $allowed = $u && ($u->role === 'admin'
+            || (int) $transfer->created_by === (int) $u->id
+            || $u->work_branch === $transfer->from_branch);
+        if (!$allowed) {
+            $this->dispatch('notify', message: 'Bạn không có quyền xóa phiếu này.', type: 'error');
+            return;
+        }
+
         $code = $transfer->code;
-        $transfer->items()->delete();
-        $transfer->delete();
+        $restored = in_array($transfer->status, ['shipping', 'received'], true);
 
-        \App\Models\ActivityLog::create([
-            'user_id' => auth()->id(),
-            'action' => 'deleted',
-            'model_type' => StockTransfer::class,
-            'model_id' => $id,
-            'changes' => ['after' => ['Mã phiếu' => $code], 'before' => ['Mã phiếu' => '']],
-            'ip_address' => request()->ip(),
-            'user_agent' => request()->userAgent(),
-        ]);
+        \DB::beginTransaction();
+        try {
+            // Đã gửi -> đã trừ tồn nguồn lúc gửi, hoàn lại khi xóa.
+            if ($restored) {
+                foreach ($transfer->items as $item) {
+                    $send = (int) $item->send_quantity;
+                    if ($send <= 0) continue;
+                    $fromProduct = Product::find($item->from_product_id);
+                    if ($fromProduct) {
+                        $before = (int) $fromProduct->stock_quantity;
+                        $fromProduct->increment('stock_quantity', $send);
+                        $fromProduct->recordStockHistory(
+                            'Adjustment', $send, $transfer->id, $code,
+                            'Hoàn tồn do XÓA phiếu gửi hàng (' . strtoupper($transfer->from_branch) . '→' . strtoupper($transfer->to_branch) . ')',
+                            $before
+                        );
+                    }
+                }
+            }
 
-        $this->dispatch('notify', message: 'Đã xóa phiếu chuyển hàng.', type: 'success');
+            $transfer->items()->delete();
+            $transfer->delete();
+
+            \App\Models\ActivityLog::create([
+                'user_id' => auth()->id(),
+                'action' => 'deleted',
+                'model_type' => StockTransfer::class,
+                'model_id' => $id,
+                'changes' => ['after' => ['Mã phiếu' => $code], 'before' => ['Mã phiếu' => '']],
+                'ip_address' => request()->ip(),
+                'user_agent' => request()->userAgent(),
+            ]);
+            \DB::commit();
+        } catch (\Exception $e) {
+            \DB::rollBack();
+            $this->dispatch('notify', message: 'Lỗi khi xóa: ' . $e->getMessage(), type: 'error');
+            return;
+        }
+
+        $this->dispatch('notify', message: 'Đã xóa phiếu chuyển hàng' . ($restored ? ' và hoàn tồn kho nguồn.' : '.'), type: 'success');
         $this->resetPage();
     }
 

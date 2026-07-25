@@ -91,8 +91,8 @@
                         <button wire:click="editTransfer({{ $tr->id }})" class="flex-1 py-1.5 bg-slate-100 text-slate-700 text-xs font-bold rounded-lg hover:bg-slate-200 transition-colors">Mở</button>
                         <a href="{{ route('products.transfer.print', $tr->id) }}" target="_blank"
                            class="px-3 py-1.5 bg-slate-100 text-slate-600 text-xs font-bold rounded-lg hover:bg-slate-200 transition-colors">In</a>
-                        @if($tr->status === 'draft')
-                        <button wire:click="deleteTransfer({{ $tr->id }})" wire:confirm="Xóa phiếu {{ $tr->code }}?"
+                        @if(!in_array($tr->status, ['completed', 'confirmed']))
+                        <button wire:click="deleteTransfer({{ $tr->id }})" wire:confirm="Xóa phiếu {{ $tr->code }}?{{ in_array($tr->status, ['shipping','received']) ? ' Tồn kho nguồn đã trừ sẽ được hoàn lại.' : '' }}"
                                 class="px-3 py-1.5 bg-rose-50 text-rose-500 text-xs font-bold rounded-lg hover:bg-rose-100 transition-colors">Xóa</button>
                         @endif
                     </div>
@@ -145,8 +145,8 @@
                                     <button wire:click="editTransfer({{ $tr->id }})" class="text-xs font-bold text-electric-blue hover:underline">Mở</button>
                                     <a href="{{ route('products.transfer.print', $tr->id) }}" target="_blank"
                                        class="text-xs font-bold text-slate-500 hover:text-slate-900">In</a>
-                                    @if($tr->status === 'draft')
-                                    <button wire:click="deleteTransfer({{ $tr->id }})" wire:confirm="Xóa phiếu {{ $tr->code }}?"
+                                    @if(!in_array($tr->status, ['completed', 'confirmed']))
+                                    <button wire:click="deleteTransfer({{ $tr->id }})" wire:confirm="Xóa phiếu {{ $tr->code }}?{{ in_array($tr->status, ['shipping','received']) ? ' Tồn kho nguồn đã trừ sẽ được hoàn lại.' : '' }}"
                                             class="text-xs font-bold text-rose-400 hover:text-rose-600">Xóa</button>
                                     @endif
                                 </div>
