@@ -12,6 +12,19 @@ use Illuminate\Support\Facades\Route;
 // Webhook WooCommerce (đơn hàng bắn về) — public, miễn CSRF.
 Route::post('/wp-webhook', [\App\Http\Controllers\WpWebhookController::class, 'handle'])->name('wp.webhook');
 
+// Debug IP — mở tại cửa hàng để xem server nhận được địa chỉ nào (dùng cấu hình khóa check-in).
+Route::get('/debug/ip', function () {
+    return response()->json([
+        'clientIp_dung_de_khoa' => \App\Models\SystemSetting::clientIp(),
+        'request_ip'            => request()->ip(),
+        'request_ips_chain'     => request()->ips(),
+        'X-Forwarded-For'       => request()->header('X-Forwarded-For'),
+        'X-Real-IP'             => request()->header('X-Real-IP'),
+        'CF-Connecting-IP'      => request()->header('CF-Connecting-IP'),
+        'REMOTE_ADDR'           => request()->server('REMOTE_ADDR'),
+    ], 200, [], JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE);
+})->name('debug.ip');
+
 // Auth Routes
 Route::get('/login', Login::class)->name('login')->middleware('guest');
 Route::post('/logout', function() {
