@@ -236,12 +236,25 @@ class Product extends Model
      */
     public static function getUniqueLocations()
     {
-        return self::whereNotNull('location')
+        $raw = self::whereNotNull('location')
             ->where('location', '!=', '')
             ->distinct()
-            ->orderBy('location')
-            ->pluck('location')
-            ->all();
+            ->pluck('location');
+
+        // Tách các mã gộp trong 1 ô ("D01, D02; K05" -> D01, D02, K05) để gõ
+        // tiền tố/hậu tố ra hết từng vị trí. Khử trùng không phân biệt hoa thường.
+        $set = [];
+        foreach ($raw as $loc) {
+            foreach (preg_split('/[,;|\/\r\n\t]+/', (string) $loc) as $token) {
+                $token = trim($token);
+                if ($token !== '') {
+                    $set[mb_strtolower($token)] = $token;
+                }
+            }
+        }
+        $values = array_values($set);
+        sort($values, SORT_NATURAL | SORT_FLAG_CASE);
+        return $values;
     }
 
     public function stockHistories(): HasMany

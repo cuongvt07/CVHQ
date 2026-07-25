@@ -160,7 +160,7 @@
                                                 matches() {
                                                     const x = (this.query || '').toString().toLowerCase().trim();
                                                     if (x === '') return [];
-                                                    return (this.options || []).filter(o => o.toLowerCase().includes(x) && o.toLowerCase() !== x).slice(0, 6);
+                                                    return (this.options || []).filter(o => o.toLowerCase().includes(x) && o.toLowerCase() !== x).slice(0, 30);
                                                 },
                                                 place(el) { const r = el.getBoundingClientRect(); this.px = r.left; this.py = r.bottom; this.pw = r.width; },
                                                 pick(o) { this.query = o; this.open = false; }
