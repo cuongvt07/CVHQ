@@ -148,6 +148,31 @@ class SystemSetting extends Model
         return false;
     }
 
+    // ── Khóa check-in theo THIẾT BỊ đã đăng ký (device token) ─────────────────
+    public static function attendanceDeviceLock(): bool
+    {
+        return (bool) self::get('attendance_device_lock', false);
+    }
+
+    /** Danh sách thiết bị đã đăng ký: [{token, name, registered_at, by}]. */
+    public static function attendanceDevices(): array
+    {
+        $d = self::get('attendance_devices', []);
+        return is_array($d) ? $d : [];
+    }
+
+    /** Thiết bị (theo token trình duyệt gửi lên) có được phép chấm công không. */
+    public static function deviceAllowedForAttendance(?string $token): bool
+    {
+        if (!self::attendanceDeviceLock()) return true;
+        $token = trim((string) $token);
+        if ($token === '') return false;
+        foreach (self::attendanceDevices() as $dev) {
+            if (hash_equals((string) ($dev['token'] ?? ''), $token)) return true;
+        }
+        return false;
+    }
+
     public static function set($key, $value, $description = null)
     {
         // Reset cache dải giá nếu thay đổi cấu hình hoa hồng.

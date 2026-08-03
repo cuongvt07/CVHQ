@@ -1,4 +1,25 @@
-<div class="h-full flex flex-col">
+<div class="h-full flex flex-col"
+     x-data="{
+        hasToken: false,
+        init() { this.hasToken = !!this.readToken(); },
+        readToken() {
+            let t = '';
+            try { t = localStorage.getItem('cvhq_device_token') || ''; } catch (e) {}
+            if (!t) {
+                const m = document.cookie.match(/(?:^|; )cvhq_device_token=([^;]+)/);
+                t = m ? decodeURIComponent(m[1]) : '';
+                if (t) { try { localStorage.setItem('cvhq_device_token', t); } catch (e) {} }
+            }
+            return t;
+        },
+        saveToken(t) {
+            if (!t) return;
+            try { localStorage.setItem('cvhq_device_token', t); } catch (e) {}
+            document.cookie = 'cvhq_device_token=' + encodeURIComponent(t) + '; path=/; max-age=' + (10*365*24*3600) + '; SameSite=Lax';
+            this.hasToken = true;
+        }
+     }"
+     x-on:device-registered.window="saveToken($event.detail?.token)">
     <header class="px-4 md:px-6 py-3 border-b border-slate-200 bg-slate-50/50">
         <h1 class="text-base md:text-lg font-bold text-slate-900">Chấm công & Ca làm việc</h1>
         <p class="text-[11px] text-slate-500">Cấu hình giờ vào chuẩn, mức phạt đi muộn (trừ vào lương) và các ca làm việc.</p>
@@ -95,6 +116,70 @@
                 </button>
                 <p class="text-[11px] text-slate-400 pt-1">Kết thúc bằng dấu chấm = khớp cả dải, VD <b>1.52.</b> khớp mọi IP bắt đầu bằng 1.52 (phòng khi IP đổi số cuối). Trang này không bị khóa IP nên admin ở đâu cũng sửa được.</p>
             </div>
+        </div>
+
+        {{-- Khóa check-in theo THIẾT BỊ đã đăng ký --}}
+        <div class="bg-white border border-slate-200 rounded-2xl p-4 md:p-5 shadow-sm max-w-4xl">
+            <div class="mb-3">
+                <h3 class="text-sm font-bold text-slate-800">Khóa thiết bị chấm công</h3>
+                <p class="text-[11px] text-slate-500">Chỉ máy đã đăng ký mới check-in/out được. Không phụ thuộc IP/mạng, chạy cả HTTP. Đăng ký ngay trên MÁY muốn cho phép (VD PC ở quầy).</p>
+            </div>
+
+            <label class="flex items-center gap-2.5 mb-4 cursor-pointer select-none">
+                <input type="checkbox" wire:model.live="deviceLock" class="w-4 h-4 rounded border-slate-300 text-electric-blue focus:ring-electric-blue">
+                <span class="text-sm font-bold text-slate-700">Bật khóa thiết bị (tắt = cho check-in mọi máy)</span>
+            </label>
+
+            {{-- Trạng thái máy này + đăng ký --}}
+            <div class="flex items-end gap-2 flex-wrap mb-3">
+                <div class="flex-1 min-w-[180px]">
+                    <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Tên máy (để nhận biết)</label>
+                    <input type="text" wire:model="newDeviceName" placeholder="VD: PC quầy HN"
+                           class="mt-1 w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:border-electric-blue">
+                </div>
+                <button wire:click="registerDevice"
+                        class="px-4 py-2 bg-electric-blue text-white text-sm font-bold rounded-xl hover:bg-electric-blue/90 transition-colors whitespace-nowrap">Đăng ký máy này</button>
+            </div>
+            <div class="mb-4 text-[12px]">
+                <template x-if="hasToken">
+                    <span class="inline-flex items-center gap-1.5 font-bold text-emerald-600">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                        Máy này đã có mã đăng ký.
+                    </span>
+                </template>
+                <template x-if="!hasToken">
+                    <span class="text-slate-400">Máy này chưa có mã — bấm "Đăng ký máy này" để cho phép chấm công.</span>
+                </template>
+            </div>
+
+            <div class="rounded-xl border border-slate-200 overflow-hidden">
+                <table class="w-full text-left">
+                    <thead class="bg-slate-50 border-b border-slate-200">
+                        <tr>
+                            <th class="px-3 py-2 text-[10px] font-bold text-slate-500 uppercase tracking-widest">Máy</th>
+                            <th class="px-3 py-2 text-[10px] font-bold text-slate-500 uppercase tracking-widest">Đăng ký lúc</th>
+                            <th class="px-3 py-2 text-[10px] font-bold text-slate-500 uppercase tracking-widest">Mã</th>
+                            <th class="px-3 py-2"></th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-slate-100">
+                        @forelse($devices as $i => $d)
+                            <tr wire:key="dev-{{ $i }}">
+                                <td class="px-3 py-2 text-sm font-bold text-slate-800">{{ $d['name'] }}</td>
+                                <td class="px-3 py-2 text-[12px] text-slate-500">{{ $d['registered_at'] }}</td>
+                                <td class="px-3 py-2 text-[12px] font-mono text-slate-400">…{{ $d['token_tail'] }}</td>
+                                <td class="px-3 py-2 text-right">
+                                    <button wire:click="revokeDevice({{ $i }})" wire:confirm="Thu hồi máy '{{ $d['name'] }}'? Máy đó sẽ không chấm công được nữa."
+                                            class="text-xs font-bold text-rose-400 hover:text-rose-600">Thu hồi</button>
+                                </td>
+                            </tr>
+                        @empty
+                            <tr><td colspan="4" class="px-3 py-5 text-center text-[12px] text-slate-400">Chưa đăng ký máy nào.</td></tr>
+                        @endforelse
+                    </tbody>
+                </table>
+            </div>
+            <p class="text-[11px] text-slate-400 pt-2">Mã lưu trong trình duyệt máy đó (localStorage + cookie ~10 năm). Xóa dữ liệu duyệt web / cài lại trình duyệt sẽ mất mã → đăng ký lại. Trang này không bị khóa nên admin luôn vào được.</p>
         </div>
 
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 max-w-4xl">

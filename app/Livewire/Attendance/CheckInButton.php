@@ -57,9 +57,20 @@ class CheckInButton extends Component
         return true;
     }
 
-    public function checkIn(): void
+    /** Chặn nếu máy chưa đăng ký (khi bật khóa thiết bị). */
+    private function deviceBlocked(?string $token): bool
+    {
+        if (SystemSetting::deviceAllowedForAttendance($token)) {
+            return false;
+        }
+        $this->dispatch('notify', message: 'Máy này chưa được đăng ký chấm công.', type: 'error');
+        return true;
+    }
+
+    public function checkIn(?string $deviceToken = null): void
     {
         if ($this->ipBlocked()) return;
+        if ($this->deviceBlocked($deviceToken)) return;
         $this->refreshState(); // dọn phiên cũ quên check-out (nếu có)
         if ($this->openId) {
             return; // đã check-in hôm nay
@@ -77,9 +88,10 @@ class CheckInButton extends Component
         $this->dispatch('notify', message: 'Đã check-in lúc ' . $now->format('H:i') . '.', type: 'success');
     }
 
-    public function checkOut(): void
+    public function checkOut(?string $deviceToken = null): void
     {
         if ($this->ipBlocked()) return;
+        if ($this->deviceBlocked($deviceToken)) return;
         $att = Attendance::where('user_id', auth()->id())
             ->whereNull('check_out_at')->latest('check_in_at')->first();
         if (!$att) {

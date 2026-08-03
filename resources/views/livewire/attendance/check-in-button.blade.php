@@ -29,6 +29,17 @@
             this.start = 0;
             if (this._t) { clearInterval(this._t); this._t = null; }
         },
+        // Mã thiết bị đã đăng ký (localStorage, fallback cookie) -> gửi kèm check-in/out.
+        readToken() {
+            let t = '';
+            try { t = localStorage.getItem('cvhq_device_token') || ''; } catch (e) {}
+            if (!t) {
+                const m = document.cookie.match(/(?:^|; )cvhq_device_token=([^;]+)/);
+                t = m ? decodeURIComponent(m[1]) : '';
+                if (t) { try { localStorage.setItem('cvhq_device_token', t); } catch (e) {} }
+            }
+            return t;
+        },
         _onMove: null, _onUp: null,
         destroy() {
             if (this._t) clearInterval(this._t);
@@ -112,7 +123,7 @@
                     <div class="text-[9px] font-bold uppercase tracking-wider opacity-80">{{ $shiftName ?: 'Đang làm' }}</div>
                     <div class="text-sm font-black font-mono" x-text="fmt()">00:00:00</div>
                 </div>
-                <button wire:click="checkOut" wire:loading.attr="disabled" wire:target="checkOut"
+                <button @click="$wire.checkOut(readToken())" wire:loading.attr="disabled" wire:target="checkOut"
                         class="flex items-center gap-1 bg-white text-rose-600 rounded-full px-3 py-2 text-xs font-black hover:bg-rose-50 transition-colors shrink-0 cursor-pointer">
                     <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" x2="9" y1="12" y2="12"/></svg>
                     Check Out
@@ -125,7 +136,7 @@
                 <button @click="expanded = false" title="Thu gọn" class="w-6 h-6 flex items-center justify-center rounded-full text-white/70 hover:text-white hover:bg-white/10 shrink-0 cursor-pointer">
                     <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg>
                 </button>
-                <button wire:click="checkIn" wire:loading.attr="disabled" wire:target="checkIn"
+                <button @click="$wire.checkIn(readToken())" wire:loading.attr="disabled" wire:target="checkIn"
                         class="flex items-center gap-2 bg-white text-emerald-600 rounded-full px-4 py-2 text-sm font-black hover:bg-emerald-50 transition-colors cursor-pointer">
                     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
                     <span wire:loading.remove wire:target="checkIn">Check In</span>

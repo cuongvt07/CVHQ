@@ -21,6 +21,11 @@ class WorkShiftSettings extends Component
     public bool $ipLock = false;
     public array $allowedIps = [];
 
+    // Khóa check-in theo thiết bị đã đăng ký
+    public bool $deviceLock = false;
+    public array $devices = [];          // để hiển thị: name, registered_at, token_tail
+    public string $newDeviceName = '';
+
     public function mount(): void
     {
         if (auth()->user()->role !== 'admin') {
@@ -37,6 +42,59 @@ class WorkShiftSettings extends Component
         while (count($this->allowedIps) < 2) {
             $this->allowedIps[] = '';
         }
+        $this->deviceLock = SystemSetting::attendanceDeviceLock();
+        $this->loadDevices();
+    }
+
+    private function loadDevices(): void
+    {
+        $this->devices = array_map(function ($d) {
+            $t = (string) ($d['token'] ?? '');
+            return [
+                'name'          => $d['name'] ?? 'Máy',
+                'registered_at' => $d['registered_at'] ?? null,
+                'token_tail'    => $t !== '' ? substr($t, -6) : '',
+            ];
+        }, SystemSetting::attendanceDevices());
+    }
+
+    public function updatedDeviceLock(): void
+    {
+        SystemSetting::set('attendance_device_lock', $this->deviceLock ? 1 : 0, 'Khóa check-in theo thiết bị');
+        $this->dispatch('notify',
+            message: $this->deviceLock ? 'Đã bật khóa thiết bị chấm công.' : 'Đã tắt khóa thiết bị.',
+            type: 'success');
+    }
+
+    /** Đăng ký máy đang dùng: sinh token, lưu server + gửi về trình duyệt lưu localStorage/cookie. */
+    public function registerDevice(): void
+    {
+        $name = trim($this->newDeviceName) !== '' ? trim($this->newDeviceName) : 'Máy quầy';
+        $token = \Illuminate\Support\Str::random(48);
+        $devices = SystemSetting::attendanceDevices();
+        $devices[] = [
+            'token'         => $token,
+            'name'          => $name,
+            'registered_at' => now()->toDateTimeString(),
+            'by'            => auth()->id(),
+        ];
+        SystemSetting::set('attendance_devices', array_values($devices), 'Thiết bị chấm công đã đăng ký');
+        $this->newDeviceName = '';
+        $this->loadDevices();
+        // Gửi token về trình duyệt máy này để lưu (localStorage + cookie).
+        $this->dispatch('device-registered', token: $token);
+        $this->dispatch('notify', message: 'Đã đăng ký "' . $name . '". Máy này giờ có thể chấm công.', type: 'success');
+    }
+
+    public function revokeDevice(int $index): void
+    {
+        $devices = SystemSetting::attendanceDevices();
+        if (!isset($devices[$index])) return;
+        $removed = $devices[$index]['name'] ?? '';
+        array_splice($devices, $index, 1);
+        SystemSetting::set('attendance_devices', array_values($devices), 'Thiết bị chấm công đã đăng ký');
+        $this->loadDevices();
+        $this->dispatch('notify', message: 'Đã thu hồi máy "' . $removed . '".', type: 'success');
     }
 
     public function addIp(): void
