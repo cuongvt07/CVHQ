@@ -27,6 +27,13 @@ class CommissionReport extends Component
     public $customStart = null; // dùng khi dateRange = 'custom' (Y-m-d)
     public $customEnd = null;
 
+    // Lọc gọn danh sách: ẩn NV đã nghỉ + chỉ hiện người có phát sinh trong kỳ.
+    public bool $hideResigned = true;
+    public bool $onlyWithActivity = true;
+
+    public function updatedHideResigned(): void { $this->resetPage(); }
+    public function updatedOnlyWithActivity(): void { $this->resetPage(); }
+
     public function updatedDateRange(): void
     {
         // Mặc định ngày cho khoảng tùy chỉnh = đầu/cuối tháng hiện tại
@@ -77,7 +84,8 @@ class CommissionReport extends Component
         $range = $this->getDateRange();
 
         if ($this->view === 'summary') {
-            $employees = User::withCount(['invoices as total_invoices' => function($query) use ($range) {
+            $employees = User::when($this->hideResigned, fn ($q) => $q->where('is_active', true))
+                ->withCount(['invoices as total_invoices' => function($query) use ($range) {
                     $query->where('status', '!=', 'Cancelled')
                           ->whereBetween('created_at', [$range['start'], $range['end']]);
                 }])
@@ -109,6 +117,15 @@ class CommissionReport extends Component
                 $employee->net_commission = (int) ($employee->gross_commission ?? 0)
                     - (int) ($employee->shared_out ?? 0)
                     + $employee->received_commission;
+            }
+
+            // Chỉ hiện người CÓ phát sinh trong kỳ (đơn / hoa hồng / nhận chia).
+            if ($this->onlyWithActivity) {
+                $employees = $employees->filter(fn ($e) =>
+                    (int) ($e->total_invoices ?? 0) > 0
+                    || (int) ($e->gross_commission ?? 0) !== 0
+                    || (int) ($e->received_commission ?? 0) !== 0
+                );
             }
 
             $data['employees'] = $employees->sortByDesc('net_commission')->values();

@@ -61,6 +61,16 @@
                 </div>
 
                 @if($view === 'summary')
+                    <div class="space-y-1.5">
+                        <label class="flex items-center gap-2 text-[11px] font-bold text-slate-600">
+                            <input type="checkbox" wire:model.live="hideResigned" class="w-4 h-4 rounded border-slate-300 text-electric-blue focus:ring-electric-blue">
+                            Ẩn nhân viên đã nghỉ
+                        </label>
+                        <label class="flex items-center gap-2 text-[11px] font-bold text-slate-600">
+                            <input type="checkbox" wire:model.live="onlyWithActivity" class="w-4 h-4 rounded border-slate-300 text-electric-blue focus:ring-electric-blue">
+                            Chỉ người có phát sinh
+                        </label>
+                    </div>
                     <div>
                         <div class="text-[9px] font-black text-slate-500 tracking-widest uppercase mb-1">Cột hiển thị</div>
                         <x-column-toggle
@@ -99,6 +109,15 @@
                 @endif
 
                 @if($view === 'summary')
+                    <div class="h-8 w-px bg-slate-100 mx-1"></div>
+                    <label class="flex items-center gap-1.5 text-xs font-bold text-slate-600 cursor-pointer select-none">
+                        <input type="checkbox" wire:model.live="hideResigned" class="w-4 h-4 rounded border-slate-300 text-electric-blue focus:ring-electric-blue">
+                        Ẩn NV đã nghỉ
+                    </label>
+                    <label class="flex items-center gap-1.5 text-xs font-bold text-slate-600 cursor-pointer select-none">
+                        <input type="checkbox" wire:model.live="onlyWithActivity" class="w-4 h-4 rounded border-slate-300 text-electric-blue focus:ring-electric-blue">
+                        Chỉ người có phát sinh
+                    </label>
                     <div class="h-8 w-px bg-slate-100 mx-1"></div>
                     <x-column-toggle
                         :visibleColumns="$visibleColumns"
