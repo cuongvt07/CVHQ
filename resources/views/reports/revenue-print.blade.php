@@ -46,6 +46,7 @@
 
         <h1>Báo cáo doanh thu theo tháng</h1>
         <div class="range">TỪ NGÀY: {{ $from->format('d-m-Y') }} &nbsp; ĐẾN NGÀY: {{ $to->format('d-m-Y') }}</div>
+        <div class="range" style="margin-top:-14px"><b>Chi nhánh:</b> {{ $branchName }}</div>
 
         <table>
             <thead>

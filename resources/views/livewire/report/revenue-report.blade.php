@@ -8,6 +8,15 @@
         </div>
         <div class="flex items-end gap-2 flex-wrap">
             <div>
+                <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Chi nhánh</label>
+                <select wire:model.live="branch" class="mt-1 block bg-white border border-slate-200 rounded-lg px-2.5 py-1.5 text-xs focus:outline-none focus:border-electric-blue">
+                    <option value="all">Tất cả chi nhánh</option>
+                    @foreach($branches as $code => $bname)
+                        <option value="{{ $code }}">{{ $bname }}</option>
+                    @endforeach
+                </select>
+            </div>
+            <div>
                 <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Từ tháng</label>
                 <input type="month" wire:model.live="fromMonth" class="mt-1 block bg-white border border-slate-200 rounded-lg px-2.5 py-1.5 text-xs focus:outline-none focus:border-electric-blue">
             </div>
@@ -15,7 +24,7 @@
                 <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Đến tháng</label>
                 <input type="month" wire:model.live="toMonth" class="mt-1 block bg-white border border-slate-200 rounded-lg px-2.5 py-1.5 text-xs focus:outline-none focus:border-electric-blue">
             </div>
-            <a href="{{ route('reports.revenue.print', ['from' => $fromMonth, 'to' => $toMonth]) }}" target="_blank" rel="noopener"
+            <a href="{{ route('reports.revenue.print', ['from' => $fromMonth, 'to' => $toMonth, 'branch' => $branch]) }}" target="_blank" rel="noopener"
                class="flex items-center gap-1.5 px-4 py-2 bg-electric-blue text-white rounded-lg text-[12px] font-bold hover:bg-electric-blue/90 transition-colors shadow-sm">
                 <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9V2h12v7"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><path d="M6 14h12v8H6z"/></svg>
                 Xuất / In báo cáo
@@ -27,6 +36,7 @@
         <div class="text-center mb-4">
             <h2 class="text-lg font-black text-slate-900 uppercase">Báo cáo doanh thu theo tháng</h2>
             <p class="text-[12px] text-slate-500">Từ ngày {{ $from->format('d-m-Y') }} đến ngày {{ $to->format('d-m-Y') }}</p>
+            <p class="text-[12px] font-bold text-slate-600">Chi nhánh: {{ $branchName }}</p>
         </div>
 
         <div class="bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden max-w-4xl mx-auto">

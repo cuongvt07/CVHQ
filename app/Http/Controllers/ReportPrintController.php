@@ -13,7 +13,7 @@ class ReportPrintController extends Controller
      * Gộp doanh thu theo từng THÁNG trong khoảng [fromMonth, toMonth] (Y-m).
      * Bỏ hóa đơn Hủy / Trả hàng. Dùng chung cho trang xem (Livewire) và trang in.
      */
-    public static function buildRows(string $fromMonth, string $toMonth): array
+    public static function buildRows(string $fromMonth, string $toMonth, string $branch = 'all'): array
     {
         try {
             $start = Carbon::createFromFormat('Y-m', $fromMonth)->startOfMonth();
@@ -33,6 +33,7 @@ class ReportPrintController extends Controller
 
         $agg = Invoice::whereNotIn('status', ['Cancelled', 'Returned'])
             ->whereBetween('created_at', [$start, $end])
+            ->when($branch !== 'all', fn ($q) => $q->where('branch', $branch))
             ->selectRaw("DATE_FORMAT(created_at, '%Y-%m') as ym,
                          COUNT(*) as cnt,
                          SUM(total_amount) as goods,
@@ -77,6 +78,8 @@ class ReportPrintController extends Controller
             ],
             'company'   => SystemSetting::get('app_name', 'CÔNG TY'),
             'address'   => SystemSetting::get('company_address', ''),
+            'branch'     => $branch,
+            'branchName' => $branch === 'all' ? 'Tất cả chi nhánh' : \App\Models\Branch::nameOf($branch),
         ];
     }
 
@@ -84,9 +87,10 @@ class ReportPrintController extends Controller
     public function monthlyRevenue(Request $request)
     {
         abort_unless(auth()->check(), 403);
-        $from = (string) $request->query('from', now()->startOfYear()->format('Y-m'));
-        $to   = (string) $request->query('to', now()->format('Y-m'));
+        $from   = (string) $request->query('from', now()->startOfYear()->format('Y-m'));
+        $to     = (string) $request->query('to', now()->format('Y-m'));
+        $branch = (string) $request->query('branch', 'all');
 
-        return view('reports.revenue-print', self::buildRows($from, $to));
+        return view('reports.revenue-print', self::buildRows($from, $to, $branch));
     }
 }
