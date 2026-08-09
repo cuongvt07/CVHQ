@@ -76,11 +76,22 @@ class ReportPrintController extends Controller
                 'extra'    => $sum('extra'),
                 'total'    => $sum('total'),
             ],
-            'company'   => SystemSetting::get('app_name', 'CÔNG TY'),
-            'address'   => SystemSetting::get('company_address', ''),
+            'company'    => SystemSetting::get('shop_name') ?: SystemSetting::get('app_name', 'CÔNG TY'),
+            'address'    => self::companyAddress($branch),
             'branch'     => $branch,
             'branchName' => $branch === 'all' ? 'Tất cả chi nhánh' : \App\Models\Branch::nameOf($branch),
         ];
+    }
+
+    /** Địa chỉ hiển thị: theo chi nhánh đang lọc (Cấu hình chung); "Tất cả" -> lấy HN (trụ sở) hoặc SG. */
+    private static function companyAddress(string $branch): string
+    {
+        if ($branch !== 'all') {
+            $addr = (string) SystemSetting::get('shop_' . $branch . '_address', '');
+            if ($addr !== '') return $addr;
+        }
+        return (string) (SystemSetting::get('shop_hn_address')
+            ?: SystemSetting::get('shop_sg_address') ?: '');
     }
 
     /** Trang IN báo cáo doanh thu theo tháng (HTML độc lập, không layout app). */
