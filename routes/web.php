@@ -40,6 +40,8 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/reports/commissions', \App\Livewire\Report\CommissionReport::class)->name('reports.commissions');
     Route::get('/reports/sales', \App\Livewire\Report\SalesReport::class)->name('reports.sales');
     Route::get('/reports/sales/day/{date}', \App\Livewire\Report\SalesDayDetail::class)->name('reports.sales.day');
+    Route::get('/reports/revenue', \App\Livewire\Report\RevenueReport::class)->name('reports.revenue');
+    Route::get('/reports/revenue/print', [\App\Http\Controllers\ReportPrintController::class, 'monthlyRevenue'])->name('reports.revenue.print');
     Route::get('/invoices', InvoiceIndex::class)->name('invoices');
     Route::get('/wp-orders', \App\Livewire\Wp\WpOrderIndex::class)->name('wp.orders');
     Route::get('/invoices/returns', \App\Livewire\Invoice\ReturnIndex::class)->name('invoices.returns');

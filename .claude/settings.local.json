@@ -33,7 +33,8 @@
       "Bash(grep -rniE '\\\\$cart|partials.financials|partials.cart-items|getTab|@include|:cart' resources/views/livewire/pos/pos-terminal.blade.php)",
       "Bash(grep -n 'foreach\\\\|\\\\$cart\\\\|@php' resources/views/livewire/pos/partials/cart-items.blade.php)",
       "Bash(grep -n '@php\\\\|\\\\$cart\\\\s*=\\\\|\\\\$total\\\\s*=\\\\|getTab\\\\|activeTab' resources/views/livewire/pos/pos-terminal.blade.php)",
-      "Bash(grep -n 'sidebar\\\\|@livewire\\\\|livewireScripts\\\\|@stack\\\\|</body>\\\\|@auth\\\\|<main\\\\|{{ $slot\\\\|@yield' resources/views/layouts/app.blade.php)"
+      "Bash(grep -n 'sidebar\\\\|@livewire\\\\|livewireScripts\\\\|@stack\\\\|</body>\\\\|@auth\\\\|<main\\\\|{{ $slot\\\\|@yield' resources/views/layouts/app.blade.php)",
+      "Bash(MSYS_NO_PATHCONV=1 docker run --rm -v \"//d/CVHQ\":\"//app\" -w \"//app\" php:8.2-cli sh -c 'php -l app/Http/Controllers/ReportPrintController.php; php -l app/Livewire/Report/RevenueReport.php')"
     ],
     "additionalDirectories": [
       "\\tmp"
