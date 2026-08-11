@@ -37,7 +37,10 @@
       "Bash(MSYS_NO_PATHCONV=1 docker run --rm -v \"//d/CVHQ\":\"//app\" -w \"//app\" php:8.2-cli sh -c 'php -l app/Http/Controllers/ReportPrintController.php; php -l app/Livewire/Report/RevenueReport.php')",
       "Bash(grep -nE \"app_name|address|company|public \\\\\\\\\\\\$|save|SystemSetting::set|SystemSetting::get\" app/Livewire/System/SystemSettings.php)",
       "Bash(MSYS_NO_PATHCONV=1 docker run --rm -v \"//d/CVHQ\":\"//app\" -w \"//app\" php:8.2-cli php -l app/Http/Controllers/ReportPrintController.php)",
-      "Bash(npm -v)"
+      "Bash(npm -v)",
+      "Bash(rm -rf /c/Users/Admin/AppData/Local/electron-builder/Cache/winCodeSign/836623999)",
+      "Bash(/d/CVHQ/desktop/node_modules/7zip-bin/win/x64/7za.exe x *)",
+      "Bash(npx electron-packager *)"
     ],
     "additionalDirectories": [
       "\\tmp"
