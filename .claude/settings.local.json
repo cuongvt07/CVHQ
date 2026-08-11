@@ -36,7 +36,8 @@
       "Bash(grep -n 'sidebar\\\\|@livewire\\\\|livewireScripts\\\\|@stack\\\\|</body>\\\\|@auth\\\\|<main\\\\|{{ $slot\\\\|@yield' resources/views/layouts/app.blade.php)",
       "Bash(MSYS_NO_PATHCONV=1 docker run --rm -v \"//d/CVHQ\":\"//app\" -w \"//app\" php:8.2-cli sh -c 'php -l app/Http/Controllers/ReportPrintController.php; php -l app/Livewire/Report/RevenueReport.php')",
       "Bash(grep -nE \"app_name|address|company|public \\\\\\\\\\\\$|save|SystemSetting::set|SystemSetting::get\" app/Livewire/System/SystemSettings.php)",
-      "Bash(MSYS_NO_PATHCONV=1 docker run --rm -v \"//d/CVHQ\":\"//app\" -w \"//app\" php:8.2-cli php -l app/Http/Controllers/ReportPrintController.php)"
+      "Bash(MSYS_NO_PATHCONV=1 docker run --rm -v \"//d/CVHQ\":\"//app\" -w \"//app\" php:8.2-cli php -l app/Http/Controllers/ReportPrintController.php)",
+      "Bash(npm -v)"
     ],
     "additionalDirectories": [
       "\\tmp"

@@ -1,0 +1,40 @@
+{
+    "name": "cvhq-desktop",
+    "productName": "CVHQ POS",
+    "version": "1.0.0",
+    "description": "CVHQ POS - desktop wrapper (Electron) mở app trên server",
+    "main": "main.js",
+    "author": "CVHQ",
+    "license": "UNLICENSED",
+    "scripts": {
+        "start": "electron .",
+        "dist": "electron-builder --win"
+    },
+    "build": {
+        "appId": "com.cvhq.pos",
+        "productName": "CVHQ POS",
+        "directories": {
+            "output": "dist"
+        },
+        "files": [
+            "main.js",
+            "build/**"
+        ],
+        "win": {
+            "target": "nsis",
+            "icon": "build/icon.ico"
+        },
+        "nsis": {
+            "oneClick": false,
+            "perMachine": false,
+            "allowToChangeInstallationDirectory": true,
+            "createDesktopShortcut": true,
+            "createStartMenuShortcut": true,
+            "shortcutName": "CVHQ POS"
+        }
+    },
+    "devDependencies": {
+        "electron": "^33.2.0",
+        "electron-builder": "^25.1.8"
+    }
+}
