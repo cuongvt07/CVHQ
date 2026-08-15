@@ -42,6 +42,10 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/reports/sales/day/{date}', \App\Livewire\Report\SalesDayDetail::class)->name('reports.sales.day');
     Route::get('/reports/revenue', \App\Livewire\Report\RevenueReport::class)->name('reports.revenue');
     Route::get('/reports/revenue/print', [\App\Http\Controllers\ReportPrintController::class, 'monthlyRevenue'])->name('reports.revenue.print');
+    Route::get('/reports/products', \App\Livewire\Report\ProductReport::class)->name('reports.products');
+    Route::get('/reports/products/print', [\App\Http\Controllers\ReportPrintController::class, 'products'])->name('reports.products.print');
+    Route::get('/reports/commission-staff', \App\Livewire\Report\CommissionStaffReport::class)->name('reports.commission_staff');
+    Route::get('/reports/commission-staff/print', [\App\Http\Controllers\ReportPrintController::class, 'commission'])->name('reports.commission_staff.print');
     Route::get('/invoices', InvoiceIndex::class)->name('invoices');
     Route::get('/wp-orders', \App\Livewire\Wp\WpOrderIndex::class)->name('wp.orders');
     Route::get('/invoices/returns', \App\Livewire\Invoice\ReturnIndex::class)->name('invoices.returns');
