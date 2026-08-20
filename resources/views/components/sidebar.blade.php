@@ -48,8 +48,8 @@
         @endif
 
         {{-- HÀNG HOÁ --}}
-        @if(auth()->user()?->hasPermission('products') || auth()->user()?->hasPermission('categories') || auth()->user()?->hasPermission('reports'))
-        <x-nav.group title="Hàng hoá" :open="request()->routeIs('products') || request()->routeIs('categories') || request()->routeIs('reports.sales')">
+        @if(auth()->user()?->hasPermission('products') || auth()->user()?->hasPermission('categories'))
+        <x-nav.group title="Sản phẩm" :open="request()->routeIs('products') || request()->routeIs('categories')">
             @if(auth()->user()?->hasPermission('categories'))
             <x-nav.link :href="route('categories')" :active="request()->routeIs('categories')">
                 <x-slot:icon><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="shrink-0"><path d="M3 6h18"/><path d="M7 10h10"/><path d="M7 14h10"/><path d="M7 18h10"/></svg></x-slot:icon>
@@ -62,7 +62,12 @@
                 Sản phẩm
             </x-nav.link>
             @endif
-            @if(auth()->user()?->hasPermission('reports'))
+        </x-nav.group>
+        @endif
+
+        {{-- BÁO CÁO --}}
+        @if(auth()->user()?->hasPermission('reports'))
+        <x-nav.group title="Báo cáo" :open="request()->routeIs('reports.sales') || request()->routeIs('reports.revenue') || request()->routeIs('reports.products') || request()->routeIs('reports.commission_staff')">
             <x-nav.link :href="route('reports.sales')" :active="request()->routeIs('reports.sales')">
                 <x-slot:icon><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="shrink-0"><path d="M3 3v18h18"/><path d="m19 9-5 5-4-4-3 3"/></svg></x-slot:icon>
                 Báo cáo bán hàng
@@ -79,7 +84,6 @@
                 <x-slot:icon><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="shrink-0"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/></svg></x-slot:icon>
                 Hoa hồng nhân viên
             </x-nav.link>
-            @endif
         </x-nav.group>
         @endif
 
@@ -92,7 +96,7 @@
             </x-nav.link>
             <x-nav.link :href="route('products.restock')" :active="request()->routeIs('products.restock')">
                 <x-slot:icon><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="shrink-0"><path d="M12 20v-6a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2v6"/><path d="M6 18H21"/><path d="M18 18v-4a2 2 0 0 0-2-2h-4"/></svg></x-slot:icon>
-                Dự toán nhập hàng
+                Cảnh báo tồn
             </x-nav.link>
             <x-nav.link :href="route('products.transfers')" :active="request()->routeIs('products.transfers*')">
                 <x-slot:icon><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="shrink-0"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/><path d="m8 19-3-7 3-7"/></svg></x-slot:icon>
