@@ -5,7 +5,7 @@ namespace App\Exports;
 use Maatwebsite\Excel\Concerns\FromArray;
 
 /**
- * Xuất Excel cho báo cáo bán hàng (tổng hợp HOẶC chi tiết theo ngày).
+ * Xuất Excel cho thông tin bán hàng (tổng hợp HOẶC chi tiết theo ngày).
  * - $headerLines: các dòng tiêu đề/tổng quan ở đầu file (mảng các mảng).
  * - $columns: [key => heading] đã lọc theo cột người dùng chọn.
  * - $rows: mảng các dòng dữ liệu (mỗi dòng là mảng theo key).

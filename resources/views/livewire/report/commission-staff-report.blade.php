@@ -3,7 +3,7 @@
 
     <header class="px-4 md:px-6 py-3 border-b border-slate-200 bg-slate-50/50 flex items-center justify-between gap-2 flex-wrap">
         <div>
-            <h1 class="text-base md:text-lg font-bold text-slate-900">Báo cáo hoa hồng nhân viên</h1>
+            <h1 class="text-base md:text-lg font-bold text-slate-900">Báo cáo hoa hồng</h1>
             <p class="text-[11px] text-slate-500">Chỉ nhân viên được nhận hoa hồng (kể cả 0 đơn). Bỏ hóa đơn Hủy - Trả hàng.</p>
         </div>
         <div class="flex items-end gap-2 flex-wrap">
@@ -30,7 +30,7 @@
 
     <div class="flex-1 overflow-y-auto custom-scrollbar p-4 md:p-6">
         <div class="text-center mb-4">
-            <h2 class="text-lg font-black text-slate-900 uppercase">Báo cáo hoa hồng nhân viên</h2>
+            <h2 class="text-lg font-black text-slate-900 uppercase">Báo cáo hoa hồng</h2>
             <p class="text-[12px] text-slate-500">Tháng {{ $monthLabel }} · Chi nhánh: {{ $branchName }}</p>
         </div>
 

@@ -54,7 +54,7 @@
                         $code = $isProd
                             ? ($prodSkus[$l->model_id] ?? ($l->changes['snapshot']['sku'] ?? '#' . $l->model_id))
                             : ($catNames[$l->model_id] ?? ($l->changes['snapshot']['name'] ?? '#' . $l->model_id));
-                        return $mapLog($l, 'product', $isProd ? 'Sản phẩm' : 'Danh mục', $code);
+                        return $mapLog($l, 'product', $isProd ? 'Chi tiết sản phẩm' : 'Nhóm sản phẩm', $code);
                     });
 
                     // Kiểm kho — kèm mã phiếu

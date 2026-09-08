@@ -38,7 +38,7 @@
 
     <x-import-modal id="invoices" title="Nhập danh sách hóa đơn" model="importFile" />
 
-    @php $__activeFilterCount = ($startDate ? 1 : 0) + ($endDate ? 1 : 0) + ($sellerFilter ? 1 : 0) + ($paymentMethodFilter ? 1 : 0) + ($salesChannelFilter ? 1 : 0); @endphp
+    @php $__activeFilterCount = ($startDate ? 1 : 0) + ($endDate ? 1 : 0) + ($sellerFilter ? 1 : 0) + ($paymentMethodFilter ? 1 : 0) + ($salesChannelFilter ? 1 : 0) + ($branchFilter ? 1 : 0); @endphp
     <div x-data="{ mobileFilterOpen: false }" @keydown.escape.window="mobileFilterOpen = false" class="px-3 md:px-6 py-2 md:py-4 bg-white border-b border-slate-100 flex flex-col gap-2">
 
         {{-- Mobile: search dòng riêng (full width), không đè status tabs --}}
@@ -155,6 +155,16 @@
                         <option value="Email">Email</option>
                     </select>
                 </div>
+
+                <!-- Branch Filter -->
+                <div class="relative w-40">
+                    <select wire:model.live="branchFilter" class="w-full bg-white border border-slate-200 rounded-xl py-2 px-3 text-[11px] focus:outline-none focus:border-electric-blue transition-all text-slate-600 shadow-sm cursor-pointer">
+                        <option value="">-- Chi nhánh --</option>
+                        @foreach($branches as $branch)
+                            <option value="{{ $branch->code }}">{{ $branch->name }}</option>
+                        @endforeach
+                    </select>
+                </div>
             </div>
 
             <div class="flex items-center gap-3">
@@ -174,6 +184,7 @@
                         'amount' => 'Tổng tiền',
                         'channel' => 'Kênh bán',
                         'method' => 'Phương thức',
+                        'branch' => 'Chi nhánh',
                         'status' => 'Trạng thái',
                         'date' => 'Ngày tạo'
                     ]"
@@ -244,6 +255,17 @@
                 </select>
             </div>
 
+            <!-- Branch Filter -->
+            <div>
+                <div class="text-[9px] font-black text-slate-500 tracking-widest uppercase mb-1">CHI NHÁNH</div>
+                <select wire:model.live="branchFilter" class="w-full bg-white border border-slate-200 rounded px-2 py-1.5 text-[11px] focus:outline-none focus:border-electric-blue text-slate-900">
+                    <option value="">Tất cả</option>
+                    @foreach($branches as $branch)
+                        <option value="{{ $branch->code }}">{{ $branch->name }}</option>
+                    @endforeach
+                </select>
+            </div>
+
             <!-- Per page -->
             <div>
                 <div class="text-[9px] font-black text-slate-500 tracking-widest uppercase mb-1">HIỂN THỊ MỖI TRANG</div>
@@ -266,6 +288,7 @@
                         'amount' => 'Tổng tiền',
                         'channel' => 'Kênh bán',
                         'method' => 'Phương thức',
+                        'branch' => 'Chi nhánh',
                         'status' => 'Trạng thái',
                         'date' => 'Ngày tạo'
                     ]"
@@ -280,7 +303,7 @@
         </div>
 
         <!-- Active Filters Tags -->
-        @if($startDate || $endDate || $sellerFilter || $search || $statusFilter !== 'all')
+        @if($startDate || $endDate || $sellerFilter || $search || $statusFilter !== 'all' || $branchFilter)
             <div class="flex flex-wrap items-center gap-2 animate-in fade-in slide-in-from-top-1 duration-200">
                 <span class="text-[8px] font-black text-slate-400 tracking-tighter mr-1">Đang áp dụng:</span>
 
@@ -351,6 +374,13 @@
                     </div>
                 @endif
 
+                @if($branchFilter)
+                    <div class="flex items-center gap-1.5 px-2.5 py-1 bg-purple-50 border border-purple-100 rounded-lg text-[10px] font-bold text-purple-600 group shadow-sm">
+                        <span class="opacity-60">CN:</span> {{ \App\Models\Branch::nameOf($branchFilter) }}
+                        <button wire:click="clearFilter('branchFilter')" class="opacity-30 hover:opacity-100 hover:text-rose-500 transition-all"><svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg></button>
+                    </div>
+                @endif
+
                 <button wire:click="clearFilter('all')" class="text-[8px] font-black text-rose-500 tracking-tighter hover:underline ml-2 transition-all">Xóa tất cả</button>
             </div>
         @endif
@@ -414,6 +444,10 @@
                             <div class="flex items-center justify-between gap-2">
                                 <span class="text-slate-500">Kênh bán:</span>
                                 <span class="text-slate-600 font-semibold">{{ $invoice->sales_channel ?: 'Trực tiếp' }}</span>
+                            </div>
+                            <div class="flex items-center justify-between gap-2">
+                                <span class="text-slate-500">Chi nhánh:</span>
+                                <span class="text-slate-600 font-semibold">{{ \App\Models\Branch::nameOf($invoice->branch) ?: 'N/A' }}</span>
                             </div>
                             <div class="flex items-center justify-between gap-2">
                                 <span class="text-slate-500">Thanh toán:</span>
@@ -670,6 +704,9 @@
                         @if(in_array('method', $visibleColumns))
                         <th class="px-6 py-4 text-[9px] font-bold text-slate-400 tracking-[0.2em]">Phương thức</th>
                         @endif
+                        @if(in_array('branch', $visibleColumns))
+                        <th class="px-6 py-4 text-[9px] font-bold text-slate-400 tracking-[0.2em]">Chi nhánh</th>
+                        @endif
                         @if(in_array('status', $visibleColumns))
                         <th class="px-6 py-4 text-[9px] font-bold text-slate-400 tracking-[0.2em]">Trạng thái</th>
                         @endif
@@ -681,7 +718,7 @@
                 <tbody class="divide-y divide-slate-100 bg-white/50">
                     @if($invoices->isEmpty())
                         <tr>
-                            <td colspan="7" class="px-6 py-10 text-center text-slate-400 text-[11px] font-bold tracking-widest">
+                            <td colspan="8" class="px-6 py-10 text-center text-slate-400 text-[11px] font-bold tracking-widest">
                                 Không có hóa đơn nào phù hợp với bộ lọc hiện tại.
                                 <button wire:click="$set('statusFilter','all');$set('startDate',null);$set('endDate',null);$set('sellerFilter','');$set('search','')" class="ml-2 text-electric-blue underline">Xóa tất cả bộ lọc</button>
                             </td>
@@ -725,6 +762,14 @@
                                 <div class="flex items-center gap-2">
                                     <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-slate-300"><rect width="20" height="14" x="2" y="5" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg>
                                     <span class="text-[11px] text-slate-600 font-semibold">{{ $invoice->getPaymentMethodLabel() }}</span>
+                                </div>
+                            </td>
+                            @endif
+                            @if(in_array('branch', $visibleColumns))
+                            <td class="px-6 py-4">
+                                <div class="flex items-center gap-2">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-slate-300"><path d="M3 21h18"/><path d="M5 21V7l8-4v18"/><path d="M19 21V11l-6-4"/><path d="M9 9v.01"/><path d="M9 12v.01"/><path d="M9 15v.01"/><path d="M9 18v.01"/></svg>
+                                    <span class="text-[11px] text-slate-600 font-semibold">{{ \App\Models\Branch::nameOf($invoice->branch) ?: 'N/A' }}</span>
                                 </div>
                             </td>
                             @endif

@@ -1,7 +1,7 @@
 <div class="h-full min-h-0 flex flex-col">
     {{-- Header --}}
     <header class="px-3 md:px-6 py-3 flex items-center justify-between gap-2 border-b border-slate-200 bg-slate-50/50">
-        <h1 class="text-base md:text-lg font-bold text-slate-900">Báo cáo bán hàng</h1>
+        <h1 class="text-base md:text-lg font-bold text-slate-900">Thông tin bán hàng</h1>
 
         <div class="flex items-center gap-2">
             {{-- Tùy chỉnh cột hiển thị (cũng quyết định cột xuất Excel) --}}

@@ -291,7 +291,7 @@ class SalesReport extends Component
     {
         $s = $this->summary();
         return [
-            ['BÁO CÁO BÁN HÀNG', $this->fromDate . ' → ' . $this->toDate],
+            ['THÔNG TIN BÁN HÀNG', $this->fromDate . ' → ' . $this->toDate],
             ['Số đơn', $s['orders']],
             ['Tiền hàng', $s['goods']],
             ['Giảm giá', $s['discount']],

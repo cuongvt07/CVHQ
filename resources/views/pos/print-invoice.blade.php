@@ -9,107 +9,138 @@
 
         body {
             background: #fff;
-            font-family: Arial, "Helvetica Neue", sans-serif;
+            font-family: 'Times New Roman', Times, serif;
             color: #000;
             min-height: 210mm;
             display: flex;
             align-items: flex-start;
             justify-content: center;
             padding: 0;
+            font-size: 12px;
         }
 
         .invoice-wrapper {
             background: #fff;
             width: 148mm;
             min-height: 210mm;
-            padding: 12mm;
+            padding: 8mm;
         }
 
         .header {
-            display: grid;
-            grid-template-columns: minmax(0, 1fr) max-content;
-            column-gap: 12mm;
-            align-items: flex-start;
-            margin-bottom: 20px;
-        }
-
-        .store-info {
-            min-width: 0;
-        }
-
-        .store-info p {
-            font-size: 13px;
-            line-height: 1.75;
+            text-align: center;
+            margin-bottom: 15px;
+            border-bottom: 2px solid #000;
+            padding-bottom: 10px;
         }
 
         .store-name {
-            font-size: 14px;
+            font-size: 16px;
             font-weight: 700;
-            margin-bottom: 6px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            line-height: 1.2;
+            margin-bottom: 5px;
         }
 
-        .invoice-title-block {
-            text-align: right;
-            min-width: max-content;
+        .store-address {
+            font-size: 11px;
+            line-height: 1.4;
+            margin-bottom: 3px;
+        }
+
+        .store-phone {
+            font-size: 11px;
+            font-weight: 600;
+            margin-bottom: 10px;
         }
 
         .invoice-title {
-            font-size: 20px;
-            line-height: 1.15;
+            font-size: 18px;
             font-weight: 700;
-            letter-spacing: 1px;
             text-transform: uppercase;
-            white-space: nowrap;
-            word-break: keep-all;
+            letter-spacing: 2px;
+            margin-bottom: 8px;
         }
 
-        .customer-section { margin: 18px 0 16px; }
+        .invoice-number {
+            font-size: 14px;
+            font-weight: 600;
+            border: 2px solid #000;
+            padding: 4px 12px;
+            display: inline-block;
+            background: #f8f8f8;
+        }
 
-        .customer-section p {
-            font-size: 13px;
-            line-height: 1.75;
+        .invoice-info {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15mm;
+            margin-bottom: 12px;
+            font-size: 11px;
+        }
+
+        .customer-section,
+        .invoice-details {
+            line-height: 1.6;
+        }
+
+        .customer-section h4,
+        .invoice-details h4 {
+            font-size: 12px;
+            font-weight: 700;
+            text-transform: uppercase;
+            margin-bottom: 6px;
+            border-bottom: 1px solid #000;
+            padding-bottom: 2px;
         }
 
         .invoice-table {
             width: 100%;
             border-collapse: collapse;
-            font-size: 13px;
-            margin-bottom: 0;
+            font-size: 11px;
+            margin: 12px 0;
         }
 
         .invoice-table th,
         .invoice-table td {
             border: 1px solid #000;
-            padding: 8px 12px;
+            padding: 6px 8px;
             text-align: center;
         }
 
         .invoice-table thead th {
             font-weight: 700;
-            background: #fff;
+            background: #f0f0f0;
             text-transform: uppercase;
-            font-size: 12px;
+            font-size: 10px;
+            letter-spacing: 0.5px;
         }
 
-        .invoice-table tbody td:nth-child(2) { text-align: left; }
+        .invoice-table tbody td:nth-child(2) { 
+            text-align: left; 
+            padding-left: 8px;
+        }
 
         .invoice-table tbody td {
-            height: 34px;
+            height: 28px;
             color: #000;
+            vertical-align: middle;
         }
 
         .sku-line {
             display: block;
-            margin-top: 3px;
-            color: #555;
-            font-size: 10px;
+            margin-top: 2px;
+            color: #666;
+            font-size: 9px;
             font-family: monospace;
+            font-style: italic;
         }
 
         .invoice-table tfoot td {
             font-weight: 700;
-            font-size: 13px;
-            background: #fff;
+            font-size: 11px;
+            background: #f8f8f8;
+            height: 32px;
         }
 
         .invoice-table tfoot td:nth-child(2) {
@@ -119,10 +150,13 @@
         }
 
         .amount-words {
-            margin-top: 20px;
-            font-size: 13px;
+            margin: 15px 0;
+            font-size: 11px;
             font-style: italic;
-            line-height: 1.6;
+            line-height: 1.5;
+            padding: 8px;
+            background: #f9f9f9;
+            border: 1px solid #ddd;
         }
 
         .amount-words strong {
@@ -130,37 +164,48 @@
             font-weight: 600;
         }
 
+        .footer-info {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20mm;
+            margin-top: 20px;
+        }
+
+        .sig-date {
+            text-align: right;
+            font-size: 11px;
+            font-style: italic;
+            margin-bottom: 20px;
+        }
+
         .signatures {
             display: grid;
             grid-template-columns: 1fr 1fr;
-            column-gap: 28mm;
-            margin-top: 32px;
-            align-items: flex-start;
+            gap: 20mm;
+            margin-top: 15px;
         }
 
         .sig-block {
             text-align: center;
         }
 
-        .sig-date {
-            text-align: right;
-            font-size: 13px;
-            font-style: italic;
-            margin-bottom: 28px;
-        }
-
         .sig-label {
-            font-size: 13px;
+            font-size: 11px;
             font-weight: 700;
             text-transform: uppercase;
             letter-spacing: 0.5px;
         }
 
         .sig-line {
-            width: 130px;
+            width: 120px;
             height: 1px;
             background: #000;
-            margin: 44px auto 10px;
+            margin: 35px auto 8px;
+        }
+
+        .sig-name {
+            font-size: 10px;
+            font-style: italic;
         }
 
         @page {
@@ -173,7 +218,7 @@
             .invoice-wrapper {
                 width: 148mm;
                 min-height: 210mm;
-                padding: 12mm;
+                padding: 8mm;
             }
         }
     </style>
@@ -286,29 +331,41 @@
 
 <div class="invoice-wrapper">
     <div class="header">
-        <div class="store-info">
-            <div class="store-name">{{ $shopName }}</div>
+        <div class="store-name">{{ $shopName }}</div>
+        <div class="store-address">
             @if($branchInfo['address'])
-                <p>Địa chỉ: {{ $branchInfo['address'] }}</p>
+                Địa chỉ: {{ $branchInfo['address'] }}
             @endif
+        </div>
+        <div class="store-phone">
             @if($branchInfo['phone'])
-                <p>ĐT: {{ $branchInfo['phone'] }}</p>
+                Điện thoại: {{ $branchInfo['phone'] }}
             @endif
-            <p>Người bán hàng: <strong>{{ $sellerName }}</strong></p>
         </div>
-        <div class="invoice-title-block">
-            <div class="invoice-title">Hóa đơn bán hàng</div>
-        </div>
+        <div class="invoice-title">Hóa đơn bán hàng</div>
+        <div class="invoice-number">Số: {{ $invoice->invoice_code }}</div>
     </div>
 
-    <div class="customer-section">
-        <p>Tên khách hàng: <strong>{{ $customerName }}</strong></p>
-        @if($customerPhone)
-            <p>Số điện thoại: {{ $customerPhone }}</p>
-        @endif
-        @if($customerAddress)
-            <p>Địa chỉ: {{ $customerAddress }}</p>
-        @endif
+    <div class="invoice-info">
+        <div class="customer-section">
+            <h4>Thông tin khách hàng</h4>
+            <div>Tên: <strong>{{ $customerName }}</strong></div>
+            @if($customerPhone)
+                <div>SĐT: {{ $customerPhone }}</div>
+            @endif
+            @if($customerAddress)
+                <div>Địa chỉ: {{ $customerAddress }}</div>
+            @endif
+        </div>
+        <div class="invoice-details">
+            <h4>Thông tin hóa đơn</h4>
+            <div>Ngày: {{ $invoice->created_at->format('d/m/Y') }}</div>
+            <div>Giờ: {{ $invoice->created_at->format('H:i') }}</div>
+            <div>NV bán hàng: <strong>{{ $sellerName }}</strong></div>
+            @if($invoice->branch)
+                <div>Chi nhánh: {{ \App\Models\Branch::nameOf($invoice->branch) }}</div>
+            @endif
+        </div>
     </div>
 
     <table class="invoice-table">
@@ -380,14 +437,17 @@
     </div>
 
     <div class="sig-date">Ngày {{ $invoice->created_at->format('d') }} tháng {{ $invoice->created_at->format('m') }} năm {{ $invoice->created_at->format('Y') }}</div>
+    
     <div class="signatures">
         <div class="sig-block buyer">
             <div class="sig-label">Người Mua Hàng</div>
             <div class="sig-line"></div>
+            <div class="sig-name">{{ $customerName }}</div>
         </div>
         <div class="sig-block seller">
             <div class="sig-label">Người Bán Hàng</div>
             <div class="sig-line"></div>
+            <div class="sig-name">{{ $sellerName }}</div>
         </div>
     </div>
 </div>

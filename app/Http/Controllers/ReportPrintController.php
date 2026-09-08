@@ -199,7 +199,7 @@ class ReportPrintController extends Controller
         return view('reports.product-print', self::buildProducts($month, $branch, $mode, $limit));
     }
 
-    // ── Báo cáo hoa hồng nhân viên (chỉ NV nhận hoa hồng) ─────────────────────
+    // ── Báo cáo hoa hồng (chỉ NV nhận hoa hồng) ─────────────────────
     public static function buildCommission(string $month, string $branch): array
     {
         [$start, $end, $ym] = self::monthBounds($month);

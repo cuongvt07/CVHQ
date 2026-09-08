@@ -346,11 +346,11 @@
                             </div>
                         </div>
 
-                        <!-- Category / Brand row (optional) -->
-                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-6">
+                        <!-- Category / Brand / Unit row -->
+                        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
                             <!-- Category -->
                             <div class="space-y-2">
-                                <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Danh mục</label>
+                                <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Nhóm sản phẩm</label>
                                 <input type="text" wire:model="category_path" class="w-full bg-slate-50 border border-slate-200 rounded-xl sm:rounded-2xl py-2 sm:py-3 px-3 sm:px-5 text-[13px] sm:text-sm focus:outline-none focus:border-electric-blue/40 focus:ring-2 sm:focus:ring-4 focus:ring-electric-blue/5 transition-all" placeholder="Ví dụ: Phần cứng">
                                 @error('category_path') <span class="text-[10px] text-rose-500 font-bold ml-1">{{ $message }}</span> @enderror
                             </div>
@@ -360,6 +360,13 @@
                                 <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Thương hiệu</label>
                                 <input type="text" wire:model="brand" class="w-full bg-slate-50 border border-slate-200 rounded-xl sm:rounded-2xl py-2 sm:py-3 px-3 sm:px-5 text-[13px] sm:text-sm focus:outline-none focus:border-electric-blue/40 focus:ring-2 sm:focus:ring-4 focus:ring-electric-blue/5 transition-all" placeholder="Ví dụ: Apple">
                                 @error('brand') <span class="text-[10px] text-rose-500 font-bold ml-1">{{ $message }}</span> @enderror
+                            </div>
+
+                            <!-- Unit -->
+                            <div class="space-y-2">
+                                <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Đơn vị tính</label>
+                                <input type="text" wire:model="unit" class="w-full bg-slate-50 border border-slate-200 rounded-xl sm:rounded-2xl py-2 sm:py-3 px-3 sm:px-5 text-[13px] sm:text-sm focus:outline-none focus:border-electric-blue/40 focus:ring-2 sm:focus:ring-4 focus:ring-electric-blue/5 transition-all" placeholder="Ví dụ: cái, kg, lít, hộp">
+                                @error('unit') <span class="text-[10px] text-rose-500 font-bold ml-1">{{ $message }}</span> @enderror
                             </div>
                         </div>
 

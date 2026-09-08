@@ -44,7 +44,7 @@ class InvoiceIndex extends Component
 
     protected function getDefaultVisibleColumns(): array
     {
-        return ['code', 'date', 'customer', 'amount', 'channel', 'method', 'status', 'actions'];
+        return ['code', 'date', 'customer', 'amount', 'channel', 'method', 'branch', 'status', 'actions'];
     }
 
 
@@ -62,6 +62,7 @@ class InvoiceIndex extends Component
     public $statusFilter = 'active';
     public $paymentMethodFilter = '';
     public $salesChannelFilter = '';
+    public $branchFilter = '';
 
     protected $queryString = [
         'search' => ['except' => ''],
@@ -71,8 +72,9 @@ class InvoiceIndex extends Component
         'statusFilter' => ['except' => 'active'],
         'paymentMethodFilter' => ['except' => ''],
         'salesChannelFilter' => ['except' => ''],
+        'branchFilter' => ['except' => ''],
         'perPage' => ['except' => 10],
-        'visibleColumns' => ['except' => ['code', 'customer', 'amount', 'channel', 'method', 'status', 'date']],
+        'visibleColumns' => ['except' => ['code', 'customer', 'amount', 'channel', 'method', 'branch', 'status', 'date']],
     ];
 
     public function updatingSearch()
@@ -91,6 +93,11 @@ class InvoiceIndex extends Component
     }
 
     public function updatingSalesChannelFilter()
+    {
+        $this->resetPage();
+    }
+
+    public function updatingBranchFilter()
     {
         $this->resetPage();
     }
@@ -155,6 +162,9 @@ class InvoiceIndex extends Component
             case 'salesChannelFilter':
                 $this->salesChannelFilter = '';
                 break;
+            case 'branchFilter':
+                $this->branchFilter = '';
+                break;
             case 'all':
                 $this->search = '';
                 $this->startDate = '';
@@ -163,6 +173,8 @@ class InvoiceIndex extends Component
                 $this->statusFilter = 'active';
                 $this->paymentMethodFilter = '';
                 $this->salesChannelFilter = '';
+                $this->branchFilter = '';
+                $this->branchFilter = '';
                 break;
         }
         $this->resetPage();
@@ -274,6 +286,7 @@ class InvoiceIndex extends Component
                 };
             })
             ->when($this->salesChannelFilter, fn($q) => $q->where('sales_channel', $this->salesChannelFilter))
+            ->when($this->branchFilter, fn($q) => $q->where('branch', $this->branchFilter))
             ->with(['customer', 'sharedTo'])
             ->latest()
             ->paginate($this->perPage)
@@ -710,6 +723,7 @@ class InvoiceIndex extends Component
         return view('livewire.invoice.invoice-index', [
             'invoices' => $this->getInvoices(),
             'commissionUsers' => $commissionUsers,
+            'branches' => \App\Models\Branch::active(),
         ])->layout('layouts.app');
     }
 }

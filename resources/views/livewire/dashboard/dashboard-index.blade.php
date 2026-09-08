@@ -333,7 +333,7 @@
 
         {{-- ===== Sản phẩm + Nhân viên ===== --}}
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
-            <x-dashboard.table title="Sản phẩm"
+            <x-dashboard.table title="Chi tiết sản phẩm"
                 :head="['Thông tin sản phẩm','Doanh thu','SL bán']"
                 :rows="collect($products)->map(fn($r) => [$r['sku'].' — '.$r['name'], $fmt($r['revenue']).' đ', $fmt($r['qty'])])->all()" />
 

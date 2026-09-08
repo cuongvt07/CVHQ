@@ -35,7 +35,7 @@ class ProductIndex extends Component
 
     protected function getDefaultVisibleColumns(): array
     {
-        return ['sku', 'brand', 'category', 'location', 'stock', 'price', 'actions'];
+        return ['sku', 'brand', 'unit', 'category', 'location', 'stock', 'price', 'actions'];
     }
 
     public $search = '';
@@ -74,7 +74,7 @@ class ProductIndex extends Component
         'branch' => ['except' => 'all'],
         'sortField' => ['except' => 'created_at'],
         'sortDirection' => ['except' => 'desc'],
-        'visibleColumns' => ['except' => ['sku', 'name', 'brand', 'category', 'price', 'stock', 'location', 'actions']],
+        'visibleColumns' => ['except' => ['sku', 'name', 'brand', 'unit', 'category', 'price', 'stock', 'location', 'actions']],
     ];
 
     public function mount()
@@ -253,7 +253,7 @@ class ProductIndex extends Component
 
     // Form properties
     public $productId;
-    public $sku, $base_name, $category_path, $brand, $sale_price, $cost_price, $commission_amount, $stock_quantity, $location;
+    public $sku, $base_name, $category_path, $brand, $unit, $sale_price, $cost_price, $commission_amount, $stock_quantity, $location;
     public $commission_type = 'amount';   // 'amount' (tiền) | 'percent' (%)
     public $commission_percent = 0;       // dùng khi commission_type = 'percent'
     public $is_active = true;
@@ -269,6 +269,7 @@ class ProductIndex extends Component
         'base_name' => 'required|min:3',
         'category_path' => 'nullable',
         'brand' => 'nullable',
+        'unit' => 'nullable|string|max:50',
         'sale_price' => 'required|numeric|min:0',
         'cost_price' => 'nullable|numeric|min:0',
         'commission_type' => 'nullable|in:amount,percent',
@@ -329,6 +330,7 @@ class ProductIndex extends Component
         $this->base_name = '';
         $this->category_path = '';
         $this->brand = '';
+        $this->unit = '';
         $this->sale_price = 0;
         $this->cost_price = 0;
         $this->commission_amount = 0;
@@ -525,6 +527,7 @@ class ProductIndex extends Component
         $this->base_name = $product->base_name;
         $this->category_path = $product->category_path;
         $this->brand = $product->brand;
+        $this->unit = $product->unit;
         $this->sale_price = $product->sale_price;
         $this->cost_price = $product->cost_price;
         $this->commission_amount = $product->commission_amount;
@@ -573,6 +576,7 @@ class ProductIndex extends Component
             'base_name' => $this->base_name,
             'category_path' => $this->category_path,
             'brand' => $this->brand,
+            'unit' => $this->unit,
             'sale_price' => $this->sale_price,
             'cost_price' => $this->cost_price === '' || $this->cost_price === null ? 0 : $this->cost_price,
             'stock_quantity' => $this->stock_quantity === '' || $this->stock_quantity === null ? 999 : $this->stock_quantity,
@@ -872,6 +876,7 @@ class ProductIndex extends Component
                 'base_name' => $this->bulkBaseName,
                 'category_path' => '',
                 'brand' => '',
+                'unit' => '',
                 'sale_price' => $rowPrice,
                 'commission_amount' => $rowCommission,
                 'stock_quantity' => $row['stock'] === '' || $row['stock'] === null ? 999 : (int)$row['stock'],
@@ -1073,6 +1078,7 @@ class ProductIndex extends Component
             'sku' => 'required|unique:products,sku,' . $id,
             'base_name' => 'required|min:3',
             'brand' => 'nullable|string|max:255',
+            'unit' => 'nullable|string|max:50',
             'category_path' => 'nullable|string|max:255',
             'sale_price' => 'required|numeric|min:0',
             'location' => 'nullable|string|max:255',
@@ -1194,6 +1200,7 @@ class ProductIndex extends Component
             'base_name' => 'base_name',
             'name' => 'name',
             'brand' => 'brand',
+            'unit' => 'unit',
             'category_path' => 'category_path',
             'location' => 'location',
             'stock_quantity' => 'stock_quantity',

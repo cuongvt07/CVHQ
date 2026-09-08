@@ -28,7 +28,7 @@
         </div>
     </header>
 
-    <x-import-modal id="products" title="Nhập danh sách sản phẩm" model="importFile" :chunked="true" :template="true" />
+    <x-import-modal id="products" title="Nhập danh sách chi tiết sản phẩm" model="importFile" :chunked="true" :template="true" />
     <x-product-modal id="product-form" />
     <x-bulk-product-modal />
     <x-delete-modal />
@@ -127,6 +127,7 @@
                 <option value="sku">SKU</option>
                 <option value="base_name">Tên</option>
                 <option value="brand">Thương hiệu</option>
+                <option value="unit">Đơn vị</option>
                 <option value="category_path">Danh mục</option>
                 <option value="location">Vị trí</option>
                 <option value="stock_quantity">Tồn</option>
@@ -256,6 +257,7 @@
                     :cols="[
                         'sku' => 'Mã & Thông tin',
                         'brand' => 'Thương hiệu',
+                        'unit' => 'Đơn vị',
                         'category' => 'Danh mục',
                         'location' => 'Vị trí',
                         'stock' => 'Tồn kho',
@@ -365,6 +367,8 @@
                                         <div class="text-[10px] font-bold text-emerald-700 bg-emerald-50 px-1 py-px rounded inline-block" title="{{ $product->location }}">{{ $product->location_display }}</div>
                                     @elseif($product->brand)
                                         <div class="text-[10px] text-slate-400 truncate">{{ $product->brand }}</div>
+                                    @elseif($product->unit)
+                                        <div class="text-[10px] text-amber-600 bg-amber-50 px-1 py-px rounded inline-block">{{ $product->unit }}</div>
                                     @else
                                         <div class="text-[10px] text-slate-300">—</div>
                                     @endif
@@ -400,13 +404,19 @@
                                             <textarea
                                                 x-on:blur="$wire.updateField({{ $product->id }}, 'base_name', $event.target.value)"
                                                 class="w-full min-h-[48px] bg-slate-50 border border-slate-200 rounded-lg px-2 py-1 text-[12px] font-bold text-slate-900 leading-snug focus:outline-none focus:border-electric-blue">{{ $product->base_name }}</textarea>
-                                            <div class="grid grid-cols-2 gap-1">
+                                            <div class="grid grid-cols-3 gap-1">
                                                 <input type="text"
                                                        value="{{ $product->brand }}"
                                                        x-on:blur="$wire.updateField({{ $product->id }}, 'brand', $event.target.value)"
                                                        x-on:keydown.enter="$event.target.blur()"
                                                        class="w-full bg-white border border-slate-200 rounded px-1.5 py-1 text-[10px] font-bold text-slate-600 focus:outline-none focus:border-electric-blue"
                                                        placeholder="Thương hiệu">
+                                                <input type="text"
+                                                       value="{{ $product->unit }}"
+                                                       x-on:blur="$wire.updateField({{ $product->id }}, 'unit', $event.target.value)"
+                                                       x-on:keydown.enter="$event.target.blur()"
+                                                       class="w-full bg-white border border-slate-200 rounded px-1.5 py-1 text-[10px] font-bold text-amber-600 focus:outline-none focus:border-electric-blue"
+                                                       placeholder="Đơn vị">
                                                 <input type="text"
                                                        value="{{ $product->category_path }}"
                                                        x-on:blur="$wire.updateField({{ $product->id }}, 'category_path', $event.target.value)"
@@ -522,6 +532,18 @@
                                 <div class="flex flex-col gap-0.5 opacity-20 group-hover/btn:opacity-60 transition-opacity {{ $sortField === 'brand' ? 'opacity-100' : '' }}">
                                     <svg xmlns="http://www.w3.org/2000/svg" width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" class="{{ $sortField === 'brand' && $sortDirection === 'asc' ? 'text-electric-blue' : '' }}"><path d="m18 15-6-6-6 6"/></svg>
                                     <svg xmlns="http://www.w3.org/2000/svg" width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" class="{{ $sortField === 'brand' && $sortDirection === 'desc' ? 'text-electric-blue' : '' }}"><path d="m6 9 6 6 6-6"/></svg>
+                                </div>
+                            </button>
+                        </th>
+                        @endif
+
+                        @if(in_array('unit', $visibleColumns))
+                        <th class="px-4 py-2">
+                            <button wire:click="sortBy('unit')" class="flex items-center gap-1.5 text-[9px] font-bold text-slate-400 tracking-[0.2em] group/btn">
+                                ĐƠN VỊ
+                                <div class="flex flex-col gap-0.5 opacity-20 group-hover/btn:opacity-60 transition-opacity {{ $sortField === 'unit' ? 'opacity-100' : '' }}">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" class="{{ $sortField === 'unit' && $sortDirection === 'asc' ? 'text-electric-blue' : '' }}"><path d="m18 15-6-6-6 6"/></svg>
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" class="{{ $sortField === 'unit' && $sortDirection === 'desc' ? 'text-electric-blue' : '' }}"><path d="m6 9 6 6 6-6"/></svg>
                                 </div>
                             </button>
                         </th>
@@ -645,6 +667,20 @@
                                            class="w-full min-w-[100px] bg-slate-50 border border-slate-100 rounded-lg px-2 py-1 text-xs font-bold text-slate-600 transition-all focus:bg-white focus:border-electric-blue focus:ring-0 shadow-inner">
                                 @else
                                     <span class="px-2 py-1 bg-slate-50 text-slate-600 rounded text-[10px] font-bold">{{ $product->brand ?: '-' }}</span>
+                                @endif
+                            </td>
+                            @endif
+
+                            @if(in_array('unit', $visibleColumns))
+                            <td class="px-4 py-2">
+                                @if($quickEditMode)
+                                    <input type="text" 
+                                           value="{{ $product->unit }}" 
+                                           x-on:blur="$wire.updateField({{ $product->id }}, 'unit', $event.target.value)"
+                                           x-on:keydown.enter="$event.target.blur()"
+                                           class="w-full min-w-[80px] bg-slate-50 border border-slate-100 rounded-lg px-2 py-1 text-xs font-bold text-slate-600 transition-all focus:bg-white focus:border-electric-blue focus:ring-0 shadow-inner">
+                                @else
+                                    <span class="px-2 py-1 bg-amber-50 text-amber-700 rounded text-[10px] font-bold">{{ $product->unit ?: 'cái' }}</span>
                                 @endif
                             </td>
                             @endif

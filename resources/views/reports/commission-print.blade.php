@@ -3,7 +3,7 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Báo cáo hoa hồng nhân viên</title>
+    <title>Báo cáo hoa hồng</title>
     @php $fmt = fn ($v) => number_format((int) $v, 0, ',', '.'); @endphp
     <style>
         * { box-sizing: border-box; }
@@ -41,7 +41,7 @@
             <div>{{ $address ?: 'ĐỊA CHỈ' }}</div>
         </div>
 
-        <h1>Báo cáo hoa hồng nhân viên</h1>
+        <h1>Báo cáo hoa hồng</h1>
         <div class="range">Tháng: {{ $monthLabel }} &nbsp;·&nbsp; Chi nhánh: {{ $branchName }}</div>
 
         <table>
