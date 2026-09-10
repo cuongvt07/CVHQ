@@ -178,7 +178,11 @@
                         $coords = array_map(fn ($v, $i) => ['x' => round($xAt($i), 1), 'y' => round($yAt($v), 1)], $curV, array_keys($curV));
                         $labelStep = max(1, (int) ceil($n / 15));
                     @endphp
-                    <div class="mt-3 relative" x-data="{
+                    {{-- wire:key thay đổi theo filter -> Livewire THAY HẲN node (không morph) mỗi khi
+                         đổi khoảng ngày / kỳ so sánh, để Alpine khởi tạo lại x-data với dữ liệu mới.
+                         Thiếu key này, Alpine giữ nguyên pts/coords/n cũ (đông cứng từ lần render đầu)
+                         dù trục X (label) vẫn re-render đúng -> hover tooltip lệch hẳn kỳ dữ liệu. --}}
+                    <div class="mt-3 relative" wire:key="line-chart-{{ $fromDate }}-{{ $toDate }}-{{ $compareWith }}" x-data="{
                             pts: @js($lineChart['points']),
                             coords: @js($coords),
                             n: {{ $n }}, W: {{ $W }}, H: {{ $H }}, pl: {{ $pl }}, cw: {{ $cw }},
