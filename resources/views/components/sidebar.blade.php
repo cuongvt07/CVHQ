@@ -143,6 +143,24 @@
         </x-nav.group>
         @endif
 
+        {{-- TỒN KHO --}}
+        @if(auth()->user()?->hasPermission('products'))
+        <x-nav.group title="Tồn kho" :open="request()->routeIs('products.stock-checks') || request()->routeIs('products.restock') || request()->routeIs('products.transfers*')">
+            <x-nav.link :href="route('products.stock-checks')" :active="request()->routeIs('products.stock-checks')">
+                <x-slot:icon><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="shrink-0"><path d="M9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg></x-slot:icon>
+                Kiểm kho
+            </x-nav.link>
+            <x-nav.link :href="route('products.restock')" :active="request()->routeIs('products.restock')">
+                <x-slot:icon><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="shrink-0"><path d="M12 20v-6a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2v6"/><path d="M6 18H21"/><path d="M18 18v-4a2 2 0 0 0-2-2h-4"/></svg></x-slot:icon>
+                Cảnh báo tồn
+            </x-nav.link>
+            <x-nav.link :href="route('products.transfers')" :active="request()->routeIs('products.transfers*')">
+                <x-slot:icon><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="shrink-0"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/><path d="m8 19-3-7 3-7"/></svg></x-slot:icon>
+                Chuyển hàng CN
+            </x-nav.link>
+        </x-nav.group>
+        @endif
+
         {{-- BÁO CÁO --}}
         @if(auth()->user()?->hasPermission('reports'))
         <x-nav.group title="Báo cáo" :open="request()->routeIs('reports.sales') || request()->routeIs('reports.revenue') || request()->routeIs('reports.products') || request()->routeIs('reports.commission_staff')">
