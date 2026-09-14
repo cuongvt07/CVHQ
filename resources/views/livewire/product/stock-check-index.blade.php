@@ -315,6 +315,8 @@
                                             <div class="text-[10px] text-electric-blue font-mono">{{ $product->sku }}</div>
                                         </div>
                                         <div class="text-xs font-black text-slate-700 shrink-0">{{ number_format($product->stock_quantity) }}</div>
+                                        {{-- Debug info --}}
+                                        <div class="text-[9px] text-rose-500 shrink-0">ID:{{ $product->id }} Cat:{{ $product->category_id ?? 'N/A' }}</div>
                                     </button>
                                 @endforeach
                             </div>
@@ -551,6 +553,8 @@
                                             <div class="text-[10px] text-electric-blue font-mono">{{ $product->sku }}</div>
                                         </div>
                                         <div class="text-xs font-black text-slate-700">{{ number_format($product->stock_quantity) }}</div>
+                                        {{-- Debug info --}}
+                                        <div class="text-[9px] text-rose-500">ID:{{ $product->id }} Cat:{{ $product->category_id ?? 'N/A' }}</div>
                                     </button>
                                 @endforeach
                             </div>
