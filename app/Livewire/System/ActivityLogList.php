@@ -16,7 +16,11 @@ use App\Traits\WithUserPreferences;
 
 class ActivityLogList extends Component
 {
-    use WithPagination, WithColumnVisibility, WithUserPreferences;
+    use WithPagination, WithColumnVisibility, WithUserPreferences {
+        // Class định nghĩa updated() riêng (để resetPage khi lọc) sẽ ghi đè hoàn toàn
+        // updated() của trait (lưu perPage vào ui_settings) -> đổi tên bản gốc để gọi lại.
+        WithUserPreferences::updated as protected savePreference;
+    }
 
     protected function getModuleKey(): string
     {
@@ -61,11 +65,13 @@ class ActivityLogList extends Component
         }
     }
 
-    public function updated($propertyName)
+    public function updated($propertyName, $value = null)
     {
         if (in_array($propertyName, ['search', 'user_id', 'action', 'date_from', 'date_to', 'tab'])) {
             $this->resetPage();
         }
+        // Giữ lại tính năng lưu tùy chọn (perPage) của trait — trước đây bị method này ghi đè mất.
+        $this->savePreference($propertyName, $value);
     }
 
     public function clearFilters()

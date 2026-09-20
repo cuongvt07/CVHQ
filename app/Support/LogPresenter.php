@@ -12,8 +12,12 @@ class LogPresenter
      * Nhãn hành động cụ thể theo loại đối tượng + dữ liệu thay đổi.
      * Tránh ghi chung chung "cập nhật": với hóa đơn phân biệt Thêm mới/Sửa/Trả hàng/Hủy.
      */
-    public static function actionLabel(string $modelType, string $action, ?array $changes = null): string
+    public static function actionLabel(?string $modelType, string $action, ?array $changes = null): string
     {
+        // Bản ghi cũ/rác có thể thiếu model_type -> tránh TypeError khi render trang nhật ký.
+        if (!$modelType) {
+            return self::generic($action);
+        }
         $base = class_basename($modelType);
 
         if ($base === 'Invoice') {
@@ -115,7 +119,7 @@ class LogPresenter
      * Tóm tắt nội dung sửa dạng "Trường: cũ → mới · ...". Rỗng nếu không có thay đổi.
      * Dùng cho nhật ký hệ thống + tab thông báo để dò lại được sau này.
      */
-    public static function changeSummary(string $modelType, ?array $changes, int $max = 6): string
+    public static function changeSummary(?string $modelType, ?array $changes, int $max = 6): string
     {
         if (empty($changes['after']) || !is_array($changes['after'])) {
             return '';
@@ -169,9 +173,9 @@ class LogPresenter
     /**
      * URL trỏ tới chi tiết đối tượng khi click dòng thông báo. Null nếu không có đích.
      */
-    public static function detailUrl(string $modelType, $modelId): ?string
+    public static function detailUrl(?string $modelType, $modelId): ?string
     {
-        if (!$modelId) {
+        if (!$modelId || !$modelType) {
             return null;
         }
 
