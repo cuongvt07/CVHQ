@@ -94,6 +94,7 @@
                                                 @endif
                                             </td>
                                             <td class="px-3 py-2">
+                                                @if(auth()->user()?->role === 'admin')
                                                 <div class="flex items-center justify-center gap-1">
                                                     <input type="number" min="0" max="13" step="0.5" wire:model="editHours.{{ $d['id'] }}" onfocus="this.select()"
                                                            class="w-16 text-center border border-slate-200 rounded-lg px-2 py-1 text-xs font-bold focus:outline-none focus:border-electric-blue">
@@ -102,6 +103,9 @@
                                                         <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
                                                     </button>
                                                 </div>
+                                                @else
+                                                <div class="text-center text-xs font-bold text-slate-600">{{ number_format($editHours[$d['id']] ?? 0, 2, ',', '.') }}</div>
+                                                @endif
                                             </td>
                                             <td class="px-3 py-2 text-right text-[12px] font-bold {{ $d['penalty'] > 0 ? 'text-rose-500' : 'text-slate-300' }}">{{ $d['penalty'] > 0 ? '-'.$fmt($d['penalty']).'đ' : '—' }}</td>
                                             <td class="px-3 py-2 text-right text-[12px] font-bold text-electric-blue">{{ $fmt($d['salary']) }}đ</td>

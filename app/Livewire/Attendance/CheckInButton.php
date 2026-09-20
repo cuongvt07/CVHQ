@@ -8,8 +8,10 @@ use Livewire\Component;
 
 /**
  * Nút check-in/check-out nổi (mọi nhân viên). KHÔNG theo ca:
- * nhân viên tự bấm check-in / check-out. Thời gian công 1 ngày TỐI ĐA 13 giờ.
- * Quên check-out (để mở qua ngày) -> coi như check-out = 0 (ngày đó tính 0 giờ).
+ * nhân viên tự bấm check-in / check-out. Thời gian công MỘT PHIÊN TỐI ĐA 13 giờ
+ * (tính theo thời lượng thực tế kể từ lúc check-in, KHÔNG so sánh theo ngày lịch —
+ * tránh check-in cuối ngày rồi bị tự động chốt/đổi trạng thái ngay khi qua 0h).
+ * Quên check-out quá 13 giờ -> tự chốt phiên ở đúng mốc 13h.
  */
 class CheckInButton extends Component
 {
@@ -32,9 +34,11 @@ class CheckInButton extends Component
             $att = Attendance::where('user_id', auth()->id())
                 ->whereNull('check_out_at')->latest('check_in_at')->first();
 
-            // Phiên còn mở nhưng từ NGÀY TRƯỚC = quên check-out -> chốt 0 giờ.
-            if ($att && $att->check_in_at->toDateString() < now()->toDateString()) {
-                $att->update(['check_out_at' => $att->check_in_at, 'worked_minutes' => 0]);
+            // Chỉ coi là "quên check-out" khi đã QUÁ MAX_MINUTES (13h) kể từ lúc check-in —
+            // KHÔNG so sánh theo ngày lịch (check-in 23h, request đến sau 0h vẫn chưa quá vài
+            // tiếng thì KHÔNG được tự đóng phiên, nếu không nút sẽ tự nhảy xanh giữa ca làm).
+            if ($att && $att->check_in_at->diffInMinutes(now()) > self::MAX_MINUTES) {
+                $att->update(['check_out_at' => $att->check_in_at->copy()->addMinutes(self::MAX_MINUTES), 'worked_minutes' => self::MAX_MINUTES]);
                 $att = null;
             }
         } catch (\Throwable $e) {
@@ -100,12 +104,9 @@ class CheckInButton extends Component
         }
 
         $now = now();
-        // Quên check-out (đã sang ngày khác) -> 0 giờ. Cùng ngày -> cap 13 giờ.
-        if ($att->check_in_at->toDateString() < $now->toDateString()) {
-            $worked = 0;
-        } else {
-            $worked = min((int) $att->check_in_at->diffInMinutes($now), self::MAX_MINUTES);
-        }
+        // Cap tối đa 13h/phiên theo thời lượng THỰC TẾ (không so sánh ngày lịch,
+        // tránh check-in cuối ngày rồi checkout sau 0h bị tính nhầm = 0 giờ).
+        $worked = min((int) $att->check_in_at->diffInMinutes($now), self::MAX_MINUTES);
 
         $att->update(['check_out_at' => $now, 'worked_minutes' => $worked]);
 

@@ -14,7 +14,34 @@
             </div>
         </div>
 
-        <div class="flex items-center gap-2">
+        <div class="flex items-center gap-2 flex-wrap">
+            @php $__locked = in_array($invoice->status, ['Returned', 'Cancelled'], true); @endphp
+
+            @if(auth()->user()->hasPermission('invoice.edit') && !$__locked)
+                <a href="{{ route('invoices', ['action' => 'edit', 'id' => $invoice->id]) }}" wire:navigate
+                   class="px-4 py-1.5 md:px-6 md:py-2 text-[10px] md:text-[14px] font-bold uppercase tracking-widest flex items-center gap-2 bg-white border border-slate-200 text-slate-600 rounded-xl hover:bg-slate-50 transition-all">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/></svg>
+                    Sửa
+                </a>
+            @endif
+
+            @if(auth()->user()->hasPermission('invoice.return') && !$__locked)
+                <button type="button"
+                   onclick="if (confirm('Trả toàn bộ hàng của hóa đơn {{ $invoice->invoice_code }}? Tồn kho sẽ được hoàn lại.')) { window.location.href = '{{ route('invoices', ['action' => 'return', 'id' => $invoice->id]) }}'; }"
+                   class="px-4 py-1.5 md:px-6 md:py-2 text-[10px] md:text-[14px] font-bold uppercase tracking-widest flex items-center gap-2 bg-slate-900 text-white rounded-xl hover:bg-slate-800 transition-all">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9 14 4 9l5-5"/><path d="M4 9h10.5a5.5 5.5 0 0 1 5.5 5.5v0a5.5 5.5 0 0 1-5.5 5.5H11"/></svg>
+                    Trả hàng
+                </button>
+            @endif
+
+            @if(auth()->user()->hasPermission('invoice.cancel') && !$__locked)
+                <a href="{{ route('invoices', ['action' => 'cancel', 'id' => $invoice->id]) }}" wire:navigate
+                   class="px-4 py-1.5 md:px-6 md:py-2 text-[10px] md:text-[14px] font-bold uppercase tracking-widest flex items-center gap-2 bg-rose-50 border border-rose-100 text-rose-600 rounded-xl hover:bg-rose-100 transition-all">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="m15 9-6 6"/><path d="m9 9 6 6"/></svg>
+                    Hủy đơn
+                </a>
+            @endif
+
             <button onclick="window.open('{{ route('pos.print', $invoice->id) }}', '_blank')" class="btn-electric px-4 py-1.5 md:px-6 md:py-2 text-[10px] md:text-[14px] font-bold uppercase tracking-widest flex items-center gap-2">
                 <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9V2h12v7"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect width="12" height="8" x="6" y="14"/></svg>
                 In hóa đơn

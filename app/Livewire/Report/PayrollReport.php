@@ -55,9 +55,13 @@ class PayrollReport extends Component
             ->each(fn ($a) => $this->editHours[$a->id] = round(((int) $a->worked_minutes) / 60, 2));
     }
 
-    /** Sửa số giờ công của 1 phiên (cap 13 giờ). */
+    /** Sửa số giờ công của 1 phiên (cap 13 giờ) — CHỈ ADMIN. */
     public function saveHours(int $attendanceId): void
     {
+        if (auth()->user()?->role !== 'admin') {
+            $this->dispatch('notify', message: 'Bạn không có quyền sửa giờ làm.', type: 'error');
+            return;
+        }
         $att = Attendance::find($attendanceId);
         if (!$att) {
             return;

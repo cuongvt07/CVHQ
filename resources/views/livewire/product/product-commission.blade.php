@@ -4,6 +4,17 @@
         <h1 class="text-base font-black tracking-tight text-slate-900 md:hidden">Bảng hoa hồng</h1>
         <div class="flex items-center gap-2">
             @if(auth()->user()->hasPermission('commission.sync'))
+            <button wire:click="autoFillZeroCommissions" wire:confirm="Tự động điền hoa hồng theo mức giá cho các sản phẩm đang = 0? (chỉ áp dụng SP loại 'tiền' đang = 0, không đè SP đã cấu hình % hoặc đã có mức tiền)."
+                    wire:loading.attr="disabled" class="flex items-center gap-1.5 px-3 py-2 bg-emerald-500 text-white rounded-lg text-[12px] font-bold hover:bg-emerald-600 transition-all shadow-sm shadow-emerald-500/20">
+                <span wire:loading.remove wire:target="autoFillZeroCommissions">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="inline-block"><path d="M12 2v4"/><path d="m6.34 6.34 2.83 2.83"/><path d="M2 12h4"/><path d="m6.34 17.66 2.83-2.83"/><path d="M12 18v4"/><path d="m17.66 17.66-2.83-2.83"/><path d="M18 12h4"/><path d="m17.66 6.34-2.83 2.83"/></svg>
+                    <span class="hidden sm:inline">Tự động điền hoa hồng = 0</span>
+                </span>
+                <span wire:loading wire:target="autoFillZeroCommissions" class="flex items-center gap-1.5">
+                    <svg class="animate-spin" xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg>
+                    <span class="hidden sm:inline">Đang xử lý...</span>
+                </span>
+            </button>
             <button wire:click="syncCommissions" wire:loading.attr="disabled" class="flex items-center gap-1.5 px-3 py-2 bg-rose-500 text-white rounded-lg text-[12px] font-bold hover:bg-rose-600 transition-all shadow-sm shadow-rose-500/20">
                 <span wire:loading.remove wire:target="syncCommissions">
                     <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="inline-block"><path d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/><path d="M3 12a9 9 0 0 0 9 9 9.75 9.75 0 0 0 6.74-2.74L21 16"/><path d="M16 16h5v5"/></svg>

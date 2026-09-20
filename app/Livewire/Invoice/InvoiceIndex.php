@@ -42,6 +42,34 @@ class InvoiceIndex extends Component
     public $editSharedToUserId = null;       // Chia sẻ hoa hồng: người nhận
     public $editSharedCommissionAmount = 0;  // Chia sẻ hoa hồng: số tiền
 
+    /**
+     * Điều hướng từ nơi khác (VD trang chi tiết hóa đơn mở từ thẻ kho) kèm
+     * ?action=edit|cancel|return&id=X -> tự mở đúng thao tác + lọc ra đúng hóa đơn đó.
+     */
+    public function mount(): void
+    {
+        $id = request()->query('id');
+        $action = request()->query('action');
+        if (!$id || !$action) {
+            return;
+        }
+        $invoice = Invoice::find($id);
+        if (!$invoice) {
+            return;
+        }
+        // Lọc để hóa đơn chắc chắn hiện ở trang 1 (không bị pagination che khuất)
+        // và mở sẵn accordion chi tiết của đúng hóa đơn đó.
+        $this->search = $invoice->invoice_code;
+        $this->expandedInvoiceId = $invoice->id;
+
+        match ($action) {
+            'edit'   => $this->editInvoice($invoice->id),
+            'cancel' => $this->confirmCancel($invoice->id),
+            'return' => $this->returnItems($invoice->id),
+            default  => null,
+        };
+    }
+
     protected function getDefaultVisibleColumns(): array
     {
         return ['code', 'date', 'customer', 'amount', 'channel', 'method', 'status', 'actions'];

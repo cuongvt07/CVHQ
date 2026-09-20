@@ -107,6 +107,48 @@ class ProductCommission extends Component
         return true;
     }
 
+    /**
+     * Tự động điền hoa hồng cho các sản phẩm đang = 0 (loại "tiền"), theo dải giá
+     * "commission_ranges" trong Cấu hình chung — CÙNG QUY TẮC áp dụng lúc tạo sản
+     * phẩm mới (xem ProductIndex::commissionForPrice / SystemSetting::commissionForPrice).
+     * Chỉ đụng SP: commission_type = amount VÀ commission_amount = 0 (không đè SP
+     * đã cấu hình theo % hoặc đã có mức tiền > 0).
+     */
+    public function autoFillZeroCommissions()
+    {
+        if (!auth()->user()->hasPermission('commission.sync')) {
+            $this->dispatch('notify', message: 'Bạn không có quyền đồng bộ hoa hồng!', type: 'error');
+            return;
+        }
+
+        $updated = 0;
+        $skippedNoRange = 0;
+
+        Product::where('commission_type', 'amount')
+            ->where(function ($q) {
+                $q->where('commission_amount', 0)->orWhereNull('commission_amount');
+            })
+            ->orderBy('id')
+            ->chunkById(300, function ($products) use (&$updated, &$skippedNoRange) {
+                foreach ($products as $product) {
+                    $amount = \App\Models\SystemSetting::commissionForPrice((int) $product->sale_price);
+                    if ($amount <= 0) {
+                        $skippedNoRange++;
+                        continue;
+                    }
+                    $product->commission_amount = $amount;
+                    $product->save();
+                    $updated++;
+                }
+            });
+
+        $msg = "Đã tự động cập nhật hoa hồng cho {$updated} sản phẩm theo mức giá.";
+        if ($skippedNoRange > 0) {
+            $msg .= " Còn {$skippedNoRange} sản phẩm chưa khớp dải giá nào (giữ nguyên 0) — kiểm tra lại Cấu hình hoa hồng.";
+        }
+        $this->dispatch('notify', message: $msg, type: 'success');
+    }
+
     public function syncCommissions()
     {
         if (!auth()->user()->hasPermission('commission.sync')) {
