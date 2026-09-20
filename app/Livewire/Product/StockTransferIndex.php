@@ -56,6 +56,8 @@ class StockTransferIndex extends Component
     public string $productSearch = '';
     public array $searchResults = [];
     public string $suggestionSearch = '';
+    // Lọc gợi ý theo chiều lệch: all | from_excess (nguồn đang thừa) | to_excess (đích đang thừa)
+    public string $suggestionDirection = 'all';
 
     public function mount(): void
     {
@@ -179,6 +181,7 @@ class StockTransferIndex extends Component
         $this->productSearch = '';
         $this->searchResults = [];
         $this->suggestionSearch = '';
+        $this->suggestionDirection = 'all';
         $this->createdBy    = auth()->id();
         $this->resetDirectionFromUser();
         $this->mode = 'edit';
@@ -216,6 +219,7 @@ class StockTransferIndex extends Component
         $this->productSearch = '';
         $this->searchResults = [];
         $this->suggestionSearch = '';
+        $this->suggestionDirection = 'all';
         $this->mode = 'edit';
     }
 
@@ -784,21 +788,29 @@ class StockTransferIndex extends Component
                 if (!$cp) return null;                        // chưa có cặp ở chi nhánh đối -> bỏ
                 if (in_array($p->id, $existingIds)) return null;
 
-                $imbalance = abs((int) $p->stock_quantity - (int) $cp->stock_quantity);
+                $fromStock = (int) $p->stock_quantity;
+                $toStock   = (int) $cp->stock_quantity;
+                $imbalance = abs($fromStock - $toStock);
                 if ($imbalance < 1) return null;              // lệch < 1 -> bỏ
+
+                // Chiều đang THỪA hàng (nơi có tồn nhiều hơn) — dùng để tô màu + lọc rõ ràng
+                // thay vì chỉ hiện "±X" khó biết bên nào nhiều hơn.
+                $direction = $fromStock > $toStock ? 'from_excess' : 'to_excess';
 
                 return [
                     'id'         => $p->id,                   // id sp NGUỒN (đúng chiều)
                     'sku'        => $p->sku,                  // SKU nguồn
                     'to_sku'     => $cp->sku,                 // SKU chi nhánh đối diện
                     'name'       => $p->base_name ?: $p->name,
-                    'from_stock' => (int) $p->stock_quantity,
-                    'to_stock'   => (int) $cp->stock_quantity,
+                    'from_stock' => $fromStock,
+                    'to_stock'   => $toStock,
                     'imbalance'  => $imbalance,
+                    'direction'  => $direction,                // from_excess: bên GỬI đang thừa | to_excess: bên NHẬN đang thừa
                     'image'      => $p->images[0] ?? null,
                 ];
             })
             ->filter()
+            ->when($this->suggestionDirection !== 'all', fn ($c) => $c->where('direction', $this->suggestionDirection))
             ->sortByDesc('imbalance')
             ->take(100)
             ->values()

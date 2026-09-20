@@ -332,10 +332,27 @@
                     @endforelse
 
                     {{-- Suggestions --}}
-                    @if($this->canEdit && count($suggestions) > 0 && empty($productSearch))
+                    @if($this->canEdit && empty($productSearch))
                     <div class="mt-4">
-                        <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">Gợi ý (lệch nhiều nhất)</p>
-                        @foreach(array_slice($suggestions, 0, 20) as $s)
+                        <div class="flex items-center justify-between mb-2">
+                            <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Gợi ý (lệch nhiều nhất)</p>
+                        </div>
+                        <div class="flex items-center gap-1 mb-2">
+                            <button wire:click="$set('suggestionDirection', 'all')"
+                                    class="flex-1 px-1.5 py-1 rounded-lg text-[9px] font-black uppercase tracking-wider transition-colors {{ $suggestionDirection === 'all' ? 'bg-slate-800 text-white' : 'bg-white border border-slate-200 text-slate-500' }}">
+                                Tất cả
+                            </button>
+                            <button wire:click="$set('suggestionDirection', 'from_excess')"
+                                    class="flex-1 px-1.5 py-1 rounded-lg text-[9px] font-black uppercase tracking-wider transition-colors {{ $suggestionDirection === 'from_excess' ? 'bg-rose-500 text-white' : 'bg-white border border-slate-200 text-rose-500' }}">
+                                {{ strtoupper($fromBranch) }} thừa
+                            </button>
+                            <button wire:click="$set('suggestionDirection', 'to_excess')"
+                                    class="flex-1 px-1.5 py-1 rounded-lg text-[9px] font-black uppercase tracking-wider transition-colors {{ $suggestionDirection === 'to_excess' ? 'bg-emerald-500 text-white' : 'bg-white border border-slate-200 text-emerald-500' }}">
+                                {{ strtoupper($toBranch) }} thừa
+                            </button>
+                        </div>
+                        @forelse(array_slice($suggestions, 0, 20) as $s)
+                        @php $__fromExcess = $s['direction'] === 'from_excess'; @endphp
                         <button wire:click="addProduct({{ $s['id'] }})"
                                 class="w-full flex items-center gap-2 bg-white border border-slate-100 rounded-xl px-3 py-2 mb-1.5 hover:border-electric-blue/30 hover:bg-electric-blue/5 transition-colors text-left">
                             <div class="w-8 h-8 rounded bg-slate-100 overflow-hidden shrink-0">
@@ -346,12 +363,14 @@
                                 <div class="text-[10px] text-slate-600 truncate">{{ $s['name'] }}</div>
                             </div>
                             <div class="text-right shrink-0">
-                                <div class="text-[9px] text-slate-400">{{ strtoupper($fromBranch) }}: {{ $s['from_stock'] }}</div>
-                                <div class="text-[9px] text-slate-400">{{ strtoupper($toBranch) }}: {{ $s['to_stock'] }}</div>
-                                <div class="text-[9px] font-black {{ $s['imbalance'] > 5 ? 'text-rose-500' : 'text-amber-500' }}">Lệch {{ $s['imbalance'] }}</div>
+                                <div class="text-[9px] font-bold {{ $__fromExcess ? 'text-rose-500' : 'text-slate-400' }}">{{ strtoupper($fromBranch) }}: {{ $s['from_stock'] }}</div>
+                                <div class="text-[9px] font-bold {{ !$__fromExcess ? 'text-emerald-500' : 'text-slate-400' }}">{{ strtoupper($toBranch) }}: {{ $s['to_stock'] }}</div>
+                                <div class="text-[9px] font-black {{ $__fromExcess ? 'text-rose-500' : 'text-emerald-500' }}">{{ $__fromExcess ? strtoupper($fromBranch) : strtoupper($toBranch) }} thừa {{ $s['imbalance'] }}</div>
                             </div>
                         </button>
-                        @endforeach
+                        @empty
+                        <div class="text-center py-6 text-[11px] text-slate-400">Không có sản phẩm nào lệch theo chiều này.</div>
+                        @endforelse
                     </div>
                     @endif
                 </div>
@@ -692,9 +711,29 @@
                         <input type="text" wire:model.live.debounce.300ms="suggestionSearch" placeholder="Tìm trong gợi ý..."
                                class="w-full bg-white border border-slate-200 rounded-lg py-1.5 pl-8 pr-2 text-xs focus:outline-none focus:border-electric-blue">
                     </div>
+                    {{-- Lọc riêng theo chiều đang thừa hàng: bên GỬI thừa (đỏ) hay bên NHẬN thừa (xanh) --}}
+                    <div class="flex items-center gap-1">
+                        <button wire:click="$set('suggestionDirection', 'all')"
+                                class="flex-1 px-1.5 py-1 rounded-lg text-[9px] font-black uppercase tracking-wider transition-colors {{ $suggestionDirection === 'all' ? 'bg-slate-800 text-white' : 'bg-white border border-slate-200 text-slate-500 hover:bg-slate-100' }}">
+                            Tất cả
+                        </button>
+                        <button wire:click="$set('suggestionDirection', 'from_excess')"
+                                class="flex-1 px-1.5 py-1 rounded-lg text-[9px] font-black uppercase tracking-wider transition-colors {{ $suggestionDirection === 'from_excess' ? 'bg-rose-500 text-white' : 'bg-white border border-slate-200 text-rose-500 hover:bg-rose-50' }}">
+                            {{ strtoupper($fromBranch) }} thừa
+                        </button>
+                        <button wire:click="$set('suggestionDirection', 'to_excess')"
+                                class="flex-1 px-1.5 py-1 rounded-lg text-[9px] font-black uppercase tracking-wider transition-colors {{ $suggestionDirection === 'to_excess' ? 'bg-emerald-500 text-white' : 'bg-white border border-slate-200 text-emerald-500 hover:bg-emerald-50' }}">
+                            {{ strtoupper($toBranch) }} thừa
+                        </button>
+                    </div>
                 </div>
                 <div class="flex-1 overflow-y-auto custom-scrollbar p-2 space-y-1.5">
                     @forelse($suggestions as $s)
+                    @php
+                        $__fromExcess = $s['direction'] === 'from_excess';
+                        $__dirColor = $__fromExcess ? 'text-rose-500' : 'text-emerald-500';
+                        $__dirBg = $__fromExcess ? 'bg-rose-50 border-rose-100' : 'bg-emerald-50 border-emerald-100';
+                    @endphp
                     <button wire:click="addProduct({{ $s['id'] }})"
                             class="w-full flex items-center gap-2 bg-white border border-slate-100 rounded-xl px-2.5 py-2 hover:border-electric-blue/40 hover:bg-electric-blue/5 transition-colors text-left group">
                         <div class="w-9 h-9 rounded-lg bg-slate-100 overflow-hidden shrink-0">
@@ -704,20 +743,29 @@
                             <div class="text-[10px] font-black text-electric-blue font-mono truncate">{{ $s['sku'] }} <span class="text-slate-400">→ {{ $s['to_sku'] }}</span></div>
                             <div class="text-[9px] text-slate-500 truncate">{{ $s['name'] }}</div>
                             <div class="flex items-center gap-1.5 mt-0.5">
-                                <span class="text-[9px] text-slate-400">{{ strtoupper($fromBranch) }}: {{ $s['from_stock'] }}</span>
+                                <span class="text-[9px] font-bold {{ $__fromExcess ? 'text-rose-500' : 'text-slate-400' }}">{{ strtoupper($fromBranch) }}: {{ $s['from_stock'] }}</span>
                                 <span class="text-[8px] text-slate-300">·</span>
-                                <span class="text-[9px] text-slate-400">{{ strtoupper($toBranch) }}: {{ $s['to_stock'] }}</span>
+                                <span class="text-[9px] font-bold {{ !$__fromExcess ? 'text-emerald-500' : 'text-slate-400' }}">{{ strtoupper($toBranch) }}: {{ $s['to_stock'] }}</span>
                             </div>
                         </div>
                         <div class="shrink-0 text-right">
-                            <div class="text-xs font-black {{ $s['imbalance'] > 10 ? 'text-rose-500' : ($s['imbalance'] > 3 ? 'text-amber-500' : 'text-slate-400') }}">
-                                ±{{ $s['imbalance'] }}
+                            <div class="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded-md border {{ $__dirBg }}">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" class="{{ $__dirColor }} {{ $__fromExcess ? '' : 'rotate-180' }}"><path d="m5 12 7-7 7 7"/><path d="M12 19V5"/></svg>
+                                <span class="text-[10px] font-black {{ $__dirColor }}">{{ $s['imbalance'] }}</span>
                             </div>
-                            <svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="ml-auto text-slate-300 group-hover:text-electric-blue transition-colors mt-0.5"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
+                            <div class="text-[8px] font-bold text-slate-400 mt-0.5">{{ $__fromExcess ? strtoupper($fromBranch) : strtoupper($toBranch) }} thừa</div>
                         </div>
                     </button>
                     @empty
-                    <div class="text-center py-8 text-[11px] text-slate-400">{{ $suggestionSearch !== '' ? 'Không tìm thấy sản phẩm phù hợp.' : 'Không có sản phẩm lệch tồn.' }}</div>
+                    <div class="text-center py-8 text-[11px] text-slate-400">
+                        @if($suggestionSearch !== '')
+                            Không tìm thấy sản phẩm phù hợp.
+                        @elseif($suggestionDirection !== 'all')
+                            Không có sản phẩm nào lệch theo chiều này.
+                        @else
+                            Không có sản phẩm lệch tồn.
+                        @endif
+                    </div>
                     @endforelse
                 </div>
             </div>

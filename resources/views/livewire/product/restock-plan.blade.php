@@ -10,10 +10,20 @@
                 <span class="text-[9px] font-black text-slate-400 tracking-widest">Định mức tồn:</span>
                 <input type="number" wire:model.blur="threshold" class="w-16 bg-slate-50 border-0 rounded-lg px-2 py-1 text-sm font-bold text-rose-600 focus:ring-2 focus:ring-rose-500/20 outline-none">
             </div>
-            <button onclick="window.print()" class="btn-electric flex items-center gap-2 px-6 py-2.5 text-[9px] md:text-[13px] font-bold tracking-widest">
-                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9V2h12v7"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect width="12" height="8" x="6" y="14"/></svg>
-                In danh sách
-            </button>
+            @if(count($selectedIds) > 0)
+                <span class="text-[10px] font-black text-electric-blue bg-electric-blue/10 px-3 py-1.5 rounded-lg">Đã chọn {{ count($selectedIds) }}</span>
+                <button wire:click="clearSelection" class="text-[10px] font-bold text-slate-400 hover:text-rose-500 underline">Bỏ chọn</button>
+                <button onclick="window.open('{{ route('products.restock.print') }}?ids={{ implode(',', $selectedIds) }}', '_blank')"
+                        class="btn-electric flex items-center gap-2 px-6 py-2.5 text-[9px] md:text-[13px] font-bold tracking-widest">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9V2h12v7"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect width="12" height="8" x="6" y="14"/></svg>
+                    In danh sách đã chọn ({{ count($selectedIds) }})
+                </button>
+            @else
+                <button onclick="window.print()" class="btn-electric flex items-center gap-2 px-6 py-2.5 text-[9px] md:text-[13px] font-bold tracking-widest opacity-60" title="Tick chọn sản phẩm bên dưới để in danh sách hàng cần nhập">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9V2h12v7"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect width="12" height="8" x="6" y="14"/></svg>
+                    In trang này
+                </button>
+            @endif
         </div>
     </header>
 
@@ -166,8 +176,10 @@
         <div class="md:hidden space-y-2">
             @if(count($products) > 0)
                 @foreach($products as $product)
-                <div wire:key="restock-card-{{ $product->id }}" class="bg-white border border-slate-200 rounded-xl p-3 shadow-sm">
+                <div wire:key="restock-card-{{ $product->id }}" class="bg-white border rounded-xl p-3 shadow-sm {{ in_array((string) $product->id, $selectedIds, true) ? 'border-electric-blue bg-electric-blue/5' : 'border-slate-200' }}">
                     <div class="flex items-center gap-3 mb-2">
+                        <input type="checkbox" wire:click="toggleSelect({{ $product->id }})" @checked(in_array((string) $product->id, $selectedIds, true))
+                               class="w-5 h-5 rounded border-slate-300 text-electric-blue focus:ring-electric-blue/20 cursor-pointer shrink-0">
                         @if(!empty($product->images))
                             <img src="{{ $product->image_url }}" class="w-10 h-10 rounded-lg object-cover border border-slate-100 shrink-0">
                         @else
@@ -224,6 +236,9 @@
             <table class="w-full text-left border-collapse">
                 <thead class="sticky top-0 z-30 bg-slate-50/95 shadow-[0_1px_0_rgba(226,232,240,1)]">
                     <tr class="border-b border-slate-200">
+                        <th class="px-4 py-2 w-8">
+                            <input type="checkbox" wire:model.live="selectAllPage" class="w-4 h-4 rounded border-slate-300 text-electric-blue focus:ring-electric-blue/20 cursor-pointer">
+                        </th>
                         <th class="px-4 py-2 text-[9px] font-bold text-slate-500 tracking-[0.2em]">Sản phẩm</th>
                         <th class="px-4 py-2 text-[9px] font-bold text-slate-400 tracking-[0.2em]">SKU</th>
                         <th class="px-4 py-2 text-[9px] font-bold text-slate-400 tracking-[0.2em]">Vị trí</th>
@@ -234,11 +249,21 @@
                 <tbody class="divide-y divide-slate-100 bg-white/50">
                     @if(count($products) > 0)
                         @foreach($products as $product)
-                        <tr wire:key="restock-row-{{ $product->id }}" class="hover:bg-slate-50 transition-colors group/row">
+                        <tr wire:key="restock-row-{{ $product->id }}" class="hover:bg-slate-50 transition-colors group/row {{ in_array((string) $product->id, $selectedIds, true) ? 'bg-electric-blue/5' : '' }}">
+                            <td class="px-4 py-2">
+                                <input type="checkbox" wire:click="toggleSelect({{ $product->id }})" @checked(in_array((string) $product->id, $selectedIds, true))
+                                       class="w-4 h-4 rounded border-slate-300 text-electric-blue focus:ring-electric-blue/20 cursor-pointer">
+                            </td>
                             <td class="px-4 py-2">
                                 <div class="flex items-center gap-3">
                                     @if(!empty($product->images))
-                                        <img src="{{ $product->image_url }}" class="w-10 h-10 rounded-lg object-cover border border-slate-100">
+                                        <div class="relative" x-data="{ hover: false }" @mouseenter="hover = true" @mouseleave="hover = false">
+                                            <img src="{{ $product->image_url }}" class="w-10 h-10 rounded-lg object-cover border border-slate-100 cursor-zoom-in">
+                                            <div x-show="hover" x-cloak x-transition
+                                                 class="absolute z-[90] left-12 top-1/2 -translate-y-1/2 p-1.5 bg-white border border-slate-200 rounded-xl shadow-2xl pointer-events-none">
+                                                <img src="{{ $product->image_url }}" class="w-48 h-48 object-cover rounded-lg">
+                                            </div>
+                                        </div>
                                     @else
                                         <div class="w-10 h-10 rounded-lg bg-slate-100 flex items-center justify-center text-slate-300">
                                             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="3" rx="2" ry="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/></svg>
@@ -279,7 +304,7 @@
                         @endforeach
                     @else
                         <tr>
-                            <td colspan="6" class="px-6 py-20 text-center">
+                            <td colspan="7" class="px-6 py-20 text-center">
                                 <div class="flex flex-col items-center opacity-30">
                                     <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="mb-4"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
                                     <p class="text-xs font-black uppercase tracking-[0.2em]">Không có sản phẩm nào dưới định mức</p>

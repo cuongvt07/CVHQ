@@ -23,6 +23,10 @@ class RestockPlan extends Component
     public $boxCode = '';
     public $perPage = 25;
 
+    /** Danh sách ID sản phẩm đã tick để in phiếu nhập hàng. */
+    public array $selectedIds = [];
+    public bool $selectAllPage = false;
+
     protected $queryString = [
         'threshold' => ['except' => 10],
         'search' => ['except' => ''],
@@ -97,6 +101,32 @@ class RestockPlan extends Component
             ->orderBy('stock_quantity', 'asc')
             ->paginate($this->perPage)
             ->onEachSide(1);
+    }
+
+    public function updatedSelectAllPage($value): void
+    {
+        $idsOnPage = $this->getLowStockProducts()->pluck('id')->map(fn ($id) => (string) $id)->all();
+        if ($value) {
+            $this->selectedIds = array_values(array_unique(array_merge($this->selectedIds, $idsOnPage)));
+        } else {
+            $this->selectedIds = array_values(array_diff($this->selectedIds, $idsOnPage));
+        }
+    }
+
+    public function toggleSelect($id): void
+    {
+        $id = (string) $id;
+        if (in_array($id, $this->selectedIds, true)) {
+            $this->selectedIds = array_values(array_diff($this->selectedIds, [$id]));
+        } else {
+            $this->selectedIds[] = $id;
+        }
+    }
+
+    public function clearSelection(): void
+    {
+        $this->selectedIds = [];
+        $this->selectAllPage = false;
     }
 
     public function updateField($id, $field, $value)

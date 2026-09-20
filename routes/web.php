@@ -40,6 +40,13 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/pos', PosTerminal::class)->name('pos');
     Route::get('/products', ProductIndex::class)->name('products');
     Route::get('/products/restock', \App\Livewire\Product\RestockPlan::class)->name('products.restock');
+    Route::get('/products/restock/print', function () {
+        $ids = array_filter(explode(',', (string) request()->query('ids', '')));
+        $products = \App\Models\Product::whereIn('id', $ids)
+            ->orderBy('stock_quantity', 'asc')
+            ->get();
+        return view('pos.print-restock', ['products' => $products]);
+    })->name('products.restock.print');
     Route::get('/products/stock-checks', \App\Livewire\Product\StockCheckIndex::class)->name('products.stock-checks');
     Route::get('/products/transfers', \App\Livewire\Product\StockTransferIndex::class)->name('products.transfers');
     Route::get('/products/transfers/print/{transfer}', function (App\Models\StockTransfer $transfer) {
