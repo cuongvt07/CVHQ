@@ -20,8 +20,14 @@
         $nav = fn ($active) => $__navBase . ' ' . ($active ? $__navActive : $__navIdle);
         $head = 'px-4 text-[11px] font-bold tracking-[0.16em] text-slate-500 mb-2 whitespace-nowrap uppercase';
     @endphp
+    @php
+        // Ở màn hình POS: bấm logo/trang chủ mở TAB MỚI (không rời trang bán hàng đang dở,
+        // mất giỏ hàng/phiên đang thao tác). Ở các trang khác thì điều hướng bình thường.
+        $__inPos = request()->routeIs('pos');
+    @endphp
     <div class="h-14 flex items-center justify-between gap-2 px-3 border-b border-slate-200 mb-3 shrink-0">
-        <div class="flex items-center gap-2 overflow-hidden min-w-0">
+        <a href="{{ route('dashboard') }}" @if($__inPos) target="_blank" rel="noopener" @endif
+           class="flex items-center gap-2 overflow-hidden min-w-0" title="{{ $__inPos ? 'Mở trang chủ ở tab mới' : 'Về trang chủ' }}">
             <div class="w-8 h-8 rounded-lg {{ $__appLogo ? 'overflow-hidden border border-slate-200' : 'bg-electric-blue flex items-center justify-center shadow-[0_4px_15px_rgba(0,136,204,0.3)]' }} shrink-0">
                 @if($__appLogo)
                     <img src="{{ $__appLogo }}" alt="{{ $__appName }}" class="w-full h-full object-cover">
@@ -30,7 +36,7 @@
                 @endif
             </div>
             <span class="text-base font-bold tracking-tight text-slate-900 whitespace-nowrap truncate">{{ $__appName }}</span>
-        </div>
+        </a>
 
         <button @click="sidebarHidden = true"
                 class="shrink-0 w-8 h-8 flex items-center justify-center rounded-lg bg-white border border-slate-200 text-slate-500 hover:text-electric-blue hover:border-electric-blue/40 transition-all shadow-sm"
@@ -48,7 +54,8 @@
         {{-- Tổng quan --}}
         @if(auth()->user()?->hasPermission('dashboard'))
         <div>
-            <a href="{{ route('dashboard') }}" class="{{ $nav(request()->routeIs('dashboard')) }}">
+            <a href="{{ route('dashboard') }}" @if($__inPos) target="_blank" rel="noopener" @endif
+               class="{{ $nav(request()->routeIs('dashboard')) }}" title="{{ $__inPos ? 'Mở ở tab mới' : '' }}">
                 <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="shrink-0"><path d="M3 9h18v10a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V9Z"/><path d="m3 9 2.45-4.9A2 2 0 0 1 7.24 3h9.52a2 2 0 0 1 1.8 1.1L21 9"/></svg>
                 <span class="text-[13px] whitespace-nowrap">Tổng quan</span>
             </a>

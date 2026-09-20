@@ -1,7 +1,8 @@
 {{-- POS Customer Selector: search/select customer or show selected --}}
-<div class="px-1.5 py-1 border-b border-slate-100 shrink-0">
+<div class="mx-1.5 mt-1.5 mb-1 shrink-0 bg-white border border-slate-300 rounded-xl p-1.5 shadow-sm">
+    <p class="text-[8px] font-black text-slate-400 tracking-[0.15em] uppercase px-0.5 mb-1">Khách hàng</p>
     @if($selectedCustomer)
-        <div class="flex items-center justify-between bg-electric-blue/5 border border-electric-blue/10 rounded-lg px-2 py-1.5">
+        <div class="flex items-center justify-between bg-electric-blue/5 border border-electric-blue/20 rounded-lg px-2 py-1.5">
             <div class="flex items-center gap-2">
                 <div class="w-7 h-7 rounded-full bg-electric-blue text-white flex items-center justify-center shrink-0">
                     <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>

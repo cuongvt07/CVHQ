@@ -22,10 +22,15 @@
                     {{-- STT --}}
                     <span class="shrink-0 w-5 h-5 rounded-full bg-electric-blue/10 text-electric-blue text-[9px] font-black flex items-center justify-center">{{ $loop->iteration }}</span>
 
-                    {{-- Image --}}
-                    <div class="w-9 h-9 rounded shrink-0 bg-slate-50 overflow-hidden">
+                    {{-- Image (hover phóng to) --}}
+                    <div class="w-9 h-9 rounded shrink-0 bg-slate-50 overflow-hidden relative"
+                         @if($item['image']) x-data="{ hover: false }" @mouseenter="hover = true" @mouseleave="hover = false" @endif>
                         @if($item['image'])
-                            <img src="{{ $item['image'] }}" class="w-full h-full object-cover">
+                            <img src="{{ $item['image'] }}" class="w-full h-full object-cover cursor-zoom-in">
+                            <div x-show="hover" x-cloak x-transition
+                                 class="absolute z-[90] left-11 top-1/2 -translate-y-1/2 p-1.5 bg-white border border-slate-200 rounded-xl shadow-2xl pointer-events-none">
+                                <img src="{{ $item['image'] }}" class="w-44 h-44 object-cover rounded-lg">
+                            </div>
                         @else
                             <div class="w-full h-full flex items-center justify-center text-slate-200">
                                 <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>

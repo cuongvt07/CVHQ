@@ -3,17 +3,26 @@
     <div class="flex items-end gap-0.5">
         @foreach($tabs as $i => $tab)
             <div wire:key="tab-{{ $i }}"
+                x-data="{ editing: false }"
                 class="group relative flex flex-1 items-center justify-between gap-1.5 min-w-0 px-2 py-2 cursor-pointer rounded-t-lg transition-all select-none
                       {{ $activeTab === $i
                          ? 'bg-white border border-b-white border-slate-200 text-electric-blue shadow-[0_-2px_8px_rgba(0,0,0,0.06)] z-10'
                          : 'bg-slate-50 text-slate-400 hover:text-slate-600 hover:bg-slate-100' }}"
-                wire:click="switchTab({{ $i }})">
+                @click="if (!editing) $wire.switchTab({{ $i }})">
 
-                {{-- LEFT cluster: icon + label (grows, truncates) --}}
+                {{-- LEFT cluster: icon + label (grows, truncates) — double-click hoặc bấm bút để đặt tên tùy chỉnh --}}
                 <div class="flex items-center gap-1.5 min-w-0 flex-1">
                     <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="shrink-0 {{ $activeTab === $i ? 'opacity-100' : 'opacity-40' }}"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
 
-                    <span class="text-[11px] font-bold truncate min-w-0">{{ $tab['label'] }}</span>
+                    <span x-show="!editing" @dblclick.stop="editing = true; $nextTick(() => $refs.tabNameInput{{ $i }}.focus())"
+                          class="text-[11px] font-bold truncate min-w-0" title="Nhấp đúp để đặt tên">{{ $tab['label'] }}</span>
+                    <input x-show="editing" x-cloak x-ref="tabNameInput{{ $i }}"
+                           type="text" value="{{ $tab['label'] }}" maxlength="30"
+                           @click.stop
+                           @keydown.enter="$wire.renameTab({{ $i }}, $event.target.value); editing = false"
+                           @keydown.escape="editing = false"
+                           @blur="$wire.renameTab({{ $i }}, $event.target.value); editing = false"
+                           class="text-[11px] font-bold min-w-0 w-full bg-white border border-electric-blue rounded px-1 py-0 focus:outline-none text-slate-900">
                 </div>
 
                 @php
@@ -29,6 +38,10 @@
 
                 {{-- RIGHT cluster: badge + price-edit dot + X (glued to right edge) --}}
                 <div class="flex items-center gap-1 shrink-0">
+                    <button x-show="!editing" @click.stop="editing = true; $nextTick(() => $refs.tabNameInput{{ $i }}.focus())"
+                            title="Đặt tên đơn" class="shrink-0 w-5 h-5 flex items-center justify-center text-slate-300 hover:text-electric-blue rounded-md opacity-0 group-hover:opacity-100 transition-opacity">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/></svg>
+                    </button>
                     @if($tabHasPriceEdit)
                         <span class="w-2 h-2 rounded-full bg-amber-500 shadow-[0_0_4px_rgba(245,158,11,0.6)] shrink-0" title="Có sản phẩm đã sửa giá"></span>
                     @endif

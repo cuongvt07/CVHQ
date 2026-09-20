@@ -12,7 +12,8 @@
     $__methods = $payment_methods ?? [];
     $__activePaymentKey = (string)($currentTab['payment_method'] ?? 'cash');
 @endphp
-<div class="px-1.5 pb-1 shrink-0 space-y-0.5">
+<div class="mx-1.5 mb-1.5 shrink-0 bg-white border border-slate-300 rounded-xl p-1.5 space-y-1 shadow-sm">
+    <p class="text-[8px] font-black text-slate-400 tracking-[0.15em] uppercase px-0.5">Kênh bán & thanh toán</p>
 
     {{-- Sales channel --}}
     <div class="flex items-center gap-2">
@@ -38,10 +39,10 @@
         <div class="flex-1 flex gap-0.5">
             @foreach($__methods as $pm)
                 <button type="button" wire:click="setPaymentMethod('{{ $pm['key'] }}')"
-                        class="flex-1 px-1 py-0.5 rounded text-[9px] font-bold uppercase tracking-wider transition-all border leading-tight
+                        class="flex-1 px-1 py-0.5 rounded text-[9px] font-bold uppercase tracking-wider transition-all border-2 leading-tight
                                {{ $__activePaymentKey === $pm['key']
-                                  ? 'bg-electric-blue text-white border-electric-blue'
-                                  : 'bg-white text-slate-500 border-slate-200 hover:border-slate-300' }}">
+                                  ? 'bg-electric-blue text-white border-electric-blue shadow-sm'
+                                  : 'bg-white text-slate-500 border-slate-200 hover:border-slate-400' }}">
                     {{ $pm['name'] }}
                 </button>
             @endforeach

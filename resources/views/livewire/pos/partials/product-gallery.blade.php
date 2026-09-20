@@ -6,7 +6,17 @@
         <div class="grid grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-1">
             @foreach($products as $product)
                 <div wire:click="addToCart({{ $product['id'] }})"
-                     class="group relative bg-white border border-slate-200 rounded-lg hover:shadow-lg hover:border-electric-blue/30 transition-all cursor-pointer flex flex-col h-full z-10 hover:z-20">
+                     x-data="{ justAdded: false }"
+                     @cart-item-added.window="if ($event.detail.id === {{ (int) $product['id'] }}) { justAdded = true; setTimeout(() => justAdded = false, 700); }"
+                     class="group relative bg-white border rounded-lg hover:shadow-lg transition-all cursor-pointer flex flex-col h-full z-10 hover:z-20"
+                     :class="justAdded ? 'border-emerald-400 ring-2 ring-emerald-400/40' : 'border-slate-200 hover:border-electric-blue/30'">
+                    {{-- Hiệu ứng xác nhận đã thêm vào giỏ: tick xanh nổi lên rồi mờ dần --}}
+                    <div x-show="justAdded" x-cloak
+                         x-transition:enter="transition ease-out duration-150" x-transition:enter-start="opacity-0 scale-50" x-transition:enter-end="opacity-100 scale-100"
+                         x-transition:leave="transition ease-in duration-300" x-transition:leave-start="opacity-100" x-transition:leave-end="opacity-0"
+                         class="absolute -top-1.5 -right-1.5 z-30 w-6 h-6 rounded-full bg-emerald-500 shadow-lg flex items-center justify-center pointer-events-none">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>
+                    </div>
                     <div class="aspect-square overflow-hidden bg-slate-50 shrink-0 product-image-container rounded-t-lg relative"
                          x-data="{ zoomOpen: false }">
                         @if($product['image'])

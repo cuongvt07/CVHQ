@@ -184,6 +184,17 @@ class PosTerminal extends Component
         }
     }
 
+    /** Đặt tên tùy chỉnh cho 1 tab đơn (VD "Chị Lan", "Khách sỉ A") để dễ phân biệt nhiều khách cùng lúc. */
+    public function renameTab(int $index, string $label): void
+    {
+        if (!isset($this->tabs[$index])) {
+            return;
+        }
+        $label = trim($label);
+        $this->tabs[$index]['label'] = $label !== '' ? mb_substr($label, 0, 30) : ('Đơn ' . ($index + 1));
+        $this->persistTabs();
+    }
+
     public function closeTab(int $index): void
     {
         if (count($this->tabs) <= 1) {
@@ -514,6 +525,9 @@ class PosTerminal extends Component
 
         $this->setTab($tab);
         $this->recalculateTotalDiscount();
+
+        // Báo hiệu thêm giỏ thành công (hiệu ứng toast/tick trên UI, cả desktop + mobile).
+        $this->dispatch('cart-item-added', id: $product->id, name: $product->base_name ?: $product->name);
     }
 
     public function updateQuantity(int $productId, int $delta): void

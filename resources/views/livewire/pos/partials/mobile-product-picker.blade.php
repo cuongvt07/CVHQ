@@ -126,14 +126,24 @@
                     $outOfStock = (int) $product['stock_quantity'] <= 0;
                     $lowStock = !$outOfStock && (int) $product['stock_quantity'] <= 5;
                 @endphp
-                <div x-data="{ zoom: false }" class="border-b border-slate-100">
+                <div x-data="{ zoom: false, justAdded: false }" class="border-b border-slate-100 relative"
+                     @cart-item-added.window="if ($event.detail.id === {{ (int) $product['id'] }}) { justAdded = true; setTimeout(() => justAdded = false, 900); }">
+                    {{-- Không tự đóng picker khi thêm hàng — cho phép chọn liên tiếp nhiều SP. --}}
                     <div wire:click="addToCart({{ $product['id'] }})"
-                         @click="setTimeout(() => mobileProductPicker = false, 50); $wire.set('search', '')"
                          @class([
                              'flex items-center gap-2.5 px-2 py-2 text-left transition-colors',
                              'opacity-40 cursor-not-allowed' => $outOfStock,
                              'active:bg-electric-blue/10 cursor-pointer' => !$outOfStock,
                          ])>
+                        {{-- Hiệu ứng xác nhận đã thêm: dấu tick xanh lướt qua --}}
+                        <div x-show="justAdded" x-transition:enter="transition ease-out duration-150" x-transition:enter-start="opacity-0 scale-75" x-transition:enter-end="opacity-100 scale-100"
+                             x-transition:leave="transition ease-in duration-300" x-transition:leave-start="opacity-100" x-transition:leave-end="opacity-0"
+                             x-cloak class="absolute inset-0 z-10 flex items-center justify-center bg-emerald-500/90 pointer-events-none">
+                            <div class="flex items-center gap-1.5 text-white font-black text-[12px]">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>
+                                Đã thêm vào giỏ
+                            </div>
+                        </div>
 
                         {{-- Avatar (tap = zoom if image, else just letter) --}}
                         @if($product['image'])
