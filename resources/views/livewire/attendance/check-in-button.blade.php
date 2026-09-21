@@ -97,7 +97,9 @@
      @mousedown="down($event)" @touchstart="down($event)"
      @click.outside="expanded = false"
      x-on:ci-checked-in.window="startClock($event.detail?.iso)"
-     x-on:ci-checked-out.window="stopClock()">
+     x-on:ci-checked-out.window="stopClock()"
+     x-on:ci-self-checked-in.window="working = true; setTimeout(() => window.location.reload(), 700)"
+     x-on:ci-self-checked-out.window="working = false; setTimeout(() => window.location.reload(), 700)">
 
     {{-- Thu gọn: hình tròn (kéo để di chuyển, bấm để mở) --}}
     <button x-show="!expanded" @click="if (!moved) expanded = true"

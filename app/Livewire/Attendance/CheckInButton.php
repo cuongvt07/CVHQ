@@ -133,7 +133,9 @@ class CheckInButton extends Component
             return; // request khác đã check-in trước trong lúc chờ khoá
         }
 
-        $this->dispatch('ci-checked-in', iso: $this->checkInAtIso);
+        // Tự bấm (không phải đồng bộ từ poll) -> bắn event riêng để frontend RELOAD TRANG,
+        // đảm bảo trạng thái luôn đúng 100% từ server thay vì tin vào Alpine cache.
+        $this->dispatch('ci-self-checked-in');
         $this->dispatch('notify', message: 'Đã check-in lúc ' . $now->format('H:i') . '.', type: 'success');
     }
 
@@ -156,7 +158,8 @@ class CheckInButton extends Component
         $att->update(['check_out_at' => $now, 'worked_minutes' => $worked]);
 
         $this->refreshState();
-        $this->dispatch('ci-checked-out');
+        // Tự bấm -> reload trang (xem ghi chú ở checkIn()).
+        $this->dispatch('ci-self-checked-out');
         $h = number_format($worked / 60, 2, ',', '.');
         $this->dispatch('notify', message: "Đã check-out. Thời gian công: {$h} giờ.", type: 'success');
     }
