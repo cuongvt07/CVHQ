@@ -81,13 +81,35 @@ class CheckInButton extends Component
         }
 
         $now = now();
-        Attendance::create([
-            'user_id'     => auth()->id(),
-            'check_in_at' => $now,
-            'work_date'   => $now->toDateString(),
-        ]);
+        $userId = auth()->id();
+
+        // Khoá theo user trong transaction: chặn race-condition khi bấm 2 lần/2 tab
+        // gần như đồng thời (đã gặp thực tế: tạo 2 phiên mở cùng lúc, giờ công chồng
+        // chéo lẫn nhau — VD 18:15 và 18:22 cùng tối). lockForUpdate() giữ khoá tới
+        // hết transaction nên request thứ 2 phải đợi request đầu insert xong rồi mới
+        // đọc lại, thấy phiên đã mở và tự dừng.
+        $created = \DB::transaction(function () use ($userId, $now) {
+            $stillOpen = Attendance::where('user_id', $userId)
+                ->whereNull('check_out_at')
+                ->lockForUpdate()
+                ->exists();
+            if ($stillOpen) {
+                return false;
+            }
+            Attendance::create([
+                'user_id'     => $userId,
+                'check_in_at' => $now,
+                'work_date'   => $now->toDateString(),
+            ]);
+            return true;
+        });
 
         $this->refreshState();
+
+        if (!$created) {
+            return; // request khác đã check-in trước trong lúc chờ khoá
+        }
+
         $this->dispatch('ci-checked-in', iso: $this->checkInAtIso);
         $this->dispatch('notify', message: 'Đã check-in lúc ' . $now->format('H:i') . '.', type: 'success');
     }

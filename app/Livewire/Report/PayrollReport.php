@@ -77,6 +77,27 @@ class PayrollReport extends Component
         $this->dispatch('notify', message: 'Đã cập nhật giờ công ngày ' . $att->work_date->format('d/m') . '.', type: 'success');
     }
 
+    /**
+     * Xóa 1 phiên chấm công — CHỈ ADMIN. Dùng để dọn các phiên trùng/chồng chéo
+     * (VD nhân viên bấm check-in 2 lần gần nhau do double-tap/2 tab tạo ra 2 phiên
+     * mở cùng lúc trước khi bug race-condition được vá).
+     */
+    public function deleteAttendance(int $attendanceId): void
+    {
+        if (auth()->user()?->role !== 'admin') {
+            $this->dispatch('notify', message: 'Bạn không có quyền xóa phiên chấm công.', type: 'error');
+            return;
+        }
+        $att = Attendance::find($attendanceId);
+        if (!$att) {
+            return;
+        }
+        $dateLabel = optional($att->work_date)->format('d/m');
+        $att->delete();
+        unset($this->editHours[$attendanceId]);
+        $this->dispatch('notify', message: 'Đã xóa phiên chấm công ngày ' . $dateLabel . '.', type: 'success');
+    }
+
     public function render()
     {
         [$from, $to] = $this->bounds();

@@ -72,6 +72,9 @@
                                             <th class="px-3 py-2 text-[10px] font-bold text-slate-500 uppercase text-center">Giờ công (sửa)</th>
                                             <th class="px-3 py-2 text-[10px] font-bold text-slate-500 uppercase text-right">Phạt</th>
                                             <th class="px-3 py-2 text-[10px] font-bold text-slate-500 uppercase text-right">Thực lĩnh</th>
+                                            @if(auth()->user()?->role === 'admin')
+                                            <th class="px-3 py-2 text-[10px] font-bold text-slate-500 uppercase text-center">Xóa</th>
+                                            @endif
                                         </tr>
                                     </thead>
                                     <tbody class="divide-y divide-slate-100">
@@ -109,9 +112,19 @@
                                             </td>
                                             <td class="px-3 py-2 text-right text-[12px] font-bold {{ $d['penalty'] > 0 ? 'text-rose-500' : 'text-slate-300' }}">{{ $d['penalty'] > 0 ? '-'.$fmt($d['penalty']).'đ' : '—' }}</td>
                                             <td class="px-3 py-2 text-right text-[12px] font-bold text-electric-blue">{{ $fmt($d['salary']) }}đ</td>
+                                            @if(auth()->user()?->role === 'admin')
+                                            <td class="px-3 py-2 text-center">
+                                                <button wire:click="deleteAttendance({{ $d['id'] }})"
+                                                        wire:confirm="Xóa phiên chấm công ngày {{ $d['date'] }} ({{ $d['in'] ?? '—' }} → {{ $d['out'] ?? 'quên' }})? Dùng khi phiên bị trùng/lỗi (VD 2 lần check-in gần nhau)."
+                                                        title="Xóa phiên này (dùng khi bị trùng/lỗi)"
+                                                        class="w-7 h-7 inline-flex items-center justify-center rounded-lg bg-rose-50 text-rose-500 hover:bg-rose-100">
+                                                    <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+                                                </button>
+                                            </td>
+                                            @endif
                                         </tr>
                                         @empty
-                                        <tr><td colspan="7" class="px-3 py-4 text-center text-[12px] text-slate-400">Không có ngày công.</td></tr>
+                                        <tr><td colspan="8" class="px-3 py-4 text-center text-[12px] text-slate-400">Không có ngày công.</td></tr>
                                         @endforelse
                                     </tbody>
                                 </table>
