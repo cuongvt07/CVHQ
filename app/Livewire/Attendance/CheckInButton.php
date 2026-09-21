@@ -28,6 +28,29 @@ class CheckInButton extends Component
         $this->refreshState();
     }
 
+    /**
+     * Đồng bộ định kỳ (wire:poll) — phòng trường hợp 1 tab/thiết bị bị "quên" trạng thái
+     * (VD nhân viên check-in trên điện thoại, tab máy tính công ty vẫn mở từ trước và
+     * chưa reload, nên vẫn hiện xanh -> dễ bấm Check In lần 2, tạo phiên trùng/chồng
+     * chéo). Chỉ bắn event khi trạng thái THỰC SỰ đổi so với lần đọc trước, tránh
+     * làm phiền UI (nhấp nháy) mỗi lần poll không cần thiết.
+     */
+    public function poll(): void
+    {
+        $wasOpen = $this->openId;
+        $this->refreshState();
+
+        if ($wasOpen === $this->openId) {
+            return; // không đổi -> không cần bắn lại event
+        }
+
+        if ($this->openId) {
+            $this->dispatch('ci-checked-in', iso: $this->checkInAtIso);
+        } else {
+            $this->dispatch('ci-checked-out');
+        }
+    }
+
     private function refreshState(): void
     {
         try {

@@ -1,4 +1,5 @@
 <div class="fixed z-[70] print:hidden select-none"
+     wire:poll.45s="poll"
      :style="`right:${posR}px; top:${posT}px`"
      x-data="{
         // vị trí (neo theo mép phải + top) — kéo thả được, lưu localStorage
