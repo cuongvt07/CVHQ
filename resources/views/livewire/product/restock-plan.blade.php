@@ -257,12 +257,18 @@
                             <td class="px-4 py-2">
                                 <div class="flex items-center gap-3">
                                     @if(!empty($product->images))
-                                        <div class="relative" x-data="{ hover: false }" @mouseenter="hover = true" @mouseleave="hover = false">
+                                        {{-- Teleport ra <body>: tránh bị cắt bởi overflow-y-auto của bảng/trang cha --}}
+                                        <div x-data="{ hover: false, x: 0, y: 0 }"
+                                             @mouseenter="hover = true; const r = $el.getBoundingClientRect(); x = r.right + 8; y = r.top + r.height / 2;"
+                                             @mouseleave="hover = false">
                                             <img src="{{ $product->image_url }}" class="w-10 h-10 rounded-lg object-cover border border-slate-100 cursor-zoom-in">
-                                            <div x-show="hover" x-cloak x-transition
-                                                 class="absolute z-[90] left-12 top-1/2 -translate-y-1/2 p-1.5 bg-white border border-slate-200 rounded-xl shadow-2xl pointer-events-none">
-                                                <img src="{{ $product->image_url }}" class="w-48 h-48 object-cover rounded-lg">
-                                            </div>
+                                            <template x-teleport="body">
+                                                <div x-show="hover" x-cloak x-transition
+                                                     class="fixed z-[200] p-1.5 bg-white border border-slate-200 rounded-xl shadow-2xl pointer-events-none"
+                                                     :style="`left:${x}px; top:${y}px; transform: translateY(-50%);`">
+                                                    <img src="{{ $product->image_url }}" class="w-48 h-48 object-cover rounded-lg">
+                                                </div>
+                                            </template>
                                         </div>
                                     @else
                                         <div class="w-10 h-10 rounded-lg bg-slate-100 flex items-center justify-center text-slate-300">

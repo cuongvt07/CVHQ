@@ -309,8 +309,15 @@
                         @if($this->productSuggestions->isNotEmpty())
                             <div class="absolute z-50 left-0 right-0 top-full mt-1 max-h-64 overflow-y-auto bg-white border border-slate-200 rounded-xl shadow-xl custom-scrollbar">
                                 @foreach($this->productSuggestions as $product)
-                                    <button type="button" wire:click="addProduct({{ $product->id }})" class="w-full flex items-center justify-between gap-3 px-3 py-2.5 text-left hover:bg-blue-50 border-b border-slate-50 last:border-0">
-                                        <div class="min-w-0">
+                                    <button type="button" wire:click="addProduct({{ $product->id }})" class="w-full flex items-center gap-3 px-3 py-2.5 text-left hover:bg-blue-50 border-b border-slate-50 last:border-0">
+                                        @if(!empty($product->images))
+                                            <img src="{{ $product->image_url }}" class="w-8 h-8 rounded-lg object-cover border border-slate-100 shrink-0">
+                                        @else
+                                            <div class="w-8 h-8 rounded-lg bg-slate-100 flex items-center justify-center text-slate-300 shrink-0">
+                                                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="3" rx="2" ry="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/></svg>
+                                            </div>
+                                        @endif
+                                        <div class="min-w-0 flex-1">
                                             <div class="text-xs font-bold text-slate-900 truncate">{{ $product->name }}</div>
                                             <div class="text-[10px] text-electric-blue font-mono">{{ $product->sku }}</div>
                                         </div>
@@ -562,8 +569,15 @@
                         @if($this->productSuggestions->isNotEmpty())
                             <div class="absolute z-50 left-0 right-0 top-full mt-1 max-h-80 overflow-y-auto bg-white border border-slate-200 rounded-xl shadow-xl custom-scrollbar">
                                 @foreach($this->productSuggestions as $product)
-                                    <button type="button" wire:click="addProduct({{ $product->id }})" class="w-full flex items-center justify-between gap-3 px-3 py-2 text-left hover:bg-blue-50">
-                                        <div class="min-w-0">
+                                    <button type="button" wire:click="addProduct({{ $product->id }})" class="w-full flex items-center gap-3 px-3 py-2 text-left hover:bg-blue-50">
+                                        @if(!empty($product->images))
+                                            <img src="{{ $product->image_url }}" class="w-8 h-8 rounded-lg object-cover border border-slate-100 shrink-0">
+                                        @else
+                                            <div class="w-8 h-8 rounded-lg bg-slate-100 flex items-center justify-center text-slate-300 shrink-0">
+                                                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="3" rx="2" ry="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/></svg>
+                                            </div>
+                                        @endif
+                                        <div class="min-w-0 flex-1">
                                             <div class="text-xs font-bold text-slate-900 truncate">{{ $product->name }}</div>
                                             <div class="text-[10px] text-electric-blue font-mono">{{ $product->sku }}</div>
                                         </div>
