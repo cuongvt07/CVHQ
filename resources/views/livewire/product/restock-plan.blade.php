@@ -188,7 +188,7 @@
                             </div>
                         @endif
                         <div class="min-w-0 flex-1">
-                            <div class="text-sm font-bold text-slate-900 truncate">{{ $product->base_name }}</div>
+                            <div class="text-sm font-bold text-slate-900 leading-snug whitespace-normal break-words">{{ $product->name ?: $product->base_name }}</div>
                             <div class="text-[10px] font-mono text-slate-400 tracking-wider">{{ $product->sku }}</div>
                         </div>
                         @if($product->stock_quantity <= 0)
@@ -258,15 +258,15 @@
                                 <div class="flex items-center gap-3">
                                     @if(!empty($product->images))
                                         {{-- Teleport ra <body>: tránh bị cắt bởi overflow-y-auto của bảng/trang cha --}}
-                                        <div x-data="{ hover: false, x: 0, y: 0 }"
-                                             @mouseenter="hover = true; const r = $el.getBoundingClientRect(); x = r.right + 8; y = r.top + r.height / 2;"
+                                        <div x-data="{ hover: false, x: 0, y: 0, zoomX: 50, zoomY: 50 }"
+                                             @mousemove="x = $event.clientX; y = $event.clientY; const r = $el.getBoundingClientRect(); zoomX = (($event.clientX - r.left) / r.width) * 100; zoomY = (($event.clientY - r.top) / r.height) * 100;"
                                              @mouseleave="hover = false">
-                                            <img src="{{ $product->image_url }}" class="w-10 h-10 rounded-lg object-cover border border-slate-100 cursor-zoom-in">
+                                            <img src="{{ $product->image_url }}" @mouseenter="hover = true" class="w-10 h-10 rounded-lg object-cover border border-slate-100 cursor-zoom-in">
                                             <template x-teleport="body">
                                                 <div x-show="hover" x-cloak x-transition
-                                                     class="fixed z-[200] p-1.5 bg-white border border-slate-200 rounded-xl shadow-2xl pointer-events-none"
-                                                     :style="`left:${x}px; top:${y}px; transform: translateY(-50%);`">
-                                                    <img src="{{ $product->image_url }}" class="w-48 h-48 object-cover rounded-lg">
+                                                     class="product-zoom-preview"
+                                                     :style="`left:${x}px; top:${y}px; transform: translate(-50%, -50%);`">
+                                                    <img src="{{ $product->image_url }}" class="w-full h-full object-cover scale-[1.2] transition-transform duration-150 ease-out" :style="`transform-origin: ${zoomX}% ${zoomY}%`">
                                                 </div>
                                             </template>
                                         </div>
@@ -275,7 +275,7 @@
                                             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="3" rx="2" ry="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/></svg>
                                         </div>
                                     @endif
-                                    <span class="text-sm font-semibold text-slate-900 line-clamp-1">{{ $product->base_name }}</span>
+                                    <span class="min-w-0 max-w-[360px] text-sm font-semibold text-slate-900 leading-snug whitespace-normal break-words">{{ $product->name ?: $product->base_name }}</span>
                                 </div>
                             </td>
                             <td class="px-4 py-2 font-mono text-xs text-slate-500 font-bold tracking-wider">{{ $product->sku }}</td>

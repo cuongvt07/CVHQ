@@ -77,7 +77,7 @@
                             <div class="product-img-empty">Không ảnh</div>
                         @endif
                     </td>
-                    <td>{{ $product->base_name }}</td>
+                    <td>{{ $product->name ?: $product->base_name }}</td>
                     <td class="sku-cell">{{ $product->sku }}</td>
                     <td class="stock-cell {{ $product->stock_quantity <= 0 ? 'stock-out' : 'stock-low' }}">{{ $fmt($product->stock_quantity) }}</td>
                     <td class="qty-input-cell"><div class="qty-box"></div></td>

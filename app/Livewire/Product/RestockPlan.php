@@ -16,6 +16,29 @@ class RestockPlan extends Component
         return 'products';
     }
 
+    public function mount(): void
+    {
+        $savedIds = auth()->user()?->ui_settings['products']['restockSelectedIds'] ?? [];
+        $this->selectedIds = collect(is_array($savedIds) ? $savedIds : [])
+            ->filter(fn ($id) => is_scalar($id) && ctype_digit((string) $id))
+            ->map(fn ($id) => (string) $id)
+            ->unique()
+            ->values()
+            ->all();
+    }
+
+    private function persistSelection(): void
+    {
+        $user = auth()->user();
+        if (!$user) {
+            return;
+        }
+
+        $settings = $user->ui_settings ?? [];
+        $settings['products']['restockSelectedIds'] = array_values($this->selectedIds);
+        $user->update(['ui_settings' => $settings]);
+    }
+
     public $threshold = 10;
     public $search = '';
     public $selectedCategories = [];
@@ -111,6 +134,7 @@ class RestockPlan extends Component
         } else {
             $this->selectedIds = array_values(array_diff($this->selectedIds, $idsOnPage));
         }
+        $this->persistSelection();
     }
 
     public function toggleSelect($id): void
@@ -121,12 +145,14 @@ class RestockPlan extends Component
         } else {
             $this->selectedIds[] = $id;
         }
+        $this->persistSelection();
     }
 
     public function clearSelection(): void
     {
         $this->selectedIds = [];
         $this->selectAllPage = false;
+        $this->persistSelection();
     }
 
     public function updateField($id, $field, $value)
