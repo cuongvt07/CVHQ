@@ -268,18 +268,156 @@ class ProductIndex extends Component
 
     public function clearSelection(): void
     {
+        // Ngắt khỏi danh sách đã lưu trước khi bỏ chọn -> danh sách không bị xóa trắng nhầm.
+        $this->activeListId = null;
+        $this->showSelectedOnly = false;
         $this->selectedRows = [];
         $this->selectAll = false;
     }
 
     public $expandedProductId = null;
+    public int $historyPage = 1;
+    public int $historyPerPage = 20;
 
     public function toggleHistory($id)
     {
+        $this->historyPage = 1;
         if ($this->expandedProductId === $id) {
             $this->expandedProductId = null;
         } else {
             $this->expandedProductId = $id;
+        }
+    }
+
+    public function historyGoto($page): void
+    {
+        $this->historyPage = max(1, (int) $page);
+    }
+
+    /**
+     * Thẻ kho đầy đủ từ lúc bắt đầu, phân trang thủ công (mới nhất trước).
+     * Lấy dư 1 dòng của trang kế để đối chiếu "tồn đầu" với "tồn cuối" dòng cũ hơn
+     * -> đánh dấu chỗ chuỗi tồn kho bị đứt (nơi phát sinh lệch).
+     */
+    protected function getHistoryData(?int $productId): ?array
+    {
+        if (!$productId) {
+            return null;
+        }
+
+        $per = $this->historyPerPage;
+        $base = \App\Models\StockHistory::where('product_id', $productId);
+        $total = (clone $base)->count();
+        $last = max(1, (int) ceil($total / $per));
+        $page = min(max(1, $this->historyPage), $last);
+
+        $rows = (clone $base)->with('user')
+            ->orderByDesc('created_at')->orderByDesc('id')
+            ->skip(($page - 1) * $per)->take($per + 1)->get();
+        $older = $rows->count() > $per ? $rows->pop() : null;
+
+        foreach ($rows->values() as $i => $h) {
+            $next = $rows[$i + 1] ?? $older;
+            $h->chain_break = $next && (int) $next->quantity_after !== (int) $h->quantity_before;
+            $h->calc_break = (int) $h->quantity_before + (int) $h->quantity_change !== (int) $h->quantity_after;
+        }
+
+        return ['rows' => $rows, 'total' => $total, 'page' => $page, 'last' => $last];
+    }
+
+    // ===== Danh sách sản phẩm đã chọn (lưu lại, chọn dần nhiều ngày rồi in) =====
+    public ?int $activeListId = null;
+    public string $newListName = '';
+    public bool $showSelectedOnly = false;
+
+    protected function myList(?int $id): ?\App\Models\ProductSelectionList
+    {
+        return $id ? \App\Models\ProductSelectionList::where('user_id', auth()->id())->find($id) : null;
+    }
+
+    // Đang mở danh sách -> mỗi lần tick/bỏ tick tự lưu luôn, không sợ quên.
+    protected function syncActiveList(): void
+    {
+        $list = $this->myList($this->activeListId);
+        if (!$list) {
+            $this->activeListId = null;
+            return;
+        }
+        $list->update(['product_ids' => array_values(array_unique(array_map('intval', $this->selectedRows)))]);
+    }
+
+    public function updatedSelectedRows()
+    {
+        $this->selectAll = false;
+        $this->syncActiveList();
+        if ($this->showSelectedOnly) {
+            $this->resetPage();
+        }
+    }
+
+    // Tick "chọn tất cả" chỉ tác động trang hiện tại, KHÔNG xóa phần đã chọn ở trang/ngày khác.
+    public function updatedSelectAll($value)
+    {
+        $pageIds = $this->getRecordsForBulk()->pluck('id')->map(fn($id) => (string) $id)->toArray();
+        $this->selectedRows = $value
+            ? array_values(array_unique(array_merge($this->selectedRows, $pageIds)))
+            : array_values(array_diff($this->selectedRows, $pageIds));
+        $this->syncActiveList();
+    }
+
+    public function updatedShowSelectedOnly()
+    {
+        $this->resetPage();
+    }
+
+    public function saveSelectionList(): void
+    {
+        if (empty($this->selectedRows)) {
+            $this->dispatch('notify', message: 'Hãy tick chọn sản phẩm trước khi lưu danh sách.', type: 'error');
+            return;
+        }
+        $name = trim($this->newListName) ?: 'Danh sách ' . now()->format('d/m/Y H:i');
+        $list = \App\Models\ProductSelectionList::create([
+            'user_id' => auth()->id(),
+            'name' => mb_substr($name, 0, 150),
+            'product_ids' => array_values(array_unique(array_map('intval', $this->selectedRows))),
+        ]);
+        $this->activeListId = $list->id;
+        $this->newListName = '';
+        $this->dispatch('notify', message: 'Đã lưu danh sách. Từ giờ tick thêm/bỏ tick sẽ tự lưu.', type: 'success');
+    }
+
+    public function openSelectionList($id): void
+    {
+        $list = $this->myList((int) $id);
+        if (!$list) {
+            return;
+        }
+        $this->activeListId = $list->id;
+        $this->selectedRows = array_map('strval', $list->ids());
+        $this->selectAll = false;
+        $this->resetPage();
+    }
+
+    // Đóng danh sách (danh sách vẫn được giữ nguyên trong kho đã lưu).
+    public function closeSelectionList(): void
+    {
+        $this->activeListId = null;
+        $this->selectedRows = [];
+        $this->selectAll = false;
+        $this->showSelectedOnly = false;
+        $this->resetPage();
+    }
+
+    public function deleteSelectionList($id): void
+    {
+        $list = $this->myList((int) $id);
+        if (!$list) {
+            return;
+        }
+        $list->delete();
+        if ($this->activeListId === (int) $id) {
+            $this->closeSelectionList();
         }
     }
 
@@ -992,6 +1130,8 @@ class ProductIndex extends Component
             $count++;
         }
 
+        $this->activeListId = null;
+        $this->showSelectedOnly = false;
         $this->selectedRows = [];
         $this->selectAll = false;
 
@@ -1104,6 +1244,8 @@ class ProductIndex extends Component
         }
         $products->each->delete();
 
+        $this->activeListId = null;
+        $this->showSelectedOnly = false;
         $this->selectedRows = [];
         $this->selectAll = false;
 
@@ -1316,6 +1458,9 @@ class ProductIndex extends Component
                     END", [$this->search, $this->search, $this->search . '%', $this->search . '%']);
                 }
             })
+            ->when($this->showSelectedOnly, function ($query) {
+                $query->whereIn('id', $this->selectedRows ?: [0]);
+            })
             ->when($this->selectedCategories, function ($query) {
                 $query->whereIn('category_path', $this->selectedCategories);
             })
@@ -1363,6 +1508,8 @@ class ProductIndex extends Component
 
         return view('livewire.product.product-index', [
             'products' => $this->getProducts(),
+            'historyData' => $this->getHistoryData($this->expandedProductId ? (int) $this->expandedProductId : null),
+            'savedLists' => \App\Models\ProductSelectionList::where('user_id', auth()->id())->orderByDesc('updated_at')->get(),
             'categories_list' => $filters['categories'],
             'brands_list' => $filters['brands'],
             'box_codes_list' => $filters['box_codes'],

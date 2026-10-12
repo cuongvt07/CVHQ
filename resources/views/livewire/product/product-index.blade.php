@@ -343,6 +343,8 @@
 
 
 
+        @include('livewire.product.partials.selection-lists-bar')
+
         <!-- Active Filters Tags (compact, inline, single thin line) -->
         @if($boxCode || $search || $branch !== 'all')
             <div class="hidden md:flex flex-wrap items-center gap-1.5 px-3 md:px-6 py-1 bg-slate-50/50 border-b border-slate-100 text-[9px]">
@@ -519,8 +521,8 @@
                         {{-- Inline expanded stock history --}}
                         @if($expandedProductId === $product->id)
                             <div class="border-t border-slate-200 bg-slate-50/60 px-3 py-2.5">
-                                <div class="text-[9px] font-black text-slate-500 uppercase tracking-widest mb-1.5">Thẻ kho (10 gần nhất)</div>
-                                    <div class="space-y-1 max-h-48 overflow-y-auto">
+                                <div class="text-[9px] font-black text-slate-500 uppercase tracking-widest mb-1.5">Thẻ kho (mới nhất trước)</div>
+                                    <div class="space-y-1 max-h-96 overflow-y-auto">
                                         @php
                                             $mTypeColors = [
                                                 'Sale' => 'text-emerald-400',
@@ -544,7 +546,7 @@
                                                 'Delete' => 'Xóa đơn',
                                             ];
                                         @endphp
-                                        @foreach($product->stockHistories()->with('user')->take(10)->get() as $h)
+                                        @foreach(($historyData['rows'] ?? collect()) as $h)
                                             <div class="flex items-center justify-between gap-2 text-[10px] py-0.5">
                                                 <span class="text-slate-500">{{ $h->created_at->format('d/m H:i') }}</span>
                                                 <span class="font-bold {{ $mTypeColors[$h->type] ?? 'text-slate-400' }}">
@@ -558,10 +560,11 @@
                                                 @else
                                                     <span class="text-slate-400 text-[9px] truncate">{{ $h->reference_code ?: $h->type }}</span>
                                                 @endif
-                                                <span class="font-bold text-slate-900">→{{ $h->quantity_after }}</span>
+                                                <span class="font-bold text-slate-900">{{ $h->quantity_before }}→{{ $h->quantity_after }}@if($h->calc_break || $h->chain_break) <span class="text-amber-500" title="Số liệu không khớp">⚠</span>@endif</span>
                                             </div>
                                         @endforeach
                                 </div>
+                                @include('livewire.product.partials.history-pager', ['history' => $historyData, 'dark' => false])
                             </div>
                         @endif
                     </div>
@@ -655,7 +658,7 @@
                             @if(in_array('sku', $visibleColumns))
                             <td class="px-4 py-2">
                                 <div class="flex items-center gap-4">
-                                    <div class="w-10 h-10 rounded-lg overflow-hidden bg-slate-100 border border-slate-200 product-image-container relative" 
+                                    <div class="w-20 h-20 shrink-0 rounded-lg overflow-hidden bg-slate-100 border border-slate-200 product-image-container relative" 
                                          x-data="{ hover: false, mouseX: 0, mouseY: 0, zoomX: 50, zoomY: 50 }"
                                          @mousemove="
                                              mouseX = $event.clientX; 
@@ -680,7 +683,7 @@
                                             </template>
                                         @else
                                             <div class="w-full h-full flex items-center justify-center text-slate-300">
-                                                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="3" rx="2" ry="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/></svg>
+                                                <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="3" rx="2" ry="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/></svg>
                                             </div>
                                         @endif
                                     </div>
@@ -822,13 +825,14 @@
                                             </button>
                                         </div>
 
-                                        <div class="max-h-[300px] overflow-y-auto custom-scrollbar-dark border border-white/5 rounded-2xl bg-black/40">
+                                        <div class="max-h-[520px] overflow-y-auto custom-scrollbar-dark border border-white/5 rounded-2xl bg-black/40">
                                             <table class="w-full text-[11px]">
                                                 <thead class="sticky top-0 bg-black/80 z-10">
                                                         <tr class="text-slate-500 border-b border-white/5">
                                                             <th class="px-4 py-3 font-bold text-left">Thời gian</th>
                                                             <th class="px-4 py-3 font-bold text-left">Loại</th>
                                                             <th class="px-4 py-3 font-bold text-left">Mã tham chiếu</th>
+                                                            <th class="px-4 py-3 font-bold text-right">Tồn đầu</th>
                                                             <th class="px-4 py-3 font-bold text-right">Thay đổi</th>
                                                             <th class="px-4 py-3 font-bold text-right">Tồn cuối</th>
                                                             <th class="px-4 py-3 font-bold text-left">Người thực hiện</th>
@@ -836,7 +840,7 @@
                                                         </tr>
                                                     </thead>
                                                     <tbody class="divide-y divide-white/5">
-                                                        @php $__histories = $product->stockHistories()->with('user')->take(10)->get(); @endphp
+                                                        @php $__histories = $historyData['rows'] ?? collect(); @endphp
                                                         @if(count($__histories) > 0)
                                                         @foreach($__histories as $history)
                                                             <tr class="text-slate-300 hover:bg-white/5 transition-colors">
@@ -876,10 +880,19 @@
                                                                         {{ $history->reference_code ?: '-' }}
                                                                     @endif
                                                                 </td>
+                                                                <td class="px-4 py-3 text-right text-slate-400">{{ $history->quantity_before }}</td>
                                                                 <td class="px-4 py-3 text-right font-black {{ $history->quantity_change > 0 ? 'text-emerald-400' : 'text-rose-400' }}">
                                                                     {{ $history->quantity_change > 0 ? '+' : '' }}{{ $history->quantity_change }}
                                                                 </td>
-                                                                <td class="px-4 py-3 text-right text-white font-black">{{ $history->quantity_after }}</td>
+                                                                <td class="px-4 py-3 text-right text-white font-black whitespace-nowrap">
+                                                                    {{ $history->quantity_after }}
+                                                                    @if($history->calc_break)
+                                                                        <span class="ml-1 px-1 py-px rounded bg-rose-500/20 text-rose-300 text-[9px] font-bold" title="Tồn đầu + thay đổi ≠ tồn cuối (số liệu dòng này không khớp)">sai số</span>
+                                                                    @endif
+                                                                    @if($history->chain_break)
+                                                                        <span class="ml-1 px-1 py-px rounded bg-amber-500/20 text-amber-300 text-[9px] font-bold" title="Tồn đầu của dòng này KHÁC tồn cuối của dòng liền trước (cũ hơn) → có biến động không được ghi thẻ kho ở giữa">đứt chuỗi</span>
+                                                                    @endif
+                                                                </td>
                                                                 <td class="px-4 py-3">
                                                                     <div class="flex items-center gap-2">
                                                                         <div class="w-5 h-5 rounded-full bg-white/5 border border-white/10 flex items-center justify-center text-[8px] font-black text-electric-blue">
@@ -893,7 +906,7 @@
                                                         @endforeach
                                                         @else
                                                         <tr>
-                                                            <td colspan="6" class="px-4 py-8 text-center text-slate-600 italic">
+                                                            <td colspan="8" class="px-4 py-8 text-center text-slate-600 italic">
                                                                 Chưa có lịch sử biến động kho cho sản phẩm này.
                                                             </td>
                                                         </tr>
@@ -902,9 +915,7 @@
                                             </table>
                                         </div>
                                         
-                                        <div class="flex justify-end">
-                                            <span class="text-[9px] text-slate-500 uppercase tracking-widest font-bold">Hiển thị 10 hoạt động mới nhất</span>
-                                        </div>
+                                        @include('livewire.product.partials.history-pager', ['history' => $historyData, 'dark' => true])
                                     </div>
                                 </td>
                             </tr>

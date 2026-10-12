@@ -47,7 +47,12 @@ Route::middleware(['auth'])->group(function () {
             ->get();
         return view('pos.print-restock', ['products' => $products]);
     })->name('products.restock.print');
-    Route::get('/products/stock-checks', \App\Livewire\Product\StockCheckIndex::class)->name('products.stock-checks');
+    Route::get('/products/selection/{list}/print', function (int $list) {
+        $list = \App\Models\ProductSelectionList::where('user_id', auth()->id())->findOrFail($list);
+        $products = \App\Models\Product::whereIn('id', $list->ids())->orderBy('sku')->get();
+        return view('pos.print-product-selection', ['list' => $list, 'products' => $products]);
+    })->name('products.selection.print');
+    Route::get('/products/stock-checks',\App\Livewire\Product\StockCheckIndex::class)->name('products.stock-checks');
     Route::get('/products/transfers', \App\Livewire\Product\StockTransferIndex::class)->name('products.transfers');
     Route::get('/products/transfers/print/{transfer}', function (App\Models\StockTransfer $transfer) {
         return view('pos.print-transfer', ['transfer' => $transfer]);
