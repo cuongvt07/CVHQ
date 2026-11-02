@@ -504,7 +504,7 @@ class ProductIndex extends Component
         $this->commission_amount = 0;
         $this->commission_type = $this->defaultCommissionType();
         $this->commission_percent = $this->defaultCommissionPercent();
-        $this->stock_quantity = 999;
+        $this->stock_quantity = 1;
         $this->location = '';
         $this->is_active = true;
         $this->newImages = [];
@@ -738,7 +738,7 @@ class ProductIndex extends Component
             $existing = Product::find($this->productId);
             if ($existing) {
                 $oldStock = (int) $existing->stock_quantity;
-                $newStock = (int) ($this->stock_quantity === '' || $this->stock_quantity === null ? 999 : $this->stock_quantity);
+                $newStock = (int) ($this->stock_quantity === '' || $this->stock_quantity === null ? 1 : $this->stock_quantity);
                 if ($newStock < $oldStock && trim((string) $this->editStockReason) === '') {
                     $this->addError('editStockReason', 'Giảm tồn kho cần nhập lý do.');
                     return;
@@ -762,7 +762,7 @@ class ProductIndex extends Component
             'brand' => $this->brand,
             'sale_price' => $this->sale_price,
             'cost_price' => $this->cost_price === '' || $this->cost_price === null ? 0 : $this->cost_price,
-            'stock_quantity' => $this->stock_quantity === '' || $this->stock_quantity === null ? 999 : $this->stock_quantity,
+            'stock_quantity' => $this->stock_quantity === '' || $this->stock_quantity === null ? 1 : $this->stock_quantity,
             'location' => $this->location,
             'is_active' => $this->is_active,
             'attributes' => $attributes,
@@ -977,7 +977,7 @@ class ProductIndex extends Component
                 'location' => '',
                 'price' => '',        // để trống = dùng giá chung
                 'commission' => '',   // để trống = dùng hoa hồng chung
-                'stock' => 999
+                'stock' => 1
             ];
         }
     }
@@ -1064,7 +1064,7 @@ class ProductIndex extends Component
                 'brand' => '',
                 'sale_price' => $rowPrice,
                 'commission_amount' => $rowCommission,
-                'stock_quantity' => $row['stock'] === '' || $row['stock'] === null ? 999 : (int)$row['stock'],
+                'stock_quantity' => $row['stock'] === '' || $row['stock'] === null ? 1 : (int)$row['stock'],
                 'location' => $location,
                 'is_active' => true,
                 'attributes' => $attributes,
