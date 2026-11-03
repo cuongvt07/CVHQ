@@ -1516,8 +1516,14 @@ class ProductIndex extends Component
             ];
         });
 
+        $products = $this->getProducts();
+        // Mã Z đã tồn tại của các SP trong trang -> ẩn nút "Tạo mã Sài Gòn" ở những SP đã có bản Z.
+        $existingZSkus = Product::whereIn('sku', $products->pluck('sku')->map(fn ($s) => 'Z' . $s)->all())
+            ->pluck('sku')->flip()->all();
+
         return view('livewire.product.product-index', [
-            'products' => $this->getProducts(),
+            'products' => $products,
+            'existingZSkus' => $existingZSkus,
             'historyData' => $this->getHistoryData($this->expandedProductId ? (int) $this->expandedProductId : null),
             'savedLists' => \App\Models\ProductSelectionList::where('user_id', auth()->id())->orderByDesc('updated_at')->get(),
             'categories_list' => $filters['categories'],

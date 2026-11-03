@@ -504,7 +504,7 @@
                                         <svg xmlns="http://www.w3.org/2000/svg" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"/><path d="m3.3 7 8.7 5 8.7-5"/><path d="M12 22V12"/></svg>
                                         Thẻ kho
                                     </button>
-                                    @unless(\Illuminate\Support\Str::startsWith($product->sku, 'Z'))
+                                    @unless(\Illuminate\Support\Str::startsWith($product->sku, 'Z') || isset($existingZSkus['Z' . $product->sku]))
                                     <button wire:click="copyOneToSG({{ $product->id }})" wire:confirm="Tạo mã Sài Gòn (Z{{ $product->sku }}, tồn 0) cho sản phẩm này?" title="Tạo mã Sài Gòn"
                                             class="w-7 h-7 flex items-center justify-center rounded-lg border border-slate-200 text-slate-500 hover:text-emerald-600 hover:border-emerald-300 transition-colors">
                                         <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="14" height="14" x="8" y="8" rx="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg>
@@ -804,7 +804,7 @@
                                             <svg xmlns="http://www.w3.org/2000/svg" width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
                                         @endif
                                     </button>
-                                    @unless(\Illuminate\Support\Str::startsWith($product->sku, 'Z'))
+                                    @unless(\Illuminate\Support\Str::startsWith($product->sku, 'Z') || isset($existingZSkus['Z' . $product->sku]))
                                     <button wire:click="copyOneToSG({{ $product->id }})" wire:confirm="Tạo mã Sài Gòn (Z{{ $product->sku }}, tồn 0) cho sản phẩm này?" title="Tạo mã Sài Gòn" class="p-1.5 text-slate-400 hover:text-emerald-600 transition-colors">
                                         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="14" height="14" x="8" y="8" rx="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg>
                                     </button>
