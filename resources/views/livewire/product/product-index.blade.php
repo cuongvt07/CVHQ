@@ -223,7 +223,7 @@
                 <div class="flex-1 min-w-full flex items-center justify-end gap-1.5">
                     <span class="text-[10px] font-black text-electric-blue">Đã chọn {{ count($selectedRows) }}</span>
                     <button wire:click="clearSelection" class="px-2.5 py-1.5 rounded-lg text-[10px] font-black bg-white text-slate-500 border border-slate-200 uppercase">Bỏ chọn</button>
-                    <button wire:click="bulkCopyToSG" class="px-2.5 py-1.5 rounded-lg text-[10px] font-black bg-emerald-500 text-white uppercase">→ SG</button>
+                    <button wire:click="bulkCopyToSG" class="px-2.5 py-1.5 rounded-lg text-[10px] font-black bg-emerald-500 text-white uppercase">Tạo mã Sài Gòn</button>
                     @if(auth()->user()?->hasPermission('product.delete'))
                         <button wire:click="bulkDelete" wire:confirm="Bạn có chắc chắn muốn xóa?" class="px-2.5 py-1.5 rounded-lg text-[10px] font-black bg-rose-50 text-rose-600 border border-rose-200 uppercase">Xóa</button>
                     @endif
@@ -281,7 +281,7 @@
             @if(count($selectedRows) > 0)
                 <div class="flex items-center gap-1.5 ml-1">
                     <span class="text-[10px] font-black text-electric-blue tracking-wider whitespace-nowrap">[{{ count($selectedRows) }}]</span>
-                    <button wire:click="bulkCopyToSG" class="px-2 py-1 rounded-md text-[10px] font-black bg-emerald-500 text-white hover:bg-emerald-600 transition-all uppercase">→ SG</button>
+                    <button wire:click="bulkCopyToSG" class="px-2 py-1 rounded-md text-[10px] font-black bg-emerald-500 text-white hover:bg-emerald-600 transition-all uppercase">Tạo mã Sài Gòn</button>
                     @if(auth()->user()?->hasPermission('product.delete'))
                     <button wire:click="bulkDelete" wire:confirm="Bạn có chắc chắn muốn xóa?" class="px-2 py-1 rounded-md text-[10px] font-black bg-rose-50 text-rose-600 border border-rose-200 hover:bg-rose-100 transition-all uppercase">Xóa</button>
                     @endif

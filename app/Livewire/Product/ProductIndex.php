@@ -1124,7 +1124,7 @@ class ProductIndex extends Component
             $newProduct = $product->replicate();
             $newProduct->sku = $newSku;
             $newProduct->stock_quantity = 0;
-            $newProduct->location = '';
+            $newProduct->reserved_quantity = 0;
             $newProduct->save();
 
             $count++;
@@ -1135,7 +1135,7 @@ class ProductIndex extends Component
         $this->selectedRows = [];
         $this->selectAll = false;
 
-        $message = "Đã sao chép thành công {$count} sản phẩm sang SG.";
+        $message = "Đã tạo mã Sài Gòn cho {$count} sản phẩm.";
         if ($skipped > 0) {
             $message .= " (Bỏ qua {$skipped} mã đã tồn tại hoặc không hợp lệ)";
         }
