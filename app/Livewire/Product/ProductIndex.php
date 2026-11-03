@@ -1094,33 +1094,20 @@ class ProductIndex extends Component
     }
 
 
-    public function bulkCopyToSG()
+    // Nhân bản SP sang mã Sài Gòn (Z + mã gốc, tồn 0, giữ nguyên các trường khác kể cả ảnh).
+    protected function copyProductsToSG(array $ids): array
     {
-        if (empty($this->selectedRows)) {
-            $this->dispatch('notify', message: 'Vui lòng chọn sản phẩm cần sao chép!', type: 'warning');
-            return;
-        }
-
-        $products = Product::whereIn('id', $this->selectedRows)->get();
         $count = 0;
         $skipped = 0;
 
-        foreach ($products as $product) {
-            // Skip if already a SG product
-            if (Str::startsWith($product->sku, 'Z')) {
-                $skipped++;
-                continue;
-            }
-
+        foreach (Product::whereIn('id', $ids)->get() as $product) {
             $newSku = 'Z' . $product->sku;
 
-            // Check if SKU already exists
-            if (Product::where('sku', $newSku)->exists()) {
+            if (Str::startsWith($product->sku, 'Z') || Product::where('sku', $newSku)->exists()) {
                 $skipped++;
                 continue;
             }
 
-            // Create new SG product
             $newProduct = $product->replicate();
             $newProduct->sku = $newSku;
             $newProduct->stock_quantity = 0;
@@ -1130,18 +1117,41 @@ class ProductIndex extends Component
             $count++;
         }
 
+        return [$count, $skipped];
+    }
+
+    protected function notifyCopyToSG(int $count, int $skipped): void
+    {
+        $message = "Đã tạo mã Sài Gòn cho {$count} sản phẩm.";
+        if ($skipped > 0) {
+            $message .= " (Bỏ qua {$skipped} mã đã tồn tại hoặc không hợp lệ)";
+        }
+        $this->dispatch('notify', message: $message, type: $count > 0 ? 'success' : 'warning');
+    }
+
+    public function bulkCopyToSG()
+    {
+        if (empty($this->selectedRows)) {
+            $this->dispatch('notify', message: 'Vui lòng chọn sản phẩm cần sao chép!', type: 'warning');
+            return;
+        }
+
+        [$count, $skipped] = $this->copyProductsToSG($this->selectedRows);
+
         $this->activeListId = null;
         $this->showSelectedOnly = false;
         $this->selectedRows = [];
         $this->selectAll = false;
 
-        $message = "Đã tạo mã Sài Gòn cho {$count} sản phẩm.";
-        if ($skipped > 0) {
-            $message .= " (Bỏ qua {$skipped} mã đã tồn tại hoặc không hợp lệ)";
-        }
-
-        $this->dispatch('notify', message: $message, type: 'success');
+        $this->notifyCopyToSG($count, $skipped);
         $this->branch = 'sg'; // Switch to SG branch to see new items
+    }
+
+    // Nút nhanh trên từng dòng: tạo mã Sài Gòn cho đúng 1 sản phẩm, giữ nguyên bộ lọc/lựa chọn hiện tại.
+    public function copyOneToSG($id)
+    {
+        [$count, $skipped] = $this->copyProductsToSG([(int) $id]);
+        $this->notifyCopyToSG($count, $skipped);
     }
 
     public function removeImage($index, $type)
