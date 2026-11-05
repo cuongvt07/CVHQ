@@ -22,15 +22,26 @@
                     {{-- STT --}}
                     <span class="shrink-0 w-5 h-5 rounded-full bg-electric-blue/10 text-electric-blue text-[9px] font-black flex items-center justify-center">{{ $loop->iteration }}</span>
 
-                    {{-- Image (hover phóng to) --}}
+                    {{-- Image (bấm để phóng to toàn màn hình; teleport ra body để không bị overflow cắt) --}}
                     <div class="w-9 h-9 rounded shrink-0 bg-slate-50 overflow-hidden relative"
-                         @if($item['image']) x-data="{ hover: false }" @mouseenter="hover = true" @mouseleave="hover = false" @endif>
+                         @if($item['image']) x-data="{ zoomOpen: false }" @endif>
                         @if($item['image'])
-                            <img src="{{ $item['image'] }}" class="w-full h-full object-cover cursor-zoom-in">
-                            <div x-show="hover" x-cloak x-transition
-                                 class="absolute z-[90] left-11 top-1/2 -translate-y-1/2 p-1.5 bg-white border border-slate-200 rounded-xl shadow-2xl pointer-events-none">
-                                <img src="{{ $item['image'] }}" class="w-44 h-44 object-cover rounded-lg">
-                            </div>
+                            <img src="{{ $item['image'] }}" @click.stop="zoomOpen = true" class="w-full h-full object-cover cursor-zoom-in">
+                            <template x-teleport="body">
+                                <div x-show="zoomOpen" x-cloak
+                                     x-transition.opacity
+                                     @click="zoomOpen = false"
+                                     @keydown.escape.window="zoomOpen = false"
+                                     class="fixed inset-0 z-[200] flex items-center justify-center bg-slate-900/80 cursor-zoom-out p-4">
+                                    <img src="{{ $item['image'] }}" alt="{{ $item['name'] }}"
+                                         @click.stop
+                                         class="max-w-[92vw] max-h-[92vh] object-contain rounded-2xl shadow-2xl">
+                                    <button type="button" @click.stop="zoomOpen = false"
+                                            class="absolute top-6 right-6 w-10 h-10 rounded-full bg-white/90 text-slate-700 hover:text-rose-500 shadow-lg flex items-center justify-center transition-colors">
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+                                    </button>
+                                </div>
+                            </template>
                         @else
                             <div class="w-full h-full flex items-center justify-center text-slate-200">
                                 <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>
