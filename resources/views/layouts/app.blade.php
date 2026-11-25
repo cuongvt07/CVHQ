@@ -51,6 +51,46 @@
         </div>
 
         @livewireScripts
+        {{-- Tìm kiếm không "đơ": khi đang gõ/đang chờ server trả kết quả thì ẩn kết quả cũ (không hiện kết quả thiếu/cũ), có chỉ báo "Đang tìm…".
+             Chỉ xóa cờ khi phản hồi của server đã bao phủ lần gõ cuối cùng. --}}
+        <style>
+            .js-search-results { transition: opacity .12s; }
+            html[data-searching] .js-search-results { opacity: 0; pointer-events: none; }
+            .js-search-indicator { display: none; }
+            html[data-searching] .js-search-indicator { display: flex; }
+        </style>
+        <script>
+            (function () {
+                if (window.__searchGuard) return;
+                window.__searchGuard = true;
+                var root = document.documentElement, lastInput = 0, startedAt = 0, safety = null;
+                var isSearchInput = function (el) {
+                    if (!el || !el.attributes) return false;
+                    for (var i = 0; i < el.attributes.length; i++) {
+                        var a = el.attributes[i];
+                        if (a.name.indexOf('wire:model') === 0 && a.name.indexOf('.live') > -1 && (a.value === 'search' || a.value === 'boxCode')) return true;
+                    }
+                    return false;
+                };
+                var clear = function () { root.removeAttribute('data-searching'); clearTimeout(safety); };
+                document.addEventListener('input', function (e) {
+                    if (!isSearchInput(e.target)) return;
+                    lastInput = Date.now();
+                    root.setAttribute('data-searching', '1');
+                    clearTimeout(safety);
+                    safety = setTimeout(clear, 20000); // an toàn: không bao giờ treo ẩn mãi nếu mất mạng
+                });
+                document.addEventListener('livewire:init', function () {
+                    Livewire.hook('commit', function (ctx) {
+                        var began = Date.now();
+                        ctx.succeed(function () {
+                            requestAnimationFrame(function () { if (lastInput <= began) clear(); });
+                        });
+                        ctx.fail(function () { if (lastInput <= began) clear(); });
+                    });
+                });
+            })();
+        </script>
         <x-notification />
 
         {{-- Chuông thông báo đơn WooCommerce (poll + kêu khi có đơn mới) --}}

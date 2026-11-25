@@ -77,4 +77,5 @@
             </div>
         @endif
     </div>
+    @include('livewire.product.partials.box-suggestions')
 </header>

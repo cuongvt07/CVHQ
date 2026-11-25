@@ -3,7 +3,8 @@
 
     {{-- Desktop — ultra-compact 5-6 cols, tiny cards --}}
     <div class="hidden md:flex md:flex-col h-full overflow-y-auto custom-scrollbar p-1 bg-white">
-        <div class="grid grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-1">
+        <div class="js-search-indicator items-center gap-2 px-2 py-3 text-[11px] font-bold text-slate-400"><span class="inline-block w-3 h-3 rounded-full border-2 border-slate-300 border-t-electric-blue animate-spin"></span> Đang tìm…</div>
+        <div class="js-search-results grid grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-1">
             @foreach($products as $product)
                 <div wire:click="addToCart({{ $product['id'] }})"
                      x-data="{ justAdded: false }"
@@ -58,14 +59,14 @@
                         <div class="flex items-center justify-between gap-1 text-[9px]">
                             <span class="font-mono text-slate-400 truncate">{{ $product['sku'] }}</span>
                             @if($product['location'])
-                                <span class="font-bold text-emerald-600 bg-emerald-50 px-1 py-px rounded shrink-0" title="{{ $product['location'] }}">{{ \App\Models\Product::formatLocation($product['location']) }}</span>
+                                <span class="font-medium text-emerald-600 bg-emerald-50 px-1 py-px rounded shrink-0" title="{{ $product['location'] }}">{{ \App\Models\Product::formatLocationHtml($product['location']) }}</span>
                             @endif
                         </div>
                     </div>
                 </div>
             @endforeach
         </div>
-        <div class="mt-2 pt-2 border-t border-slate-50 antigravity-pagination">
+        <div class="js-search-results mt-2 pt-2 border-t border-slate-50 antigravity-pagination">
             {{ $products->links() }}
         </div>
     </div>

@@ -55,7 +55,7 @@
                         <div class="flex items-center gap-1.5">
                             <span class="text-[9px] font-mono text-slate-400">{{ $item['sku'] ?? '—' }}</span>
                             @if(!empty($item['location']))
-                                <span class="text-[9px] font-bold text-emerald-600 bg-emerald-50 px-1 py-px rounded" title="{{ $item['location'] }}">{{ \App\Models\Product::formatLocation($item['location'], 2) }}</span>
+                                <span class="text-[9px] font-medium text-emerald-600 bg-emerald-50 px-1 py-px rounded" title="{{ $item['location'] }}">{{ \App\Models\Product::formatLocationHtml($item['location'], 2) }}</span>
                             @endif
                         </div>
                     </div>

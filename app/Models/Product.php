@@ -206,10 +206,7 @@ class Product extends Model
      */
     public static function formatLocation(?string $location, int $max = 3): string
     {
-        $parts = collect(explode(',', (string) $location))
-            ->map(fn($p) => trim($p))
-            ->filter()
-            ->values();
+        $parts = collect(static::splitLocation($location));
 
         if ($parts->isEmpty()) {
             return '';
@@ -229,6 +226,108 @@ class Product extends Model
     public function getLocationDisplayAttribute(): string
     {
         return static::formatLocation($this->location);
+    }
+
+    /**
+     * Tách chuỗi vị trí thành từng thùng: "D50, D51 | D52" -> ['D50','D51','D52'].
+     * Khử trùng không phân biệt hoa/thường; thùng ĐẦU TIÊN là "thùng gốc".
+     */
+    public static function splitLocation(?string $location): array
+    {
+        $seen = [];
+        foreach (preg_split('/[,;|
+]+/', (string) $location) as $token) {
+            $token = trim($token);
+            if ($token !== '' && !isset($seen[mb_strtolower($token)])) {
+                $seen[mb_strtolower($token)] = $token;
+            }
+        }
+        return array_values($seen);
+    }
+
+    /** Chuẩn hóa để lưu: "d50 | D51,D52" -> "d50, D51, D52". */
+    public static function normalizeLocation(?string $location): string
+    {
+        return implode(', ', static::splitLocation($location));
+    }
+
+    /**
+     * Vị trí dạng HTML: thùng gốc (đầu tiên) IN ĐẬM, các thùng còn lại thường, ngăn cách " | ".
+     */
+    public static function formatLocationHtml(?string $location, int $max = 3): \Illuminate\Support\HtmlString
+    {
+        $parts = static::splitLocation($location);
+        if (!$parts) {
+            return new \Illuminate\Support\HtmlString('');
+        }
+        $out = [];
+        foreach (array_slice($parts, 0, $max) as $i => $p) {
+            $out[] = $i === 0 ? '<b class="font-black">' . e($p) . '</b>' : e($p);
+        }
+        $html = implode(' | ', $out);
+        if (count($parts) > $max) {
+            $html .= ' …';
+        }
+        return new \Illuminate\Support\HtmlString($html);
+    }
+
+    public function getLocationHtmlAttribute(): \Illuminate\Support\HtmlString
+    {
+        return static::formatLocationHtml($this->location);
+    }
+
+    /**
+     * Danh mục thùng: mọi mã thùng xuất hiện trong vị trí SP + thùng đã có ghi chú.
+     * Trả về [['code','note','count'], ...] sắp xếp tự nhiên (D2 < D10).
+     */
+    public static function boxCatalog(): array
+    {
+        $counts = [];
+        self::whereNotNull('location')->where('location', '!=', '')->pluck('location')->each(function ($loc) use (&$counts) {
+            foreach (static::splitLocation($loc) as $token) {
+                $k = mb_strtolower($token);
+                $counts[$k] = [
+                    'code' => $counts[$k]['code'] ?? $token,
+                    'count' => ($counts[$k]['count'] ?? 0) + 1,
+                ];
+            }
+        });
+
+        $notes = \App\Models\BoxNote::pluck('note', 'code')->mapWithKeys(fn($n, $c) => [mb_strtolower($c) => [$c, $n]]);
+        foreach ($notes as $k => [$code, $note]) {
+            $counts[$k] = ['code' => $counts[$k]['code'] ?? $code, 'count' => $counts[$k]['count'] ?? 0];
+        }
+
+        $list = [];
+        foreach ($counts as $k => $row) {
+            $list[] = ['code' => $row['code'], 'count' => $row['count'], 'note' => $notes[$k][1] ?? ''];
+        }
+        usort($list, fn($a, $b) => strnatcasecmp($a['code'], $b['code']));
+        return $list;
+    }
+
+    /**
+     * Gợi ý thùng chứa NHIỀU mã trong kết quả tìm kiếm hiện tại (để nhân viên tới thùng đó nhặt hàng).
+     * $query: truy vấn SP đã áp bộ lọc/tìm kiếm (chưa phân trang).
+     */
+    public static function boxSuggestions($query, int $limit = 4, int $minCount = 2): array
+    {
+        $tally = [];
+        foreach ((clone $query)->reorder()->whereNotNull('location')->where('location', '!=', '')->limit(3000)->pluck('location') as $loc) {
+            foreach (static::splitLocation($loc) as $token) {
+                $k = mb_strtolower($token);
+                $tally[$k] = ['code' => $tally[$k]['code'] ?? $token, 'count' => ($tally[$k]['count'] ?? 0) + 1];
+            }
+        }
+        $tally = array_filter($tally, fn($r) => $r['count'] >= $minCount);
+        if (!$tally) {
+            return [];
+        }
+        uasort($tally, fn($a, $b) => $b['count'] <=> $a['count']);
+        $tally = array_slice($tally, 0, $limit, true);
+
+        $notes = \App\Models\BoxNote::whereIn('code', array_column($tally, 'code'))->pluck('note', 'code');
+        return array_values(array_map(fn($r) => $r + ['note' => (string) ($notes[$r['code']] ?? '')], $tally));
     }
 
     /**

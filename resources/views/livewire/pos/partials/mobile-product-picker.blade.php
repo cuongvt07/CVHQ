@@ -115,6 +115,9 @@
 
     {{-- Product list (single column, dense rows) --}}
     <div class="flex-1 overflow-y-auto bg-white">
+        @include('livewire.product.partials.box-suggestions')
+        <div class="js-search-indicator items-center gap-2 px-3 py-3 text-[11px] font-bold text-slate-400"><span class="inline-block w-3 h-3 rounded-full border-2 border-slate-300 border-t-electric-blue animate-spin"></span> Đang tìm…</div>
+        <div class="js-search-results">
         @if(count($products) === 0)
             <div class="py-10 flex flex-col items-center justify-center text-center opacity-50">
                 <svg xmlns="http://www.w3.org/2000/svg" width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="text-slate-300 mb-2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
@@ -164,7 +167,7 @@
                             <div class="flex items-center gap-1.5 mt-0.5">
                                 <span class="text-[9px] font-mono text-slate-400">{{ $product['sku'] }}</span>
                                 @if($product['location'])
-                                    <span class="text-[9px] font-bold text-emerald-600 bg-emerald-50 px-1 py-px rounded" title="{{ $product['location'] }}">{{ \App\Models\Product::formatLocation($product['location']) }}</span>
+                                    <span class="text-[9px] font-medium text-emerald-600 bg-emerald-50 px-1 py-px rounded" title="{{ $product['location'] }}">{{ \App\Models\Product::formatLocationHtml($product['location']) }}</span>
                                 @endif
                             </div>
                         </div>
@@ -208,6 +211,7 @@
                 </div>
             @endforeach
         @endif
+        </div>
     </div>
 
     {{-- Pagination at bottom --}}

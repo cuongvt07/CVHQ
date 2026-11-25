@@ -344,6 +344,7 @@
 
 
         @include('livewire.product.partials.selection-lists-bar')
+        @include('livewire.product.partials.box-suggestions')
 
         <!-- Active Filters Tags (compact, inline, single thin line) -->
         @if($boxCode || $search || $branch !== 'all')
@@ -374,7 +375,9 @@
     <div class="flex-1 min-h-0 overflow-y-auto custom-scrollbar px-2 pb-2 pt-1 md:px-4 md:pb-4 md:pt-2">
 
         {{-- Mobile card list (compact, tap-friendly) --}}
-        <div class="md:hidden flex flex-col gap-1.5">
+        <div class="js-search-indicator items-center gap-2 px-3 py-3 text-[11px] font-bold text-slate-400"><span class="inline-block w-3 h-3 rounded-full border-2 border-slate-300 border-t-electric-blue animate-spin"></span> Đang tìm…</div>
+
+        <div class="js-search-results md:hidden flex flex-col gap-1.5">
             @if(count($products) === 0)
                 <div class="py-10 text-center text-slate-300 text-[11px] font-bold tracking-widest">Không có sản phẩm</div>
             @else
@@ -438,7 +441,7 @@
                                                x-on:keydown.enter="$event.target.blur()"
                                                class="w-full bg-white border border-slate-200 rounded px-1 py-0.5 text-[10px] font-bold text-emerald-700 focus:outline-none focus:border-electric-blue">
                                     @elseif($product->location)
-                                        <div class="text-[10px] font-bold text-emerald-700 bg-emerald-50 px-1 py-px rounded inline-block" title="{{ $product->location }}">{{ $product->location_display }}</div>
+                                        <div class="text-[10px] font-bold text-emerald-700 bg-emerald-50 px-1 py-px rounded inline-block" title="{{ $product->location }}">{{ $product->location_html }}</div>
                                     @elseif($product->brand)
                                         <div class="text-[10px] text-slate-400 truncate">{{ $product->brand }}</div>
                                     @else
@@ -579,7 +582,7 @@
         </div>
 
         <!-- Desktop table (hidden on mobile) -->
-        <div class="hidden md:block glass-card overflow-visible border border-slate-200">
+        <div class="js-search-results hidden md:block glass-card overflow-visible border border-slate-200">
             <table class="w-full text-left border-collapse">
                 <thead class="sticky top-0 z-30 bg-slate-50/95 shadow-[0_1px_0_rgba(226,232,240,1)]">
                     <tr class="border-b border-slate-200">
@@ -755,7 +758,7 @@
                                            x-on:keydown.enter="$event.target.blur()"
                                            class="w-24 bg-slate-50 border border-slate-100 rounded-lg px-2 py-1 text-xs font-bold text-electric-blue transition-all focus:bg-white focus:border-electric-blue focus:ring-0 shadow-inner">
                                 @else
-                                    <span class="text-xs font-bold text-slate-700" title="{{ $product->location }}">{{ $product->location_display ?: '-' }}</span>
+                                    <span class="text-xs font-medium text-slate-700" title="{{ $product->location }}">{{ $product->location ? $product->location_html : '-' }}</span>
                                 @endif
                             </td>
                             @endif
@@ -936,10 +939,12 @@
             </table>
         </div>
 
-        <div class="mt-6 antigravity-pagination">
+        <div class="js-search-results mt-6 antigravity-pagination">
             {{ $products->links() }}
         </div>
     </div>
+
+    @include('livewire.product.partials.box-manager')
 
     <!-- Commission Settings Modal -->
 

@@ -278,6 +278,26 @@ class PosTerminal extends Component
     {
         $branch = $this->syncEffectiveBranch();
 
+        return $this->filteredProductsQuery($branch)
+            ->orderBy('sku', 'asc')
+            ->paginate(24)
+            ->onEachSide(1)
+            ->through(fn($product) => [
+                'id'            => $product->id,
+                'sku'           => $product->sku,
+                'name'          => $product->name,
+                'base_name'     => $product->base_name,
+                'category_path' => $product->category_path,
+                'sale_price'    => (int) $product->sale_price,
+                'location'      => $product->location,
+                'stock_quantity'=> $product->stock_quantity,
+                'image'         => $product->image_url,
+            ]);
+    }
+
+    // Truy vấn sau tìm kiếm + bộ lọc (chưa sắp xếp/phân trang) — dùng chung cho danh sách và gợi ý thùng.
+    protected function filteredProductsQuery(string $branch)
+    {
         return Product::query()
             ->when($this->search, function ($query) {
                 $keywords = array_filter(explode(' ', $this->search));
@@ -308,21 +328,13 @@ class PosTerminal extends Component
                     default        => null,
                 };
             })
-            ->where('is_active', true)
-            ->orderBy('sku', 'asc')
-            ->paginate(24)
-            ->onEachSide(1)
-            ->through(fn($product) => [
-                'id'            => $product->id,
-                'sku'           => $product->sku,
-                'name'          => $product->name,
-                'base_name'     => $product->base_name,
-                'category_path' => $product->category_path,
-                'sale_price'    => (int) $product->sale_price,
-                'location'      => $product->location,
-                'stock_quantity'=> $product->stock_quantity,
-                'image'         => $product->image_url,
-            ]);
+            ->where('is_active', true);
+    }
+
+    public function filterByBox($code): void
+    {
+        $this->boxCode = (string) $code;
+        $this->resetPage();
     }
 
     // Close currently active tab (listener helper)
@@ -970,8 +982,14 @@ class PosTerminal extends Component
         $brandQuery = $this->applyBranchScope(Product::query(), $branch);
         $boxCodeQuery = $this->applyBranchScope(Product::query(), $branch);
 
+        // Gợi ý thùng chứa nhiều mã của kết quả đang tìm (chỉ khi đang tìm và chưa lọc theo thùng).
+        $boxSuggestions = (trim((string) $this->search) !== '' && trim((string) $this->boxCode) === '')
+            ? Product::boxSuggestions($this->filteredProductsQuery($branch))
+            : [];
+
         return view('livewire.pos.pos-terminal', [
             'products'           => $this->getProducts(),
+            'boxSuggestions'     => $boxSuggestions,
             'cart'               => $tab['cart'] ?? [],
             'total'              => $this->total,
             'finalAmount'        => $this->finalAmount,

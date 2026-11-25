@@ -27,7 +27,9 @@
         <span class="font-bold text-slate-400">Tick chọn sản phẩm để lưu thành danh sách, chọn dần nhiều ngày rồi in.</span>
     @endif
 
-    <div class="relative ml-auto">
+    <button wire:click="openBoxManager" class="ml-auto px-2.5 py-1 rounded-md border border-slate-200 bg-white text-slate-600 font-black uppercase text-[10px] hover:border-electric-blue/40" title="Xem/ghi chú từng thùng: nơi để, đặc điểm...">Quản lý thùng</button>
+
+    <div class="relative">
         <button @click="open = !open" @click.outside="open = false"
                 class="px-2.5 py-1 rounded-md border border-slate-200 bg-white text-slate-600 font-black uppercase text-[10px] hover:border-electric-blue/40">
             Danh sách đã lưu ({{ $savedLists->count() }}) ▾

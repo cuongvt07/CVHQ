@@ -190,7 +190,7 @@ class ProductIndex extends Component
      */
     public function getLocationOptionsProperty(): array
     {
-        return \App\Models\Product::getUniqueLocations();
+        return \App\Models\Product::boxCatalog();
     }
 
     /** Đồng bộ trạng thái còn/hết hàng từ admin -> WooCommerce (SKU trùng), rồi mở popup liệt kê. */
@@ -723,7 +723,7 @@ class ProductIndex extends Component
 
     public function save($keepOpen = false)
     {
-        $this->location = trim((string) $this->location);
+        $this->location = \App\Models\Product::normalizeLocation($this->location);
 
         $currentSku = $this->sku;
         $rules = $this->rules;
@@ -1020,7 +1020,7 @@ class ProductIndex extends Component
 
         foreach ($this->bulkProducts as $index => $row) {
             $attrVal = trim($row['attribute'] ?? '');
-            $location = trim($row['location'] ?? '');
+            $location = \App\Models\Product::normalizeLocation($row['location'] ?? '');
             if ($attrVal === '' && $location === '') {
                 continue;
             }
@@ -1437,6 +1437,16 @@ class ProductIndex extends Component
 
     public function getProducts()
     {
+        $query = $this->filteredQuery();
+
+        $this->applySort($query);
+
+        return $query->paginate($this->perPage)->onEachSide(1);
+    }
+
+    // Truy vấn sau khi áp tìm kiếm + bộ lọc (chưa sắp xếp/phân trang) — dùng chung cho danh sách và gợi ý thùng.
+    protected function filteredQuery()
+    {
         $hasManualSort = $this->hasManualSort();
 
         $query = Product::query()
@@ -1489,9 +1499,58 @@ class ProductIndex extends Component
                     $query->where('stock_quantity', '<', 10)->where('stock_quantity', '>', 0);
             });
 
-        $this->applySort($query);
+        return $query;
+    }
 
-        return $query->paginate($this->perPage)->onEachSide(1);
+    // ===== Thùng: gợi ý theo kết quả tìm kiếm + quản lý ghi chú thùng =====
+    public bool $showBoxManager = false;
+    public string $boxManagerSearch = '';
+    public string $newBoxCode = '';
+
+    public function filterByBox($code): void
+    {
+        $this->boxCode = (string) $code;
+        $this->showBoxManager = false;
+        $this->resetPage();
+    }
+
+    public function openBoxManager(): void
+    {
+        $this->showBoxManager = true;
+        $this->boxManagerSearch = '';
+    }
+
+    public function closeBoxManager(): void
+    {
+        $this->showBoxManager = false;
+    }
+
+    public function saveBoxNote($code, $note): void
+    {
+        $code = trim((string) $code);
+        if ($code === '') {
+            return;
+        }
+        $note = trim((string) $note);
+        $row = \App\Models\BoxNote::where('code', $code)->first();
+        if ($note === '') {
+            $row?->delete();
+        } elseif ($row) {
+            $row->update(['note' => $note]);
+        } else {
+            \App\Models\BoxNote::create(['code' => $code, 'note' => $note]);
+        }
+    }
+
+    public function addBox(): void
+    {
+        $code = trim($this->newBoxCode);
+        if ($code === '') {
+            return;
+        }
+        \App\Models\BoxNote::firstOrCreate(['code' => $code], ['note' => '']);
+        $this->newBoxCode = '';
+        $this->boxManagerSearch = $code;
     }
 
     protected function getRecordsForBulk()
@@ -1517,12 +1576,19 @@ class ProductIndex extends Component
         });
 
         $products = $this->getProducts();
+        // Gợi ý thùng chứa nhiều mã của kết quả đang tìm (chỉ khi đang tìm và chưa lọc theo thùng).
+        $boxSuggestions = (trim((string) $this->search) !== '' && trim((string) $this->boxCode) === '')
+            ? \App\Models\Product::boxSuggestions($this->filteredQuery())
+            : [];
+        $boxCatalog = $this->showBoxManager ? \App\Models\Product::boxCatalog() : [];
         // Mã Z đã tồn tại của các SP trong trang -> ẩn nút "Tạo mã Sài Gòn" ở những SP đã có bản Z.
         $existingZSkus = Product::whereIn('sku', $products->pluck('sku')->map(fn ($s) => 'Z' . $s)->all())
             ->pluck('sku')->flip()->all();
 
         return view('livewire.product.product-index', [
             'products' => $products,
+            'boxSuggestions' => $boxSuggestions,
+            'boxCatalog' => $boxCatalog,
             'existingZSkus' => $existingZSkus,
             'historyData' => $this->getHistoryData($this->expandedProductId ? (int) $this->expandedProductId : null),
             'savedLists' => \App\Models\ProductSelectionList::where('user_id', auth()->id())->orderByDesc('updated_at')->get(),

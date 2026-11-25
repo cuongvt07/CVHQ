@@ -2,7 +2,7 @@
     <!-- Header Area -->
     <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-3 mb-5">
         <div class="flex items-center gap-3">
-            <a href="{{ route('invoices') }}" class="w-8 h-8 md:w-10 md:h-10 rounded-full bg-white border border-slate-200 flex items-center justify-center text-slate-500 hover:text-electric-blue hover:border-electric-blue/50 transition-all shrink-0">
+            <a href="{{ $invoice->status === 'Returned' ? route('invoices.returns') : route('invoices') }}" class="w-8 h-8 md:w-10 md:h-10 rounded-full bg-white border border-slate-200 flex items-center justify-center text-slate-500 hover:text-electric-blue hover:border-electric-blue/50 transition-all shrink-0">
                 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg>
             </a>
             <div>
