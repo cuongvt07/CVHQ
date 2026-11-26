@@ -93,7 +93,7 @@
     <template x-teleport="body">
         <div x-show="open && (matches().length || isNew())" x-cloak
              data-lp-dd
-             class="fixed z-[400] max-h-64 overflow-y-auto bg-white border border-slate-200 rounded-lg shadow-xl"
+             class="fixed z-[10050] max-h-64 overflow-y-auto bg-white border border-slate-200 rounded-lg shadow-xl"
              :style="`left:${px}px; top:${py}px; width:${pw}px`">
             <template x-if="isNew()">
                 <button type="button" @mousedown.prevent @click="commit()"
