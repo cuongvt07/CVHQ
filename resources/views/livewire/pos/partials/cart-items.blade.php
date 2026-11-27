@@ -71,7 +71,7 @@
                 @php $__boxes = $cartBoxes[$item['id']] ?? []; @endphp
                 @if(!empty($__boxes))
                     <div class="flex flex-wrap items-center gap-1 mt-0.5 pl-7">
-                        <span class="text-[8px] font-black uppercase tracking-wider text-slate-400">Trừ từ thùng:</span>
+                        <span class="text-[8px] font-black uppercase tracking-wider text-slate-400">Ưu tiên trừ thùng:</span>
                         @foreach($__boxes as $__b)
                             @php $__sel = ($item['box_code'] ?? null) === $__b['code']; @endphp
                             <button type="button" wire:click="setCartBox({{ $item['id'] }}, @js($__b['code']))" @disabled($__b['qty'] <= 0 && !$__sel)

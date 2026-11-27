@@ -418,9 +418,64 @@ class Product extends Model
         }
     }
 
-    /** Hoàn lại vào thùng PHỤ khi hủy/trả hàng (thùng gốc tự tăng theo tồn tổng). */
+    /**
+     * Chia số lượng bán ra các thùng: thùng ưu tiên (nhân viên chọn) trước, thiếu thì lấy tiếp các thùng còn lại
+     * theo thứ tự (gốc trước). Trả về [code => qty]. Phần dư (nếu tồn thùng lệch) dồn vào thùng ưu tiên/gốc.
+     */
+    public function allocateBoxes(?string $preferred, int $qty): array
+    {
+        $breakdown = $this->boxBreakdown();
+        if (!$breakdown || $qty <= 0) {
+            return [];
+        }
+        $preferred = mb_strtoupper(trim((string) $preferred));
+        usort($breakdown, fn($a, $b) => ($b['code'] === $preferred) <=> ($a['code'] === $preferred));
+        $out = [];
+        $left = $qty;
+        foreach ($breakdown as $b) {
+            if ($left <= 0) {
+                break;
+            }
+            $take = min($left, $b['qty']);
+            if ($take > 0) {
+                $out[$b['code']] = $take;
+                $left -= $take;
+            }
+        }
+        if ($left > 0) {
+            $first = $preferred !== '' && collect($breakdown)->contains('code', $preferred) ? $preferred : $breakdown[0]['code'];
+            $out[$first] = ($out[$first] ?? 0) + $left;
+        }
+        return $out;
+    }
+
+    /** Chuỗi lưu vào invoice_items.box_code: "D41" nếu 1 thùng, "D41:2,D42:1" nếu nhiều thùng. */
+    public static function encodeAllocation(array $alloc): ?string
+    {
+        if (!$alloc) {
+            return null;
+        }
+        if (count($alloc) === 1) {
+            return (string) array_key_first($alloc);
+        }
+        return collect($alloc)->map(fn($q, $c) => $c . ':' . $q)->implode(',');
+    }
+
+    /** Hoàn lại vào thùng PHỤ khi hủy/trả hàng (thùng gốc tự tăng theo tồn tổng). Hiểu cả dạng nhiều thùng "A:2,B:1". */
     public function restoreToBox(?string $code, int $qty): void
     {
+        if ($code && strpos($code, ':') !== false) {
+            foreach (explode(',', $code) as $part) {
+                if ($qty <= 0) {
+                    break;
+                }
+                [$c, $q] = array_pad(explode(':', $part, 2), 2, 0);
+                $back = min($qty, (int) $q);
+                $this->restoreToBox($c, $back);
+                $qty -= $back;
+            }
+            return;
+        }
         $code = mb_strtoupper(trim((string) $code));
         $root = static::splitLocation($this->location)[0] ?? null;
         if ($code === '' || $qty <= 0 || $code === $root) {

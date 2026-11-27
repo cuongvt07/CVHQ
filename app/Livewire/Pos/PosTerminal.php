@@ -612,15 +612,10 @@ class PosTerminal extends Component
         $this->recalculateTotalDiscount();
     }
 
-    // Số lượng tối đa bán được: nhỏ hơn giữa tồn tổng và tồn thùng đã chọn.
+    // Số lượng tối đa bán được = tồn tổng (thùng đã chọn chỉ là thùng ưu tiên, thiếu thì lấy tiếp thùng khác).
     protected function availableFor(?Product $product, ?string $boxCode): int
     {
-        if (!$product) {
-            return 0;
-        }
-        $total = (int) ($product->stock_quantity ?? 0);
-        $box = $boxCode ? $product->boxAvailable($boxCode) : null;
-        return $box === null ? $total : min($total, $box);
+        return $product ? (int) ($product->stock_quantity ?? 0) : 0;
     }
 
     // Chọn thùng muốn trừ hàng cho 1 dòng trong giỏ (1 SP có thể để ở nhiều thùng).
@@ -640,11 +635,8 @@ class PosTerminal extends Component
         foreach ($tab['cart'] as &$item) {
             if ((int) $item['id'] === $productId) {
                 $item['box_code'] = $boxCode;
-                if ($avail <= 0) {
-                    $this->dispatch('notify', message: 'Thùng ' . $boxCode . ' đã hết "' . ($item['name'] ?? '') . '"', type: 'warning');
-                } elseif ($item['quantity'] > $avail) {
-                    $item['quantity'] = $avail;
-                    $this->dispatch('notify', message: 'Thùng ' . $boxCode . ' chỉ còn ' . $avail . '. Đã giảm số lượng.', type: 'warning');
+                if ($item['quantity'] > $avail) {
+                    $this->dispatch('notify', message: 'Thùng ' . $boxCode . ' chỉ có ' . $avail . ', phần còn lại sẽ trừ tiếp từ thùng khác.', type: 'info');
                 }
                 break;
             }
@@ -966,15 +958,10 @@ class PosTerminal extends Component
             ], $paymentColumns));
 
             foreach ($tab['cart'] as $item) {
-                // Trừ hàng theo thùng: thùng đã chọn phải còn đủ (thùng gốc = tồn tổng - thùng phụ).
-                $boxCode = $item['box_code'] ?? null;
-                if ($boxCode) {
-                    $boxProduct = \App\Models\Product::with('boxStocks')->find($item['id']);
-                    $boxAvail = $boxProduct ? $boxProduct->boxAvailable($boxCode) : null;
-                    if ($boxAvail !== null && (int) $item['quantity'] > $boxAvail) {
-                        throw new \Exception('Thùng ' . $boxCode . ' chỉ còn ' . $boxAvail . ' "' . $item['name'] . '" — chọn thùng khác hoặc giảm số lượng.');
-                    }
-                }
+                // Trừ hàng theo thùng: ưu tiên thùng đã chọn, thiếu thì lấy tiếp thùng khác (tổng tồn đủ là bán được).
+                $boxProduct = \App\Models\Product::with('boxStocks')->find($item['id']);
+                $alloc = $boxProduct ? $boxProduct->allocateBoxes($item['box_code'] ?? null, (int) $item['quantity']) : [];
+                $boxCode = \App\Models\Product::encodeAllocation($alloc);
 
                 \App\Models\InvoiceItem::create([
                     'invoice_id'       => $invoice->id,
@@ -992,10 +979,12 @@ class PosTerminal extends Component
                 if ($product) {
                     $product->recordStockHistory(
                         'Sale', -$item['quantity'],
-                        $invoice->id, $invoice->invoice_code, 'Bán hàng' . ($boxCode ? ' (thùng ' . $boxCode . ')' : '')
+                        $invoice->id, $invoice->invoice_code, 'Bán hàng' . ($boxCode ? ' (thùng ' . str_replace(':', ' x', $boxCode) . ')' : '')
                     );
                     $product->decrement('stock_quantity', $item['quantity']);
-                    $product->deductFromBox($boxCode, (int) $item['quantity']);
+                    foreach ($alloc as $c => $q) {
+                        $product->deductFromBox($c, (int) $q);
+                    }
                 }
             }
                             $this->persistTabs();
