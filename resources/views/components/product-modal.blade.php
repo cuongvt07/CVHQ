@@ -195,8 +195,8 @@
                             <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">
                                 Vị trí hàng hóa<span class="text-rose-500 ml-0.5">*</span>
                             </label>
-                            <x-location-picker model="location" :options="$this->locationOptions" />
-                            <p class="text-[10px] text-slate-400 ml-1">Gõ mã thùng rồi <span class="font-bold text-electric-blue">Enter</span> để thêm (thùng mới cũng được), hoặc mở danh sách và tick chọn nhiều thùng. Thùng đầu tiên là <b>thùng gốc</b>; bấm ★ để đổi thùng gốc.</p>
+                            <x-location-picker model="location" qty-model="boxQty" total-model="stock_quantity" :options="$this->locationOptions" />
+                            <p class="text-[10px] text-slate-400 ml-1">Gõ mã thùng rồi <span class="font-bold text-electric-blue">Enter</span> để thêm (thùng mới cũng được), hoặc mở danh sách và tick chọn nhiều thùng. Thùng đầu tiên là <b>thùng gốc</b>; bấm ★ để đổi thùng gốc. Có nhiều thùng thì nhập số lượng đang để ở từng thùng phụ; thùng gốc tự lấy phần còn lại của tồn kho.</p>
                             @error('location') <span class="text-[10px] text-rose-500 font-bold ml-1">{{ $message }}</span> @enderror
                         </div>
 

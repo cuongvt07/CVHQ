@@ -279,6 +279,7 @@ class PosTerminal extends Component
         $branch = $this->syncEffectiveBranch();
 
         return $this->filteredProductsQuery($branch)
+            ->with('boxStocks')
             ->orderBy('sku', 'asc')
             ->paginate(24)
             ->onEachSide(1)
@@ -290,6 +291,7 @@ class PosTerminal extends Component
                 'category_path' => $product->category_path,
                 'sale_price'    => (int) $product->sale_price,
                 'location'      => $product->location,
+                'boxes'         => $product->boxBreakdown(),
                 'stock_quantity'=> $product->stock_quantity,
                 'image'         => $product->image_url,
             ]);
@@ -507,9 +509,10 @@ class PosTerminal extends Component
         $found = false;
         foreach ($tab['cart'] as &$item) {
             if ((int)$item['id'] === (int)$productId) {
-                // Kiểm tra vượt tồn kho trước khi tăng
-                if ($item['quantity'] + 1 > $stock) {
-                    $this->dispatch('notify', message: 'Vượt tồn kho! Còn lại ' . $stock . ' "' . $product->name . '"', type: 'warning');
+                // Kiểm tra vượt tồn kho (tổng + thùng đã chọn) trước khi tăng
+                $cap = $this->availableFor($product, $item['box_code'] ?? null);
+                if ($item['quantity'] + 1 > $cap) {
+                    $this->dispatch('notify', message: 'Vượt tồn kho! Còn lại ' . $cap . ' "' . $product->name . '"' . (!empty($item['box_code']) ? ' ở thùng ' . $item['box_code'] : ''), type: 'warning');
                     return;
                 }
                 $item['quantity']++;
@@ -520,11 +523,14 @@ class PosTerminal extends Component
         unset($item);
 
         if (!$found) {
+            // Thùng trừ hàng mặc định: thùng đầu tiên còn hàng (thùng gốc ưu tiên); nhân viên đổi được ở giỏ.
+            $defaultBox = collect($product->boxBreakdown())->first(fn($b) => $b['qty'] > 0)['code'] ?? null;
             $tab['cart'][] = [
                 'id'                  => $product->id,
                 'sku'                 => $product->sku,
                 'name'                => $product->name,
                 'location'            => $product->location,
+                'box_code'            => $defaultBox,
                 'sale_price'          => (int) $product->sale_price,
                 'original_price'      => (int) $product->sale_price,
                 'quantity'            => 1,
@@ -551,7 +557,7 @@ class PosTerminal extends Component
 
                 // Khi tăng số lượng, kiểm tra vượt tồn kho
                 if ($delta > 0) {
-                    $stock = (int) (Product::where('id', $productId)->value('stock_quantity') ?? 0);
+                    $stock = $this->availableFor(Product::with('boxStocks')->find($productId), $item['box_code'] ?? null);
                     if ($newQty > $stock) {
                         $this->dispatch('notify', message: 'Vượt tồn kho! Còn lại ' . $stock . ' "' . $item['name'] . '"', type: 'warning');
                         return;
@@ -585,7 +591,7 @@ class PosTerminal extends Component
             if ((int)$item['id'] === (int)$productId) {
                 // Cap qty tại tồn kho khi gõ trực tiếp
                 if ($qty > 0) {
-                    $stock = (int) (Product::where('id', $productId)->value('stock_quantity') ?? 0);
+                    $stock = $this->availableFor(Product::with('boxStocks')->find($productId), $item['box_code'] ?? null);
                     if ($qty > $stock) {
                         $this->dispatch('notify', message: 'Số lượng vượt tồn kho. Đã giới hạn ở ' . $stock, type: 'warning');
                         $qty = $stock;
@@ -597,6 +603,48 @@ class PosTerminal extends Component
                     $tab['cart'] = array_values($tab['cart']);
                 } else {
                     $item['quantity'] = $qty;
+                }
+                break;
+            }
+        }
+        unset($item);
+        $this->setTab($tab);
+        $this->recalculateTotalDiscount();
+    }
+
+    // Số lượng tối đa bán được: nhỏ hơn giữa tồn tổng và tồn thùng đã chọn.
+    protected function availableFor(?Product $product, ?string $boxCode): int
+    {
+        if (!$product) {
+            return 0;
+        }
+        $total = (int) ($product->stock_quantity ?? 0);
+        $box = $boxCode ? $product->boxAvailable($boxCode) : null;
+        return $box === null ? $total : min($total, $box);
+    }
+
+    // Chọn thùng muốn trừ hàng cho 1 dòng trong giỏ (1 SP có thể để ở nhiều thùng).
+    public function setCartBox(int $productId, string $boxCode): void
+    {
+        $product = Product::with('boxStocks')->find($productId);
+        if (!$product) {
+            return;
+        }
+        $boxCode = mb_strtoupper(trim($boxCode));
+        $avail = $product->boxAvailable($boxCode);
+        if ($avail === null) {
+            return;
+        }
+
+        $tab = $this->getTab();
+        foreach ($tab['cart'] as &$item) {
+            if ((int) $item['id'] === $productId) {
+                $item['box_code'] = $boxCode;
+                if ($avail <= 0) {
+                    $this->dispatch('notify', message: 'Thùng ' . $boxCode . ' đã hết "' . ($item['name'] ?? '') . '"', type: 'warning');
+                } elseif ($item['quantity'] > $avail) {
+                    $item['quantity'] = $avail;
+                    $this->dispatch('notify', message: 'Thùng ' . $boxCode . ' chỉ còn ' . $avail . '. Đã giảm số lượng.', type: 'warning');
                 }
                 break;
             }
@@ -918,10 +966,21 @@ class PosTerminal extends Component
             ], $paymentColumns));
 
             foreach ($tab['cart'] as $item) {
+                // Trừ hàng theo thùng: thùng đã chọn phải còn đủ (thùng gốc = tồn tổng - thùng phụ).
+                $boxCode = $item['box_code'] ?? null;
+                if ($boxCode) {
+                    $boxProduct = \App\Models\Product::with('boxStocks')->find($item['id']);
+                    $boxAvail = $boxProduct ? $boxProduct->boxAvailable($boxCode) : null;
+                    if ($boxAvail !== null && (int) $item['quantity'] > $boxAvail) {
+                        throw new \Exception('Thùng ' . $boxCode . ' chỉ còn ' . $boxAvail . ' "' . $item['name'] . '" — chọn thùng khác hoặc giảm số lượng.');
+                    }
+                }
+
                 \App\Models\InvoiceItem::create([
                     'invoice_id'       => $invoice->id,
                     'product_id'       => $item['id'],
                     'sku'              => $item['sku'],
+                    'box_code'         => $boxCode,
                     'product_name'     => $item['name'],
                     'quantity'         => $item['quantity'],
                     'unit_price'       => $item['sale_price'],
@@ -933,9 +992,10 @@ class PosTerminal extends Component
                 if ($product) {
                     $product->recordStockHistory(
                         'Sale', -$item['quantity'],
-                        $invoice->id, $invoice->invoice_code, 'Bán hàng'
+                        $invoice->id, $invoice->invoice_code, 'Bán hàng' . ($boxCode ? ' (thùng ' . $boxCode . ')' : '')
                     );
                     $product->decrement('stock_quantity', $item['quantity']);
+                    $product->deductFromBox($boxCode, (int) $item['quantity']);
                 }
             }
                             $this->persistTabs();
@@ -987,7 +1047,16 @@ class PosTerminal extends Component
             ? Product::boxSuggestions($this->filteredProductsQuery($branch))
             : [];
 
+        // Tồn theo thùng của các SP trong giỏ (luôn đọc mới) để chọn thùng trừ hàng.
+        $cartBoxes = [];
+        if ($cart) {
+            foreach (Product::with('boxStocks')->whereIn('id', collect($cart)->pluck('id'))->get() as $p) {
+                $cartBoxes[$p->id] = $p->boxBreakdown();
+            }
+        }
+
         return view('livewire.pos.pos-terminal', [
+            'cartBoxes'          => $cartBoxes,
             'products'           => $this->getProducts(),
             'boxSuggestions'     => $boxSuggestions,
             'cart'               => $tab['cart'] ?? [],

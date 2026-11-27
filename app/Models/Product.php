@@ -237,9 +237,10 @@ class Product extends Model
         $seen = [];
         foreach (preg_split('/[,;|
 ]+/', (string) $location) as $token) {
-            $token = trim($token);
-            if ($token !== '' && !isset($seen[mb_strtolower($token)])) {
-                $seen[mb_strtolower($token)] = $token;
+            // Thùng không phân biệt hoa/thường: d14 và D14 đều quy về D14.
+            $token = mb_strtoupper(trim($token));
+            if ($token !== '' && !isset($seen[$token])) {
+                $seen[$token] = $token;
             }
         }
         return array_values($seen);
@@ -357,6 +358,78 @@ class Product extends Model
         $values = array_values($set);
         sort($values, SORT_NATURAL | SORT_FLAG_CASE);
         return $values;
+    }
+
+    public function boxStocks(): HasMany
+    {
+        return $this->hasMany(ProductBoxStock::class);
+    }
+
+    /**
+     * Tồn theo từng thùng: [['code','qty','root'], ...] theo thứ tự thùng trong vị trí (đầu tiên = thùng gốc).
+     * Thùng phụ lấy từ product_box_stocks; thùng gốc = tồn tổng - tổng thùng phụ (không âm).
+     */
+    public function boxBreakdown(): array
+    {
+        $codes = static::splitLocation($this->location);
+        if (!$codes) {
+            return [];
+        }
+        $stored = $this->boxStocks->mapWithKeys(fn($b) => [mb_strtoupper($b->box_code) => (int) $b->quantity]);
+
+        $out = [];
+        $sumOthers = 0;
+        foreach ($codes as $i => $code) {
+            if ($i === 0) {
+                $out[] = ['code' => $code, 'qty' => 0, 'root' => true];
+                continue;
+            }
+            $q = max(0, (int) ($stored[$code] ?? 0));
+            $sumOthers += $q;
+            $out[] = ['code' => $code, 'qty' => $q, 'root' => false];
+        }
+        $out[0]['qty'] = max(0, (int) $this->stock_quantity - $sumOthers);
+        return $out;
+    }
+
+    /** Tồn khả dụng của 1 thùng (null nếu SP không có thùng đó). */
+    public function boxAvailable(?string $code): ?int
+    {
+        $code = mb_strtoupper(trim((string) $code));
+        foreach ($this->boxBreakdown() as $b) {
+            if ($b['code'] === $code) {
+                return $b['qty'];
+            }
+        }
+        return null;
+    }
+
+    /** Trừ số lượng đã bán khỏi thùng PHỤ (tồn tổng do nơi gọi trừ). Thùng gốc tự giảm theo tồn tổng. */
+    public function deductFromBox(?string $code, int $qty): void
+    {
+        $code = mb_strtoupper(trim((string) $code));
+        $root = static::splitLocation($this->location)[0] ?? null;
+        if ($code === '' || $qty <= 0 || $code === $root) {
+            return;
+        }
+        $row = ProductBoxStock::where('product_id', $this->id)->where('box_code', $code)->first();
+        if ($row) {
+            $row->update(['quantity' => max(0, (int) $row->quantity - $qty)]);
+        }
+    }
+
+    /** Hoàn lại vào thùng PHỤ khi hủy/trả hàng (thùng gốc tự tăng theo tồn tổng). */
+    public function restoreToBox(?string $code, int $qty): void
+    {
+        $code = mb_strtoupper(trim((string) $code));
+        $root = static::splitLocation($this->location)[0] ?? null;
+        if ($code === '' || $qty <= 0 || $code === $root) {
+            return;
+        }
+        $row = ProductBoxStock::where('product_id', $this->id)->where('box_code', $code)->first();
+        if ($row) {
+            $row->update(['quantity' => (int) $row->quantity + $qty]);
+        }
     }
 
     public function stockHistories(): HasMany

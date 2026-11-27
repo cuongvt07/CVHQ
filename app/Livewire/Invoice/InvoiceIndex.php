@@ -415,6 +415,7 @@ class InvoiceIndex extends Component
                     'Trả hàng'
                 );
                 $product->increment('stock_quantity', $qty);
+                $product->restoreToBox($item->box_code, $qty);
                 $restored++;
             }
 
@@ -597,6 +598,7 @@ class InvoiceIndex extends Component
                     if ($item->product && (int) $item->quantity !== 0) {
                         $before = (int) $item->product->stock_quantity;
                         $item->product->increment('stock_quantity', $item->quantity);
+                        $item->product->restoreToBox($item->box_code, (int) $item->quantity);
                         $item->product->recordStockHistory(
                             'Adjustment', (int) $item->quantity,
                             $invoice->id, $invoice->invoice_code,

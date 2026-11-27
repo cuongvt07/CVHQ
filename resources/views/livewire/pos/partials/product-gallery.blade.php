@@ -58,10 +58,18 @@
                         </div>
                         <div class="flex items-center justify-between gap-1 text-[9px]">
                             <span class="font-mono text-slate-400 truncate">{{ $product['sku'] }}</span>
-                            @if($product['location'])
-                                <span class="font-medium text-emerald-600 bg-emerald-50 px-1 py-px rounded shrink-0" title="{{ $product['location'] }}">{{ \App\Models\Product::formatLocationHtml($product['location']) }}</span>
-                            @endif
                         </div>
+                        @if(!empty($product['boxes']))
+                            {{-- Tồn theo từng thùng: mã thùng + số lượng (thùng gốc in đậm) --}}
+                            <div class="grid grid-cols-2 gap-0.5 mt-0.5">
+                                @foreach(array_slice($product['boxes'], 0, 4) as $__b)
+                                    <div class="flex items-center justify-between gap-1 rounded border px-1 py-px text-[9px] leading-tight {{ $__b['qty'] > 0 ? 'border-emerald-200 bg-emerald-50 text-emerald-700' : 'border-slate-200 bg-slate-50 text-slate-400' }}">
+                                        <span class="truncate {{ $__b['root'] ? 'font-black' : 'font-medium' }}">{{ $__b['code'] }}</span>
+                                        <span class="shrink-0 font-black">{{ $__b['qty'] }}</span>
+                                    </div>
+                                @endforeach
+                            </div>
+                        @endif
                     </div>
                 </div>
             @endforeach

@@ -423,6 +423,8 @@ class ProductIndex extends Component
 
     // Form properties
     public $productId;
+    // Tồn theo thùng PHỤ khi sửa SP: ['D02' => 20, ...]. Thùng gốc = tồn tổng - tổng thùng phụ.
+    public array $boxQty = [];
     public $sku, $base_name, $category_path, $brand, $sale_price, $cost_price, $commission_amount, $stock_quantity, $location;
     public $commission_type = 'amount';   // 'amount' (tiền) | 'percent' (%)
     public $commission_percent = 0;       // dùng khi commission_type = 'percent'
@@ -506,6 +508,7 @@ class ProductIndex extends Component
         $this->commission_percent = $this->defaultCommissionPercent();
         $this->stock_quantity = 1;
         $this->location = '';
+        $this->boxQty = [];
         $this->is_active = true;
         $this->newImages = [];
         $this->existingImages = [];
@@ -706,6 +709,12 @@ class ProductIndex extends Component
         $this->editStockOriginal = (int) $product->stock_quantity;
         $this->editStockReason = '';
         $this->location = $product->location;
+        $this->boxQty = [];
+        foreach ($product->boxBreakdown() as $b) {
+            if (!$b['root']) {
+                $this->boxQty[$b['code']] = $b['qty'];
+            }
+        }
         $this->is_active = $product->is_active;
         $this->existingImages = is_array($product->images) ? $product->images : [];
         $this->newImages = [];
@@ -732,6 +741,18 @@ class ProductIndex extends Component
         }
 
         $this->validate($rules);
+
+        // Tồn các thùng phụ không được vượt tồn tổng (thùng gốc = phần còn lại).
+        $__codes = \App\Models\Product::splitLocation($this->location);
+        $__sumOthers = 0;
+        foreach (array_slice($__codes, 1) as $__c) {
+            $__sumOthers += max(0, (int) ($this->boxQty[$__c] ?? 0));
+        }
+        $__total = (int) ($this->stock_quantity === '' || $this->stock_quantity === null ? 1 : $this->stock_quantity);
+        if ($__sumOthers > $__total) {
+            $this->addError('location', "Tồn các thùng phụ ({$__sumOthers}) vượt tổng tồn kho ({$__total}). Giảm số ở thùng phụ hoặc tăng tổng tồn.");
+            return;
+        }
 
         // Sửa tồn kho trong form: GIẢM tồn -> bắt buộc nhập lý do (tăng thì áp dụng ngay).
         if ($this->productId) {
@@ -834,6 +855,8 @@ class ProductIndex extends Component
             $this->dispatch('notify', message: 'Thêm sản phẩm thành công!', type: 'success');
         }
 
+        $this->syncBoxStocks($product);
+
         if ($keepOpen) {
             $nextSku = $this->getNextSku($currentSku);
 
@@ -841,6 +864,7 @@ class ProductIndex extends Component
             $this->productId = null;
             $this->sku = $nextSku;
             $this->location = '';
+            $this->boxQty = [];
             $this->productAttributes = [];
 
             $this->loadAttributeSuggestions();
@@ -848,6 +872,25 @@ class ProductIndex extends Component
         } else {
             $this->dispatch('close-product-modal');
             $this->resetForm();
+        }
+    }
+
+    // Lưu tồn các thùng PHỤ theo form; thùng không còn trong vị trí thì xóa (tồn của nó tự về thùng gốc).
+    protected function syncBoxStocks(Product $product): void
+    {
+        $codes = \App\Models\Product::splitLocation($product->location);
+        $secondary = array_slice($codes, 1);
+
+        \App\Models\ProductBoxStock::where('product_id', $product->id)
+            ->whereNotIn('box_code', $secondary ?: [''])->delete();
+
+        $existing = \App\Models\ProductBoxStock::where('product_id', $product->id)->pluck('quantity', 'box_code');
+        foreach ($secondary as $code) {
+            $qty = array_key_exists($code, $this->boxQty) ? max(0, (int) $this->boxQty[$code]) : (int) ($existing[$code] ?? 0);
+            \App\Models\ProductBoxStock::updateOrCreate(
+                ['product_id' => $product->id, 'box_code' => $code],
+                ['quantity' => $qty]
+            );
         }
     }
 
@@ -1527,7 +1570,7 @@ class ProductIndex extends Component
 
     public function saveBoxNote($code, $note): void
     {
-        $code = trim((string) $code);
+        $code = mb_strtoupper(trim((string) $code));
         if ($code === '') {
             return;
         }
@@ -1544,7 +1587,7 @@ class ProductIndex extends Component
 
     public function addBox(): void
     {
-        $code = trim($this->newBoxCode);
+        $code = mb_strtoupper(trim($this->newBoxCode));
         if ($code === '') {
             return;
         }

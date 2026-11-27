@@ -166,10 +166,17 @@
                             <div class="text-[12px] font-bold text-slate-900 leading-tight truncate">{{ $product['name'] ?: $product['base_name'] }}</div>
                             <div class="flex items-center gap-1.5 mt-0.5">
                                 <span class="text-[9px] font-mono text-slate-400">{{ $product['sku'] }}</span>
-                                @if($product['location'])
-                                    <span class="text-[9px] font-medium text-emerald-600 bg-emerald-50 px-1 py-px rounded" title="{{ $product['location'] }}">{{ \App\Models\Product::formatLocationHtml($product['location']) }}</span>
-                                @endif
                             </div>
+                            @if(!empty($product['boxes']))
+                                <div class="flex flex-wrap gap-1 mt-0.5">
+                                    @foreach(array_slice($product['boxes'], 0, 4) as $__b)
+                                        <span class="inline-flex items-center gap-1 rounded border px-1 py-px text-[9px] {{ $__b['qty'] > 0 ? 'border-emerald-200 bg-emerald-50 text-emerald-700' : 'border-slate-200 bg-slate-50 text-slate-400' }}">
+                                            <span class="{{ $__b['root'] ? 'font-black' : 'font-medium' }}">{{ $__b['code'] }}</span>
+                                            <b>{{ $__b['qty'] }}</b>
+                                        </span>
+                                    @endforeach
+                                </div>
+                            @endif
                         </div>
 
                         {{-- Price + stock badge (right) --}}

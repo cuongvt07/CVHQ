@@ -10,7 +10,7 @@ class InvoiceItem extends Model
 {
     use SoftDeletes;
     protected $fillable = [
-        'invoice_id', 'product_id', 'sku', 'product_name', 'quantity',
+        'invoice_id', 'product_id', 'sku', 'box_code', 'product_name', 'quantity',
         'unit_price', 'commission_amount', 'discount_percent', 'discount_amount', 'final_price'
     ];
 

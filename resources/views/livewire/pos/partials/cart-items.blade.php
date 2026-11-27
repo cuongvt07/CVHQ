@@ -67,6 +67,24 @@
                     </button>
                 </div>
 
+                {{-- Chọn thùng muốn trừ hàng (1 SP có thể để ở nhiều thùng) --}}
+                @php $__boxes = $cartBoxes[$item['id']] ?? []; @endphp
+                @if(!empty($__boxes))
+                    <div class="flex flex-wrap items-center gap-1 mt-0.5 pl-7">
+                        <span class="text-[8px] font-black uppercase tracking-wider text-slate-400">Trừ từ thùng:</span>
+                        @foreach($__boxes as $__b)
+                            @php $__sel = ($item['box_code'] ?? null) === $__b['code']; @endphp
+                            <button type="button" wire:click="setCartBox({{ $item['id'] }}, @js($__b['code']))" @disabled($__b['qty'] <= 0 && !$__sel)
+                                    title="{{ $__b['root'] ? 'Thùng gốc' : 'Thùng phụ' }} — còn {{ $__b['qty'] }}"
+                                    class="inline-flex items-center gap-1 rounded border px-1.5 py-px text-[10px] transition-colors disabled:opacity-40 disabled:cursor-not-allowed
+                                           {{ $__sel ? 'border-electric-blue bg-electric-blue text-white' : 'border-slate-200 bg-white text-slate-600 hover:border-electric-blue/50' }}">
+                                <span class="{{ $__b['root'] ? 'font-black' : 'font-semibold' }}">{{ $__b['code'] }}</span>
+                                <b class="{{ $__sel ? 'text-white' : ($__b['qty'] > 0 ? 'text-emerald-600' : 'text-slate-400') }}">{{ $__b['qty'] }}</b>
+                            </button>
+                        @endforeach
+                    </div>
+                @endif
+
                 {{-- Second row: Qty | Price (click edit) | Discount | Line total --}}
                 <div class="flex items-center gap-1 mt-0.5 pl-7">
                     {{-- Qty controls --}}

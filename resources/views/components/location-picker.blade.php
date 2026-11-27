@@ -1,15 +1,20 @@
-@props(['model', 'options' => [], 'compact' => false, 'placeholder' => 'Gõ mã thùng (VD: D50) rồi Enter, hoặc tick chọn bên dưới'])
+@props(['model', 'options' => [], 'compact' => false, 'qtyModel' => null, 'totalModel' => null, 'placeholder' => 'Gõ mã thùng (VD: D50) rồi Enter, hoặc tick chọn bên dưới'])
 {{--
     Chọn NHIỀU vị trí/thùng cho 1 sản phẩm.
     - Gõ mã rồi Enter / dấu phẩy / bấm ra ngoài => thêm luôn (thùng mới chưa có trong danh sách cũng được), không cần nút "+".
     - Mở danh sách: tick chọn nhiều thùng đã có (hiện kèm ghi chú thùng và số mã đang để).
     - Thùng ĐẦU TIÊN là "thùng gốc" (chữ đậm); bấm ★ ở thùng khác để đặt làm thùng gốc.
+    - Mã thùng luôn quy về CHỮ HOA (d14 = D14).
+    - Có qtyModel/totalModel: mỗi thùng PHỤ nhập số lượng đang để; thùng gốc tự = tồn tổng - tổng thùng phụ.
     - Lưu dạng "D50, D51, D52" (dữ liệu cũ "D50 | D51" vẫn đọc được).
 --}}
 <div x-data="{
         open: false, text: '', tokens: [], hi: -1,
         options: @js($options),
         query: $wire.$entangle(@js($model)),
+        @if($qtyModel) qty: $wire.$entangle(@js($qtyModel)), @else qty: {}, @endif
+        @if($totalModel) total: $wire.$entangle(@js($totalModel)), @else total: 0, @endif
+        hasQty: {{ $qtyModel ? 'true' : 'false' }},
         px: 0, py: 0, pw: 0,
         init() {
             this.tokens = this.parse(this.query);
@@ -17,7 +22,7 @@
         },
         parse(v) {
             const seen = {};
-            return (v || '').toString().split(/[,;|\n]+/).map(t => t.trim()).filter(t => {
+            return (v || '').toString().split(/[,;|\n]+/).map(t => t.trim().toUpperCase()).filter(t => {
                 if (!t) return false;
                 const k = t.toLowerCase();
                 if (seen[k]) return false;
@@ -26,20 +31,34 @@
             });
         },
         sync() { this.query = this.tokens.join(', '); },
+        q() { return (this.qty && !Array.isArray(this.qty)) ? this.qty : {}; },
+        qOf(code) { return parseInt(this.q()[code]) || 0; },
+        setQ(code, v) { const n = Math.max(0, parseInt(v) || 0); this.qty = Object.assign({}, this.q(), { [code]: n }); },
+        othersSum() { return this.tokens.slice(1).reduce((a, c) => a + this.qOf(c), 0); },
+        rootQty() { return (parseInt(this.total) || 0) - this.othersSum(); },
         has(code) { return this.tokens.some(t => t.toLowerCase() === code.toLowerCase()); },
-        canon(t) { const o = this.options.find(o => o.code.toLowerCase() === t.toLowerCase()); return o ? o.code : t; },
+        canon(t) { t = (t || '').trim().toUpperCase(); const o = this.options.find(o => o.code.toUpperCase() === t); return o ? o.code.toUpperCase() : t; },
         add(t) {
-            t = this.canon((t || '').trim());
+            t = this.canon(t);
             if (!t) return;
-            if (!this.has(t)) { this.tokens.push(t); this.sync(); }
+            if (!this.has(t)) { this.tokens.push(t); if (this.tokens.length > 1 && this.q()[t] === undefined) this.setQ(t, 0); this.sync(); }
         },
         toggle(code) {
-            if (this.has(code)) { this.tokens = this.tokens.filter(t => t.toLowerCase() !== code.toLowerCase()); this.sync(); }
+            if (this.has(code)) { this.tokens = this.tokens.filter(t => t.toLowerCase() !== code.toLowerCase()); this.dropQ(code); this.sync(); }
             else this.add(code);
         },
         commit() { this.parse(this.text).forEach(t => this.add(t)); this.text = ''; this.hi = -1; },
-        remove(i) { this.tokens.splice(i, 1); this.sync(); },
-        makeRoot(i) { const t = this.tokens.splice(i, 1)[0]; this.tokens.unshift(t); this.sync(); },
+        dropQ(code) { const c = Object.assign({}, this.q()); delete c[code]; this.qty = c; },
+        remove(i) { const t = this.tokens.splice(i, 1)[0]; this.dropQ(t); this.sync(); },
+        makeRoot(i) {
+            // Giữ nguyên số lượng từng thùng: thùng gốc cũ thành thùng phụ mang đúng phần tồn của nó.
+            const oldRoot = this.tokens[0], oldRootQty = this.rootQty();
+            const t = this.tokens.splice(i, 1)[0];
+            this.dropQ(t);
+            this.tokens.unshift(t);
+            if (oldRoot !== undefined && oldRoot !== t) this.setQ(oldRoot, Math.max(0, oldRootQty));
+            this.sync();
+        },
         matches() {
             const x = this.text.trim().toLowerCase();
             const list = this.options.filter(o => x === '' || o.code.toLowerCase().includes(x) || (o.note || '').toLowerCase().includes(x));
@@ -70,6 +89,14 @@
                   :class="i === 0 ? 'bg-electric-blue/10 border-electric-blue/40 text-electric-blue' : 'bg-white border-slate-200 text-slate-700'">
                 <span x-text="t" :class="i === 0 ? 'font-black' : 'font-medium'"></span>
                 <span x-show="i === 0" class="text-[8px] font-black uppercase tracking-wider opacity-70">gốc</span>
+                <template x-if="hasQty && tokens.length > 1">
+                    <span class="inline-flex items-center gap-0.5 text-[10px] text-slate-400">
+                        <span>SL</span>
+                        <template x-if="i === 0"><b class="text-slate-700 min-w-[1.5rem] text-center" :class="rootQty() < 0 ? 'text-rose-600' : ''" x-text="rootQty()" title="Thùng gốc = tồn tổng − tồn các thùng phụ"></b></template>
+                        <template x-if="i > 0"><input type="number" min="0" :value="qOf(t)" @change="setQ(t, $event.target.value)" @click.stop onfocus="this.select()"
+                                                     class="w-12 h-5 px-1 py-0 text-[11px] font-bold text-slate-800 bg-white border border-slate-200 rounded text-center focus:ring-0 focus:border-electric-blue"></template>
+                    </span>
+                </template>
                 <button type="button" x-show="i > 0" @click.stop="makeRoot(i)" title="Đặt làm thùng gốc"
                         class="text-slate-300 hover:text-amber-500 leading-none px-0.5">★</button>
                 <button type="button" @click.stop="remove(i)" title="Bỏ thùng này"

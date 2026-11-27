@@ -61,6 +61,7 @@ class Invoice extends Model
 
                 $before = (int) $product->stock_quantity;
                 $product->increment('stock_quantity', $qty);
+                $product->restoreToBox($item->box_code, $qty);
                 $product->recordStockHistory(
                     'Delete',
                     $qty,
@@ -138,6 +139,7 @@ class Invoice extends Model
                         'Hủy hóa đơn'
                     );
                     $product->increment('stock_quantity', $item->quantity);
+                    $product->restoreToBox($item->box_code, (int) $item->quantity);
                 }
             }
 
