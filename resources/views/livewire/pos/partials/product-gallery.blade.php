@@ -50,22 +50,22 @@
                             </div>
                         @endif
                     </div>
-                    <div class="p-1 flex flex-col flex-1 gap-0.5">
+                    <div class="p-1.5 flex flex-col flex-1 gap-1">
+                        {{-- Tên + giá --}}
                         <h3 class="text-[11px] font-semibold text-slate-700 group-hover:text-electric-blue line-clamp-2 leading-tight">{{ $product['name'] ?: $product['base_name'] }}</h3>
+                        <div class="text-[14px] font-extrabold text-electric-blue leading-none">{{ number_format($product['sale_price'], 0, ',', '.') }}</div>
+                        {{-- Mã SP (trái) + tổng tồn (phải) --}}
                         <div class="flex items-center justify-between gap-1">
-                            <span class="text-[13px] font-extrabold text-electric-blue leading-none">{{ number_format($product['sale_price'], 0, ',', '.') }}</span>
-                            <span class="text-[9px] font-bold {{ $product['stock_quantity'] <= 5 ? 'text-rose-600 bg-rose-50' : 'text-slate-600 bg-slate-50' }} px-1 py-px rounded shrink-0">{{ $product['stock_quantity'] }}</span>
+                            <span class="font-mono text-[10px] text-slate-500 truncate">{{ $product['sku'] }}</span>
+                            <span class="text-[11px] font-black {{ $product['stock_quantity'] <= 5 ? 'text-rose-600' : 'text-slate-700' }} shrink-0">{{ $product['stock_quantity'] }}</span>
                         </div>
-                        <div class="flex items-center justify-between gap-1 text-[9px]">
-                            <span class="font-mono text-slate-400 truncate">{{ $product['sku'] }}</span>
-                        </div>
+                        {{-- Từng thùng: mã thùng + số lượng trong ô (thùng gốc in đậm) --}}
                         @if(!empty($product['boxes']))
-                            {{-- Tồn theo từng thùng: mã thùng + số lượng (thùng gốc in đậm) --}}
-                            <div class="grid grid-cols-2 gap-0.5 mt-0.5">
+                            <div class="grid grid-cols-2 gap-1 mt-auto">
                                 @foreach(array_slice($product['boxes'], 0, 4) as $__b)
-                                    <div class="flex items-center justify-between gap-1 rounded border px-1 py-px text-[9px] leading-tight {{ $__b['qty'] > 0 ? 'border-emerald-200 bg-emerald-50 text-emerald-700' : 'border-slate-200 bg-slate-50 text-slate-400' }}">
+                                    <div class="flex items-center justify-between gap-1 rounded border px-1.5 py-0.5 text-[10px] leading-tight {{ $__b['qty'] > 0 ? 'border-slate-300 bg-white text-slate-700' : 'border-slate-200 bg-slate-50 text-slate-300' }}">
                                         <span class="truncate {{ $__b['root'] ? 'font-black' : 'font-medium' }}">{{ $__b['code'] }}</span>
-                                        <span class="shrink-0 font-black">{{ $__b['qty'] }}</span>
+                                        <span class="shrink-0 min-w-[1.25rem] text-center rounded border {{ $__b['qty'] > 0 ? 'border-slate-400' : 'border-slate-200' }} px-1 font-black">{{ $__b['qty'] }}</span>
                                     </div>
                                 @endforeach
                             </div>
